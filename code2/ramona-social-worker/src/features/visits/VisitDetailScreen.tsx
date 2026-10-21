@@ -89,7 +89,17 @@ export function VisitDetailScreen() {
   const doneCount = visit.checklist.filter((c) => c.done).length;
   const closed = visit.status !== 'scheduled';
 
+  const openOutcomeSheet = () => {
+    setNote(fieldNote);
+    setSelected(visit.status === 'scheduled' ? 'completed' : visit.status);
+    setSheetOpen(true);
+  };
+
   const submitOutcome = async () => {
+    if (selected === 'completed' && visit.checklist.some((item) => item.required && !item.done)) {
+      toast({ title: 'چک‌لیست کامل نیست', description: 'لطفاً ابتدا موارد الزامی بازدید را بررسی کنید.', tone: 'warning' });
+      return;
+    }
     setSaving(true);
     const result = await recordVisitOutcome(visit.id, selected, note.trim());
     setSaving(false);
@@ -246,6 +256,7 @@ export function VisitDetailScreen() {
                 required={item.required}
                 label={item.label}
                 onChange={() => toggleChecklistItem(visit.id, item.id)}
+                disabled={closed}
               />
             ))}
           </div>
@@ -257,7 +268,7 @@ export function VisitDetailScreen() {
           <Card>
             <TextArea
               label="یادداشت میدانی"
-              hint="این یادداشت فقط روی دستگاه شما ذخیره می‌شود و در گزارش نهایی قابل ویرایش است."
+              hint="این متن با ثبت نتیجه بازدید ذخیره می‌شود؛ پیش از آن با خروج از صفحه از بین می‌رود."
               rows={4}
               value={fieldNote}
               onChange={(e) => setFieldNote(e.target.value)}
@@ -286,7 +297,7 @@ export function VisitDetailScreen() {
       >
         {closed ? (
           <>
-            <Button variant="secondary" className="flex-1" onClick={() => setSheetOpen(true)}>
+            <Button variant="secondary" className="flex-1" onClick={openOutcomeSheet}>
               ویرایش نتیجه
             </Button>
             {visit.reportId && (
@@ -296,7 +307,7 @@ export function VisitDetailScreen() {
             )}
           </>
         ) : (
-          <Button block iconStart={<ClipboardList className="size-[18px]" />} onClick={() => setSheetOpen(true)}>
+          <Button block iconStart={<ClipboardList className="size-[18px]" />} onClick={openOutcomeSheet}>
             ثبت نتیجه بازدید
           </Button>
         )}

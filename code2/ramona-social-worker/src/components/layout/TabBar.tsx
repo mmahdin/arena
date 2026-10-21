@@ -1,18 +1,10 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
-import { CalendarDays, FolderHeart, ListChecks, Menu, Sunrise } from 'lucide-react';
+import { CalendarDays, FileText, FolderHeart, Menu, Sunrise } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { useApp } from '@/store/app-store';
-import { isOpenTask, taskBucket } from '@/lib/domain';
 
-/**
- * Primary navigation.
- *
- * Five destinations, no more: Today, Work, Calendar, Cases, More. Everything
- * else (reports, monitoring, notifications, profile) is reachable in one tap
- * from "More" and contextually from the screens where it matters. This keeps
- * the bar legible at a glance and the thumb's travel short.
- */
+/** Each primary destination has a single, distinct responsibility. */
 interface TabDef {
   to: string;
   label: string;
@@ -22,16 +14,16 @@ interface TabDef {
 
 const TABS: TabDef[] = [
   { to: '/', label: 'امروز', icon: Sunrise, exact: true },
-  { to: '/work', label: 'کارها', icon: ListChecks },
   { to: '/calendar', label: 'تقویم', icon: CalendarDays },
   { to: '/cases', label: 'پرونده‌ها', icon: FolderHeart },
+  { to: '/reports', label: 'گزارش‌ها', icon: FileText },
   { to: '/more', label: 'بیشتر', icon: Menu },
-]
+];
 
 export function TabBar() {
   const { pathname } = useLocation();
-  const { tasks } = useApp();
-  const urgent = tasks.filter((t) => isOpenTask(t) && ['overdue', 'today'].includes(taskBucket(t))).length;
+  const { reports } = useApp();
+  const revisions = reports.filter((r) => r.status === 'revision').length;
 
   return (
     <nav
@@ -41,7 +33,7 @@ export function TabBar() {
     >
       <ul className="flex items-stretch" style={{ height: 'var(--tabbar-h)' }}>
         {TABS.map((tab) => {
-          const active = tab.exact ? pathname === tab.to : pathname.startsWith(tab.to);
+          const active = tab.exact ? pathname === tab.to : pathname === tab.to || pathname.startsWith(`${tab.to}/`);
           const Icon = tab.icon;
           return (
             <li key={tab.to} className="flex-1">
@@ -57,8 +49,8 @@ export function TabBar() {
                   )}
                 >
                   <Icon className="size-[20px]" strokeWidth={active ? 2.4 : 2} aria-hidden />
-                  {tab.to === '/work' && urgent > 0 && (
-                    <span className="absolute end-1.5 top-0.5 size-1.5 rounded-full bg-danger" />
+                  {tab.to === '/reports' && revisions > 0 && (
+                    <span className="absolute end-1 top-0.5 size-1.5 rounded-full bg-danger" aria-label="گزارش نیازمند اصلاح" />
                   )}
                 </span>
                 <span

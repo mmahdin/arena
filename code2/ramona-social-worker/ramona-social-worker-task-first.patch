@@ -1,0 +1,2840 @@
+diff --git a/README.md b/README.md
+index 59deb70..85e295e 100644
+--- a/README.md
++++ b/README.md
+@@ -1,7 +1,7 @@
+ # رمونا · فضای کاری مددکار اجتماعی
+ 
+ اپ موبایل‌اولِ مددکار اجتماعی پلتفرم «رمونا» (مدیریت میزبانی و فرزندخواندگی کودک):
+-برنامه روزانه، کارها، تقویم، بازدیدها، گزارش‌ها، پرونده‌ها، پایش کودک و اعلان‌ها —
++وظایف محوله، تقویم، بازدیدها، گزارش‌های مرتبط و اعلان‌ها —
+ کاملاً راست‌به‌چپ و فارسی.
+ 
+ این مخزن یک **بنیان بصری و ساختاری** برای توسعه تدریجی است: همه صفحه‌ها با دادهٔ
+@@ -18,29 +18,25 @@ npm run build      # خروجی تولید در dist/
+ npm run preview    # اجرای خروجی تولید
+ ```
+ 
+-نیازمندی: Node 20+. فونت وزیرمتن به‌صورت محلی در `public/fonts/`_SELF-hosted است و هیچ
++نیازمندی: Node 20+. فونت وزیرمتن به‌صورت محلی در `public/fonts/` میزبانی می‌شود و هیچ
+ وابستگی شبکه‌ای در زمان اجرا وجود ندارد.
+ 
+-## نقشهٔ مسیرها
+-
+-| مسیر | صفحه |
+-| --- | --- |
+-| `/` | امروز (برنامه روز و موارد نیازمند رسیدگی) |
+-| `/work` | مسیر قدیمی؛ انتقال خودکار به `/calendar` |
+-| `/calendar` ، `/calendar?date=YYYY-MM-DD` | تقویم جلالی و کارها و برنامه‌های تاریخ انتخاب‌شده |
+-| `/cases` ، `/cases/:caseId` | پرونده‌ها و صفحه پرونده خانواده |
+-| `/children/:childId` | صفحه کودک (روند وضعیت، پیگیری‌ها) |
+-| `/visits/:visitId` | جزئیات بازدید + ثبت نتیجه |
+-| `/reports` ، `/reports/:reportId` | گزارش‌ها و ویرایشگر گزارش |
+-| `/monitoring` | پایش کودکان پس از جایگذاری |
+-| `/notifications` | اعلان‌ها |
+-| `/profile` ، `/settings` | پروفایل و تنظیمات |
+-| `/search` | جست‌وجوی سراسری |
+-| `/design-system` | راهنمای زنده توکن‌ها و اجزا |
+-| `*` | صفحهٔ پیدا نشد |
+-
+-ناوبری اصلی پنج تب است: امروز · تقویم · پرونده‌ها · گزارش‌ها · بیشتر. بقیه بخش‌ها از
+-طریق تب «بیشتر» یا پیوندهای درون‌صفحه‌ای در دسترس هستند تا نوار پایین شلوغ نشود.
++## تجربه کاربری جدید: وظیفه‌محور
++
++هدف اپ پاسخ به این پرسش است: **«الان چه کاری باید انجام دهم و چطور نتیجه‌اش را ثبت کنم؟»**
++
++- **کارهای من (`/`)**: وظایف باز در سه گروه بدون تکرار «نیازمند رسیدگی»، «امروز» و «در پیش». کارهای انجام‌شده امروز اختیاری و جمع‌شده‌اند. آرشیو چندساله فهرست نمی‌شود.
++- **تقویم (`/calendar`)**: همان وظایف، این بار بر اساس تاریخ انتخاب‌شده؛ بدون تب «همه کارها». وظایف انجام‌شده در روز مربوط باقی می‌مانند.
++- **جزئیات وظیفه (`/tasks/:taskId`)**: منبع واحد برای نوع مسئولیت، مهلت، اطلاعات لازم خانواده، نتیجه و دسترسی به بازدید یا گزارش مربوط.
++- **اعلان‌ها (`/notifications`)**: خبرها و تغییرات؛ خواندن اعلان به‌معنی انجام وظیفه نیست. لینک وظایف مستقیماً به صفحه همان کار می‌رود.
++- **بیشتر (`/more`)**: جست‌وجوی وظایف (`/search`)، سوابق گزارش‌ها (`/reports`)، پروفایل و تنظیمات.
++- **اطلاعات خانواده (`/cases/:caseId`)**: فقط مرجع اطلاعات مرتبط با وظیفه؛ صفحه مدیریت پرونده نیست. مسیر قدیمی `/cases` به «کارهای من» برمی‌گردد.
++- **بازدید (`/visits/:visitId`)**: نشانی، تماس، چک‌لیست و ثبت نتیجه. در پایان بازدید، وظیفه مستقل برای تکمیل گزارش ایجاد/مرتبط می‌شود.
++- **گزارش (`/reports/:reportId`)**: پیش‌نویس، اصلاح و ارسال. با ارسال گزارش، وظیفه گزارش مربوط انجام‌شده می‌شود.
++
++ناوبری اصلی **چهار** مقصد دارد: کارهای من · تقویم · اعلان‌ها · بیشتر. اطلاعات پرونده و گزارش‌ها لایه پشتیبان وظایف‌اند، نه ماژول‌های موازی برای انجام یک کار.
++
++**یادآوری فنی:** این نسخه هنوز به بک‌اند متصل نیست. تغییرات داده در حافظه همین نشست نگهداری می‌شوند. کنترل مجوز واقعی و ذخیره پایدار باید از سمت سرویس‌ها/سرور پیاده‌سازی شوند؛ محو کردن متن در رابط کاربری کنترل دسترسی نیست.
+ 
+ ## ساختار پروژه
+ 
+@@ -78,7 +74,7 @@ src/
+ ## افزودن قابلیت (راهنمای توسعه تدریجی)
+ 
+ 1. **صفحه جدید:** پوشه‌ای در `features/` بسازید، از `Screen`/`ScreenHeader`/`Section`
+-   استفاده کنید، مسیر را در `src/app/App.tsx` ثبت کنید.
++   استفاده کنید، مسیر را در `src/app/AppShell.tsx` ثبت کنید.
+ 2. **داده جدید:** نوع در `types/`، نمونه در `data/mock/`، خواندن/نوشتن در `services/`،
+    و در صورت جهش، intent در `app-store`.
+ 3. **جزء جدید:** اول بررسی کنید اجزای `components/ui` کافی نیستند؛ توکن‌های معنایی و
+diff --git a/src/app/AppShell.tsx b/src/app/AppShell.tsx
+index ab30e1e..bb2f3a2 100644
+--- a/src/app/AppShell.tsx
++++ b/src/app/AppShell.tsx
+@@ -9,13 +9,11 @@ import { useSettings } from '@/store/settings';
+ 
+ import { TodayScreen } from '@/features/today/TodayScreen';
+ import { CalendarScreen } from '@/features/calendar/CalendarScreen';
+-import { CasesScreen } from '@/features/cases/CasesScreen';
+ import { CaseDetailScreen } from '@/features/cases/CaseDetailScreen';
+ import { ChildDetailScreen } from '@/features/cases/ChildDetailScreen';
+ import { VisitDetailScreen } from '@/features/visits/VisitDetailScreen';
+ import { ReportsScreen } from '@/features/reports/ReportsScreen';
+ import { ReportEditorScreen } from '@/features/reports/ReportEditorScreen';
+-import { MonitoringScreen } from '@/features/monitoring/MonitoringScreen';
+ import { NotificationsScreen } from '@/features/notifications/NotificationsScreen';
+ import { MoreScreen } from '@/features/more/MoreScreen';
+ import { ProfileScreen } from '@/features/profile/ProfileScreen';
+@@ -23,9 +21,10 @@ import { SettingsScreen } from '@/features/profile/SettingsScreen';
+ import { SearchScreen } from '@/features/search/SearchScreen';
+ import { DesignSystemScreen } from '@/features/design-system/DesignSystemScreen';
+ import { NotFoundScreen } from '@/features/misc/NotFoundScreen';
++import { TaskDetailScreen } from '@/features/tasks/TaskDetailScreen';
+ 
+ /** Destinations that own a tab in the primary navigation. */
+-const TAB_ROUTES = ['/', '/calendar', '/cases', '/reports', '/more'];
++const TAB_ROUTES = ['/', '/calendar', '/notifications', '/more'];
+ 
+ export function AppShell() {
+   const { pathname, search } = useLocation();
+@@ -47,15 +46,16 @@ export function AppShell() {
+             <div id="app-scroll" ref={scrollRef} className="app-scroll">
+               <Routes>
+                 <Route path="/" element={<TodayScreen />} />
+-                <Route path="/work" element={<Navigate to="/calendar" replace />} />
++                <Route path="/work" element={<Navigate to="/" replace />} />
++                <Route path="/tasks/:taskId" element={<TaskDetailScreen />} />
+                 <Route path="/calendar" element={<CalendarScreen />} />
+-                <Route path="/cases" element={<CasesScreen />} />
++                <Route path="/cases" element={<Navigate to="/" replace />} />
+                 <Route path="/cases/:caseId" element={<CaseDetailScreen />} />
+                 <Route path="/children/:childId" element={<ChildDetailScreen />} />
+                 <Route path="/visits/:visitId" element={<VisitDetailScreen />} />
+                 <Route path="/reports" element={<ReportsScreen />} />
+                 <Route path="/reports/:reportId" element={<ReportEditorScreen />} />
+-                <Route path="/monitoring" element={<MonitoringScreen />} />
++                <Route path="/monitoring" element={<Navigate to="/" replace />} />
+                 <Route path="/notifications" element={<NotificationsScreen />} />
+                 <Route path="/more" element={<MoreScreen />} />
+                 <Route path="/profile" element={<ProfileScreen />} />
+diff --git a/src/components/layout/TabBar.tsx b/src/components/layout/TabBar.tsx
+index 12acb5b..0c6b8b6 100644
+--- a/src/components/layout/TabBar.tsx
++++ b/src/components/layout/TabBar.tsx
+@@ -1,69 +1,32 @@
+ import { NavLink, useLocation } from 'react-router-dom';
+ import type { LucideIcon } from 'lucide-react';
+-import { CalendarDays, FileText, FolderHeart, Menu, Sunrise } from 'lucide-react';
++import { Bell, CalendarDays, ClipboardList, Menu } from 'lucide-react';
+ import { cn } from '@/lib/cn';
+ import { useApp } from '@/store/app-store';
+ 
+-/** Each primary destination has a single, distinct responsibility. */
+-interface TabDef {
+-  to: string;
+-  label: string;
+-  icon: LucideIcon;
+-  exact?: boolean;
+-}
+-
+-const TABS: TabDef[] = [
+-  { to: '/', label: 'امروز', icon: Sunrise, exact: true },
++interface Destination { to: string; label: string; icon: LucideIcon }
++const TABS: Destination[] = [
++  { to: '/', label: 'کارهای من', icon: ClipboardList },
+   { to: '/calendar', label: 'تقویم', icon: CalendarDays },
+-  { to: '/cases', label: 'پرونده‌ها', icon: FolderHeart },
+-  { to: '/reports', label: 'گزارش‌ها', icon: FileText },
++  { to: '/notifications', label: 'اعلان‌ها', icon: Bell },
+   { to: '/more', label: 'بیشتر', icon: Menu },
+ ];
+ 
+ export function TabBar() {
+   const { pathname } = useLocation();
+-  const { reports } = useApp();
+-  const revisions = reports.filter((r) => r.status === 'revision').length;
+-
++  const { unreadCount } = useApp();
+   return (
+-    <nav
+-      aria-label="ناوبری اصلی"
+-      className="relative z-30 shrink-0 border-t border-line bg-surface/95 backdrop-blur-xl"
+-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+-    >
++    <nav aria-label="ناوبری اصلی" className="relative z-30 shrink-0 border-t border-line bg-surface/95 backdrop-blur-xl" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+       <ul className="flex items-stretch" style={{ height: 'var(--tabbar-h)' }}>
+-        {TABS.map((tab) => {
+-          const active = tab.exact ? pathname === tab.to : pathname === tab.to || pathname.startsWith(`${tab.to}/`);
+-          const Icon = tab.icon;
+-          return (
+-            <li key={tab.to} className="flex-1">
+-              <NavLink
+-                to={tab.to}
+-                aria-current={active ? 'page' : undefined}
+-                className="group flex h-full w-full flex-col items-center justify-center gap-1"
+-              >
+-                <span
+-                  className={cn(
+-                    'relative grid h-7 w-12 place-items-center rounded-pill transition-colors duration-base',
+-                    active ? 'bg-brand-soft text-brand-ink' : 'text-ink-3 group-hover:text-ink-2',
+-                  )}
+-                >
+-                  <Icon className="size-[20px]" strokeWidth={active ? 2.4 : 2} aria-hidden />
+-                  {tab.to === '/reports' && revisions > 0 && (
+-                    <span className="absolute end-1 top-0.5 size-1.5 rounded-full bg-danger" aria-label="گزارش نیازمند اصلاح" />
+-                  )}
+-                </span>
+-                <span
+-                  className={cn(
+-                    'text-2xs leading-none transition-colors',
+-                    active ? 'font-bold text-brand-ink' : 'font-medium text-ink-3',
+-                  )}
+-                >
+-                  {tab.label}
+-                </span>
+-              </NavLink>
+-            </li>
+-          );
++        {TABS.map(({ to, label, icon: Icon }) => {
++          const active = pathname === to;
++          return <li key={to} className="flex-1"><NavLink to={to} aria-current={active ? 'page' : undefined} className="group flex h-full flex-col items-center justify-center gap-1">
++            <span className={cn('relative grid h-7 w-12 place-items-center rounded-pill transition-colors', active ? 'bg-brand-soft text-brand-ink' : 'text-ink-3 group-hover:text-ink-2')}>
++              <Icon className="size-[20px]" strokeWidth={active ? 2.4 : 2} aria-hidden />
++              {to === '/notifications' && unreadCount > 0 && <span className="absolute right-1 top-0 size-2 rounded-full border border-surface bg-danger" aria-label="اعلان خوانده‌نشده" />}
++            </span>
++            <span className={cn('text-2xs leading-none', active ? 'font-bold text-brand-ink' : 'font-medium text-ink-3')}>{label}</span>
++          </NavLink></li>;
+         })}
+       </ul>
+     </nav>
+diff --git a/src/data/mock/notifications.ts b/src/data/mock/notifications.ts
+index f74964a..ecc8bb2 100644
+--- a/src/data/mock/notifications.ts
++++ b/src/data/mock/notifications.ts
+@@ -11,7 +11,7 @@ export const notifications: AppNotification[] = [
+     at: minutesAgo(38),
+     read: false,
+     priority: 'critical',
+-    href: '/reports/r-mousavi-visit',
++    href: '/tasks/t-revise-mousavi',
+   },
+   {
+     id: 'n-2',
+@@ -21,16 +21,16 @@ export const notifications: AppNotification[] = [
+     at: hoursAgo(2),
+     read: false,
+     priority: 'high',
+-    href: '/visits/v-radpour-today',
++    href: '/tasks/t-assess-radpour',
+   },
+   {
+     id: 'n-3',
+     type: 'assignment',
+-    title: 'پرونده جدید به شما محول شد',
+-    body: 'پرونده میزبانی «خانواده دهقانی» (RAM-0463) برای ارزیابی اولیه به شما ارجاع شد.',
++    title: 'بازدید جدید به شما محول شد',
++    body: 'بازدید ارزیابی اولیه خانواده دهقانی برای شما ثبت شد.',
+     at: hoursAgo(5),
+     read: false,
+-    href: '/cases/c-dehghani',
++    href: '/tasks/t-visit-dehghani',
+   },
+   {
+     id: 'n-4',
+@@ -40,7 +40,7 @@ export const notifications: AppNotification[] = [
+     at: hoursAgo(9),
+     read: true,
+     priority: 'medium',
+-    href: '/visits/v-kamrani',
++    href: '/tasks/t-monitor-saman',
+   },
+   {
+     id: 'n-5',
+@@ -50,7 +50,7 @@ export const notifications: AppNotification[] = [
+       'دکتر کاویانی: لطفاً پیش از بازدید فردا، برنامه آشنایی تدریجی باران را با مرکز هماهنگ کنید.',
+     at: hoursAgo(21),
+     read: true,
+-    href: '/visits/v-najafi-tomorrow',
++    href: '/tasks/t-visit-najafi',
+   },
+   {
+     id: 'n-6',
+@@ -60,7 +60,7 @@ export const notifications: AppNotification[] = [
+     at: at(-1, 16, 45),
+     read: true,
+     priority: 'critical',
+-    href: '/reports/r-mousavi-visit',
++    href: '/tasks/t-revise-mousavi',
+   },
+   {
+     id: 'n-7',
+diff --git a/src/data/mock/tasks.ts b/src/data/mock/tasks.ts
+index 9dd3c56..0bf35c4 100644
+--- a/src/data/mock/tasks.ts
++++ b/src/data/mock/tasks.ts
+@@ -49,6 +49,24 @@ export const tasks: Task[] = [
+     description: 'فرم باید هم‌زمان با بازدید امروز تکمیل و پیش‌نویس گزارش آماده شود.',
+     estimatedMin: 60,
+   },
++  {
++    id: 't-report-radpour',
++    title: 'تکمیل گزارش ارزیابی خانواده رادپور',
++    type: 'report', status: 'in-progress', priority: 'high',
++    dueDate: day(1), createdAt: hoursAgo(5),
++    caseId: 'c-radpour', caseCode: 'RAM-0417',
++    reportId: 'r-radpour-assessment', visitId: 'v-radpour-today',
++    assignedBy: 'دکتر رضا کاویانی',
++    description: 'گزارش پیش‌نویس ارزیابی اولیه را تکمیل و ارسال کنید.',
++  },
++  {
++    id: 't-report-hasti-incident',
++    title: 'تکمیل گزارش وضعیت تحصیلی هستی',
++    type: 'report', status: 'in-progress', priority: 'high',
++    dueDate: day(2), createdAt: hoursAgo(30),
++    caseId: 'c-mousavi', caseCode: 'RAM-0361', childId: 'ch-hasti',
++    reportId: 'r-hasti-incident', assignedBy: 'دکتر رضا کاویانی',
++  },
+   {
+     id: 't-meeting-weekly',
+     title: 'جلسه هفتگی تیم مددکاری',
+@@ -137,6 +155,31 @@ export const tasks: Task[] = [
+     description: 'ثبت تماس تلفنی هفتگی با مراقب اصلی و گزارش کوتاه.',
+     estimatedMin: 20,
+   },
++  {
++    id: 't-visit-najafi',
++    title: 'جلسه آشنایی کودک و خانواده نجفی',
++    type: 'visit', status: 'todo', priority: 'high',
++    dueDate: day(1), createdAt: at(-5, 10, 0),
++    caseId: 'c-najafi', caseCode: 'RAM-0455', childId: 'ch-baran',
++    visitId: 'v-najafi-tomorrow', assignedBy: 'دکتر رضا کاویانی',
++    description: 'مشاهده تعامل کودک و خانواده در جلسه آشنایی.',
++  },
++  {
++    id: 't-visit-dehghani',
++    title: 'بازدید ارزیابی اولیه — خانواده دهقانی',
++    type: 'visit', status: 'todo', priority: 'medium',
++    dueDate: day(2), createdAt: at(-2, 10, 0),
++    caseId: 'c-dehghani', caseCode: 'RAM-0463',
++    visitId: 'v-dehghani', assignedBy: 'واحد ارجاع',
++  },
++  {
++    id: 't-visit-sharifi-next',
++    title: 'بازدید دوره‌ای خانواده شریفی',
++    type: 'visit', status: 'todo', priority: 'medium',
++    dueDate: day(4), createdAt: at(-3, 10, 0),
++    caseId: 'c-sharifi', caseCode: 'RAM-0392', childId: 'ch-arsha',
++    visitId: 'v-sharifi-next', assignedBy: 'برنامه پایش دوره‌ای',
++  },
+   {
+     id: 't-done-sharifi',
+     title: 'بازدید پیگیری خانواده شریفی',
+diff --git a/src/features/_shared/WorkTaskCard.tsx b/src/features/_shared/WorkTaskCard.tsx
+new file mode 100644
+index 0000000..f9a72df
+--- /dev/null
++++ b/src/features/_shared/WorkTaskCard.tsx
+@@ -0,0 +1,63 @@
++import { Link } from 'react-router-dom';
++import { CalendarClock, ChevronLeft } from 'lucide-react';
++import type { CaseFile, Task, Visit } from '@/types';
++import { Badge } from '@/components/ui/Badge';
++import { TASK_ICON } from '@/components/ui/DomainIcon';
++import { PrivacyText } from '@/components/ui/PrivacyText';
++import { TASK_STATUS, TASK_TYPE, VISIT_PURPOSE } from '@/lib/labels';
++import { assignedDay, assignedTime, relatedCase, workTone } from '@/lib/workspace';
++import { dayKey, deadlineLabel, faDate, faTime } from '@/lib/jalali';
++import { cn } from '@/lib/cn';
++
++/** One reusable assignment row across home and calendar; no action is duplicated here. */
++export function WorkTaskCard({
++  task,
++  visits,
++  cases,
++  showDate = false,
++}: {
++  task: Task;
++  visits: Visit[];
++  cases: CaseFile[];
++  showDate?: boolean;
++}) {
++  const Icon = TASK_ICON[task.type];
++  const c = relatedCase(task, cases);
++  const tone = workTone(task, visits);
++  const time = assignedTime(task, visits);
++  const date = assignedDay(task, visits);
++  const statusText = task.status === 'revision' ? 'نیازمند اصلاح' : TASK_STATUS[task.status].label;
++  const highlight = task.status === 'revision' || task.status === 'blocked' || (tone === 'danger' && task.status !== 'done');
++  const urgentPriority = task.priority === 'critical' && task.status !== 'done' && !highlight;
++  const linkedVisit = task.type !== 'report' && task.visitId ? visits.find((v) => v.id === task.visitId) : undefined;
++  const dateAndTime = `${faDate(date, { year: false })}${time ? ` · ساعت ${faTime(time)}` : ''}`;
++  const when = showDate || (date < dayKey(new Date()) && task.status !== 'done') ? dateAndTime : time ? `ساعت ${faTime(time)}` : deadlineLabel(date);
++
++  return (
++    <Link
++      to={`/tasks/${task.id}`}
++      className="press flex min-h-[86px] items-center gap-3 rounded-lg border border-line bg-surface px-3.5 py-3 shadow-xs transition-colors hover:border-line-strong hover:bg-sunken/30"
++    >
++      <span className={cn('grid size-10 shrink-0 place-items-center rounded-md', highlight ? 'bg-warning-soft text-warning' : 'bg-sunken text-ink-2')}>
++        <Icon className="size-[19px]" strokeWidth={2} aria-hidden />
++      </span>
++      <span className="min-w-0 flex-1">
++        <span className="block text-sm font-bold leading-relaxed text-ink">{task.title}</span>
++        <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-ink-3">
++          <span>{linkedVisit ? VISIT_PURPOSE[linkedVisit.purpose].label : TASK_TYPE[task.type].label}</span>
++          {c && <><span aria-hidden>·</span><PrivacyText value={c.familyName} interactive={false} /></>}
++        </span>
++        <span className="mt-1 flex items-center gap-1.5 text-xs text-ink-2">
++          <CalendarClock className="size-3.5 shrink-0 text-ink-3" aria-hidden />
++          <span className="tabular-nums">{when}</span>
++        </span>
++      </span>
++      <span className="flex shrink-0 flex-col items-end justify-between gap-2 self-stretch py-0.5">
++        {(highlight || task.status === 'done' || urgentPriority) && (
++          <Badge tone={urgentPriority ? 'warning' : tone === 'neutral' ? 'warning' : tone}>{urgentPriority ? 'فوری' : statusText}</Badge>
++        )}
++        <ChevronLeft className="mt-auto size-4 text-ink-3" strokeWidth={2} aria-hidden />
++      </span>
++    </Link>
++  );
++}
+diff --git a/src/features/calendar/CalendarScreen.tsx b/src/features/calendar/CalendarScreen.tsx
+index bf2034f..a9f91e3 100644
+--- a/src/features/calendar/CalendarScreen.tsx
++++ b/src/features/calendar/CalendarScreen.tsx
+@@ -1,235 +1,105 @@
+ import { useEffect, useMemo, useState } from 'react';
+-import { Link, useSearchParams } from 'react-router-dom';
+-import { CalendarCheck2, ChevronLeft, ChevronRight, Clock3, MapPin, MoreVertical } from 'lucide-react';
+-import type { CalendarEvent } from '@/types';
++import { useSearchParams } from 'react-router-dom';
++import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
++import type { Task } from '@/types';
+ import { useApp } from '@/store/app-store';
+ import { Screen } from '@/components/layout/Screen';
+ import { ScreenHeader } from '@/components/layout/ScreenHeader';
+ import { IconButton } from '@/components/ui/IconButton';
+-import { Badge } from '@/components/ui/Badge';
+-import { ListGroup } from '@/components/ui/ListRow';
+ import { EmptyState } from '@/components/ui/EmptyState';
+-import { TONE } from '@/components/ui/tone';
+-import { TaskMenu } from '@/features/_shared/TaskRow';
++import { WorkTaskCard } from '@/features/_shared/WorkTaskCard';
++import { assignedDay, assignedTime } from '@/lib/workspace';
+ import { cn } from '@/lib/cn';
+ import { fa } from '@/lib/digits';
+-import {
+-  addMonthsJalali,
+-  buildMonthGrid,
+-  dayKey,
+-  faDate,
+-  faDuration,
+-  faMonthTitle,
+-  faTime,
+-  isSameDay,
+-  persianWeekdayIndex,
+-  toGregorian,
+-  toJalali,
+-  WEEKDAYS_SHORT,
+-} from '@/lib/jalali';
+-import { buildEvents } from '@/services/calendar';
++import { addMonthsJalali, buildMonthGrid, dayKey, faDate, faMonthTitle, isSameDay, persianWeekdayIndex, toGregorian, toJalali, WEEKDAYS_SHORT } from '@/lib/jalali';
+ 
+-/** Read a linked date without accepting invalid or normalized calendar dates. */
+-function linkedDate(value: string | null): Date | undefined {
++function parseDate(value: string | null): Date | undefined {
+   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
+   const date = new Date(`${value}T12:00:00`);
+   return !Number.isNaN(date.getTime()) && dayKey(date) === value ? date : undefined;
+ }
+ 
+-/** One purpose: select a date and work with that day's schedule and tasks. */
++/** Calendar is a date filter for assignments, never a competing task module. */
+ export function CalendarScreen() {
+-  const { visits, tasks } = useApp();
++  const { tasks, visits, cases } = useApp();
+   const [params, setParams] = useSearchParams();
+-  const focusedDate = params.get('date');
++  const linked = params.get('date');
+   const today = useMemo(() => new Date(), []);
+-  const [cursor, setCursor] = useState(() => toJalali(linkedDate(focusedDate) ?? today));
+-  const [selected, setSelected] = useState(() => dayKey(linkedDate(focusedDate) ?? today));
+-  const events = useMemo(() => buildEvents(), [visits, tasks]);
++  const initial = parseDate(linked) ?? today;
++  const [cursor, setCursor] = useState(() => toJalali(initial));
++  const [selected, setSelected] = useState(() => dayKey(initial));
+   const grid = useMemo(() => buildMonthGrid(cursor.jy, cursor.jm, today), [cursor, today]);
+ 
+-  // Deep links from alerts, search and notifications open the relevant day.
+   useEffect(() => {
+-    const date = linkedDate(focusedDate);
+-    if (!date) return;
+-    setCursor(toJalali(date));
+-    setSelected(dayKey(date));
+-  }, [focusedDate]);
++    const date = parseDate(linked);
++    if (date) { setSelected(dayKey(date)); setCursor(toJalali(date)); }
++  }, [linked]);
+ 
+   const byDay = useMemo(() => {
+-    const map = new Map<string, CalendarEvent[]>();
+-    for (const e of events) map.set(e.date, [...(map.get(e.date) ?? []), e]);
++    const map = new Map<string, Task[]>();
++    for (const task of tasks) {
++      const key = assignedDay(task, visits);
++      map.set(key, [...(map.get(key) ?? []), task]);
++    }
+     return map;
+-  }, [events]);
++  }, [tasks, visits]);
+ 
+-  const selectedEvents = useMemo(
+-    () => (byDay.get(selected) ?? []).slice().sort((a, b) => (a.time ?? '99:99').localeCompare(b.time ?? '99:99')),
+-    [byDay, selected],
++  const selectedTasks = useMemo(
++    () => [...(byDay.get(selected) ?? [])].sort((a, b) => (assignedTime(a, visits) ?? '99:99').localeCompare(assignedTime(b, visits) ?? '99:99')),
++    [byDay, selected, visits],
+   );
+ 
+-  const changeMonth = (offset: number) => {
+-    const next = addMonthsJalali(cursor, offset);
+-    setCursor(next);
+-    setSelected(dayKey(toGregorian({ ...next, jd: 1 })));
+-  };
+-
+   const selectDate = (key: string, date: Date) => {
+     setSelected(key);
+     const next = toJalali(date);
+     if (next.jy !== cursor.jy || next.jm !== cursor.jm) setCursor(next);
++    setParams({ date: key }, { replace: true });
+   };
+-
+-  const returnToday = () => {
+-    setCursor(toJalali(today));
+-    setSelected(dayKey(today));
+-    setParams({});
++  const changeMonth = (offset: number) => {
++    const next = addMonthsJalali(cursor, offset);
++    selectDate(dayKey(toGregorian({ ...next, jd: 1 })), toGregorian({ ...next, jd: 1 }));
+   };
++  const returnToday = () => { setCursor(toJalali(today)); setSelected(dayKey(today)); setParams({}, { replace: true }); };
+ 
+   return (
+     <Screen bottomGap={false}>
+-      <ScreenHeader
+-        title="تقویم کاری"
+-        subtitle="برنامه‌ها و مسئولیت‌های شما"
+-        actions={(
+-          <IconButton label="بازگشت به امروز" onClick={returnToday}>
+-            <CalendarCheck2 className="size-[20px]" strokeWidth={2} />
+-          </IconButton>
+-        )}
+-      />
+-
+-      <div className="pt-4 pb-8">
+-        <div className="mb-2 flex items-center justify-between gap-2 rounded-md border border-line bg-surface p-1.5">
+-          <IconButton label="ماه قبل" size="sm" onClick={() => changeMonth(-1)}>
+-            <ChevronRight className="size-[18px]" strokeWidth={2.4} />
+-          </IconButton>
+-          <p className="flex-1 text-center text-md font-bold text-ink">{faMonthTitle(cursor.jy, cursor.jm)}</p>
+-          <IconButton label="ماه بعد" size="sm" onClick={() => changeMonth(1)}>
+-            <ChevronLeft className="size-[18px]" strokeWidth={2.4} />
+-          </IconButton>
++      <ScreenHeader title="تقویم" subtitle="کارهای شما در هر روز" actions={<IconButton label="برگشت به امروز" onClick={returnToday}><CalendarDays className="size-5" /></IconButton>} />
++      <div className="pb-8 pt-5">
++        <div className="mb-3 flex items-center justify-between rounded-lg border border-line bg-surface px-1 py-1.5">
++          <IconButton label="ماه قبل" onClick={() => changeMonth(-1)}><ChevronRight className="size-5" /></IconButton>
++          <p className="text-base font-bold text-ink">{faMonthTitle(cursor.jy, cursor.jm)}</p>
++          <IconButton label="ماه بعد" onClick={() => changeMonth(1)}><ChevronLeft className="size-5" /></IconButton>
+         </div>
+ 
+         <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-xs">
+-          <div className="grid grid-cols-7 border-b border-line-soft bg-sunken/60">
+-            {WEEKDAYS_SHORT.map((d, i) => (
+-              <span key={d} className={cn('py-2 text-center text-xs font-bold', i === 6 ? 'text-danger' : 'text-ink-2')}>{d}</span>
+-            ))}
++          <div className="grid grid-cols-7 border-b border-line-soft bg-sunken/40">
++            {WEEKDAYS_SHORT.map((d, i) => <span key={i} className={cn('py-2 text-center text-xs font-semibold', i === 6 ? 'text-danger' : 'text-ink-3')}>{d}</span>)}
+           </div>
+           <div className="grid grid-cols-7">
+             {grid.map((cell) => {
+               const key = dayKey(cell.date);
+-              const dayEvents = byDay.get(key) ?? [];
+-              const isSelected = key === selected;
++              const count = (byDay.get(key) ?? []).length;
++              const active = key === selected;
+               const isFriday = persianWeekdayIndex(cell.date) === 6;
+               return (
+-                <button
+-                  key={key}
+-                  type="button"
+-                  onClick={() => selectDate(key, cell.date)}
+-                  aria-pressed={isSelected}
+-                  aria-label={`${faDate(cell.date, { weekday: true })} — ${fa(dayEvents.length)} مورد`}
+-                  className={cn(
+-                    'relative flex h-12 min-w-0 flex-col items-center justify-center gap-1 transition-colors',
+-                    !cell.inMonth && 'opacity-40',
+-                    isSelected ? 'bg-brand-soft' : 'hover:bg-sunken',
+-                  )}
+-                >
+-                  <span className={cn(
+-                    'grid size-7 place-items-center rounded-full text-sm tabular-nums transition-colors',
+-                    cell.isToday && !isSelected && 'bg-ink text-bg font-extrabold',
+-                    isSelected && 'bg-brand text-white font-extrabold',
+-                    !cell.isToday && !isSelected && (isFriday ? 'text-danger' : 'text-ink'),
+-                  )}>{fa(cell.jalali.jd)}</span>
+-                  <span className="flex h-1.5 items-center gap-0.5">
+-                    {dayEvents.slice(0, 3).map((e) => (
+-                      <span key={e.id} className={cn('size-1.5 rounded-full', TONE[e.tone].dot)} />
+-                    ))}
+-                  </span>
++                <button key={key} type="button" onClick={() => selectDate(key, cell.date)} aria-pressed={active} aria-label={`${faDate(cell.date, { weekday: true })}، ${fa(count)} کار`} className={cn('press flex h-12 min-w-0 flex-col items-center justify-center gap-0.5', !cell.inMonth && 'opacity-35', active && 'bg-brand-soft/70')}>
++                  <span className={cn('grid size-7 place-items-center rounded-full text-sm tabular-nums', active ? 'bg-brand font-extrabold text-white' : cell.isToday ? 'bg-ink font-bold text-bg' : isFriday ? 'text-danger' : 'text-ink')}>{fa(cell.jalali.jd)}</span>
++                  <span className={cn('size-1.5 rounded-full', count > 0 ? (byDay.get(key) ?? []).every((t) => t.status === 'done') ? 'bg-success' : 'bg-brand' : 'bg-transparent')} aria-hidden />
+                 </button>
+               );
+             })}
+           </div>
+         </div>
+ 
+-        <section className="mt-6" aria-label="برنامه روز انتخاب‌شده">
+-          <div className="mb-3 flex items-center justify-between gap-2">
+-            <h2 className="text-md font-bold text-ink">
+-              {isSameDay(new Date(`${selected}T00:00:00`), today) ? 'امروز' : faDate(selected, { weekday: true })}
+-            </h2>
+-            <span className="text-xs text-ink-3 tabular-nums">{fa(selectedEvents.length)} مورد</span>
++        <section className="mt-7" aria-label="کارهای تاریخ انتخاب‌شده">
++          <div className="mb-3 flex items-center justify-between px-1">
++            <h2 className="text-base font-extrabold text-ink">{isSameDay(new Date(`${selected}T12:00:00`), today) ? 'امروز' : faDate(selected, { weekday: true, year: false })}</h2>
++            <span className="text-xs text-ink-2 tabular-nums">{fa(selectedTasks.length)} کار</span>
+           </div>
+-          {selectedEvents.length === 0 ? (
+-            <div className="rounded-lg border border-dashed border-line-strong bg-surface/60">
+-              <EmptyState
+-                icon={<CalendarCheck2 className="size-6" />}
+-                title="موردی برای این روز ثبت نشده"
+-                description="برای دیدن برنامه‌ها و کارهای یک روز دیگر، تاریخ آن را انتخاب کنید."
+-              />
+-            </div>
+-          ) : (
+-            <ListGroup>
+-              {selectedEvents.map((e, i) => (
+-                <EventRow key={e.id} event={e} divider={i < selectedEvents.length - 1} />
+-              ))}
+-            </ListGroup>
+-          )}
++          {selectedTasks.length === 0 ? <div className="rounded-lg border border-dashed border-line bg-surface/70"><EmptyState icon={<CalendarDays className="size-5" />} title="کاری برای این روز ثبت نشده" description="تاریخ دیگری را انتخاب کنید." className="py-8" /></div>
++            : <div className="space-y-2">{selectedTasks.map((task) => <WorkTaskCard key={task.id} task={task} visits={visits} cases={cases} />)}</div>}
+         </section>
+       </div>
+     </Screen>
+   );
+ }
+-
+-function EventRow({ event, divider }: { event: CalendarEvent; divider?: boolean }) {
+-  const { tasks } = useApp();
+-  const [menuOpen, setMenuOpen] = useState(false);
+-  const task = event.taskId ? tasks.find((t) => t.id === event.taskId) : undefined;
+-  const target = event.href ?? `/calendar?date=${event.date}`;
+-  const openInPlace = Boolean(task && target.startsWith('/calendar?date='));
+-  const Icon = event.kind === 'visit' ? MapPin : event.kind === 'meeting' ? Clock3 : CalendarCheck2;
+-  const done = event.taskStatus === 'done' || (event.kind === 'visit' && event.tone === 'success');
+-  const revision = event.taskStatus === 'revision';
+-  const blocked = event.taskStatus === 'blocked';
+-  const rowClass = 'press flex min-h-16 min-w-0 flex-1 items-center gap-3 px-3 py-3.5 text-start hover:bg-sunken';
+-
+-  const content = (
+-    <>
+-      <span className="w-[3.3rem] shrink-0 text-center text-xs font-bold tabular-nums text-ink-2">
+-        {event.time ? faTime(event.time) : 'مهلت'}
+-      </span>
+-      <span className={cn('h-10 w-1 shrink-0 rounded-pill', TONE[event.tone].dot)} aria-hidden />
+-      <span className="min-w-0 flex-1">
+-        <span className="block text-sm font-bold leading-relaxed text-ink">{event.title}</span>
+-        <span className="mt-0.5 flex items-center gap-1.5 text-xs leading-relaxed text-ink-3">
+-          <Icon className="size-3.5 shrink-0" strokeWidth={2.1} aria-hidden />
+-          <span>
+-            {event.kind === 'visit' ? 'بازدید' : event.kind === 'meeting' ? 'جلسه' : 'وظیفه'}
+-            {event.caseCode ? ` · ${event.caseCode}` : ''}
+-            {event.durationMin ? ` · ${faDuration(event.durationMin)}` : ''}
+-          </span>
+-        </span>
+-      </span>
+-      {done ? <Badge tone="success">انجام‌شده</Badge> : revision ? <Badge tone="warning">اصلاح</Badge> : blocked ? <Badge tone="danger">متوقف</Badge> : null}
+-    </>
+-  );
+-
+-  return (
+-    <>
+-      <div className={cn('flex min-w-0 items-center', divider && 'border-b border-line-soft')}>
+-        {openInPlace ? (
+-          <button type="button" onClick={() => setMenuOpen(true)} className={rowClass}>
+-            {content}
+-            <MoreVertical className="size-4 shrink-0 text-ink-3" aria-hidden />
+-          </button>
+-        ) : (
+-          <Link to={target} className={rowClass}>{content}</Link>
+-        )}
+-        {task && !openInPlace && (
+-          <div className="pe-2">
+-            <IconButton label="گزینه‌های کار" size="sm" onClick={() => setMenuOpen(true)}>
+-              <MoreVertical className="size-4" />
+-            </IconButton>
+-          </div>
+-        )}
+-      </div>
+-      {task && <TaskMenu task={task} open={menuOpen} onClose={() => setMenuOpen(false)} />}
+-    </>
+-  );
+-}
+diff --git a/src/features/cases/CaseDetailScreen.tsx b/src/features/cases/CaseDetailScreen.tsx
+index e800d9f..ef27aa9 100644
+--- a/src/features/cases/CaseDetailScreen.tsx
++++ b/src/features/cases/CaseDetailScreen.tsx
+@@ -1,248 +1,42 @@
+-import { useMemo, useState, type ReactNode } from 'react';
+-import { Link, useNavigate, useParams } from 'react-router-dom';
+-import { ChevronDown, ClipboardPlus, FileText, MapPin, Phone, Users } from 'lucide-react';
++import { useMemo } from 'react';
++import { Link, useParams } from 'react-router-dom';
++import { ChevronDown, MapPin, Phone, Users } from 'lucide-react';
+ import { useApp } from '@/store/app-store';
+-import { useSettings } from '@/store/settings';
+-import { ActionFooter, Screen, Section } from '@/components/layout/Screen';
++import { Screen } from '@/components/layout/Screen';
+ import { ScreenHeader } from '@/components/layout/ScreenHeader';
+-import { SectionHeader, SectionAction } from '@/components/ui/SectionHeader';
+-import { Button } from '@/components/ui/Button';
+-import { Badge } from '@/components/ui/Badge';
+ import { Card } from '@/components/ui/Card';
+-import { KeyValue } from '@/components/ui/Field';
+ import { EmptyState } from '@/components/ui/EmptyState';
+ import { PrivacyText } from '@/components/ui/PrivacyText';
+ import { ReportRow } from '@/features/_shared/ReportRow';
+-import { CASE_STAGE, CASE_TYPE, PRIORITY, VISIT_PURPOSE, VISIT_STATUS } from '@/lib/labels';
+-import { visitDisplayState } from '@/lib/domain';
++import { CASE_TYPE } from '@/lib/labels';
+ import { fa, toLatinDigits } from '@/lib/digits';
+-import { faDate, relativeTime } from '@/lib/jalali';
+ 
+-/** A case is a concise reference for a field worker, not a workflow console. */
++/** Context is available from a task, without exposing case-management controls. */
+ export function CaseDetailScreen() {
+   const { caseId } = useParams();
+-  const navigate = useNavigate();
+-  const { cases, visits, reports, user, toast, createReportDraft } = useApp();
+-  const { fieldPrivacy } = useSettings();
+-  const [showAllReports, setShowAllReports] = useState(false);
+-  const [creating, setCreating] = useState(false);
+-  const caseFile = cases.find((c) => c.id === caseId);
+-
+-  const caseVisits = useMemo(
+-    () => visits.filter((v) => v.caseId === caseId).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)),
+-    [visits, caseId],
+-  );
+-  const caseReports = useMemo(
+-    () => reports.filter((r) => r.caseId === caseId && r.author === user?.name).sort((a, b) => {
+-      const priority = (status: string) => status === 'revision' ? 0 : status === 'draft' ? 1 : 2;
+-      return priority(a.status) - priority(b.status) || b.updatedAt.localeCompare(a.updatedAt);
+-    }),
+-    [reports, caseId, user?.name],
+-  );
+-
+-  if (!caseFile) {
+-    return (
+-      <Screen>
+-        <ScreenHeader back title="پرونده" />
+-        <EmptyState title="پرونده یافت نشد" description="ممکن است دسترسی شما به این پرونده محدود شده باشد." />
+-        <Button block onClick={() => navigate('/cases')}>بازگشت به پرونده‌ها</Button>
+-      </Screen>
+-    );
+-  }
+-
+-  const pendingVisit = caseVisits.find((v) => visitDisplayState(v) === 'needs-outcome');
+-  const stage = CASE_STAGE[caseFile.stage];
+-  const closed = caseFile.stage === 'closed';
+-  const reportsToShow = showAllReports ? caseReports : caseReports.slice(0, 3);
+-
+-  const openNewReport = async () => {
+-    if (creating || closed) return;
+-    setCreating(true);
+-    try {
+-      const id = await createReportDraft({
+-        type: caseFile.stage === 'initial-assessment' ? 'home-assessment' : caseFile.stage === 'post-placement' ? 'monitoring' : 'visit',
+-        caseId: caseFile.id,
+-        childId: caseFile.children[0]?.id,
+-      });
+-      if (id) {
+-        toast({ title: 'پیش‌نویس گزارش ایجاد شد', tone: 'success' });
+-        navigate(`/reports/${id}`);
+-      }
+-    } finally {
+-      setCreating(false);
+-    }
+-  };
+-
+-  return (
+-    <Screen bottomGap={false}>
+-      <ScreenHeader
+-        back
+-        title={<PrivacyText value={caseFile.familyName} interactive={false} />}
+-        subtitle={`${caseFile.code} · ${CASE_TYPE[caseFile.type].label}`}
+-      />
+-
+-      <div className="pt-4">
+-        <div className="flex flex-wrap items-center gap-2">
+-          <Badge tone={stage.tone}>{stage.label}</Badge>
+-          {!closed && caseFile.priority === 'critical' && <Badge tone={PRIORITY[caseFile.priority].tone}>اولویت فوری</Badge>}
++  const { cases, reports, user } = useApp();
++  const c = cases.find((item) => item.id === caseId);
++  const myReports = useMemo(() => reports.filter((r) => r.caseId === caseId && r.author === user?.name).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)), [reports, caseId, user?.name]);
++  if (!c) return <Screen><ScreenHeader back title="اطلاعات خانواده" /><EmptyState title="اطلاعات در دسترس نیست" description="ممکن است دسترسی شما به این مورد محدود شده باشد." /></Screen>;
++  return <Screen bottomGap={false}>
++    <ScreenHeader back title={<PrivacyText value={c.familyName} interactive={false} />} subtitle={`${CASE_TYPE[c.type].label} · ${c.code}`} />
++    <div className="space-y-6 pb-8 pt-5">
++      <section><h2 className="mb-3 px-1 text-sm font-bold text-ink">اطلاعات ضروری</h2><Card className="space-y-3">
++        <div><p className="text-xs text-ink-3">سرپرست خانواده</p><p className="mt-1 text-sm font-semibold text-ink"><PrivacyText value={c.headOfHousehold} /></p></div>
++        {c.phone && <a href={`tel:${toLatinDigits(c.phone).replace(/[^+0-9]/g, '')}`} className="press flex min-h-11 items-center gap-2 border-t border-line-soft pt-2 text-sm font-semibold text-brand-ink"><Phone className="size-4" /> تماس با خانواده</a>}
++        <div className="border-t border-line-soft pt-3"><p className="flex items-center gap-2 text-xs text-ink-3"><MapPin className="size-4" /> نشانی</p><p className="mt-1 text-sm leading-7 text-ink"><PrivacyText value={`${c.city}، ${c.address}`} /></p></div>
++      </Card></section>
++      {(c.members.length > 0 || c.children.length > 0 || c.housing || c.income) && <details className="group overflow-hidden rounded-lg border border-line bg-surface">
++        <summary className="press flex min-h-12 cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-bold text-ink [&::-webkit-details-marker]:hidden">جزئیات مرتبط <ChevronDown className="size-4 text-ink-3 transition-transform group-open:rotate-180" /></summary>
++        <div className="space-y-4 border-t border-line-soft px-4 py-4 text-sm leading-7 text-ink-2">
++          {c.housing && <p>شرایط سکونت: {c.housing.tenure}، {fa(c.housing.rooms)} اتاق</p>}
++          {c.income && <p>وضعیت اقتصادی: {c.income}</p>}
++          {c.members.length > 0 && <div><p className="mb-1 flex items-center gap-2 font-bold text-ink"><Users className="size-4" /> اعضای خانواده</p>{c.members.map((m) => <p key={m.id}><PrivacyText value={m.name} interactive={false} /> · {m.relation} · {fa(m.age)} سال</p>)}</div>}
++          {c.children.length > 0 && <div><p className="mb-1 font-bold text-ink">کودکان مرتبط</p>{c.children.map((ch) => <Link key={ch.id} to={`/children/${ch.id}`} className="press block min-h-10 py-1 text-brand-ink"><PrivacyText value={ch.firstName} interactive={false} /> · {fa(ch.age)} سال</Link>)}</div>}
+         </div>
+-
+-        <Section>
+-          <SectionHeader title="اطلاعات ضروری" />
+-          <Card className="divide-y divide-line-soft px-4 py-1">
+-            <KeyValue label="سرپرست خانوار" value={<PrivacyText value={caseFile.headOfHousehold} />} />
+-            <KeyValue
+-              label="شماره تماس"
+-              icon={<Phone className="size-3.5 text-ink-3" />}
+-              value={caseFile.phone ? <PrivacyText value={caseFile.phone} /> : '—'}
+-            />
+-            <KeyValue
+-              label="نشانی"
+-              icon={<MapPin className="size-3.5 text-ink-3" />}
+-              value={<PrivacyText value={`${caseFile.city}، ${caseFile.address}`} />}
+-            />
+-          </Card>
+-          {caseFile.phone && !fieldPrivacy && (
+-            <a
+-              href={`tel:${toLatinDigits(caseFile.phone).replace(/[^0-9+]/g, '')}`}
+-              className="press mt-2 inline-flex min-h-10 items-center gap-2 px-1 text-sm font-semibold text-brand-ink"
+-            >
+-              <Phone className="size-4" aria-hidden /> تماس با خانواده
+-            </a>
+-          )}
+-        </Section>
+-
+-        {caseFile.notes && (
+-          <p className="mt-4 rounded-md bg-sunken px-4 py-3 text-sm leading-relaxed text-ink-2">
+-            {caseFile.notes}
+-          </p>
+-        )}
+-
+-        <Section>
+-          <SectionHeader
+-            title="گزارش‌های من"
+-            action={!closed ? <SectionAction onClick={() => { void openNewReport(); }}>گزارش جدید</SectionAction> : undefined}
+-          />
+-          {caseReports.length === 0 ? (
+-            <Card className="border-dashed">
+-              <p className="text-sm text-ink-3">هنوز گزارشی برای این پرونده ثبت نکرده‌اید.</p>
+-            </Card>
+-          ) : (
+-            <Card padded={false}>
+-              {reportsToShow.map((report, i) => (
+-                <ReportRow key={report.id} report={report} showCase={false} divider={i < reportsToShow.length - 1} />
+-              ))}
+-              {caseReports.length > 3 && (
+-                <button
+-                  type="button"
+-                  onClick={() => setShowAllReports((v) => !v)}
+-                  className="press w-full border-t border-line-soft px-4 py-3 text-center text-sm font-semibold text-brand-ink"
+-                  aria-expanded={showAllReports}
+-                >
+-                  {showAllReports ? 'نمایش کمتر' : `نمایش ${fa(caseReports.length - 3)} گزارش دیگر`}
+-                </button>
+-              )}
+-            </Card>
+-          )}
+-        </Section>
+-
+-        <Disclosure title="اطلاعات تکمیلی" count={caseFile.members.length + caseFile.children.length}>
+-          {caseFile.housing && (
+-            <div className="mb-4 space-y-2">
+-              <h3 className="text-sm font-bold text-ink">شرایط سکونت</h3>
+-              <p className="text-sm leading-relaxed text-ink-2">
+-                {caseFile.housing.tenure} · {fa(caseFile.housing.rooms)} اتاق · {caseFile.housing.condition}
+-              </p>
+-            </div>
+-          )}
+-          {caseFile.income && (
+-            <div className="mb-4 space-y-1">
+-              <h3 className="text-sm font-bold text-ink">وضعیت اقتصادی ثبت‌شده</h3>
+-              <p className="text-sm leading-relaxed text-ink-2">{caseFile.income}</p>
+-            </div>
+-          )}
+-          {caseFile.members.length > 0 && (
+-            <div className="mb-4">
+-              <h3 className="mb-2 flex items-center gap-2 text-sm font-bold text-ink"><Users className="size-4" aria-hidden /> اعضای خانوار</h3>
+-              <ul className="divide-y divide-line-soft">
+-                {caseFile.members.map((m) => (
+-                  <li key={m.id} className="flex flex-wrap justify-between gap-2 py-2 text-sm">
+-                    <PrivacyText value={m.name} interactive={false} />
+-                    <span className="text-ink-3">{m.relation} · {fa(m.age)} سال</span>
+-                  </li>
+-                ))}
+-              </ul>
+-            </div>
+-          )}
+-          {caseFile.children.length > 0 && (
+-            <div className="mb-2">
+-              <h3 className="mb-2 text-sm font-bold text-ink">کودکان مرتبط</h3>
+-              {caseFile.children.map((ch) => (
+-                <Link key={ch.id} to={`/children/${ch.id}`} className="press flex min-h-10 items-center justify-between border-t border-line-soft py-2 text-sm text-brand-ink">
+-                  <span><PrivacyText value={ch.firstName} interactive={false} /> · {fa(ch.age)} سال</span>
+-                  <span>مشاهده</span>
+-                </Link>
+-              ))}
+-            </div>
+-          )}
+-          {caseFile.documents.length > 0 && (
+-            <div className="mt-4">
+-              <h3 className="mb-2 text-sm font-bold text-ink">مستندات ثبت‌شده</h3>
+-              <ul className="divide-y divide-line-soft">
+-                {caseFile.documents.map((d) => (
+-                  <li key={d.id} className="flex items-center justify-between gap-2 py-2 text-sm">
+-                    <span className="min-w-0 flex-1 text-ink-2">{d.title}</span>
+-                    <span className="shrink-0 text-xs text-ink-3">{relativeTime(d.updatedAt)}</span>
+-                  </li>
+-                ))}
+-              </ul>
+-              <p className="mt-2 text-xs text-ink-3">دریافت فایل‌های پیوست در نسخه نمایشی فعال نیست.</p>
+-            </div>
+-          )}
+-        </Disclosure>
+-
+-        {caseVisits.length > 0 && (
+-          <Disclosure title="سوابق بازدید" count={caseVisits.length}>
+-            <div className="divide-y divide-line-soft">
+-              {caseVisits.map((visit) => (
+-                <Link key={visit.id} to={`/visits/${visit.id}`} className="press flex min-h-14 items-center justify-between gap-3 py-3">
+-                  <span className="min-w-0 flex-1">
+-                    <span className="block text-sm font-semibold text-ink">{VISIT_PURPOSE[visit.purpose].label}</span>
+-                    <span className="mt-1 block text-xs text-ink-3">{faDate(visit.date, { year: false })} · {fa(visit.time)}</span>
+-                  </span>
+-                  <span className="text-xs text-ink-2">{VISIT_STATUS[visit.status].label}</span>
+-                </Link>
+-              ))}
+-            </div>
+-          </Disclosure>
+-        )}
+-      </div>
+-
+-      {!closed && (
+-        <ActionFooter>
+-          {pendingVisit ? (
+-            <Button block iconStart={<ClipboardPlus className="size-[18px]" />} onClick={() => navigate(`/visits/${pendingVisit.id}`)}>
+-              ثبت نتیجه بازدید
+-            </Button>
+-          ) : (
+-            <Button block loading={creating} iconStart={<FileText className="size-[18px]" />} onClick={() => { void openNewReport(); }}>
+-              ثبت گزارش جدید
+-            </Button>
+-          )}
+-        </ActionFooter>
+-      )}
+-    </Screen>
+-  );
+-}
+-
+-function Disclosure({ title, count, children }: { title: string; count?: number; children: ReactNode }) {
+-  return (
+-    <details className="group mt-4 overflow-hidden rounded-lg border border-line bg-surface shadow-xs">
+-      <summary className="press flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-bold text-ink [&::-webkit-details-marker]:hidden">
+-        <span>{title}{typeof count === 'number' && <span className="ms-2 text-xs font-medium text-ink-3">{fa(count)}</span>}</span>
+-        <ChevronDown className="size-4 text-ink-3 transition-transform group-open:rotate-180" aria-hidden />
+-      </summary>
+-      <div className="border-t border-line-soft px-4 pb-4 pt-3">{children}</div>
+-    </details>
+-  );
++      </details>}
++      {myReports.length > 0 && <section><h2 className="mb-3 px-1 text-sm font-bold text-ink">گزارش‌های مرتبط من</h2><Card padded={false}>{myReports.map((r, i) => <ReportRow key={r.id} report={r} showCase={false} divider={i < myReports.length - 1} />)}</Card></section>}
++      {c.notes && <p className="rounded-md bg-sunken px-4 py-3 text-sm leading-7 text-ink-2">{c.notes}</p>}
++    </div>
++  </Screen>;
+ }
+diff --git a/src/features/cases/ChildDetailScreen.tsx b/src/features/cases/ChildDetailScreen.tsx
+index dae58a1..19038ab 100644
+--- a/src/features/cases/ChildDetailScreen.tsx
++++ b/src/features/cases/ChildDetailScreen.tsx
+@@ -1,180 +1,58 @@
+ import { useMemo } from 'react';
+-import { Link, useNavigate, useParams } from 'react-router-dom';
+-import { Baby, CalendarClock, HeartPulse, MapPin, School, Stethoscope } from 'lucide-react';
++import { Link, useParams } from 'react-router-dom';
++import { ChevronDown, HeartPulse } from 'lucide-react';
+ import { useApp } from '@/store/app-store';
+-import { ActionFooter, Screen, Section } from '@/components/layout/Screen';
++import { Screen } from '@/components/layout/Screen';
+ import { ScreenHeader } from '@/components/layout/ScreenHeader';
+ import { Badge } from '@/components/ui/Badge';
+-import { Button } from '@/components/ui/Button';
+ import { Card } from '@/components/ui/Card';
+-import { KeyValue } from '@/components/ui/Field';
+-import { TrendChart } from '@/components/ui/TrendChart';
+ import { EmptyState } from '@/components/ui/EmptyState';
+-import { IconTile } from '@/components/ui/DomainIcon';
+-import { SectionHeader } from '@/components/ui/SectionHeader';
++import { PrivacyText } from '@/components/ui/PrivacyText';
+ import { ReportRow } from '@/features/_shared/ReportRow';
+ import { WELLBEING } from '@/lib/labels';
+ import { fa } from '@/lib/digits';
+-import { deadlineLabel, faDate } from '@/lib/jalali';
++import { faDate } from '@/lib/jalali';
+ 
+-const PLACEMENT_LABEL = {
+-  family: 'در خانواده میزبان',
+-  center: 'در مرکز نگهداری',
+-  temporary: 'جایگذاری موقت',
+-} as const;
+-
+-/**
+- * Child under monitoring.
+- *
+- * The whole point of this screen is one question: is this child doing well,
+- * and is that getting better or worse? So the trend leads, the facts follow,
+- * and the reporting action is always within reach of the thumb.
+- */
++/** Read-only child context reached from the relevant assignment or family. */
+ export function ChildDetailScreen() {
+   const { childId } = useParams();
+-  const navigate = useNavigate();
+-  const { cases, visits, reports, toast, createReportDraft } = useApp();
+-
++  const { cases, reports, user } = useApp();
+   const found = useMemo(() => {
+     for (const c of cases) {
+-      const child = c.children.find((ch) => ch.id === childId);
+-      if (child) return { child, caseFile: c };
++      const child = c.children.find((item) => item.id === childId);
++      if (child) return { child, family: c };
+     }
+     return undefined;
+   }, [cases, childId]);
+-
+-  const childVisits = useMemo(
+-    () => visits.filter((v) => v.childIds?.includes(childId ?? '')).sort((a, b) => b.date.localeCompare(a.date)),
+-    [visits, childId],
+-  );
+-  const childReports = useMemo(() => reports.filter((r) => r.childId === childId), [reports, childId]);
+-
+-  if (!found) {
+-    return (
+-      <Screen>
+-        <ScreenHeader back title="کودک" />
+-        <EmptyState title="موردی یافت نشد" description="این رکورد ممکن است از حوزه دسترسی شما خارج شده باشد." />
+-      </Screen>
+-    );
+-  }
+-
+-  const { child, caseFile } = found;
+-  const w = WELLBEING[child.wellbeing];
+-
+-  return (
+-    <Screen bottomGap={false}>
+-      <ScreenHeader
+-        back
+-        title={`${child.firstName} — ${fa(child.age)} ساله`}
+-        subtitle={
+-          <Link to={`/cases/${caseFile.id}`} className="press underline-offset-4 hover:underline">
+-            {caseFile.familyName} · {caseFile.code}
+-          </Link>
+-        }
+-      />
+-
+-      <div className="pt-4">
+-        <Card className="flex items-center justify-between gap-3">
+-          <div className="flex items-center gap-3">
+-            <IconTile icon={Baby} tone={w.tone} size="lg" />
+-            <div>
+-              <p className="text-md font-bold text-ink">{child.firstName}</p>
+-              <p className="text-xs text-ink-3">{PLACEMENT_LABEL[child.placement]}</p>
+-            </div>
+-          </div>
+-          <Badge tone={w.tone} size="md">
+-            {w.label}
+-          </Badge>
+-        </Card>
+-      </div>
+-
+-      <Section>
+-        <TrendChart history={child.wellbeingHistory} />
+-      </Section>
+-
+-      <Section>
+-        <SectionHeader title="وضعیت کودک" />
+-        <Card className="divide-y divide-line-soft px-4 py-1">
+-          <KeyValue label="سن" value={`${fa(child.age)} سال`} icon={<Baby className="size-3.5 text-ink-3" />} />
+-          <KeyValue label="سلامت" value={child.health ?? '—'} icon={<Stethoscope className="size-3.5 text-ink-3" />} />
+-          <KeyValue label="تحصیل" value={child.education ?? '—'} icon={<School className="size-3.5 text-ink-3" />} />
+-          <KeyValue
+-            label="پیگیری بعدی"
+-            value={`${faDate(child.nextFollowUp, { year: false })} (${deadlineLabel(child.nextFollowUp)})`}
+-            icon={<CalendarClock className="size-3.5 text-ink-3" />}
+-          />
+-          <KeyValue label="بازدیدهای ثبت‌شده" value={`${fa(child.followUpCount)} مورد`} icon={<MapPin className="size-3.5 text-ink-3" />} />
+-        </Card>
+-      </Section>
+-
+-      {child.needs.length > 0 && (
+-        <Section>
+-          <SectionHeader title="نیازهای شناسایی‌شده" />
+-          <div className="flex flex-wrap gap-1.5">
+-            {child.needs.map((n) => (
+-              <span key={n} className="rounded-pill border border-line bg-surface px-3 py-1.5 text-sm text-ink-2">
+-                {n}
+-              </span>
+-            ))}
+-          </div>
+-        </Section>
+-      )}
+-
+-      <Section>
+-        <SectionHeader title="بازدیدهای پایش" action={<span className="text-2xs text-ink-3">{fa(childVisits.length)} مورد</span>} />
+-        {childVisits.length === 0 ? (
+-          <Card className="border-dashed">
+-            <p className="text-sm text-ink-3">بازدیدی برای این کودک ثبت نشده است.</p>
+-          </Card>
+-        ) : (
+-          <Card padded={false} className="divide-y divide-line-soft">
+-            {childVisits.slice(0, 4).map((v) => (
+-              <Link key={v.id} to={`/visits/${v.id}`} className="press flex items-center gap-3 px-4 py-3 hover:bg-sunken">
+-                <IconTile icon={HeartPulse} tone={v.status === 'completed' ? 'success' : 'brand'} size="sm" />
+-                <div className="min-w-0 flex-1">
+-                  <p className="truncate text-base font-semibold text-ink tabular-nums">{faDate(v.date, { year: false })}</p>
+-                  <p className="truncate text-xs text-ink-3">{v.summary}</p>
+-                </div>
+-              </Link>
+-            ))}
+-          </Card>
+-        )}
+-      </Section>
+-
+-      <Section>
+-        <SectionHeader title="گزارش‌ها" />
+-        {childReports.length === 0 ? (
+-          <Card className="border-dashed">
+-            <p className="text-sm text-ink-3">گزارشی برای این کودک ثبت نشده است.</p>
+-          </Card>
+-        ) : (
+-          <Card padded={false} className="divide-y divide-line-soft">
+-            {childReports.map((r) => (
+-              <ReportRow key={r.id} report={r} />
+-            ))}
+-          </Card>
+-        )}
+-      </Section>
+-
+-      <ActionFooter hint="پس از ارسال، گزارش برای بازبینی سرپرست ارسال می‌شود.">
+-        <Button
+-          block
+-          iconStart={<HeartPulse className="size-[18px]" />}
+-          onClick={async () => {
+-            const id = await createReportDraft({
+-              type: 'monitoring',
+-              caseId: caseFile.id,
+-              childId: child.id,
+-            });
+-            if (id) {
+-              toast({ title: 'پیش‌نویس گزارش پایش ایجاد شد', tone: 'success' });
+-              navigate(`/reports/${id}`);
+-            }
+-          }}
+-        >
+-          ثبت گزارش پایش
+-        </Button>
+-      </ActionFooter>
+-    </Screen>
+-  );
++  const myReports = useMemo(() => reports.filter((r) => r.childId === childId && r.author === user?.name).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)), [reports, childId, user?.name]);
++
++  if (!found) return <Screen><ScreenHeader back title="اطلاعات کودک" /><EmptyState title="اطلاعاتی پیدا نشد" description="ممکن است دسترسی شما به این مورد محدود شده باشد." /></Screen>;
++  const { child, family } = found;
++  const wellness = WELLBEING[child.wellbeing];
++
++  return <Screen bottomGap={false}>
++    <ScreenHeader back title={<PrivacyText value={child.firstName} interactive={false} />} subtitle={<Link to={`/cases/${family.id}`} className="press text-brand-ink">خانواده <PrivacyText value={family.familyName} interactive={false} /></Link>} />
++    <div className="space-y-5 pb-8 pt-5">
++      <Card className="space-y-3">
++        <div className="flex items-center justify-between gap-3">
++          <span className="text-sm font-semibold text-ink">وضعیت فعلی</span>
++          <Badge tone={wellness.tone}>{wellness.label}</Badge>
++        </div>
++        <div className="flex justify-between gap-3 border-t border-line-soft pt-3 text-sm"><span className="text-ink-3">سن</span><span className="font-medium text-ink">{fa(child.age)} سال</span></div>
++        <div className="flex justify-between gap-3 border-t border-line-soft pt-3 text-sm"><span className="text-ink-3">پیگیری بعدی</span><span className="font-medium text-ink">{faDate(child.nextFollowUp, { year: false })}</span></div>
++        {child.needs.length > 0 && <div className="border-t border-line-soft pt-3"><p className="mb-2 text-xs font-semibold text-ink-3">نیازهای شناسایی‌شده</p><p className="text-sm leading-7 text-ink-2">{child.needs.join('، ')}</p></div>}
++      </Card>
++      {(child.health || child.education) && <details className="group overflow-hidden rounded-lg border border-line bg-surface">
++        <summary className="press flex min-h-12 cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-ink [&::-webkit-details-marker]:hidden">اطلاعات تکمیلی <ChevronDown className="size-4 text-ink-3 transition-transform group-open:rotate-180" /></summary>
++        <div className="space-y-2 border-t border-line-soft px-4 py-3 text-sm leading-7 text-ink-2">
++          {child.health && <p>سلامت: {child.health}</p>}
++          {child.education && <p>تحصیل: {child.education}</p>}
++        </div>
++      </details>}
++      {myReports.length > 0 && <section>
++        <h2 className="mb-3 flex items-center gap-2 px-1 text-sm font-bold text-ink"><HeartPulse className="size-4 text-ink-3" /> گزارش‌های مرتبط من</h2>
++        <Card padded={false}>{myReports.map((report, index) => <ReportRow key={report.id} report={report} showCase={false} divider={index < myReports.length - 1} />)}</Card>
++      </section>}
++    </div>
++  </Screen>;
+ }
+diff --git a/src/features/more/MoreScreen.tsx b/src/features/more/MoreScreen.tsx
+index 3b29cb0..8085756 100644
+--- a/src/features/more/MoreScreen.tsx
++++ b/src/features/more/MoreScreen.tsx
+@@ -1,110 +1,31 @@
+-import { HeartPulse, Bell, CircleUser, Settings, Palette, LifeBuoy, LogOut, ShieldCheck } from 'lucide-react';
++import { FileText, LogOut, Search, Settings, UserRound } from 'lucide-react';
+ import { useApp } from '@/store/app-store';
+-import { Screen } from '@/components/layout/Screen';
++import { Screen, Section } from '@/components/layout/Screen';
+ import { ScreenHeader } from '@/components/layout/ScreenHeader';
+ import { ListGroup, ListRow } from '@/components/ui/ListRow';
+ import { IconTile } from '@/components/ui/DomainIcon';
+-import { Badge } from '@/components/ui/Badge';
+-import { Section } from '@/components/layout/Screen';
+-import { fa } from '@/lib/digits';
+-import { Logo } from '@/components/layout/Logo';
+ 
+-/**
+- * More.
+- *
+- * The overflow tab is not a junk drawer: it holds the destinations that are
+- * used less often: monitoring, notifications, profile and settings.
+- * Reports have their own primary destination instead of appearing twice.
+- */
++/** Secondary tools; assigned work remains the only primary workflow. */
+ export function MoreScreen() {
+-  const { cases, unreadCount, toast } = useApp();
+-
+-  const monitored = cases.filter((c) => c.stage !== 'closed').reduce((n, c) => n + c.children.length, 0);
+-
+-  return (
+-    <Screen bottomGap={false}>
+-      <ScreenHeader title="بیشتر" subtitle="دسترسی به سایر بخش‌های فضای کاری" />
+-
+-      <Section className="pt-4">
+-        <GroupLabel>پایش</GroupLabel>
+-        <ListGroup>
+-          <ListRow
+-            to="/monitoring"
+-            chevron
+-            leading={<IconTile icon={HeartPulse} tone="success" />}
+-            title="پایش کودکان"
+-            meta={`${fa(monitored)} کودک تحت پایش`}
+-          />
+-        </ListGroup>
+-      </Section>
+-
+-      <Section>
+-        <GroupLabel>اطلاع‌رسانی</GroupLabel>
+-        <ListGroup>
+-          <ListRow
+-            to="/notifications"
+-            chevron
+-            leading={<IconTile icon={Bell} tone="brand" />}
+-            title="اعلان‌ها"
+-            meta={unreadCount > 0 ? `${fa(unreadCount)} اعلان خوانده‌نشده` : 'همه خوانده شده‌اند'}
+-            trailing={unreadCount > 0 ? <Badge tone="danger">{fa(unreadCount)}</Badge> : undefined}
+-          />
+-        </ListGroup>
+-      </Section>
+-
+-      <Section>
+-        <GroupLabel>حساب کاربری</GroupLabel>
+-        <ListGroup>
+-          <ListRow to="/profile" chevron divider leading={<IconTile icon={CircleUser} tone="neutral" />} title="پروفایل حرفه‌ای" />
+-          <ListRow to="/settings" chevron leading={<IconTile icon={Settings} tone="neutral" />} title="تنظیمات" meta="پوسته، محرمانگی میدانی، اعلان‌ها" />
+-        </ListGroup>
+-      </Section>
+-
+-      <Section>
+-        <GroupLabel>ابزارها</GroupLabel>
+-        <ListGroup>
+-          <ListRow
+-            to="/design-system"
+-            chevron
+-            divider
+-            leading={<IconTile icon={Palette} tone="accent" />}
+-            title="راهنمای طراحی"
+-            meta="توکن‌ها و نمونه اجزای رابط"
+-          />
+-          <ListRow
+-            chevron
+-            leading={<IconTile icon={LifeBuoy} tone="neutral" />}
+-            title="راهنما و پشتیبانی"
+-            onClick={() => toast({ title: 'پشتیبانی', description: 'مرکز پاسخ‌گویی در فاز بعدی فعال می‌شود.', tone: 'info' })}
+-          />
+-        </ListGroup>
+-      </Section>
+-
+-      <Section>
+-        <button
+-          type="button"
+-          onClick={() => toast({ title: 'خروج از حساب', description: 'در نمونه طراحی، خروج غیرفعال است.', tone: 'warning' })}
+-          className="press flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-surface py-3.5 text-base font-bold text-danger"
+-        >
+-          <LogOut className="size-[18px]" strokeWidth={2.25} aria-hidden />
+-          خروج از حساب کاربری
+-        </button>
+-      </Section>
+-
+-      <div className="space-y-3 pb-8 pt-2">
+-        <div className="flex items-center justify-center gap-2 text-ink-3">
+-          <Logo size={16} className="text-brand" />
+-          <span className="text-2xs">رمونا · نسخه نمایشی ۰٫۱</span>
+-        </div>
+-        <p className="flex items-start gap-2 text-2xs leading-relaxed text-ink-3">
+-          <ShieldCheck className="mt-0.5 size-4 shrink-0" strokeWidth={2.25} aria-hidden />
+-          اطلاعات خانواده‌ها و کودکان محرمانه است و دسترسی بر اساس مسئولیت محوله محدود شده است.
+-        </p>
+-      </div>
+-    </Screen>
+-  );
+-}
+-
+-function GroupLabel({ children }: { children: string }) {
+-  return <h2 className="mb-2 px-1 text-xs font-bold text-ink-3">{children}</h2>;
++  const { toast } = useApp();
++  return <Screen bottomGap={false}>
++    <ScreenHeader title="بیشتر" subtitle="ابزارها و حساب کاربری" />
++    <Section className="pt-5">
++      <p className="mb-2 px-1 text-xs font-bold text-ink-3">دسترسی‌های تکمیلی</p>
++      <ListGroup>
++        <ListRow to="/search" chevron divider title="جست‌وجوی وظایف" leading={<IconTile icon={Search} tone="neutral" />} />
++        <ListRow to="/reports" chevron title="گزارش‌های من" meta="سوابق و پیش‌نویس‌ها" leading={<IconTile icon={FileText} tone="info" />} />
++      </ListGroup>
++    </Section>
++    <Section>
++      <p className="mb-2 px-1 text-xs font-bold text-ink-3">حساب کاربری</p>
++      <ListGroup>
++        <ListRow to="/profile" chevron divider title="پروفایل حرفه‌ای" leading={<IconTile icon={UserRound} tone="neutral" />} />
++        <ListRow to="/settings" chevron title="تنظیمات" leading={<IconTile icon={Settings} tone="neutral" />} />
++      </ListGroup>
++    </Section>
++    <Section>
++      <button type="button" onClick={() => toast({ title: 'خروج در نسخه نمایشی فعال نیست', tone: 'info' })} className="press flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border border-line bg-surface text-sm font-semibold text-ink-2"><LogOut className="size-4" /> خروج از حساب</button>
++    </Section>
++  </Screen>;
+ }
+diff --git a/src/features/reports/ReportEditorScreen.tsx b/src/features/reports/ReportEditorScreen.tsx
+index eaedb64..74bfaa6 100644
+--- a/src/features/reports/ReportEditorScreen.tsx
++++ b/src/features/reports/ReportEditorScreen.tsx
+@@ -27,7 +27,7 @@ import { relativeTime } from '@/lib/jalali';
+ export function ReportEditorScreen() {
+   const { reportId } = useParams();
+   const navigate = useNavigate();
+-  const { reports, cases, editReportField, submitReport, toast } = useApp();
++  const { reports, cases, tasks, editReportField, submitReport, toast } = useApp();
+ 
+   const report = reports.find((r) => r.id === reportId);
+   const caseFile = cases.find((c) => c.id === report?.caseId);
+@@ -66,6 +66,8 @@ export function ReportEditorScreen() {
+     );
+   }
+ 
++  const taskForReport = tasks.find((task) => task.reportId === report.id && task.type === 'report');
++  const returnPath = taskForReport ? `/tasks/${taskForReport.id}` : '/reports';
+   const status = REPORT_STATUS[report.status];
+   const locked = report.status === 'approved' || report.status === 'in-review' || report.status === 'submitted';
+   const lastComment = report.comments[report.comments.length - 1];
+@@ -86,9 +88,9 @@ export function ReportEditorScreen() {
+       title: 'گزارش برای بازبینی ارسال شد',
+       description: 'سرپرست واحد آن را بررسی خواهد کرد.',
+       tone: 'success',
+-      action: { label: 'مشاهده گزارش‌ها', onClick: () => navigate('/reports') },
++      action: { label: 'بازگشت به کار', onClick: () => navigate(returnPath) },
+     });
+-    navigate('/reports');
++    navigate(returnPath);
+   };
+ 
+   return (
+diff --git a/src/features/reports/ReportsScreen.tsx b/src/features/reports/ReportsScreen.tsx
+index d581e5f..72b1aaf 100644
+--- a/src/features/reports/ReportsScreen.tsx
++++ b/src/features/reports/ReportsScreen.tsx
+@@ -1,110 +1,28 @@
+ import { useMemo, useState } from 'react';
+-import { useNavigate } from 'react-router-dom';
+-import { FileText, FolderHeart, Plus } from 'lucide-react';
+-import type { Report } from '@/types';
++import { FileText } from 'lucide-react';
+ import { useApp } from '@/store/app-store';
+ import { Screen } from '@/components/layout/Screen';
+ import { ScreenHeader } from '@/components/layout/ScreenHeader';
+-import { IconButton } from '@/components/ui/IconButton';
+-import { SegmentedControl } from '@/components/ui/SegmentedControl';
++import { SearchBar } from '@/components/ui/SearchBar';
+ import { Card } from '@/components/ui/Card';
+-import { Sheet, SheetOption } from '@/components/ui/Sheet';
+ import { EmptyState } from '@/components/ui/EmptyState';
+ import { ReportRow } from '@/features/_shared/ReportRow';
+-import { fa } from '@/lib/digits';
+-
+-type Filter = 'all' | 'action' | 'sent';
+-const needsAction = (r: Report) => r.status === 'draft' || r.status === 'revision';
++import type { Report } from '@/types';
+ 
+-/** Reports are their own workspace, with one clear actionable queue. */
++/** Secondary report history; creating a report starts from its assignment. */
+ export function ReportsScreen() {
+-  const { reports, cases, user, toast, createReportDraft } = useApp();
+-  const myReports = useMemo(() => reports.filter((r) => r.author === user?.name), [reports, user?.name]);
+-  const navigate = useNavigate();
+-  const [filter, setFilter] = useState<Filter>('all');
+-  const [pickerOpen, setPickerOpen] = useState(false);
+-
+-  const counts = useMemo(() => ({
+-    all: myReports.length,
+-    action: myReports.filter(needsAction).length,
+-    sent: myReports.filter((r) => !needsAction(r)).length,
+-  }), [myReports]);
+-
+-  const visible = useMemo(() => {
+-    const rows = myReports.filter((r) => filter === 'all' || (filter === 'action' ? needsAction(r) : !needsAction(r)));
+-    return rows.slice().sort((a, b) => {
+-      if (filter !== 'sent') {
+-        const weight = (r: Report) => r.status === 'revision' ? 0 : r.status === 'draft' ? 1 : 2;
+-        if (weight(a) !== weight(b)) return weight(a) - weight(b);
+-      }
+-      return b.updatedAt.localeCompare(a.updatedAt);
+-    });
+-  }, [myReports, filter]);
+-
+-  return (
+-    <Screen bottomGap={false}>
+-      <ScreenHeader
+-        title="گزارش‌ها"
+-        subtitle={counts.action > 0 ? `${fa(counts.action)} گزارش در انتظار اقدام شما` : 'گزارش‌های ثبت‌شده شما'}
+-        actions={
+-          <IconButton label="گزارش جدید" onClick={() => setPickerOpen(true)}>
+-            <Plus className="size-[22px]" strokeWidth={2.2} />
+-          </IconButton>
+-        }
+-      >
+-        <SegmentedControl<Filter>
+-          className="mt-3"
+-          ariaLabel="فیلتر گزارش‌ها"
+-          value={filter}
+-          onChange={setFilter}
+-          items={[
+-            { value: 'all', label: 'همه', count: counts.all },
+-            { value: 'action', label: 'نیازمند اقدام', count: counts.action },
+-            { value: 'sent', label: 'ارسال‌شده', count: counts.sent },
+-          ]}
+-        />
+-      </ScreenHeader>
+-
+-      <div className="pt-4 pb-8">
+-        {visible.length === 0 ? (
+-          <EmptyState icon={<FileText className="size-6" />} title="گزارشی در این بخش نیست" />
+-        ) : (
+-          <Card padded={false}>
+-            {visible.map((r, i) => <ReportRow key={r.id} report={r} divider={i < visible.length - 1} />)}
+-          </Card>
+-        )}
+-      </div>
+-
+-      <Sheet
+-        open={pickerOpen}
+-        onClose={() => setPickerOpen(false)}
+-        title="گزارش جدید"
+-        description="پرونده مربوط را انتخاب کنید."
+-        tall
+-      >
+-        <div className="space-y-2 pb-4">
+-          {cases.filter((c) => c.stage !== 'closed').map((c) => (
+-            <SheetOption
+-              key={c.id}
+-              icon={<FolderHeart className="size-[18px]" />}
+-              title={c.familyName}
+-              description={c.code}
+-              onClick={async () => {
+-                setPickerOpen(false);
+-                const id = await createReportDraft({
+-                  type: c.stage === 'initial-assessment' ? 'home-assessment' : c.stage === 'post-placement' ? 'monitoring' : 'visit',
+-                  caseId: c.id,
+-                  childId: c.children[0]?.id,
+-                });
+-                if (id) {
+-                  toast({ title: 'پیش‌نویس گزارش ایجاد شد', tone: 'success' });
+-                  navigate(`/reports/${id}`);
+-                }
+-              }}
+-            />
+-          ))}
+-        </div>
+-      </Sheet>
+-    </Screen>
+-  );
++  const { reports, user } = useApp();
++  const [query, setQuery] = useState('');
++  const [showHistory, setShowHistory] = useState(false);
++  const mine = useMemo(() => reports.filter((r) => r.author === user?.name && [r.title, r.caseCode, r.summary].join(' ').toLowerCase().includes(query.trim().toLowerCase())).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)), [reports, user?.name, query]);
++  const action = mine.filter((r) => r.status === 'revision' || r.status === 'draft');
++  const history = mine.filter((r) => r.status !== 'revision' && r.status !== 'draft');
++  return <Screen bottomGap={false}>
++    <ScreenHeader back title="گزارش‌های من" subtitle="پیش‌نویس‌ها و سوابق گزارش" ><div className="mt-3"><SearchBar value={query} onChange={setQuery} placeholder="جست‌وجوی نام گزارش یا کد پرونده" /></div></ScreenHeader>
++    <div className="space-y-6 pb-8 pt-5">
++      {action.length > 0 && <section><h2 className="mb-3 text-sm font-extrabold text-ink">نیازمند اقدام</h2><Card padded={false}>{action.map((r, i) => <ReportRow key={r.id} report={r} divider={i < action.length - 1} />)}</Card></section>}
++      {history.length > 0 && <section><h2 className="mb-3 text-sm font-extrabold text-ink">سوابق گزارش</h2><Card padded={false}>{(showHistory || query ? history : history.slice(0, 5)).map((r: Report, i: number, rows) => <ReportRow key={r.id} report={r} divider={i < rows.length - 1} />)}</Card>{!query && history.length > 5 && <button type="button" onClick={() => setShowHistory((v) => !v)} className="press mt-2 min-h-11 w-full text-sm font-semibold text-brand-ink">{showHistory ? 'نمایش کمتر' : 'نمایش سوابق بیشتر'}</button>}</section>}
++      {mine.length === 0 && <EmptyState icon={<FileText className="size-6" />} title="گزارشی یافت نشد" description="گزارش‌ها از داخل وظیفه مرتبط ثبت می‌شوند." />}
++    </div>
++  </Screen>;
+ }
+diff --git a/src/features/search/SearchScreen.tsx b/src/features/search/SearchScreen.tsx
+index 1c4490b..490c79b 100644
+--- a/src/features/search/SearchScreen.tsx
++++ b/src/features/search/SearchScreen.tsx
+@@ -1,170 +1,37 @@
+ import { useMemo, useState } from 'react';
+-import { useNavigate } from 'react-router-dom';
+-import { Search, SearchX, Baby } from 'lucide-react';
++import { Search } from 'lucide-react';
+ import { useApp } from '@/store/app-store';
+-import { Screen, Section } from '@/components/layout/Screen';
++import { Screen } from '@/components/layout/Screen';
+ import { ScreenHeader } from '@/components/layout/ScreenHeader';
+ import { SearchBar } from '@/components/ui/SearchBar';
+-import { Card } from '@/components/ui/Card';
+-import { Chip } from '@/components/ui/Chip';
+-import { ListRow } from '@/components/ui/ListRow';
+-import { IconTile, REPORT_TYPE_ICON, TASK_ICON } from '@/components/ui/DomainIcon';
+-import { Avatar } from '@/components/ui/Avatar';
+ import { EmptyState } from '@/components/ui/EmptyState';
+-import { CASE_STAGE, REPORT_STATUS, REPORT_TYPE, TASK_TYPE, WELLBEING } from '@/lib/labels';
++import { WorkTaskCard } from '@/features/_shared/WorkTaskCard';
++import { isOpenTask, sortTasks } from '@/lib/domain';
+ import { fa } from '@/lib/digits';
+-import { faDate } from '@/lib/jalali';
+-import { Meta } from '@/features/_shared/Meta';
+ 
+-const RECENT = ['موسوی', 'ارزیابی اولیه', 'RAM-0455', 'هستی'];
+-
+-/**
+- * Global search.
+- *
+- * One field, all record types. In the field a social worker rarely remembers
+- * whether a name belongs to a case, a child or a report — so results are
+- * grouped by kind instead of asking the user to choose first.
+- */
++/** Find a specific assignment without opening an endless historical queue. */
+ export function SearchScreen() {
+-  const navigate = useNavigate();
+-  const { cases, reports, tasks } = useApp();
++  const { tasks, visits, cases } = useApp();
+   const [query, setQuery] = useState('');
+-  const q = query.trim().toLowerCase();
+-
+-  const results = useMemo(() => {
+-    if (!q) return { cases: [], children: [], reports: [], tasks: [] };
+-    const matchedCases = cases.filter((c) =>
+-      [c.familyName, c.code, c.city, c.district ?? '', c.headOfHousehold].join(' ').toLowerCase().includes(q),
+-    );
+-    const matchedChildren = cases.flatMap((c) =>
+-      c.children.filter((ch) => ch.firstName.toLowerCase().includes(q)).map((ch) => ({ child: ch, caseFile: c })),
+-    );
+-    const matchedReports = reports.filter((r) => [r.title, r.caseCode, r.summary].join(' ').toLowerCase().includes(q));
+-    const matchedTasks = tasks.filter((t) => [t.title, t.caseCode ?? '', t.assignedBy].join(' ').toLowerCase().includes(q));
+-    return { cases: matchedCases, children: matchedChildren, reports: matchedReports, tasks: matchedTasks };
+-  }, [q, cases, reports, tasks]);
+-
+-  const total = results.cases.length + results.children.length + results.reports.length + results.tasks.length;
+-
+-  return (
+-    <Screen bottomGap={false}>
+-      <ScreenHeader back title="جست‌وجو">
+-        <div className="mt-3">
+-          <SearchBar value={query} onChange={setQuery} autoFocus placeholder="نام خانواده، کودک، کد پرونده یا گزارش" />
+-        </div>
+-      </ScreenHeader>
+-
+-      <div className="pt-3 pb-8">
+-        {!q ? (
+-          <Section>
+-            <p className="mb-2 px-1 text-xs font-bold text-ink-3">جست‌وجوهای اخیر</p>
+-            <div className="flex flex-wrap gap-1.5">
+-              {RECENT.map((r) => (
+-                <Chip key={r} onClick={() => setQuery(r)}>
+-                  {r}
+-                </Chip>
+-              ))}
+-            </div>
+-
+-            <Card className="mt-5 flex items-start gap-3">
+-              <IconTile icon={Search} tone="brand" />
+-              <div>
+-                <p className="text-base font-semibold text-ink">جست‌وجوی سراسری</p>
+-                <p className="mt-1 text-sm leading-relaxed text-ink-3">
+-                  نتیجه‌ها بر اساس پرونده، کودک، گزارش و کار دسته‌بندی می‌شوند. فقط مواردی که در حوزه
+-                  دسترسی شما هستند نمایش داده می‌شوند.
+-                </p>
+-              </div>
+-            </Card>
+-          </Section>
+-        ) : total === 0 ? (
+-          <EmptyState
+-            icon={<SearchX className="size-6" />}
+-            title="نتیجه‌ای یافت نشد"
+-            description={`موردی مطابق «${query}» در حوزه دسترسی شما وجود ندارد.`}
+-          />
+-        ) : (
+-          <div className="space-y-6">
+-            <p className="px-1 text-xs text-ink-3">{fa(total)} نتیجه برای «{query}»</p>
+-
+-            {results.cases.length > 0 && (
+-              <Section>
+-                <GroupTitle>پرونده‌ها</GroupTitle>
+-                <Card padded={false} className="divide-y divide-line-soft">
+-                  {results.cases.map((c) => (
+-                    <ListRow
+-                      key={c.id}
+-                      to={`/cases/${c.id}`}
+-                      chevron
+-                      leading={<Avatar name={c.familyName} tone={c.type === 'adoption' ? 'brand' : 'info'} size="sm" />}
+-                      title={c.familyName}
+-                      meta={<Meta><span className="tabular-nums">{c.code}</span><span>{CASE_STAGE[c.stage].label}</span></Meta>}
+-                    />
+-                  ))}
+-                </Card>
+-              </Section>
+-            )}
+-
+-            {results.children.length > 0 && (
+-              <Section>
+-                <GroupTitle>کودکان</GroupTitle>
+-                <Card padded={false} className="divide-y divide-line-soft">
+-                  {results.children.map(({ child, caseFile }) => (
+-                    <ListRow
+-                      key={child.id}
+-                      to={`/children/${child.id}`}
+-                      chevron
+-                      leading={<Avatar name={child.firstName} tone={WELLBEING[child.wellbeing].tone} size="sm" icon={<Baby className="size-4" />} />}
+-                      title={`${child.firstName} — ${fa(child.age)} ساله`}
+-                      meta={<Meta><span>{caseFile.familyName}</span><span>{WELLBEING[child.wellbeing].label}</span></Meta>}
+-                    />
+-                  ))}
+-                </Card>
+-              </Section>
+-            )}
+-
+-            {results.reports.length > 0 && (
+-              <Section>
+-                <GroupTitle>گزارش‌ها</GroupTitle>
+-                <Card padded={false} className="divide-y divide-line-soft">
+-                  {results.reports.map((r) => (
+-                    <ListRow
+-                      key={r.id}
+-                      to={`/reports/${r.id}`}
+-                      chevron
+-                      leading={<IconTile icon={REPORT_TYPE_ICON[r.type]} tone={REPORT_TYPE[r.type].tone} size="sm" />}
+-                      title={r.title}
+-                      meta={<Meta><span className="tabular-nums">{r.caseCode}</span><span>{REPORT_STATUS[r.status].label}</span><span>{faDate(r.updatedAt, { year: false })}</span></Meta>}
+-                    />
+-                  ))}
+-                </Card>
+-              </Section>
+-            )}
+-
+-            {results.tasks.length > 0 && (
+-              <Section>
+-                <GroupTitle>کارها</GroupTitle>
+-                <Card padded={false} className="divide-y divide-line-soft">
+-                  {results.tasks.map((t) => (
+-                    <ListRow
+-                      key={t.id}
+-                      onClick={() => navigate(t.visitId ? `/visits/${t.visitId}` : t.reportId ? `/reports/${t.reportId}` : t.caseId ? `/cases/${t.caseId}` : `/calendar?date=${t.dueDate}`)}
+-                      chevron
+-                      leading={<IconTile icon={TASK_ICON[t.type]} tone={TASK_TYPE[t.type].tone} size="sm" />}
+-                      title={t.title}
+-                      meta={<Meta><span>{TASK_TYPE[t.type].label}</span><span className="tabular-nums">{faDate(t.dueDate, { year: false })}</span></Meta>}
+-                    />
+-                  ))}
+-                </Card>
+-              </Section>
+-            )}
+-          </div>
+-        )}
+-      </div>
+-    </Screen>
+-  );
+-}
+-
+-function GroupTitle({ children }: { children: string }) {
+-  return <h2 className="mb-2 px-1 text-sm font-bold text-ink-2">{children}</h2>;
++  const matched = useMemo(() => {
++    const needle = query.trim().toLowerCase();
++    if (!needle) return [];
++    return sortTasks(tasks.filter((t) => {
++      const c = cases.find((item) => item.id === t.caseId);
++      return [t.title, t.description ?? '', t.caseCode ?? '', t.assignedBy, c?.familyName ?? ''].join(' ').toLowerCase().includes(needle);
++    }));
++  }, [query, tasks, cases]);
++  const active = matched.filter(isOpenTask);
++  const done = matched.filter((t) => t.status === 'done');
++  return <Screen bottomGap={false}>
++    <ScreenHeader back title="جست‌وجوی وظایف"><div className="mt-3"><SearchBar autoFocus value={query} onChange={setQuery} placeholder="عنوان کار، نام خانواده یا کد پرونده" /></div></ScreenHeader>
++    <div className="pb-8 pt-5">
++      {!query.trim() ? <EmptyState icon={<Search className="size-6" />} title="دنبال چه کاری می‌گردید؟" description="برای پیدا کردن یک مسئولیت، عنوان یا نام خانواده را وارد کنید." /> : matched.length === 0 ?
++        <EmptyState title="کاری پیدا نشد" description="عبارت دیگری را امتحان کنید." /> : <>
++          <p className="mb-4 text-xs text-ink-3">{fa(matched.length)} نتیجه مرتبط</p>
++          {active.length > 0 && <section><h2 className="mb-3 font-bold text-ink">کارهای باز</h2><div className="space-y-2">{active.map((t) => <WorkTaskCard key={t.id} task={t} visits={visits} cases={cases} showDate />)}</div></section>}
++          {done.length > 0 && <section className="mt-6"><h2 className="mb-3 font-bold text-ink">انجام‌شده</h2><div className="space-y-2">{done.map((t) => <WorkTaskCard key={t.id} task={t} visits={visits} cases={cases} showDate />)}</div></section>}
++        </>}
++    </div>
++  </Screen>;
+ }
+diff --git a/src/features/tasks/TaskDetailScreen.tsx b/src/features/tasks/TaskDetailScreen.tsx
+new file mode 100644
+index 0000000..8475b51
+--- /dev/null
++++ b/src/features/tasks/TaskDetailScreen.tsx
+@@ -0,0 +1,159 @@
++import { useState } from 'react';
++import { Link, useNavigate, useParams } from 'react-router-dom';
++import { CalendarDays, CheckCircle2, ChevronLeft, ChevronDown, FileText, MapPin, Phone, UserRound } from 'lucide-react';
++import { useApp } from '@/store/app-store';
++import { ActionFooter, Screen } from '@/components/layout/Screen';
++import { ScreenHeader } from '@/components/layout/ScreenHeader';
++import { Badge } from '@/components/ui/Badge';
++import { Button } from '@/components/ui/Button';
++import { Card } from '@/components/ui/Card';
++import { EmptyState } from '@/components/ui/EmptyState';
++import { TextArea } from '@/components/ui/Field';
++import { Sheet } from '@/components/ui/Sheet';
++import { PrivacyText } from '@/components/ui/PrivacyText';
++import { TASK_STATUS, TASK_TYPE, REPORT_STATUS, VISIT_PURPOSE } from '@/lib/labels';
++import { assignedDay, assignedTime, relatedCase, relatedReport } from '@/lib/workspace';
++import { toLatinDigits, fa } from '@/lib/digits';
++import { faDate, faTime } from '@/lib/jalali';
++import type { ReportType } from '@/types';
++
++/** One entry point for every assigned responsibility. Workflows open from here. */
++export function TaskDetailScreen() {
++  const { taskId } = useParams();
++  const navigate = useNavigate();
++  const { tasks, visits, reports, cases, completeTask, createReportDraft, toast } = useApp();
++  const [resultOpen, setResultOpen] = useState(false);
++  const [resultNote, setResultNote] = useState('');
++  const [saving, setSaving] = useState(false);
++  const task = tasks.find((t) => t.id === taskId);
++  const visit = task?.visitId ? visits.find((v) => v.id === task.visitId) : undefined;
++  const c = task ? relatedCase(task, cases) : undefined;
++  const report = task ? relatedReport(task, reports, visits) : undefined;
++  const relevantChildren = c?.children.filter((child) => child.id === task?.childId || visit?.childIds?.includes(child.id)) ?? [];
++
++  if (!task) {
++    return <Screen><ScreenHeader back title="وظیفه" /><EmptyState title="وظیفه پیدا نشد" description="ممکن است ارجاع این کار تغییر کرده باشد." /><Button block onClick={() => navigate('/')}>بازگشت به کارهای من</Button></Screen>;
++  }
++
++  const day = assignedDay(task, visits);
++  const time = assignedTime(task, visits);
++  const status = TASK_STATUS[task.status];
++  const reportEditable = report && (report.status === 'draft' || report.status === 'revision');
++  const canCompleteHere = !task.visitId && !task.reportId && task.type !== 'report' && task.status !== 'blocked' && task.status !== 'done';
++  const needsReportDraft = task.type === 'report' && !report && !!c && (!visit || visit.status === 'completed');
++  const linkedVisitIsAction = !!visit && task.type !== 'report';
++  const primaryLabel = report
++    ? reportEditable ? report.status === 'revision' ? 'اصلاح گزارش' : 'تکمیل گزارش' : 'مشاهده گزارش'
++    : needsReportDraft ? 'شروع گزارش'
++    : linkedVisitIsAction ? visit.status === 'completed' ? 'جزئیات بازدید انجام‌شده' : 'باز کردن بازدید و ثبت نتیجه'
++    : visit && task.type === 'report' ? 'مشاهده بازدید مرتبط'
++    : canCompleteHere ? 'ثبت نتیجه و اتمام کار' : undefined;
++
++  const openPrimary = async () => {
++    if (report) return navigate(`/reports/${report.id}`);
++    if (needsReportDraft && c) {
++      setSaving(true);
++      try {
++        const type: ReportType = visit?.purpose === 'initial-assessment' ? 'home-assessment' : visit?.purpose === 'periodic-monitoring' || task.childId ? 'monitoring' : 'visit';
++        const id = await createReportDraft({ type, caseId: c.id, childId: task.childId, visitId: task.visitId, taskId: task.id });
++        if (id) return navigate(`/reports/${id}`);
++        toast({ title: 'ساخت گزارش انجام نشد', tone: 'danger' });
++      } catch {
++        toast({ title: 'ساخت گزارش انجام نشد', tone: 'danger' });
++      } finally { setSaving(false); }
++    } else if (visit) navigate(`/visits/${visit.id}`);
++    else if (canCompleteHere) setResultOpen(true);
++  };
++
++  const finishTask = async () => {
++    setSaving(true);
++    try {
++      await completeTask(task.id, resultNote.trim());
++      setResultOpen(false);
++      toast({ title: 'نتیجه کار ثبت شد', tone: 'success' });
++    } catch {
++      toast({ title: 'ثبت نتیجه انجام نشد', tone: 'danger' });
++    } finally { setSaving(false); }
++  };
++
++  return (
++    <Screen bottomGap={false}>
++      <ScreenHeader back title="جزئیات کار" subtitle={TASK_TYPE[task.type].label} />
++      <div className="space-y-5 pb-4 pt-5">
++        <section className="space-y-3">
++          <div className="flex flex-wrap gap-2"><Badge tone={status.tone}>{status.label}</Badge>{report && task.type === 'report' && <Badge tone={REPORT_STATUS[report.status].tone}>{REPORT_STATUS[report.status].label}</Badge>}</div>
++          <h1 className="text-xl font-extrabold leading-relaxed text-ink">{task.title}</h1>
++          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-2">
++            <span className="inline-flex items-center gap-1.5"><CalendarDays className="size-4 text-ink-3" /> {faDate(day, { weekday: true })}</span>
++            {time && <span className="font-semibold tabular-nums">ساعت {faTime(time)}</span>}
++          </div>
++        </section>
++
++        {report?.status === 'revision' && report.comments.length > 0 && (
++          <div className="rounded-lg border border-warning/30 bg-warning-soft/70 px-4 py-3">
++            <p className="text-sm font-bold text-ink">درخواست اصلاح سرپرست</p>
++            <p className="mt-1 text-sm leading-7 text-ink-2">{report.comments[report.comments.length - 1].body}</p>
++          </div>
++        )}
++
++        {(task.description || visit?.summary) && (
++          <Card className="space-y-1.5">
++            <p className="text-xs font-bold text-ink-3">شرح کار</p>
++            <p className="text-sm leading-7 text-ink-2">{task.description ?? visit?.summary}</p>
++            {task.description && visit?.summary && task.description !== visit.summary && <p className="text-sm leading-7 text-ink-2">{visit.summary}</p>}
++          </Card>
++        )}
++
++        {c && (
++          <section>
++            <h2 className="mb-2.5 px-1 text-sm font-bold text-ink">اطلاعات لازم برای انجام کار</h2>
++            <Card className="space-y-3">
++              <div className="flex items-center gap-2.5">
++                <span className="grid size-9 place-items-center rounded-md bg-brand-soft text-brand-ink"><UserRound className="size-[18px]" /></span>
++                <span className="min-w-0 flex-1"><span className="block font-bold text-ink"><PrivacyText value={c.familyName} interactive={false} /></span><span className="block text-xs text-ink-3 tabular-nums">{c.code}</span></span>
++              </div>
++              {task.type !== 'report' && (c.phone || visit?.contactPhone) && (
++                <a href={`tel:${toLatinDigits(visit?.contactPhone ?? c.phone ?? '').replace(/[^+0-9]/g, '')}`} className="press flex min-h-11 items-center justify-between gap-2 border-t border-line-soft pt-2 text-sm text-brand-ink">
++                  <span className="flex items-center gap-2"><Phone className="size-4" /> تماس با خانواده</span><ChevronLeft className="size-4" />
++                </a>
++              )}
++              {task.type !== 'report' && (visit?.address || c.address) && (
++                <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${visit?.city ?? c.city} ${visit?.address ?? c.address}`)}`} target="_blank" rel="noopener noreferrer" className="press flex min-h-11 items-center justify-between gap-3 border-t border-line-soft pt-2 text-sm">
++                  <span className="min-w-0 flex-1"><span className="mb-0.5 flex items-center gap-2 font-semibold text-brand-ink"><MapPin className="size-4" /> نشانی و مسیریابی</span><span className="block leading-relaxed text-ink-2"><PrivacyText value={`${visit?.city ?? c.city}، ${visit?.address ?? c.address}`} interactive={false} /></span></span><ChevronLeft className="size-4 shrink-0 text-ink-3" />
++                </a>
++              )}
++              {(c.housing || relevantChildren.length > 0 || c.notes) && (
++                <details className="group border-t border-line-soft pt-2">
++                  <summary className="press flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-semibold text-brand-ink [&::-webkit-details-marker]:hidden">اطلاعات تکمیلی مرتبط <ChevronDown className="size-4 transition-transform group-open:rotate-180" /></summary>
++                  <div className="space-y-2 pb-2 text-sm leading-relaxed text-ink-2">
++                    {c.housing && <p>شرایط سکونت: {c.housing.tenure} · {fa(c.housing.rooms)} اتاق</p>}
++                    {relevantChildren.map((child) => <p key={child.id}>کودک: <Link to={`/children/${child.id}`} className="press font-semibold text-brand-ink"><PrivacyText value={child.firstName} interactive={false} /> · {fa(child.age)} سال <ChevronLeft className="inline size-3.5" /></Link></p>)}
++                    {c.notes && <p>{c.notes}</p>}
++                    <Link to={`/cases/${c.id}`} className="press inline-flex min-h-10 items-center gap-1 text-brand-ink">اطلاعات بیشتر <ChevronLeft className="size-4" /></Link>
++                  </div>
++                </details>
++              )}
++            </Card>
++          </section>
++        )}
++
++        {visit && (
++          <div className="rounded-md bg-sunken px-4 py-3 text-sm leading-relaxed text-ink-2">
++            {VISIT_PURPOSE[visit.purpose].label}{visit.status === 'completed' ? ' انجام شده است.' : ' به این وظیفه مرتبط است.'}
++            {task.type === 'report' && !report && visit.status !== 'completed' && <p className="mt-1">بعد از ثبت نتیجه بازدید می‌توانید گزارش مربوط را تکمیل کنید.</p>}
++          </div>
++        )}
++        {task.status === 'blocked' && <div className="rounded-md bg-danger-soft px-4 py-3 text-sm leading-relaxed text-ink-2">این کار فعلاً متوقف است. برای رفع مانع با ارجاع‌دهنده هماهنگ کنید.</div>}
++        {task.status === 'done' && task.completionNote && <Card><p className="text-xs font-bold text-ink-3">نتیجه ثبت‌شده</p><p className="mt-2 text-sm leading-relaxed text-ink-2">{task.completionNote}</p></Card>}
++        <p className="px-1 text-xs text-ink-3">ارجاع‌دهنده: {task.assignedBy}</p>
++      </div>
++
++      {primaryLabel && task.status !== 'blocked' && (task.status !== 'done' || !!visit || !!report) && (
++        <ActionFooter><Button block onClick={() => { void openPrimary(); }} loading={saving} iconStart={report || needsReportDraft ? <FileText className="size-[18px]" /> : canCompleteHere ? <CheckCircle2 className="size-[18px]" /> : undefined}>{primaryLabel}</Button></ActionFooter>
++      )}
++      <Sheet open={resultOpen} onClose={() => setResultOpen(false)} title="ثبت نتیجه کار" description="بعد از ثبت نتیجه، این وظیفه انجام‌شده محسوب می‌شود." footer={<div className="flex gap-2"><Button variant="secondary" className="flex-1" onClick={() => setResultOpen(false)}>انصراف</Button><Button className="flex-1" loading={saving} onClick={() => { void finishTask(); }}>ثبت و اتمام</Button></div>}>
++        <div className="pb-4"><TextArea label="نتیجه یا یادداشت کار" hint="در این نسخه نمایشی، اطلاعات در همین نشست نگهداری می‌شود." value={resultNote} onChange={(e) => setResultNote(e.target.value)} rows={4} placeholder="خلاصه اقدام انجام‌شده…" /></div>
++      </Sheet>
++    </Screen>
++  );
++}
+diff --git a/src/features/today/TodayScreen.tsx b/src/features/today/TodayScreen.tsx
+index 5b2e3d3..dd649a4 100644
+--- a/src/features/today/TodayScreen.tsx
++++ b/src/features/today/TodayScreen.tsx
+@@ -1,100 +1,91 @@
+ import { useMemo, useState } from 'react';
+-import { Link, useNavigate } from 'react-router-dom';
+-import { Bell, EyeOff } from 'lucide-react';
++import { Link } from 'react-router-dom';
++import { ArrowLeft, CalendarDays, CheckCheck, ClipboardList } from 'lucide-react';
+ import { useApp } from '@/store/app-store';
+-import { useSettings } from '@/store/settings';
+-import { buildToday } from '@/services/dashboard';
+-import { Screen, Section } from '@/components/layout/Screen';
+-import { SectionAction, SectionHeader } from '@/components/ui/SectionHeader';
+-import { IconButton } from '@/components/ui/IconButton';
++import { Screen } from '@/components/layout/Screen';
++import { ScreenHeader } from '@/components/layout/ScreenHeader';
++import { EmptyState } from '@/components/ui/EmptyState';
+ import { Avatar } from '@/components/ui/Avatar';
+-import { Skeleton, RowSkeleton } from '@/components/ui/Skeleton';
+-import { AgendaTimeline } from '@/features/_shared/AgendaTimeline';
+-import { AttentionList } from '@/features/_shared/AttentionList';
++import { WorkTaskCard } from '@/features/_shared/WorkTaskCard';
++import { workSections } from '@/lib/workspace';
+ import { fa } from '@/lib/digits';
++import { faDate } from '@/lib/jalali';
+ 
+-/** Today is a focused brief: what must be addressed, and today's agenda. */
++/** The first screen answers one question: what do I need to do? */
+ export function TodayScreen() {
+-  const { tasks, visits, reports, notifications, user, status, unreadCount } = useApp();
+-  const { fieldPrivacy, toggleFieldPrivacy } = useSettings();
+-  const navigate = useNavigate();
+-  const [showAllAttention, setShowAllAttention] = useState(false);
++  const { tasks, visits, cases, user, status } = useApp();
++  const [expandUrgent, setExpandUrgent] = useState(false);
++  const [expandToday, setExpandToday] = useState(false);
++  const [showCompleted, setShowCompleted] = useState(false);
++  const sections = useMemo(() => workSections(tasks, visits), [tasks, visits]);
+ 
+-  const today = useMemo(
+-    () => buildToday(),
+-    // eslint-disable-next-line react-hooks/exhaustive-deps
+-    [tasks, visits, reports, notifications, status],
+-  );
+-
+-  if (status === 'loading' || !user) {
+-    return (
+-      <Screen>
+-        <div className="space-y-3 pt-6">
+-          <Skeleton className="h-4 w-24" />
+-          <Skeleton className="h-7 w-48" />
+-        </div>
+-        <div className="mt-6"><RowSkeleton /><RowSkeleton /><RowSkeleton /></div>
+-      </Screen>
+-    );
+-  }
+-
+-  const visibleAttention = showAllAttention ? today.attention : today.attention.slice(0, 3);
+-  const moreAttention = today.attention.length - visibleAttention.length;
++  if (status === 'loading') return <Screen><div className="py-12 text-center text-sm text-ink-3">در حال دریافت وظایف…</div></Screen>;
+ 
+   return (
+     <Screen bottomGap={false}>
+-      <header className="sticky top-0 z-30 -mx-gutter bg-bg/90 px-gutter pb-3 pt-4 backdrop-blur-xl">
+-        <div className="flex items-start justify-between gap-3">
+-          <div className="min-w-0">
+-            <p className="text-xs font-medium text-ink-3">{today.dateLabel}</p>
+-            <h1 className="mt-0.5 truncate text-xl font-extrabold tracking-tight text-ink">{user.name}</h1>
+-          </div>
+-          <div className="flex shrink-0 items-center gap-1">
+-            {fieldPrivacy && (
+-              <button
+-                type="button"
+-                onClick={toggleFieldPrivacy}
+-                className="press flex h-10 items-center gap-1 rounded-md bg-accent-soft px-2.5 text-xs font-bold text-accent-ink"
+-                aria-label="خاموش کردن حالت محرمانگی"
+-              >
+-                <EyeOff className="size-4" strokeWidth={2.3} aria-hidden />
+-                محرمانه
+-              </button>
+-            )}
+-            <IconButton label="اعلان‌ها" badge={unreadCount} onClick={() => navigate('/notifications')}>
+-              <Bell className="size-[20px]" strokeWidth={2} />
+-            </IconButton>
+-            <Link to="/profile" aria-label="پروفایل" className="press ms-0.5">
+-              <Avatar name={user.name} size="sm" tone="brand" />
++      <ScreenHeader
++        title="کارهای من"
++        subtitle={faDate(new Date(), { weekday: true })}
++        actions={<Link to="/profile" className="press rounded-pill" aria-label="نمایش پروفایل"><Avatar name={user?.name ?? 'مددکار'} size="sm" tone="brand" /></Link>}
++      />
++
++      <div className="space-y-7 pb-8 pt-5">
++        {sections.urgent.length > 0 && (
++          <section aria-label="نیازمند رسیدگی">
++            <SectionTitle title="نیازمند رسیدگی" count={sections.urgent.length} muted={false} />
++            <div className="space-y-2">
++              {(expandUrgent ? sections.urgent : sections.urgent.slice(0, 3)).map((task) => <WorkTaskCard key={task.id} task={task} visits={visits} cases={cases} />)}
++            </div>
++            {sections.urgent.length > 3 && <ExpandButton expanded={expandUrgent} onClick={() => setExpandUrgent(!expandUrgent)} remaining={sections.urgent.length - 3} />}
++          </section>
++        )}
++
++        {(sections.urgent.length + sections.today.length + sections.upcoming.length > 0) && <section aria-label="کارهای امروز">
++          <SectionTitle title="امروز" count={sections.today.length} />
++          {sections.today.length > 0 ? (
++            <div className="space-y-2">
++              {(expandToday ? sections.today : sections.today.slice(0, 5)).map((task) => <WorkTaskCard key={task.id} task={task} visits={visits} cases={cases} />)}
++              {sections.today.length > 5 && <ExpandButton expanded={expandToday} onClick={() => setExpandToday(!expandToday)} remaining={sections.today.length - 5} />}
++            </div>
++          ) : (
++            <p className="rounded-md bg-sunken/60 px-4 py-3 text-sm text-ink-3">کار زمان‌بندی‌شده‌ای برای امروز ندارید.</p>
++          )}
++        </section>}
++
++        {sections.upcoming.length > 0 && (
++          <section aria-label="کارهای پیش رو">
++            <SectionTitle title="در پیش" count={sections.upcoming.length} muted />
++            <div className="space-y-2">
++              {sections.upcoming.slice(0, 3).map((task) => <WorkTaskCard key={task.id} task={task} visits={visits} cases={cases} showDate />)}
++            </div>
++            <Link to="/calendar" className="press mt-2 flex min-h-11 items-center justify-center gap-2 text-sm font-semibold text-brand-ink">
++              <CalendarDays className="size-4" /> مشاهده روزهای دیگر <ArrowLeft className="size-4" />
+             </Link>
+-          </div>
+-        </div>
+-      </header>
++          </section>
++        )}
+ 
+-      {today.attention.length > 0 && (
+-        <Section>
+-          <SectionHeader
+-            title="نیازمند رسیدگی"
+-            hint={`${fa(today.attention.length)} اقدام باقی‌مانده`}
+-          />
+-          <AttentionList items={visibleAttention} />
+-          {today.attention.length > 3 && (
+-            <button
+-              type="button"
+-              onClick={() => setShowAllAttention((v) => !v)}
+-              className="press mt-2 w-full rounded-md py-2 text-center text-sm font-semibold text-brand-ink"
+-              aria-expanded={showAllAttention}
+-            >
+-              {showAllAttention ? 'نمایش کمتر' : `نمایش ${fa(moreAttention)} مورد دیگر`}
++        {sections.completedToday.length > 0 && (
++          <section>
++            <button type="button" onClick={() => setShowCompleted(!showCompleted)} aria-expanded={showCompleted} className="press flex min-h-11 w-full items-center justify-between rounded-md px-1 text-sm font-semibold text-ink-2">
++              <span className="flex items-center gap-2"><CheckCheck className="size-4 text-success" /> انجام‌شده امروز ({fa(sections.completedToday.length)})</span>
++              <span className="text-xs text-brand-ink">{showCompleted ? 'بستن' : 'مشاهده'}</span>
+             </button>
+-          )}
+-        </Section>
+-      )}
++            {showCompleted && <div className="mt-2 space-y-2">{sections.completedToday.map((task) => <WorkTaskCard key={task.id} task={task} cases={cases} visits={visits} />)}</div>}
++          </section>
++        )}
+ 
+-      <Section className="pb-8">
+-        <SectionHeader title="برنامه امروز" action={<SectionAction to="/calendar">تقویم کاری</SectionAction>} />
+-        <AgendaTimeline items={today.agenda} />
+-      </Section>
++        {sections.urgent.length + sections.today.length + sections.upcoming.length === 0 && (
++          <div className="rounded-lg border border-line bg-surface"><EmptyState icon={<ClipboardList className="size-6" />} title="همه کارها انجام شده‌اند" description="برای مرور کارهای قبلی یک تاریخ را در تقویم انتخاب کنید." /></div>
++        )}
++      </div>
+     </Screen>
+   );
+ }
++
++function SectionTitle({ title, count, muted }: { title: string; count: number; muted?: boolean }) {
++  return <div className="mb-3 flex items-center justify-between gap-3 px-1"><h2 className="text-base font-extrabold text-ink">{title}</h2><span className={`text-xs tabular-nums ${muted ? 'text-ink-3' : 'text-ink-2'}`}>{fa(count)} کار</span></div>;
++}
++
++function ExpandButton({ expanded, onClick, remaining }: { expanded: boolean; onClick: () => void; remaining: number }) {
++  return <button type="button" onClick={onClick} aria-expanded={expanded} className="press mt-2 min-h-10 w-full rounded-md text-center text-sm font-semibold text-brand-ink">{expanded ? 'نمایش کمتر' : `نمایش ${fa(remaining)} کار دیگر`}</button>;
++}
+diff --git a/src/features/visits/VisitDetailScreen.tsx b/src/features/visits/VisitDetailScreen.tsx
+index 23ad980..15c47c6 100644
+--- a/src/features/visits/VisitDetailScreen.tsx
++++ b/src/features/visits/VisitDetailScreen.tsx
+@@ -1,365 +1,100 @@
+-import { useEffect, useMemo, useState } from 'react';
++import { useState } from 'react';
+ import { Link, useNavigate, useParams } from 'react-router-dom';
+-import {
+-  Baby,
+-  CalendarClock,
+-  CheckCircle2,
+-  CircleAlert,
+-  ClipboardList,
+-  FileText,
+-  MapPin,
+-  Navigation,
+-  Phone,
+-  RotateCcw,
+-  XCircle,
+-} from 'lucide-react';
++import { CalendarClock, CheckCircle2, CircleAlert, FileText, MapPin, Phone, RotateCcw, XCircle } from 'lucide-react';
+ import type { VisitStatus } from '@/types';
+ import { useApp } from '@/store/app-store';
+-import { ActionFooter, Screen, Section } from '@/components/layout/Screen';
++import { ActionFooter, Screen } from '@/components/layout/Screen';
+ import { ScreenHeader } from '@/components/layout/ScreenHeader';
+ import { Badge } from '@/components/ui/Badge';
+ import { Button } from '@/components/ui/Button';
+ import { Card } from '@/components/ui/Card';
+-import { KeyValue } from '@/components/ui/Field';
+-import { TextArea } from '@/components/ui/Field';
+ import { ChecklistRow } from '@/components/ui/Checklist';
+-import { ProgressLine } from '@/components/ui/Progress';
++import { TextArea } from '@/components/ui/Field';
++import { EmptyState } from '@/components/ui/EmptyState';
+ import { Sheet, SheetOption } from '@/components/ui/Sheet';
+-import { IconButton } from '@/components/ui/IconButton';
+-import { IconTile } from '@/components/ui/DomainIcon';
+ import { PrivacyText } from '@/components/ui/PrivacyText';
+-import { EmptyState } from '@/components/ui/EmptyState';
+ import { VISIT_PURPOSE, VISIT_STATUS } from '@/lib/labels';
+ import { visitDisplayState } from '@/lib/domain';
+-import { fa } from '@/lib/digits';
+-import { faDate, faDuration, faTimeRange, relativeTime } from '@/lib/jalali';
+-
+-const OUTCOME_OPTIONS: { status: VisitStatus; icon: typeof CheckCircle2; description: string }[] = [
+-  { status: 'completed', icon: CheckCircle2, description: 'بازدید انجام شد و مشاهدات ثبت می‌گردد' },
+-  { status: 'family-absent', icon: CircleAlert, description: 'در منزل حاضر نبودند؛ هماهنگی مجدد لازم است' },
+-  { status: 'reschedule', icon: RotateCcw, description: 'زمان دیگری با خانواده هماهنگ می‌شود' },
+-  { status: 'cancelled', icon: XCircle, description: 'بازدید به دستور سرپرست لغو شد' },
++import { fa, toLatinDigits } from '@/lib/digits';
++import { faDate, faTimeRange } from '@/lib/jalali';
++
++const OUTCOMES: { status: VisitStatus; icon: typeof CheckCircle2; description: string }[] = [
++  { status: 'completed', icon: CheckCircle2, description: 'بازدید انجام شد' },
++  { status: 'family-absent', icon: CircleAlert, description: 'خانواده حاضر نبودند' },
++  { status: 'reschedule', icon: RotateCcw, description: 'نیاز به هماهنگی زمان جدید' },
++  { status: 'cancelled', icon: XCircle, description: 'بازدید لغو شد' },
+ ];
+ 
+-/**
+- * Visit detail — the field screen.
+- *
+- * Built for one-handed use while standing at a door: what/where/who at the top,
+- * the checklist in the middle, and the outcome action pinned to the bottom so
+- * it never requires scrolling to find. Recording an outcome closes the task,
+- * writes to the case timeline and opens a report draft.
+- */
++/** Field workflow: essential context, checklist and one clear outcome action. */
+ export function VisitDetailScreen() {
+   const { visitId } = useParams();
+   const navigate = useNavigate();
+-  const { visits, cases, toast, toggleChecklistItem, recordVisitOutcome } = useApp();
+-
++  const { visits, cases, toggleChecklistItem, recordVisitOutcome, toast } = useApp();
+   const visit = visits.find((v) => v.id === visitId);
+-  const caseFile = cases.find((c) => c.id === visit?.caseId);
+-
+-  const [sheetOpen, setSheetOpen] = useState(false);
++  const c = cases.find((item) => item.id === visit?.caseId);
++  const [resultOpen, setResultOpen] = useState(false);
+   const [selected, setSelected] = useState<VisitStatus>('completed');
+   const [note, setNote] = useState('');
+-  const [fieldNote, setFieldNote] = useState('');
+   const [saving, setSaving] = useState(false);
+ 
+-  useEffect(() => {
+-    if (visit?.outcome) setFieldNote(visit.outcome.note);
+-  }, [visit?.outcome]);
+-
+-  const children = useMemo(
+-    () => (caseFile?.children ?? []).filter((c) => visit?.childIds?.includes(c.id)),
+-    [caseFile, visit],
+-  );
+-
+-  if (!visit) {
+-    return (
+-      <Screen>
+-        <ScreenHeader back title="بازدید" />
+-        <EmptyState title="بازدید یافت نشد" description="ممکن است برنامه بازدید تغییر کرده باشد." />
+-        <Button block onClick={() => navigate('/calendar')}>
+-          بازگشت به تقویم
+-        </Button>
+-      </Screen>
+-    );
+-  }
+-
+-  const purpose = VISIT_PURPOSE[visit.purpose];
+-  const state = visitDisplayState(visit);
+-  const doneCount = visit.checklist.filter((c) => c.done).length;
++  if (!visit) return <Screen><ScreenHeader back title="بازدید" /><EmptyState title="بازدید در دسترس نیست" /></Screen>;
+   const closed = visit.status !== 'scheduled';
+-
+-  const openOutcomeSheet = () => {
+-    setNote(fieldNote);
+-    setSelected(visit.status === 'scheduled' ? 'completed' : visit.status);
+-    setSheetOpen(true);
++  const display = visitDisplayState(visit);
++  const checklistDone = visit.checklist.filter((item) => item.done).length;
++  const purpose = VISIT_PURPOSE[visit.purpose];
++  const openResult = () => {
++    setSelected(closed ? visit.status : 'completed');
++    setNote(visit.outcome?.note ?? '');
++    setResultOpen(true);
+   };
+-
+-  const submitOutcome = async () => {
++  const submit = async () => {
+     if (selected === 'completed' && visit.checklist.some((item) => item.required && !item.done)) {
+-      toast({ title: 'چک‌لیست کامل نیست', description: 'لطفاً ابتدا موارد الزامی بازدید را بررسی کنید.', tone: 'warning' });
+-      return;
++      toast({ title: 'موارد الزامی چک‌لیست تکمیل نشده‌اند', tone: 'warning' }); return;
+     }
+     setSaving(true);
+-    const result = await recordVisitOutcome(visit.id, selected, note.trim());
+-    setSaving(false);
+-    setSheetOpen(false);
+-    setNote('');
+-    toast({
+-      title: 'نتیجه بازدید ثبت شد',
+-      description: VISIT_STATUS[selected].label,
+-      tone: selected === 'completed' ? 'success' : 'warning',
+-      action: result.reportId
+-        ? { label: 'ادامه گزارش', onClick: () => navigate(`/reports/${result.reportId}`) }
+-        : undefined,
+-    });
++    try {
++      const response = await recordVisitOutcome(visit.id, selected, note.trim());
++      setResultOpen(false);
++      toast({ title: 'نتیجه بازدید ثبت شد', description: selected === 'completed' ? 'گزارش مرتبط از کارهای من قابل پیگیری است.' : response.followUpTaskId ? 'هماهنگی مجدد به کارهای شما اضافه شد.' : 'نتیجه ثبت و این کار بسته شد.', tone: selected === 'completed' ? 'success' : 'warning', action: response.reportId ? { label: 'تکمیل گزارش', onClick: () => navigate(`/reports/${response.reportId}`) } : response.followUpTaskId ? { label: 'پیگیری هماهنگی', onClick: () => navigate(`/tasks/${response.followUpTaskId}`) } : undefined });
++    } catch {
++      toast({ title: 'ثبت نتیجه انجام نشد', tone: 'danger' });
++    } finally { setSaving(false); }
+   };
+ 
+-  return (
+-    <Screen bottomGap={false}>
+-      <ScreenHeader
+-        back
+-        title="بازدید"
+-        subtitle={`${faDate(visit.date, { weekday: true })} · ${fa(visit.time)}`}
+-        actions={
+-          <IconButton
+-            label="مسیریابی"
+-            onClick={() => toast({ title: 'مسیریابی', description: 'اتصال به نقشه در فاز بعدی فعال می‌شود.', tone: 'info' })}
+-          >
+-            <Navigation className="size-[18px]" strokeWidth={2.1} />
+-          </IconButton>
+-        }
+-      />
+-
+-      <div className="pt-4">
+-        {/* current status */}
+-        <Card className={cnStatus(state)}>
+-          <div className="flex items-start gap-3">
+-            <IconTile
+-              icon={state === 'completed' ? CheckCircle2 : state === 'needs-outcome' ? ClipboardList : CalendarClock}
+-              tone={state === 'completed' ? 'success' : state === 'needs-outcome' ? 'warning' : 'brand'}
+-            />
+-            <div className="min-w-0 flex-1">
+-              <p className="text-md font-bold text-ink">
+-                {state === 'completed'
+-                  ? 'بازدید انجام شده'
+-                  : state === 'needs-outcome'
+-                    ? 'زمان این بازدید گذشته است'
+-                    : state === 'not-done'
+-                      ? 'بازدید انجام نشد'
+-                      : 'بازدید برنامه‌ریزی‌شده'}
+-              </p>
+-              <p className="mt-1 text-sm leading-relaxed text-ink-2">
+-                {state === 'needs-outcome'
+-                  ? 'نتیجه بازدید را ثبت کنید تا کار مرتبط بسته شود و پیش‌نویس گزارش ساخته شود.'
+-                  : visit.outcome?.note || purpose.label}
+-              </p>
+-              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+-                <Badge tone={VISIT_STATUS[visit.status].tone}>{VISIT_STATUS[visit.status].label}</Badge>
+-                <Badge tone={purpose.tone} variant="outline">
+-                  {purpose.label}
+-                </Badge>
+-                {visit.outcome && <span className="text-2xs text-ink-3">{relativeTime(visit.outcome.at)}</span>}
+-              </div>
+-            </div>
+-          </div>
+-        </Card>
+-      </div>
+-
+-      <Section>
+-        <Card className="space-y-1">
+-          <KeyValue label="تاریخ" value={faDate(visit.date)} icon={<CalendarClock className="size-3.5 text-ink-3" />} />
+-          <KeyValue label="ساعت" value={faTimeRange(visit.time, visit.durationMin)} />
+-          <KeyValue label="مدت زمان" value={faDuration(visit.durationMin)} />
+-          <KeyValue label="نشانی" value={<PrivacyText value={`${visit.city} — ${visit.address}`} />} icon={<MapPin className="size-3.5 text-ink-3" />} />
+-          <KeyValue label="هماهنگی با" value={<PrivacyText value={visit.contactName} />} icon={<Phone className="size-3.5 text-ink-3" />} />
+-          <KeyValue label="ارجاع‌دهنده" value={visit.assignedBy} />
+-
+-          <div className="mt-2 grid grid-cols-2 gap-2 pt-1">
+-            <Button
+-              variant="secondary"
+-              size="sm"
+-              iconStart={<Phone className="size-4" />}
+-              onClick={() => toast({ title: 'تماس با خانواده', description: visit.contactPhone, tone: 'info' })}
+-            >
+-              تماس
+-            </Button>
+-            <Button
+-              variant="secondary"
+-              size="sm"
+-              iconStart={<Navigation className="size-4" />}
+-              onClick={() => toast({ title: 'مسیریابی', description: 'اتصال به نقشه در فاز بعدی فعال می‌شود.', tone: 'info' })}
+-            >
+-              مسیریابی
+-            </Button>
+-          </div>
+-        </Card>
+-      </Section>
+-
+-      {caseFile && (
+-        <Section>
+-          <Card>
+-            <div className="flex items-center justify-between gap-3">
+-              <div className="min-w-0">
+-                <p className="text-2xs font-bold text-ink-3">پرونده مرتبط</p>
+-                <p className="mt-0.5 truncate text-md font-bold text-ink">
+-                  <PrivacyText value={caseFile.familyName} interactive={false} />
+-                </p>
+-                <p className="text-xs text-ink-3 tabular-nums">{caseFile.code}</p>
+-              </div>
+-              <Link to={`/cases/${caseFile.id}`}>
+-                <Button variant="ghost" size="sm">
+-                  مشاهده پرونده
+-                </Button>
+-              </Link>
+-            </div>
+-
+-            {children.length > 0 && (
+-              <div className="mt-3 flex flex-wrap gap-1.5 border-t border-line-soft pt-3">
+-                {children.map((c) => (
+-                  <Link key={c.id} to={`/children/${c.id}`}>
+-                    <span className="press flex items-center gap-1.5 rounded-pill bg-sunken px-3 py-1.5 text-sm font-medium text-ink-2">
+-                      <Baby className="size-3.5 text-brand" strokeWidth={2.4} aria-hidden />
+-                      {c.firstName} · {fa(c.age)} ساله
+-                    </span>
+-                  </Link>
+-                ))}
+-              </div>
+-            )}
+-          </Card>
+-        </Section>
+-      )}
+-
+-      <Section>
+-        <Card>
+-          <p className="text-2xs font-bold text-ink-3">هدف و زمینه بازدید</p>
+-          <p className="mt-1.5 text-sm leading-relaxed text-ink-2">{visit.summary}</p>
+-        </Card>
+-      </Section>
+-
+-      <Section>
+-        <div className="mb-2.5 flex items-end justify-between gap-3">
+-          <h2 className="text-md font-bold text-ink">چک‌لیست بازدید</h2>
++  return <Screen bottomGap={false}>
++    <ScreenHeader back title={purpose.label} subtitle={`${faDate(visit.date, { weekday: true })} · ${faTimeRange(visit.time, visit.durationMin)}`} />
++    <div className="space-y-5 pb-3 pt-5">
++      <div className="flex items-center gap-2"><Badge tone={closed ? VISIT_STATUS[visit.status].tone : display === 'needs-outcome' ? 'warning' : 'info'}>{display === 'needs-outcome' ? 'در انتظار ثبت نتیجه' : VISIT_STATUS[visit.status].label}</Badge>{c && <span className="text-sm font-bold text-ink"><PrivacyText value={c.familyName} interactive={false} /></span>}</div>
++
++      <section><h2 className="mb-2.5 px-1 text-sm font-bold text-ink">محل و هماهنگی</h2><Card className="space-y-3">
++        <p className="text-sm font-medium leading-7 text-ink"><PrivacyText value={`${visit.city}، ${visit.address}`} interactive={false} /></p>
++        <p className="text-xs text-ink-3">هماهنگی با <PrivacyText value={visit.contactName} interactive={false} /></p>
++        <div className="grid grid-cols-2 gap-2 border-t border-line-soft pt-3">
++          <a href={`tel:${toLatinDigits(visit.contactPhone).replace(/[^+0-9]/g, '')}`} className="press flex min-h-11 items-center justify-center gap-2 rounded-md border border-line-strong text-sm font-semibold text-brand-ink"><Phone className="size-4" /> تماس</a>
++          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${visit.city} ${visit.address}`)}`} target="_blank" rel="noopener noreferrer" className="press flex min-h-11 items-center justify-center gap-2 rounded-md border border-line-strong text-sm font-semibold text-brand-ink"><MapPin className="size-4" /> مسیریابی</a>
+         </div>
+-        <Card className="space-y-1">
+-          <ProgressLine
+-            done={doneCount}
+-            total={visit.checklist.length}
+-            unit={doneCount === visit.checklist.length ? 'همه موارد بررسی شد' : 'موارد بررسی‌شده'}
+-            tone={doneCount === visit.checklist.length ? 'success' : 'brand'}
+-          />
+-          <div className="-mx-1 mt-2 divide-y divide-line-soft">
+-            {visit.checklist.map((item) => (
+-              <ChecklistRow
+-                key={item.id}
+-                checked={item.done}
+-                required={item.required}
+-                label={item.label}
+-                onChange={() => toggleChecklistItem(visit.id, item.id)}
+-                disabled={closed}
+-              />
+-            ))}
+-          </div>
+-        </Card>
+-      </Section>
++      </Card></section>
+ 
+-      {!closed && (
+-        <Section>
+-          <Card>
+-            <TextArea
+-              label="یادداشت میدانی"
+-              hint="این متن با ثبت نتیجه بازدید ذخیره می‌شود؛ پیش از آن با خروج از صفحه از بین می‌رود."
+-              rows={4}
+-              value={fieldNote}
+-              onChange={(e) => setFieldNote(e.target.value)}
+-              placeholder="مشاهدات کلیدی را همین‌جا یادداشت کنید…"
+-            />
+-          </Card>
+-        </Section>
+-      )}
++      <section><h2 className="mb-2.5 px-1 text-sm font-bold text-ink">هدف بازدید</h2><p className="rounded-lg bg-sunken px-4 py-3 text-sm leading-7 text-ink-2">{visit.summary}</p></section>
+ 
+-      {visit.reportId && (
+-        <Section>
+-          <Link to={`/reports/${visit.reportId}`}>
+-            <Card className="press flex items-center gap-3 hover:border-line-strong">
+-              <IconTile icon={FileText} tone="info" />
+-              <div className="min-w-0 flex-1">
+-                <p className="truncate text-base font-semibold text-ink">گزارش مرتبط با این بازدید</p>
+-                <p className="text-xs text-ink-3">برای تکمیل و ارسال باز کنید</p>
+-              </div>
+-            </Card>
+-          </Link>
+-        </Section>
+-      )}
+-
+-      <ActionFooter
+-        hint={closed ? 'نتیجه این بازدید ثبت شده است.' : 'ثبت نتیجه، کار مرتبط را می‌بندد و پیش‌نویس گزارش می‌سازد.'}
+-      >
+-        {closed ? (
+-          <>
+-            <Button variant="secondary" className="flex-1" onClick={openOutcomeSheet}>
+-              ویرایش نتیجه
+-            </Button>
+-            {visit.reportId && (
+-              <Button className="flex-1" onClick={() => navigate(`/reports/${visit.reportId}`)}>
+-                گزارش بازدید
+-              </Button>
+-            )}
+-          </>
+-        ) : (
+-          <Button block iconStart={<ClipboardList className="size-[18px]" />} onClick={openOutcomeSheet}>
+-            ثبت نتیجه بازدید
+-          </Button>
+-        )}
+-      </ActionFooter>
+-
+-      <Sheet
+-        open={sheetOpen}
+-        onClose={() => setSheetOpen(false)}
+-        title="نتیجه بازدید"
+-        description={`${caseFile?.familyName ?? ''} · ${faDate(visit.date, { year: false })}`}
+-        footer={
+-          <div className="flex gap-2.5">
+-            <Button variant="secondary" className="flex-1" onClick={() => setSheetOpen(false)}>
+-              انصراف
+-            </Button>
+-            <Button className="flex-1" loading={saving} onClick={submitOutcome}>
+-              ثبت نتیجه
+-            </Button>
+-          </div>
+-        }
+-      >
+-        <div className="space-y-2 pb-4">
+-          {OUTCOME_OPTIONS.map((o) => (
+-            <SheetOption
+-              key={o.status}
+-              icon={<o.icon className="size-[18px]" />}
+-              title={VISIT_STATUS[o.status].label}
+-              description={o.description}
+-              selected={selected === o.status}
+-              onClick={() => setSelected(o.status)}
+-            />
+-          ))}
+-
+-          <div className="pt-2">
+-            <TextArea
+-              label="توضیح کوتاه"
+-              rows={3}
+-              value={note}
+-              onChange={(e) => setNote(e.target.value)}
+-              placeholder={selected === 'completed' ? 'خلاصه مشاهدات و وضعیت کودک…' : 'دلیل انجام نشدن بازدید…'}
+-              hint="این متن در پیش‌نویس گزارش و سابقه پرونده ثبت می‌شود."
+-            />
+-          </div>
+-        </div>
+-      </Sheet>
+-    </Screen>
+-  );
+-}
+-
+-function cnStatus(state: ReturnType<typeof visitDisplayState>) {
+-  if (state === 'completed') return 'border-success/30 bg-success-soft/40';
+-  if (state === 'needs-outcome') return 'border-warning/35 bg-warning-soft/50';
+-  if (state === 'not-done' || state === 'cancelled') return 'border-line bg-sunken';
+-  return '';
++      {visit.checklist.length > 0 && <section><div className="mb-2.5 flex items-center justify-between px-1"><h2 className="text-sm font-bold text-ink">چک‌لیست</h2><span className="text-xs text-ink-3">{fa(checklistDone)} از {fa(visit.checklist.length)} مورد</span></div>
++        <Card className="divide-y divide-line-soft py-1">
++          {visit.checklist.map((item) => <ChecklistRow key={item.id} checked={item.done} required={item.required} label={item.label} disabled={closed} onChange={() => toggleChecklistItem(visit.id, item.id)} />)}
++        </Card>
++      </section>}
++
++      {visit.outcome?.note && <section><h2 className="mb-2 px-1 text-sm font-bold text-ink">نتیجه ثبت‌شده</h2><p className="rounded-lg bg-sunken px-4 py-3 text-sm leading-7 text-ink-2">{visit.outcome.note}</p></section>}
++
++      {visit.reportId && <Link to={`/reports/${visit.reportId}`} className="press flex min-h-14 items-center justify-between rounded-lg border border-line bg-surface px-4 py-3 text-sm font-bold text-brand-ink"><span className="flex items-center gap-2"><FileText className="size-[18px]" /> گزارش مرتبط</span><CalendarClock className="size-4 text-ink-3" /></Link>}
++    </div>
++    <ActionFooter>
++      {!closed ? <Button block onClick={openResult} iconStart={<CheckCircle2 className="size-[18px]" />}>ثبت نتیجه بازدید</Button> : <Button block variant="secondary" onClick={visit.reportId ? () => navigate(`/reports/${visit.reportId}`) : openResult}>{visit.reportId ? 'مشاهده گزارش بازدید' : 'ویرایش نتیجه'}</Button>}
++    </ActionFooter>
++    <Sheet open={resultOpen} onClose={() => setResultOpen(false)} title="ثبت نتیجه بازدید" description={c?.familyName} footer={<div className="flex gap-2"><Button variant="secondary" className="flex-1" onClick={() => setResultOpen(false)}>انصراف</Button><Button className="flex-1" loading={saving} onClick={() => { void submit(); }}>ثبت نتیجه</Button></div>}>
++      <div className="space-y-3 pb-4">
++        {OUTCOMES.map((o) => <SheetOption key={o.status} icon={<o.icon className="size-[18px]" />} selected={selected === o.status} title={VISIT_STATUS[o.status].label} description={o.description} onClick={() => setSelected(o.status)} />)}
++        <TextArea label="یادداشت و مشاهدات" hint="این متن همراه نتیجه بازدید ثبت می‌شود." rows={4} value={note} onChange={(e) => setNote(e.target.value)} placeholder="مهم‌ترین مشاهدات یا دلیل انجام نشدن بازدید…" />
++      </div>
++    </Sheet>
++  </Screen>;
+ }
+diff --git a/src/lib/workspace.ts b/src/lib/workspace.ts
+new file mode 100644
+index 0000000..16f4790
+--- /dev/null
++++ b/src/lib/workspace.ts
+@@ -0,0 +1,62 @@
++import type { CaseFile, Report, Task, Visit } from '@/types';
++import { isOpenTask, sortTasks } from './domain';
++import { dayKey, daysUntil } from './jalali';
++
++/** The assignment is the primary object; a visit or report is supporting data. */
++export function assignedDay(task: Task, visits: Visit[]): string {
++  const visit = task.visitId ? visits.find((v) => v.id === task.visitId) : undefined;
++  return visit && task.type !== 'report' ? visit.date : task.dueDate;
++}
++
++export function assignedTime(task: Task, visits: Visit[]): string | undefined {
++  const visit = task.visitId ? visits.find((v) => v.id === task.visitId) : undefined;
++  if (visit && task.type !== 'report') return visit.time;
++  if (task.type === 'meeting') {
++    const digits = (task.description ?? '').replace(/[۰-۹]/g, (digit) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)));
++    const match = digits.match(/ساعت\s*(\d{1,2}):(\d{2})/);
++    if (match) return `${match[1].padStart(2, '0')}:${match[2]}`;
++  }
++  return undefined;
++}
++
++export function relatedCase(task: Task, cases: CaseFile[]): CaseFile | undefined {
++  return task.caseId ? cases.find((c) => c.id === task.caseId) : undefined;
++}
++
++export function relatedReport(task: Task, reports: Report[], visits: Visit[]): Report | undefined {
++  if (task.reportId) return reports.find((r) => r.id === task.reportId);
++  if (task.type !== 'report') return undefined;
++  const visit = task.visitId ? visits.find((v) => v.id === task.visitId) : undefined;
++  return visit?.reportId ? reports.find((r) => r.id === visit.reportId) : undefined;
++}
++
++/** Each open assignment appears in exactly one section on the main screen. */
++export function workSections(tasks: Task[], visits: Visit[], now: Date = new Date()) {
++  const key = dayKey(now);
++  const open = sortTasks(tasks.filter(isOpenTask));
++  const urgent: Task[] = [];
++  const today: Task[] = [];
++  const upcoming: Task[] = [];
++  for (const task of open) {
++    const day = assignedDay(task, visits);
++    if (task.status === 'revision' || task.status === 'blocked' || day < key) urgent.push(task);
++    else if (day === key) today.push(task);
++    else upcoming.push(task);
++  }
++  urgent.sort((a, b) => {
++    const weight = (t: Task) => t.status === 'revision' ? 0 : t.status === 'blocked' ? 1 : 2;
++    return weight(a) - weight(b) || assignedDay(a, visits).localeCompare(assignedDay(b, visits));
++  });
++  today.sort((a, b) => (assignedTime(a, visits) ?? '99:99').localeCompare(assignedTime(b, visits) ?? '99:99'));
++  upcoming.sort((a, b) => assignedDay(a, visits).localeCompare(assignedDay(b, visits)));
++  const completedToday = tasks.filter((t) => t.status === 'done' && t.completedAt && dayKey(t.completedAt) === key);
++  return { urgent, today, upcoming, completedToday };
++}
++
++export function workTone(task: Task, visits: Visit[], now: Date = new Date()) {
++  if (task.status === 'done') return 'success' as const;
++  if (task.status === 'blocked') return 'danger' as const;
++  if (task.status === 'revision') return 'warning' as const;
++  if (daysUntil(assignedDay(task, visits), now) < 0) return 'danger' as const;
++  return 'neutral' as const;
++}
+diff --git a/src/services/reports.ts b/src/services/reports.ts
+index e4a73aa..a2ea01b 100644
+--- a/src/services/reports.ts
++++ b/src/services/reports.ts
+@@ -84,7 +84,18 @@ export function setReportStatus(reportId: string, status: ReportStatus): Promise
+   };
+   db.reports = replace(db.reports, next);
+ 
++  if (status === 'revision') {
++    // Review feedback reopens the same responsibility; a read notification alone
++    // must never be the only way to discover work that requires revision.
++    db.tasks = db.tasks.map((t) => t.reportId === reportId && t.type === 'report'
++      ? { ...t, status: 'revision' as const, completedAt: undefined }
++      : t);
++  }
+   if (status === 'submitted' || status === 'in-review') {
++    // The assignment is complete when the report is submitted, not merely opened.
++    db.tasks = db.tasks.map((t) => t.reportId === reportId && t.type === 'report'
++      ? { ...t, status: 'done' as const, completedAt: nowIso() }
++      : t);
+     db.notifications = [
+       {
+         id: uid('n'),
+diff --git a/src/services/tasks.ts b/src/services/tasks.ts
+index 9cf0bca..27fcbf1 100644
+--- a/src/services/tasks.ts
++++ b/src/services/tasks.ts
+@@ -40,7 +40,22 @@ export function setTaskStatus(id: string, status: TaskStatus): Promise<Task | un
+   return latency(next, 120);
+ }
+ 
+-export const completeTask = (id: string) => setTaskStatus(id, 'done');
++/** Standalone work carries its outcome; visit and report tasks close via their workflow. */
++export function completeTask(id: string, note: string): Promise<Task | undefined> {
++  const task = findTask(id);
++  if (!task || task.visitId || task.reportId || task.type === 'report' || task.status === 'blocked') return latency(undefined, 0);
++  const next: Task = { ...task, status: 'done', completedAt: nowIso(), completionNote: note };
++  db.tasks = replace(db.tasks, next);
++  return latency(next, 120);
++}
++
++export function linkReportToTask(taskId: string, reportId: string): Task | undefined {
++  const task = findTask(taskId);
++  if (!task || task.type !== 'report') return undefined;
++  const next: Task = { ...task, reportId, status: 'in-progress' };
++  db.tasks = replace(db.tasks, next);
++  return next;
++}
+ export const reopenTask = (id: string) => setTaskStatus(id, 'todo');
+ 
+ /** Push a deadline forward — the most common field action after a visit moves. */
+diff --git a/src/services/visits.ts b/src/services/visits.ts
+index fd5e792..5359391 100644
+--- a/src/services/visits.ts
++++ b/src/services/visits.ts
+@@ -1,6 +1,7 @@
+-import type { Report, Visit, VisitStatus } from '@/types';
++import type { Report, Task, Visit, VisitStatus } from '@/types';
+ import { db, findCase, findTask, findVisit, replace } from '@/data/db';
+-import { dayKey } from '@/lib/jalali';
++import { addDays, dayKey } from '@/lib/jalali';
++import { templateFor } from '@/data/mock/report-templates';
+ import { latency, nowIso, uid } from './_utils';
+ 
+ export interface VisitQuery {
+@@ -45,6 +46,7 @@ export interface VisitOutcomeResult {
+   /** Draft report created for the visit, when applicable. */
+   reportId?: string;
+   taskId?: string;
++  followUpTaskId?: string;
+ }
+ 
+ /**
+@@ -69,16 +71,38 @@ export async function recordVisitOutcome(
+   };
+   db.visits = replace(db.visits, next);
+ 
+-  // Close the related work item.
+-  const task = db.tasks.find((t) => t.visitId === visitId);
++  // Recording the outcome closes this particular visit attempt. If it must be
++  // rearranged, coordination is a new responsibility rather than an endlessly
++  // unfinished visit with an outdated appointment date.
++  const task = db.tasks.find((t) => t.visitId === visitId && t.type !== 'report');
+   if (task) {
+     db.tasks = replace(db.tasks, {
+       ...task,
+-      status: input.status === 'completed' ? 'done' : task.status === 'done' ? task.status : 'todo',
+-      completedAt: input.status === 'completed' ? nowIso() : undefined,
++      status: 'done',
++      completedAt: nowIso(),
++      completionNote: input.note || (input.status === 'completed' ? 'بازدید انجام شد' : 'نتیجه بازدید ثبت شد'),
+     });
+   }
+ 
++  if (input.status === 'family-absent' || input.status === 'reschedule') {
++    if (!db.tasks.some((t) => t.followUpForVisitId === visitId)) {
++      const followUp: Task = {
++        id: uid('t'),
++        title: `هماهنگی مجدد بازدید — ${findCase(visit.caseId)?.familyName ?? 'خانواده'}`,
++        type: 'meeting', status: 'todo', priority: 'high',
++        dueDate: dayKey(new Date()), createdAt: nowIso(),
++        caseId: visit.caseId, caseCode: findCase(visit.caseId)?.code,
++        childId: visit.childIds?.[0], followUpForVisitId: visitId,
++        assignedBy: visit.assignedBy,
++        description: `بازدید ${visit.date} انجام نشد. برای تعیین زمان جدید با خانواده و ارجاع‌دهنده هماهنگ کنید و نتیجه پیگیری را ثبت کنید.`,
++      };
++      db.tasks = [followUp, ...db.tasks];
++    }
++  } else {
++    // If the outcome is corrected, don't leave a stale uncompleted reminder.
++    db.tasks = db.tasks.filter((t) => t.followUpForVisitId !== visitId || t.status === 'done');
++  }
++
+   // Log it on the case.
+   const caseFile = findCase(visit.caseId);
+   if (caseFile) {
+@@ -99,14 +123,21 @@ export async function recordVisitOutcome(
+     caseFile.lastActivityAt = nowIso();
+   }
+ 
+-  // A completed visit always produces a report draft to finish later.
+-  let reportId: string | undefined;
+-  if (input.status === 'completed' && !next.reportId) {
++  // A completed visit exposes report-writing as a separate, traceable task.
++  let reportId: string | undefined = next.reportId
++    ?? db.reports.find((r) => r.visitId === visitId && (r.status === 'draft' || r.status === 'revision'))?.id;
++  if (input.status === 'completed' && reportId && !next.reportId) {
++    next.reportId = reportId;
++    db.visits = replace(db.visits, next);
++  }
++  if (input.status === 'completed' && !reportId) {
+     reportId = uid('r');
++    const reportType: Report['type'] = visit.purpose === 'initial-assessment' ? 'home-assessment' : visit.purpose === 'periodic-monitoring' ? 'monitoring' : 'visit';
++    const { sections } = templateFor(reportType);
+     const report: Report = {
+       id: reportId,
+       title: `گزارش بازدید — ${caseFile?.familyName ?? 'پرونده'}`,
+-      type: visit.purpose === 'initial-assessment' ? 'home-assessment' : visit.purpose === 'periodic-monitoring' ? 'monitoring' : 'visit',
++      type: reportType,
+       status: 'draft',
+       caseId: visit.caseId,
+       caseCode: caseFile?.code ?? '',
+@@ -116,7 +147,7 @@ export async function recordVisitOutcome(
+       createdAt: nowIso(),
+       updatedAt: nowIso(),
+       summary: input.note,
+-      sections: [],
++      sections,
+       comments: [],
+       attachments: [],
+     };
+@@ -125,7 +156,25 @@ export async function recordVisitOutcome(
+     db.visits = replace(db.visits, next);
+   }
+ 
+-  return latency({ visit: next, reportId, taskId: task?.id }, 260);
++  if (input.status === 'completed' && reportId) {
++    const linked = db.tasks.find((t) => t.type === 'report' && t.visitId === visitId && t.status !== 'done');
++    if (linked) {
++      db.tasks = replace(db.tasks, { ...linked, reportId });
++    } else if (!db.tasks.some((t) => t.reportId === reportId)) {
++      const reportTask: Task = {
++        id: uid('t'), title: `تکمیل گزارش بازدید — ${caseFile?.familyName ?? 'خانواده'}`,
++        type: 'report', status: 'todo', priority: 'high',
++        dueDate: dayKey(addDays(new Date(), 1)), createdAt: nowIso(),
++        caseId: visit.caseId, caseCode: caseFile?.code,
++        childId: visit.childIds?.[0], visitId, reportId,
++        assignedBy: visit.assignedBy,
++        description: 'پس از انجام بازدید، گزارش را تکمیل و برای بررسی ارسال کنید.',
++      };
++      db.tasks = [reportTask, ...db.tasks];
++    }
++  }
++
++  return latency({ visit: next, reportId, taskId: task?.id, followUpTaskId: db.tasks.find((t) => t.followUpForVisitId === visitId && t.status !== 'done')?.id }, 260);
+ }
+ 
+ export function visitsByCase(caseId: string): Visit[] {
+diff --git a/src/store/app-store.tsx b/src/store/app-store.tsx
+index 3459888..e8cb418 100644
+--- a/src/store/app-store.tsx
++++ b/src/store/app-store.tsx
+@@ -55,10 +55,11 @@ interface AppContextValue extends AppData {
+   reload: () => Promise<void>;
+   /* tasks */
+   setTaskStatus: (id: string, status: TaskStatus) => Promise<void>;
++  completeTask: (id: string, note: string) => Promise<void>;
+   postponeTask: (id: string, days: number) => Promise<void>;
+   /* visits */
+   toggleChecklistItem: (visitId: string, itemId: string) => void;
+-  recordVisitOutcome: (visitId: string, status: VisitStatus, note: string) => Promise<{ reportId?: string }>;
++  recordVisitOutcome: (visitId: string, status: VisitStatus, note: string) => Promise<{ reportId?: string; followUpTaskId?: string }>;
+   /* reports */
+   editReportField: (reportId: string, sectionId: string, fieldId: string, value: string | number | string[]) => void;
+   editReportMeta: (reportId: string, patch: { title?: string; summary?: string }) => void;
+@@ -68,6 +69,7 @@ interface AppContextValue extends AppData {
+     caseId: string;
+     childId?: string;
+     visitId?: string;
++    taskId?: string;
+   }) => Promise<string | undefined>;
+   /* notifications */
+   markNotificationRead: (id: string) => void;
+@@ -140,6 +142,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
+     [],
+   );
+ 
++  const completeTask = useCallback(async (id: string, note: string) => {
++    const updated = await api.completeTask(id, note);
++    if (!updated) throw new Error('Unable to complete this task');
++    setData((d) => ({ ...d, tasks: d.tasks.map((t) => (t.id === id ? updated : t)) }));
++  }, []);
++
+   const postponeTask = useCallback(async (id: string, days: number) => {
+     const updated = await api.postponeTask(id, days);
+     if (updated) setData((d) => ({ ...d, tasks: d.tasks.map((t) => (t.id === id ? updated : t)) }));
+@@ -168,7 +176,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
+         api.listReports(),
+       ]);
+       setData((d) => ({ ...d, visits, tasks, cases, reports }));
+-      return { reportId: result.reportId };
++      return { reportId: result.reportId, followUpTaskId: result.followUpTaskId };
+     },
+     [],
+   );
+@@ -206,10 +214,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
+   }, []);
+ 
+   const createReportDraft = useCallback(
+-    async (input: { type: ReportType; caseId: string; childId?: string; visitId?: string }) => {
++    async (input: { type: ReportType; caseId: string; childId?: string; visitId?: string; taskId?: string }) => {
+       const report = await api.createDraftReport(input);
+-      const [reports, visits] = await Promise.all([api.listReports(), api.listVisits()]);
+-      setData((d) => ({ ...d, reports, visits }));
++      if (input.taskId) api.linkReportToTask(input.taskId, report.id);
++      const [reports, visits, tasks] = await Promise.all([api.listReports(), api.listVisits(), api.listTasks()]);
++      setData((d) => ({ ...d, reports, visits, tasks }));
+       return report.id;
+     },
+     [],
+@@ -217,8 +226,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
+ 
+   const submitReport = useCallback(async (reportId: string) => {
+     await api.setReportStatus(reportId, 'in-review');
+-    const reports = await api.listReports();
+-    setData((d) => ({ ...d, reports }));
++    const [reports, tasks] = await Promise.all([api.listReports(), api.listTasks()]);
++    setData((d) => ({ ...d, reports, tasks }));
+   }, []);
+ 
+   const markNotificationRead = useCallback((id: string) => {
+@@ -239,6 +248,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
+       ...data,
+       reload,
+       setTaskStatus,
++      completeTask,
+       postponeTask,
+       toggleChecklistItem,
+       recordVisitOutcome,
+@@ -257,6 +267,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
+       data,
+       reload,
+       setTaskStatus,
++      completeTask,
+       postponeTask,
+       toggleChecklistItem,
+       recordVisitOutcome,
+diff --git a/src/types/index.ts b/src/types/index.ts
+index 9ad3332..ffe5f8a 100644
+--- a/src/types/index.ts
++++ b/src/types/index.ts
+@@ -189,10 +189,14 @@ export interface Task {
+   childId?: ID;
+   visitId?: ID;
+   reportId?: ID;
++  /** Follow-up coordination created after an unsuccessful visit, not the visit itself. */
++  followUpForVisitId?: ID;
+   assignedBy: string;
+   description?: string;
+   estimatedMin?: number;
+   completedAt?: ISODateTime;
++  /** Optional outcome recorded when finishing a standalone task. */
++  completionNote?: string;
+ }
+ 
+ export interface ReportReviewComment {

@@ -1,5 +1,4 @@
-import { FileText, HeartPulse, Bell, CircleUser, Settings, Palette, LifeBuoy, LogOut, ShieldCheck } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { HeartPulse, Bell, CircleUser, Settings, Palette, LifeBuoy, LogOut, ShieldCheck } from 'lucide-react';
 import { useApp } from '@/store/app-store';
 import { Screen } from '@/components/layout/Screen';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
@@ -14,16 +13,12 @@ import { Logo } from '@/components/layout/Logo';
  * More.
  *
  * The overflow tab is not a junk drawer: it holds the destinations that are
- * used less often but must never be more than two taps away — reports,
- * monitoring, notifications, profile and settings. Each row carries its own
- * count, so the tab still tells you whether something needs you.
+ * used less often: monitoring, notifications, profile and settings.
+ * Reports have their own primary destination instead of appearing twice.
  */
 export function MoreScreen() {
-  const navigate = useNavigate();
-  const { reports, cases, unreadCount, toast } = useApp();
+  const { cases, unreadCount, toast } = useApp();
 
-  const drafts = reports.filter((r) => r.status === 'draft').length;
-  const revisions = reports.filter((r) => r.status === 'revision').length;
   const monitored = cases.filter((c) => c.stage !== 'closed').reduce((n, c) => n + c.children.length, 0);
 
   return (
@@ -31,17 +26,8 @@ export function MoreScreen() {
       <ScreenHeader title="بیشتر" subtitle="دسترسی به سایر بخش‌های فضای کاری" />
 
       <Section className="pt-4">
-        <GroupLabel>کار و گزارش</GroupLabel>
+        <GroupLabel>پایش</GroupLabel>
         <ListGroup>
-          <ListRow
-            to="/reports"
-            chevron
-            divider
-            leading={<IconTile icon={FileText} tone="info" />}
-            title="گزارش‌ها"
-            meta={`${fa(reports.length)} گزارش · ${fa(drafts)} پیش‌نویس`}
-            trailing={revisions > 0 ? <Badge tone="warning">{fa(revisions)} اصلاح</Badge> : undefined}
-          />
           <ListRow
             to="/monitoring"
             chevron

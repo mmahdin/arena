@@ -258,6 +258,9 @@ export interface CalendarEvent {
   href?: string;
   tone: Tone;
   caseCode?: string;
+  /** Present only on deadline entries, for related task actions and status. */
+  taskId?: ID;
+  taskStatus?: TaskStatus;
 }
 
 export interface UserProfile {

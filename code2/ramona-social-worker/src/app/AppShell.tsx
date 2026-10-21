@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { Moon, Sun } from 'lucide-react';
 import { TabBar } from '@/components/layout/TabBar';
 import { Logo } from '@/components/layout/Logo';
@@ -8,7 +8,6 @@ import { OVERLAY_ROOT_ID } from '@/components/ui/Sheet';
 import { useSettings } from '@/store/settings';
 
 import { TodayScreen } from '@/features/today/TodayScreen';
-import { WorkScreen } from '@/features/work/WorkScreen';
 import { CalendarScreen } from '@/features/calendar/CalendarScreen';
 import { CasesScreen } from '@/features/cases/CasesScreen';
 import { CaseDetailScreen } from '@/features/cases/CaseDetailScreen';
@@ -26,17 +25,17 @@ import { DesignSystemScreen } from '@/features/design-system/DesignSystemScreen'
 import { NotFoundScreen } from '@/features/misc/NotFoundScreen';
 
 /** Destinations that own a tab in the primary navigation. */
-const TAB_ROUTES = ['/', '/work', '/calendar', '/cases', '/more'];
+const TAB_ROUTES = ['/', '/calendar', '/cases', '/reports', '/more'];
 
 export function AppShell() {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { resolvedTheme, setTheme } = useSettings();
 
   // Every navigation starts at the top of the new screen.
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
-  }, [pathname]);
+  }, [pathname, search]);
 
   const showTabs = TAB_ROUTES.includes(pathname);
 
@@ -48,7 +47,7 @@ export function AppShell() {
             <div id="app-scroll" ref={scrollRef} className="app-scroll">
               <Routes>
                 <Route path="/" element={<TodayScreen />} />
-                <Route path="/work" element={<WorkScreen />} />
+                <Route path="/work" element={<Navigate to="/calendar" replace />} />
                 <Route path="/calendar" element={<CalendarScreen />} />
                 <Route path="/cases" element={<CasesScreen />} />
                 <Route path="/cases/:caseId" element={<CaseDetailScreen />} />

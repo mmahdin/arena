@@ -1,0 +1,628 @@
+diff --git a/README.md b/README.md
+index 56c7be6..59deb70 100644
+--- a/README.md
++++ b/README.md
+@@ -26,8 +26,8 @@ npm run preview    # اجرای خروجی تولید
+ | مسیر | صفحه |
+ | --- | --- |
+ | `/` | امروز (برنامه روز و موارد نیازمند رسیدگی) |
+-| `/work` | مسیر قدیمی؛ انتقال خودکار به `/calendar?view=tasks` |
+-| `/calendar` ، `/calendar?view=tasks` | تقویم جلالی، برنامه روز و فهرست همه کارها |
++| `/work` | مسیر قدیمی؛ انتقال خودکار به `/calendar` |
++| `/calendar` ، `/calendar?date=YYYY-MM-DD` | تقویم جلالی و کارها و برنامه‌های تاریخ انتخاب‌شده |
+ | `/cases` ، `/cases/:caseId` | پرونده‌ها و صفحه پرونده خانواده |
+ | `/children/:childId` | صفحه کودک (روند وضعیت، پیگیری‌ها) |
+ | `/visits/:visitId` | جزئیات بازدید + ثبت نتیجه |
+diff --git a/src/app/AppShell.tsx b/src/app/AppShell.tsx
+index dd85102..ab30e1e 100644
+--- a/src/app/AppShell.tsx
++++ b/src/app/AppShell.tsx
+@@ -47,7 +47,7 @@ export function AppShell() {
+             <div id="app-scroll" ref={scrollRef} className="app-scroll">
+               <Routes>
+                 <Route path="/" element={<TodayScreen />} />
+-                <Route path="/work" element={<Navigate to="/calendar?view=tasks" replace />} />
++                <Route path="/work" element={<Navigate to="/calendar" replace />} />
+                 <Route path="/calendar" element={<CalendarScreen />} />
+                 <Route path="/cases" element={<CasesScreen />} />
+                 <Route path="/cases/:caseId" element={<CaseDetailScreen />} />
+diff --git a/src/data/mock/notifications.ts b/src/data/mock/notifications.ts
+index 9e5ce12..f74964a 100644
+--- a/src/data/mock/notifications.ts
++++ b/src/data/mock/notifications.ts
+@@ -60,7 +60,7 @@ export const notifications: AppNotification[] = [
+     at: at(-1, 16, 45),
+     read: true,
+     priority: 'critical',
+-    href: '/calendar?view=tasks',
++    href: '/reports/r-mousavi-visit',
+   },
+   {
+     id: 'n-7',
+diff --git a/src/features/_shared/TaskRow.tsx b/src/features/_shared/TaskRow.tsx
+index 2d70450..e0f0f79 100644
+--- a/src/features/_shared/TaskRow.tsx
++++ b/src/features/_shared/TaskRow.tsx
+@@ -25,14 +25,9 @@ export function TaskRow({
+   compact?: boolean;
+   onOpen?: () => void;
+ }) {
+-  const { setTaskStatus, postponeTask, toast } = useApp();
+-  const navigate = useNavigate();
+   const [menuOpen, setMenuOpen] = useState(false);
+   const done = task.status === 'done';
+   const bucket = taskBucket(task);
+-  const requiresWorkflow = !!task.reportId || !!task.visitId || task.type === 'report' || task.type === 'visit';
+-  const canCompleteHere = !requiresWorkflow && task.status !== 'blocked';
+-  const canPostpone = !done && !requiresWorkflow && task.status !== 'blocked';
+ 
+   const href = task.reportId
+     ? `/reports/${task.reportId}`
+@@ -40,7 +35,7 @@ export function TaskRow({
+       ? `/visits/${task.visitId}`
+       : task.caseId
+         ? `/cases/${task.caseId}`
+-        : '/calendar?view=tasks';
++        : `/calendar?date=${task.dueDate}`;
+ 
+   const deadlineTone = done ? 'neutral' : bucket === 'overdue' ? 'danger' : bucket === 'today' ? 'warning' : 'neutral';
+ 
+@@ -77,71 +72,86 @@ export function TaskRow({
+         </div>
+       </div>
+ 
+-      <Sheet
+-        open={menuOpen}
+-        onClose={() => setMenuOpen(false)}
+-        title={task.title}
+-        description={`${TASK_TYPE[task.type].label} · ${TASK_STATUS[task.status].label}`}
+-      >
+-        <div className="space-y-2 pb-4">
+-          {canCompleteHere && (!done ? (
+-            <SheetOption
+-              icon={<CheckCircle2 className="size-[18px]" />}
+-              title="ثبت به‌عنوان انجام‌شده"
+-              onClick={async () => {
+-                setMenuOpen(false);
+-                await setTaskStatus(task.id, 'done');
+-                toast({ title: 'کار انجام‌شده ثبت شد', tone: 'success' });
+-              }}
+-            />
+-          ) : (
+-            <SheetOption
+-              icon={<Undo2 className="size-[18px]" />}
+-              title="بازگرداندن به کارهای باز"
+-              onClick={async () => {
+-                setMenuOpen(false);
+-                await setTaskStatus(task.id, 'todo');
+-                toast({ title: 'کار دوباره فعال شد', tone: 'info' });
+-              }}
+-            />
+-          ))}
+-          {canPostpone && (
+-            <SheetOption
+-              icon={<CalendarPlus className="size-[18px]" />}
+-              title={task.dueDate < dayKey(new Date()) ? 'انتقال مهلت به فردا' : 'یک روز تمدید مهلت'}
+-              onClick={async () => {
+-                setMenuOpen(false);
+-                await postponeTask(task.id, 1);
+-                toast({ title: 'مهلت کار به فردا منتقل شد', tone: 'info' });
+-              }}
+-            />
+-          )}
+-          {task.visitId && (
+-            <SheetOption
+-              icon={<CalendarPlus className="size-[18px]" />}
+-              title="ثبت نتیجه در صفحه بازدید"
+-              onClick={() => { setMenuOpen(false); navigate(`/visits/${task.visitId}`); }}
+-            />
+-          )}
+-          {task.reportId && (
+-            <SheetOption
+-              icon={<FileText className="size-[18px]" />}
+-              title="باز کردن گزارش مرتبط"
+-              onClick={() => { setMenuOpen(false); navigate(`/reports/${task.reportId}`); }}
+-            />
+-          )}
+-          {task.caseId && (
+-            <SheetOption
+-              icon={<FolderHeart className="size-[18px]" />}
+-              title="اطلاعات پرونده"
+-              onClick={() => { setMenuOpen(false); navigate(`/cases/${task.caseId}`); }}
+-            />
+-          )}
+-          {requiresWorkflow && !task.reportId && !task.visitId && (
+-            <p className="px-2 py-2 text-sm leading-relaxed text-ink-3">وضعیت این کار از طریق فرایند مربوط ثبت می‌شود.</p>
+-          )}
+-        </div>
+-      </Sheet>
++      <TaskMenu task={task} open={menuOpen} onClose={() => setMenuOpen(false)} />
+     </>
+   );
+ }
++
++/** One set of task actions, available from the selected calendar day too. */
++export function TaskMenu({ task, open, onClose }: { task: Task; open: boolean; onClose: () => void }) {
++  const { setTaskStatus, postponeTask, toast } = useApp();
++  const navigate = useNavigate();
++  const done = task.status === 'done';
++  const requiresWorkflow = !!task.reportId || !!task.visitId || task.type === 'report' || task.type === 'visit';
++  const canCompleteHere = !requiresWorkflow && task.status !== 'blocked';
++  const canPostpone = !done && !requiresWorkflow && task.status !== 'blocked';
++
++  return (
++    <Sheet
++      open={open}
++      onClose={onClose}
++      title={task.title}
++      description={`${TASK_TYPE[task.type].label} · ${TASK_STATUS[task.status].label}`}
++    >
++      <div className="space-y-2 pb-4">
++        {task.description && <p className="px-2 pb-2 text-sm leading-relaxed text-ink-2">{task.description}</p>}
++        {canCompleteHere && (!done ? (
++          <SheetOption
++            icon={<CheckCircle2 className="size-[18px]" />}
++            title="ثبت به‌عنوان انجام‌شده"
++            onClick={async () => {
++              onClose();
++              await setTaskStatus(task.id, 'done');
++              toast({ title: 'کار انجام‌شده ثبت شد', tone: 'success' });
++            }}
++          />
++        ) : (
++          <SheetOption
++            icon={<Undo2 className="size-[18px]" />}
++            title="بازگرداندن به کارهای باز"
++            onClick={async () => {
++              onClose();
++              await setTaskStatus(task.id, 'todo');
++              toast({ title: 'کار دوباره فعال شد', tone: 'info' });
++            }}
++          />
++        ))}
++        {canPostpone && (
++          <SheetOption
++            icon={<CalendarPlus className="size-[18px]" />}
++            title={task.dueDate < dayKey(new Date()) ? 'انتقال مهلت به فردا' : 'یک روز تمدید مهلت'}
++            onClick={async () => {
++              onClose();
++              await postponeTask(task.id, 1);
++              toast({ title: 'مهلت کار به فردا منتقل شد', tone: 'info' });
++            }}
++          />
++        )}
++        {task.visitId && (
++          <SheetOption
++            icon={<CalendarPlus className="size-[18px]" />}
++            title="ثبت نتیجه در صفحه بازدید"
++            onClick={() => { onClose(); navigate(`/visits/${task.visitId}`); }}
++          />
++        )}
++        {task.reportId && (
++          <SheetOption
++            icon={<FileText className="size-[18px]" />}
++            title="باز کردن گزارش مرتبط"
++            onClick={() => { onClose(); navigate(`/reports/${task.reportId}`); }}
++          />
++        )}
++        {task.caseId && (
++          <SheetOption
++            icon={<FolderHeart className="size-[18px]" />}
++            title="اطلاعات پرونده"
++            onClick={() => { onClose(); navigate(`/cases/${task.caseId}`); }}
++          />
++        )}
++        {requiresWorkflow && !task.reportId && !task.visitId && (
++          <p className="px-2 py-2 text-sm leading-relaxed text-ink-3">وضعیت این کار از طریق فرایند مربوط ثبت می‌شود.</p>
++        )}
++      </div>
++    </Sheet>
++  );
++}
+diff --git a/src/features/calendar/CalendarScreen.tsx b/src/features/calendar/CalendarScreen.tsx
+index 63e4e9b..bf2034f 100644
+--- a/src/features/calendar/CalendarScreen.tsx
++++ b/src/features/calendar/CalendarScreen.tsx
+@@ -1,6 +1,6 @@
+-import { useMemo, useState } from 'react';
++import { useEffect, useMemo, useState } from 'react';
+ import { Link, useSearchParams } from 'react-router-dom';
+-import { CalendarCheck2, CheckCircle2, ChevronLeft, ChevronRight, Clock3, MapPin } from 'lucide-react';
++import { CalendarCheck2, ChevronLeft, ChevronRight, Clock3, MapPin, MoreVertical } from 'lucide-react';
+ import type { CalendarEvent } from '@/types';
+ import { useApp } from '@/store/app-store';
+ import { Screen } from '@/components/layout/Screen';
+@@ -8,12 +8,10 @@ import { ScreenHeader } from '@/components/layout/ScreenHeader';
+ import { IconButton } from '@/components/ui/IconButton';
+ import { Badge } from '@/components/ui/Badge';
+ import { ListGroup } from '@/components/ui/ListRow';
+-import { SegmentedControl } from '@/components/ui/SegmentedControl';
+ import { EmptyState } from '@/components/ui/EmptyState';
+ import { TONE } from '@/components/ui/tone';
+-import { TaskRow } from '@/features/_shared/TaskRow';
++import { TaskMenu } from '@/features/_shared/TaskRow';
+ import { cn } from '@/lib/cn';
+-import { isOpenTask, sortTasks } from '@/lib/domain';
+ import { fa } from '@/lib/digits';
+ import {
+   addMonthsJalali,
+@@ -31,23 +29,31 @@ import {
+ } from '@/lib/jalali';
+ import { buildEvents } from '@/services/calendar';
+ 
+-type View = 'calendar' | 'tasks';
+-type TaskScope = 'open' | 'done';
++/** Read a linked date without accepting invalid or normalized calendar dates. */
++function linkedDate(value: string | null): Date | undefined {
++  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
++  const date = new Date(`${value}T12:00:00`);
++  return !Number.isNaN(date.getTime()) && dayKey(date) === value ? date : undefined;
++}
+ 
+-/** One destination for the dated agenda and the full task queue. */
++/** One purpose: select a date and work with that day's schedule and tasks. */
+ export function CalendarScreen() {
+   const { visits, tasks } = useApp();
+   const [params, setParams] = useSearchParams();
+-  const view: View = params.get('view') === 'tasks' ? 'tasks' : 'calendar';
+-  const [taskScope, setTaskScope] = useState<TaskScope>('open');
++  const focusedDate = params.get('date');
+   const today = useMemo(() => new Date(), []);
+-  const [cursor, setCursor] = useState(() => toJalali(today));
+-  const [selected, setSelected] = useState(() => dayKey(today));
++  const [cursor, setCursor] = useState(() => toJalali(linkedDate(focusedDate) ?? today));
++  const [selected, setSelected] = useState(() => dayKey(linkedDate(focusedDate) ?? today));
+   const events = useMemo(() => buildEvents(), [visits, tasks]);
+   const grid = useMemo(() => buildMonthGrid(cursor.jy, cursor.jm, today), [cursor, today]);
+-  const overdueCount = tasks.filter((t) => isOpenTask(t) && t.dueDate < dayKey(today)).length;
+-  const openCount = tasks.filter(isOpenTask).length;
+-  const doneCount = tasks.filter((t) => t.status === 'done').length;
++
++  // Deep links from alerts, search and notifications open the relevant day.
++  useEffect(() => {
++    const date = linkedDate(focusedDate);
++    if (!date) return;
++    setCursor(toJalali(date));
++    setSelected(dayKey(date));
++  }, [focusedDate]);
+ 
+   const byDay = useMemo(() => {
+     const map = new Map<string, CalendarEvent[]>();
+@@ -60,11 +66,6 @@ export function CalendarScreen() {
+     [byDay, selected],
+   );
+ 
+-  const visibleTasks = useMemo(
+-    () => sortTasks(tasks.filter((t) => taskScope === 'open' ? isOpenTask(t) : t.status === 'done')),
+-    [tasks, taskScope],
+-  );
+-
+   const changeMonth = (offset: number) => {
+     const next = addMonthsJalali(cursor, offset);
+     setCursor(next);
+@@ -88,148 +89,108 @@ export function CalendarScreen() {
+       <ScreenHeader
+         title="تقویم کاری"
+         subtitle="برنامه‌ها و مسئولیت‌های شما"
+-        actions={view === 'calendar' ? (
++        actions={(
+           <IconButton label="بازگشت به امروز" onClick={returnToday}>
+             <CalendarCheck2 className="size-[20px]" strokeWidth={2} />
+           </IconButton>
+-        ) : undefined}
+-      >
+-        <SegmentedControl<View>
+-          className="mt-3"
+-          ariaLabel="نمایش برنامه کاری"
+-          value={view}
+-          onChange={(v) => setParams(v === 'tasks' ? { view: 'tasks' } : {})}
+-          items={[{ value: 'calendar', label: 'تقویم' }, { value: 'tasks', label: 'همه کارها' }]}
+-        />
+-      </ScreenHeader>
++        )}
++      />
+ 
+-      {view === 'calendar' ? (
+-        <div className="pt-4 pb-8">
+-          {overdueCount > 0 && (
+-            <button
+-              type="button"
+-              onClick={() => { setTaskScope('open'); setParams({ view: 'tasks' }); }}
+-              className="press mb-4 flex w-full items-center justify-between rounded-md border border-warning/30 bg-warning-soft px-3.5 py-3 text-start text-sm font-semibold text-ink"
+-            >
+-              <span>{fa(overdueCount)} کار از مهلت گذشته</span>
+-              <span className="text-sm text-brand-ink">مشاهده کارها</span>
+-            </button>
+-          )}
++      <div className="pt-4 pb-8">
++        <div className="mb-2 flex items-center justify-between gap-2 rounded-md border border-line bg-surface p-1.5">
++          <IconButton label="ماه قبل" size="sm" onClick={() => changeMonth(-1)}>
++            <ChevronRight className="size-[18px]" strokeWidth={2.4} />
++          </IconButton>
++          <p className="flex-1 text-center text-md font-bold text-ink">{faMonthTitle(cursor.jy, cursor.jm)}</p>
++          <IconButton label="ماه بعد" size="sm" onClick={() => changeMonth(1)}>
++            <ChevronLeft className="size-[18px]" strokeWidth={2.4} />
++          </IconButton>
++        </div>
+ 
+-          <div className="mb-2 flex items-center justify-between gap-2 rounded-md border border-line bg-surface p-1.5">
+-            <IconButton label="ماه قبل" size="sm" onClick={() => changeMonth(-1)}>
+-              <ChevronRight className="size-[18px]" strokeWidth={2.4} />
+-            </IconButton>
+-            <p className="flex-1 text-center text-md font-bold text-ink">{faMonthTitle(cursor.jy, cursor.jm)}</p>
+-            <IconButton label="ماه بعد" size="sm" onClick={() => changeMonth(1)}>
+-              <ChevronLeft className="size-[18px]" strokeWidth={2.4} />
+-            </IconButton>
++        <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-xs">
++          <div className="grid grid-cols-7 border-b border-line-soft bg-sunken/60">
++            {WEEKDAYS_SHORT.map((d, i) => (
++              <span key={d} className={cn('py-2 text-center text-xs font-bold', i === 6 ? 'text-danger' : 'text-ink-2')}>{d}</span>
++            ))}
+           </div>
+-
+-          <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-xs">
+-            <div className="grid grid-cols-7 border-b border-line-soft bg-sunken/60">
+-              {WEEKDAYS_SHORT.map((d, i) => (
+-                <span key={d} className={cn('py-2 text-center text-xs font-bold', i === 6 ? 'text-danger' : 'text-ink-2')}>{d}</span>
+-              ))}
+-            </div>
+-            <div className="grid grid-cols-7">
+-              {grid.map((cell) => {
+-                const key = dayKey(cell.date);
+-                const dayEvents = byDay.get(key) ?? [];
+-                const isSelected = key === selected;
+-                const isFriday = persianWeekdayIndex(cell.date) === 6;
+-                return (
+-                  <button
+-                    key={key}
+-                    type="button"
+-                    onClick={() => selectDate(key, cell.date)}
+-                    aria-pressed={isSelected}
+-                    aria-label={`${faDate(cell.date, { weekday: true })} — ${fa(dayEvents.length)} مورد`}
+-                    className={cn(
+-                      'relative flex h-12 min-w-0 flex-col items-center justify-center gap-1 transition-colors',
+-                      !cell.inMonth && 'opacity-40',
+-                      isSelected ? 'bg-brand-soft' : 'hover:bg-sunken',
+-                    )}
+-                  >
+-                    <span className={cn(
+-                      'grid size-7 place-items-center rounded-full text-sm tabular-nums transition-colors',
+-                      cell.isToday && !isSelected && 'bg-ink text-bg font-extrabold',
+-                      isSelected && 'bg-brand text-white font-extrabold',
+-                      !cell.isToday && !isSelected && (isFriday ? 'text-danger' : 'text-ink'),
+-                    )}>{fa(cell.jalali.jd)}</span>
+-                    <span className="flex h-1.5 items-center gap-0.5">
+-                      {dayEvents.slice(0, 3).map((e) => (
+-                        <span key={e.id} className={cn('size-1.5 rounded-full', TONE[e.tone].dot)} />
+-                      ))}
+-                    </span>
+-                  </button>
+-                );
+-              })}
+-            </div>
++          <div className="grid grid-cols-7">
++            {grid.map((cell) => {
++              const key = dayKey(cell.date);
++              const dayEvents = byDay.get(key) ?? [];
++              const isSelected = key === selected;
++              const isFriday = persianWeekdayIndex(cell.date) === 6;
++              return (
++                <button
++                  key={key}
++                  type="button"
++                  onClick={() => selectDate(key, cell.date)}
++                  aria-pressed={isSelected}
++                  aria-label={`${faDate(cell.date, { weekday: true })} — ${fa(dayEvents.length)} مورد`}
++                  className={cn(
++                    'relative flex h-12 min-w-0 flex-col items-center justify-center gap-1 transition-colors',
++                    !cell.inMonth && 'opacity-40',
++                    isSelected ? 'bg-brand-soft' : 'hover:bg-sunken',
++                  )}
++                >
++                  <span className={cn(
++                    'grid size-7 place-items-center rounded-full text-sm tabular-nums transition-colors',
++                    cell.isToday && !isSelected && 'bg-ink text-bg font-extrabold',
++                    isSelected && 'bg-brand text-white font-extrabold',
++                    !cell.isToday && !isSelected && (isFriday ? 'text-danger' : 'text-ink'),
++                  )}>{fa(cell.jalali.jd)}</span>
++                  <span className="flex h-1.5 items-center gap-0.5">
++                    {dayEvents.slice(0, 3).map((e) => (
++                      <span key={e.id} className={cn('size-1.5 rounded-full', TONE[e.tone].dot)} />
++                    ))}
++                  </span>
++                </button>
++              );
++            })}
+           </div>
+-
+-          <section className="mt-6" aria-label="برنامه روز انتخاب‌شده">
+-            <div className="mb-3 flex items-center justify-between gap-2">
+-              <h2 className="text-md font-bold text-ink">
+-                {isSameDay(new Date(`${selected}T00:00:00`), today) ? 'امروز' : faDate(selected, { weekday: true })}
+-              </h2>
+-              <span className="text-xs text-ink-3 tabular-nums">{fa(selectedEvents.length)} مورد</span>
+-            </div>
+-            {selectedEvents.length === 0 ? (
+-              <div className="rounded-lg border border-dashed border-line-strong bg-surface/60">
+-                <EmptyState
+-                  icon={<CalendarCheck2 className="size-6" />}
+-                  title="موردی برای این روز ثبت نشده"
+-                  description="برای کارهای بدون برنامه زمانی مشخص، «همه کارها» را ببینید."
+-                />
+-              </div>
+-            ) : (
+-              <ListGroup>
+-                {selectedEvents.map((e, i) => (
+-                  <EventRow key={e.id} event={e} divider={i < selectedEvents.length - 1} />
+-                ))}
+-              </ListGroup>
+-            )}
+-          </section>
+         </div>
+-      ) : (
+-        <div className="pt-4 pb-8">
+-          <SegmentedControl<TaskScope>
+-            ariaLabel="وضعیت کارها"
+-            value={taskScope}
+-            onChange={setTaskScope}
+-            items={[{ value: 'open', label: 'در انتظار', count: openCount }, { value: 'done', label: 'انجام‌شده', count: doneCount }]}
+-          />
+-          <p className="mt-3 text-xs leading-relaxed text-ink-3">
+-            کارها بر اساس نزدیک‌ترین مهلت مرتب شده‌اند. برای بازدیدها و گزارش‌ها، نتیجه را در صفحه مربوط ثبت کنید.
+-          </p>
+-          {visibleTasks.length === 0 ? (
+-            <div className="mt-4 rounded-lg border border-dashed border-line-strong bg-surface">
+-              <EmptyState icon={<CheckCircle2 className="size-6" />} title="کاری در این وضعیت نیست" />
++
++        <section className="mt-6" aria-label="برنامه روز انتخاب‌شده">
++          <div className="mb-3 flex items-center justify-between gap-2">
++            <h2 className="text-md font-bold text-ink">
++              {isSameDay(new Date(`${selected}T00:00:00`), today) ? 'امروز' : faDate(selected, { weekday: true })}
++            </h2>
++            <span className="text-xs text-ink-3 tabular-nums">{fa(selectedEvents.length)} مورد</span>
++          </div>
++          {selectedEvents.length === 0 ? (
++            <div className="rounded-lg border border-dashed border-line-strong bg-surface/60">
++              <EmptyState
++                icon={<CalendarCheck2 className="size-6" />}
++                title="موردی برای این روز ثبت نشده"
++                description="برای دیدن برنامه‌ها و کارهای یک روز دیگر، تاریخ آن را انتخاب کنید."
++              />
+             </div>
+           ) : (
+-            <ListGroup className="mt-4">
+-              {visibleTasks.map((task, i) => (
+-                <TaskRow key={task.id} task={task} divider={i < visibleTasks.length - 1} />
++            <ListGroup>
++              {selectedEvents.map((e, i) => (
++                <EventRow key={e.id} event={e} divider={i < selectedEvents.length - 1} />
+               ))}
+             </ListGroup>
+           )}
+-        </div>
+-      )}
++        </section>
++      </div>
+     </Screen>
+   );
+ }
+ 
+ function EventRow({ event, divider }: { event: CalendarEvent; divider?: boolean }) {
++  const { tasks } = useApp();
++  const [menuOpen, setMenuOpen] = useState(false);
++  const task = event.taskId ? tasks.find((t) => t.id === event.taskId) : undefined;
++  const target = event.href ?? `/calendar?date=${event.date}`;
++  const openInPlace = Boolean(task && target.startsWith('/calendar?date='));
+   const Icon = event.kind === 'visit' ? MapPin : event.kind === 'meeting' ? Clock3 : CalendarCheck2;
+   const done = event.taskStatus === 'done' || (event.kind === 'visit' && event.tone === 'success');
+   const revision = event.taskStatus === 'revision';
+   const blocked = event.taskStatus === 'blocked';
+-  return (
+-    <Link
+-      to={event.href ?? '/calendar?view=tasks'}
+-      className={cn('press flex min-h-16 items-center gap-3 px-3 py-3.5 hover:bg-sunken', divider && 'border-b border-line-soft')}
+-    >
++  const rowClass = 'press flex min-h-16 min-w-0 flex-1 items-center gap-3 px-3 py-3.5 text-start hover:bg-sunken';
++
++  const content = (
++    <>
+       <span className="w-[3.3rem] shrink-0 text-center text-xs font-bold tabular-nums text-ink-2">
+         {event.time ? faTime(event.time) : 'مهلت'}
+       </span>
+@@ -246,6 +207,29 @@ function EventRow({ event, divider }: { event: CalendarEvent; divider?: boolean
+         </span>
+       </span>
+       {done ? <Badge tone="success">انجام‌شده</Badge> : revision ? <Badge tone="warning">اصلاح</Badge> : blocked ? <Badge tone="danger">متوقف</Badge> : null}
+-    </Link>
++    </>
++  );
++
++  return (
++    <>
++      <div className={cn('flex min-w-0 items-center', divider && 'border-b border-line-soft')}>
++        {openInPlace ? (
++          <button type="button" onClick={() => setMenuOpen(true)} className={rowClass}>
++            {content}
++            <MoreVertical className="size-4 shrink-0 text-ink-3" aria-hidden />
++          </button>
++        ) : (
++          <Link to={target} className={rowClass}>{content}</Link>
++        )}
++        {task && !openInPlace && (
++          <div className="pe-2">
++            <IconButton label="گزینه‌های کار" size="sm" onClick={() => setMenuOpen(true)}>
++              <MoreVertical className="size-4" />
++            </IconButton>
++          </div>
++        )}
++      </div>
++      {task && <TaskMenu task={task} open={menuOpen} onClose={() => setMenuOpen(false)} />}
++    </>
+   );
+ }
+diff --git a/src/features/search/SearchScreen.tsx b/src/features/search/SearchScreen.tsx
+index 6737f28..1c4490b 100644
+--- a/src/features/search/SearchScreen.tsx
++++ b/src/features/search/SearchScreen.tsx
+@@ -148,7 +148,7 @@ export function SearchScreen() {
+                   {results.tasks.map((t) => (
+                     <ListRow
+                       key={t.id}
+-                      onClick={() => navigate(t.visitId ? `/visits/${t.visitId}` : t.reportId ? `/reports/${t.reportId}` : '/calendar?view=tasks')}
++                      onClick={() => navigate(t.visitId ? `/visits/${t.visitId}` : t.reportId ? `/reports/${t.reportId}` : t.caseId ? `/cases/${t.caseId}` : `/calendar?date=${t.dueDate}`)}
+                       chevron
+                       leading={<IconTile icon={TASK_ICON[t.type]} tone={TASK_TYPE[t.type].tone} size="sm" />}
+                       title={t.title}
+diff --git a/src/services/calendar.ts b/src/services/calendar.ts
+index 620f165..f055eb6 100644
+--- a/src/services/calendar.ts
++++ b/src/services/calendar.ts
+@@ -41,7 +41,7 @@ export function buildEvents(): CalendarEvent[] {
+       kind: t.type === 'meeting' ? 'meeting' : 'deadline',
+       date: t.dueDate,
+       time: scheduledTime,
+-      href: t.reportId ? `/reports/${t.reportId}` : t.caseId ? `/cases/${t.caseId}` : '/calendar?view=tasks',
++      href: t.reportId ? `/reports/${t.reportId}` : t.caseId ? `/cases/${t.caseId}` : `/calendar?date=${t.dueDate}`,
+       tone: t.status === 'done' ? 'success' : t.status === 'revision' ? 'warning' : t.priority === 'critical' ? 'danger' : t.priority === 'high' ? 'warning' : 'info',
+       caseCode: t.caseCode,
+       taskId: t.id,
+diff --git a/src/services/dashboard.ts b/src/services/dashboard.ts
+index d37be02..aee7f21 100644
+--- a/src/services/dashboard.ts
++++ b/src/services/dashboard.ts
+@@ -73,7 +73,7 @@ export function buildAttention(): AttentionItem[] {
+       title: `${Math.abs(daysUntil(t.dueDate, now))} روز از مهلت گذشته`,
+       detail: t.title,
+       tone: 'danger',
+-      href: t.reportId ? `/reports/${t.reportId}` : t.visitId ? `/visits/${t.visitId}` : '/calendar?view=tasks',
++      href: t.reportId ? `/reports/${t.reportId}` : t.visitId ? `/visits/${t.visitId}` : `/calendar?date=${t.dueDate}`,
+     });
+   }
+ 
+@@ -112,7 +112,7 @@ export function buildAttention(): AttentionItem[] {
+       title: daysUntil(t.dueDate, now) === 0 ? 'مهلت امروز' : 'مهلت فردا',
+       detail: t.title,
+       tone: 'warning',
+-      href: t.visitId ? `/visits/${t.visitId}` : t.reportId ? `/reports/${t.reportId}` : '/calendar?view=tasks',
++      href: t.visitId ? `/visits/${t.visitId}` : t.reportId ? `/reports/${t.reportId}` : `/calendar?date=${t.dueDate}`,
+     });
+   }
+ 
+@@ -122,7 +122,7 @@ export function buildAttention(): AttentionItem[] {
+   return items
+     .sort((a, b) => severity[a.tone] - severity[b.tone])
+     .filter((item) => {
+-      if (item.href === '/calendar?view=tasks') return true;
++      if (item.href.startsWith('/calendar?date=')) return true;
+       if (seenLinks.has(item.href)) return false;
+       seenLinks.add(item.href);
+       return true;
+@@ -159,7 +159,7 @@ export function buildAgenda(date: Date = new Date()): AgendaItem[] {
+         subtitle: e.kind === 'visit' ? e.title.split('—')[0].trim() : caseFile?.code,
+         time: e.time,
+         durationMin: e.durationMin,
+-        href: e.href ?? '/calendar?view=tasks',
++        href: e.href ?? `/calendar?date=${e.date}`,
+         tone: e.tone,
+         state,
+         visit,

@@ -37,14 +37,16 @@ export function AgendaTimeline({ items, className }: { items: AgendaItem[]; clas
             ? 'bg-success'
             : item.state === 'needs-outcome'
               ? 'bg-warning'
-              : item.kind === 'meeting'
+              : item.state === 'revision'
+                ? 'bg-warning'
+                : item.kind === 'meeting'
                 ? 'bg-ink-3'
                 : 'bg-brand';
 
         return (
           <li key={item.id} className="relative flex gap-2.5">
             <div className="w-12 shrink-0 pt-2.5 text-end">
-              <span className="block text-sm font-bold text-ink tabular-nums">{item.time ? faTime(item.time) : '—'}</span>
+              <span className="block text-sm font-bold text-ink tabular-nums">{item.time ? faTime(item.time) : 'مهلت'}</span>
               {item.durationMin && (
                 <span className="mt-0.5 block text-2xs text-ink-3 tabular-nums">{faDuration(item.durationMin)}</span>
               )}
@@ -74,26 +76,31 @@ export function AgendaTimeline({ items, className }: { items: AgendaItem[]; clas
 function AgendaCard({ item }: { item: AgendaItem }) {
   const done = item.state === 'done';
   const needsOutcome = item.state === 'needs-outcome';
+  const revision = item.state === 'revision';
 
   return (
     <Link
       to={item.href}
       className={cn(
         'press block rounded-lg border bg-surface p-3.5 shadow-xs',
-        done ? 'border-line-soft opacity-70' : needsOutcome ? 'border-warning/40' : 'border-line',
+        done ? 'border-line-soft' : needsOutcome || revision ? 'border-warning/40' : 'border-line',
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className={cn('truncate text-base font-bold', done ? 'text-ink-2 line-through decoration-line-strong' : 'text-ink')}>
+          <p className={cn('truncate text-base font-bold', done ? 'text-ink-2' : 'text-ink')}>
             {item.title}
           </p>
           {item.subtitle && <p className="mt-0.5 truncate text-sm text-ink-3">{item.subtitle}</p>}
         </div>
         {done ? (
-          <Badge tone="success">{VISIT_STATUS.completed.label}</Badge>
+          <Badge tone="success">{item.visit ? VISIT_STATUS.completed.label : 'انجام‌شده'}</Badge>
         ) : needsOutcome ? (
           <Badge tone="warning">ثبت نتیجه</Badge>
+        ) : revision ? (
+          <Badge tone="warning">نیازمند اصلاح</Badge>
+        ) : item.state === 'cancelled' ? (
+          <Badge tone="neutral">انجام‌نشده</Badge>
         ) : item.kind === 'meeting' ? (
           <Badge tone="neutral">جلسه</Badge>
         ) : null}

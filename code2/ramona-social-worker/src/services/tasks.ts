@@ -47,7 +47,9 @@ export const reopenTask = (id: string) => setTaskStatus(id, 'todo');
 export function postponeTask(id: string, days: number): Promise<Task | undefined> {
   const task = findTask(id);
   if (!task) return latency(undefined);
-  const next: Task = { ...task, dueDate: dayKey(addDays(task.dueDate, days)), status: task.status === 'done' ? task.status : 'todo' };
+  if (task.status === 'done' || task.visitId) return latency(task, 0);
+  const base = task.dueDate > dayKey(new Date()) ? task.dueDate : dayKey(new Date());
+  const next: Task = { ...task, dueDate: dayKey(addDays(base, days)), status: 'todo' };
   db.tasks = replace(db.tasks, next);
   return latency(next, 120);
 }

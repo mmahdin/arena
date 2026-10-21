@@ -13,13 +13,12 @@ import { Sheet, SheetOption } from '@/components/ui/Sheet';
 import { CaseCard } from '@/features/_shared/CaseCard';
 import { fa } from '@/lib/digits';
 
-type QuickFilter = 'all' | CaseType | 'attention' | 'closed';
+type QuickFilter = 'all' | CaseType | 'closed';
 
 const FILTERS: { value: QuickFilter; label: string }[] = [
   { value: 'all', label: 'همه' },
   { value: 'hosting', label: 'میزبانی' },
   { value: 'adoption', label: 'فرزندخواندگی' },
-  { value: 'attention', label: 'نیازمند توجه' },
   { value: 'closed', label: 'بایگانی' },
 ];
 
@@ -42,9 +41,7 @@ export function CasesScreen() {
     let rows = cases.slice();
     if (filter === 'hosting' || filter === 'adoption') rows = rows.filter((c) => c.type === filter);
     if (filter === 'closed') rows = rows.filter((c) => c.stage === 'closed');
-    if (filter === 'attention')
-      rows = rows.filter((c) => c.priority === 'critical' || c.priority === 'high' || c.children.some((ch) => ch.wellbeing !== 'stable'));
-    if (filter === 'all') rows = rows.filter((c) => c.stage !== 'closed');
+    if (filter !== 'closed') rows = rows.filter((c) => c.stage !== 'closed');
     if (stage !== 'all') rows = rows.filter((c) => c.stage === stage);
     if (query.trim()) {
       const needle = query.trim().toLowerCase();
@@ -59,16 +56,6 @@ export function CasesScreen() {
   }, [cases, filter, stage, query]);
 
   const activeCount = cases.filter((c) => c.stage !== 'closed').length;
-  const counts = {
-    all: activeCount,
-    hosting: cases.filter((c) => c.type === 'hosting' && c.stage !== 'closed').length,
-    adoption: cases.filter((c) => c.type === 'adoption' && c.stage !== 'closed').length,
-    attention: cases.filter(
-      (c) => c.stage !== 'closed' && (c.priority === 'critical' || c.children.some((ch) => ch.wellbeing !== 'stable')),
-    ).length,
-    closed: cases.filter((c) => c.stage === 'closed').length,
-  } as Record<QuickFilter, number>;
-
   const stages: { value: CaseStage | 'all'; label: string }[] = [
     { value: 'all', label: 'همه مراحل' },
     { value: 'initial-assessment', label: 'ارزیابی اولیه' },
@@ -101,7 +88,7 @@ export function CasesScreen() {
           <SearchBar value={query} onChange={setQuery} placeholder="جست‌وجوی نام خانواده، کد پرونده یا کودک" />
           <ChipRail flush>
             {FILTERS.map((f) => (
-              <Chip key={f.value} selected={filter === f.value} count={counts[f.value]} onClick={() => setFilter(f.value)}>
+              <Chip key={f.value} selected={filter === f.value} onClick={() => { setFilter(f.value); setStage('all'); }}>
                 {f.label}
               </Chip>
             ))}

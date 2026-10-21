@@ -1,7 +1,7 @@
 import type { CalendarEvent } from '@/types';
 import { db } from '@/data/db';
-import { isOpenTask } from '@/lib/domain';
-import { addDays, buildMonthGrid, dayKey, persianWeekdayIndex } from '@/lib/jalali';
+import { buildMonthGrid, dayKey } from '@/lib/jalali';
+import { toLatinDigits } from '@/lib/digits';
 import { VISIT_PURPOSE } from '@/lib/labels';
 import { latency } from './_utils';
 
@@ -31,32 +31,21 @@ export function buildEvents(): CalendarEvent[] {
   }
 
   for (const t of db.tasks) {
-    if (!isOpenTask(t) || t.visitId) continue; // visits already represent their own slot
+    if (t.visitId) continue; // visits already represent their own slot; retain other completed tasks
+    // Only show a meeting time when the assignment explicitly contains one.
+    const match = t.type === 'meeting' ? toLatinDigits(t.description ?? '').match(/ساعت\s*(\d{1,2}):(\d{2})/) : null;
+    const scheduledTime = match ? `${match[1].padStart(2, '0')}:${match[2]}` : undefined;
     events.push({
       id: `cal-${t.id}`,
       title: t.title,
       kind: t.type === 'meeting' ? 'meeting' : 'deadline',
       date: t.dueDate,
-      time: t.type === 'meeting' ? '08:00' : undefined,
-      href: t.reportId ? `/reports/${t.reportId}` : t.caseId ? `/cases/${t.caseId}` : '/work',
-      tone: t.priority === 'critical' ? 'danger' : t.priority === 'high' ? 'warning' : 'info',
+      time: scheduledTime,
+      href: t.reportId ? `/reports/${t.reportId}` : t.caseId ? `/cases/${t.caseId}` : `/calendar?date=${t.dueDate}`,
+      tone: t.status === 'done' ? 'success' : t.status === 'revision' ? 'warning' : t.priority === 'critical' ? 'danger' : t.priority === 'high' ? 'warning' : 'info',
       caseCode: t.caseCode,
-    });
-  }
-
-  // Standing Saturday team meeting for the surrounding weeks.
-  const today = new Date();
-  for (let week = -2; week <= 3; week += 1) {
-    const saturday = addDays(today, week * 7 - persianWeekdayIndex(today));
-    events.push({
-      id: `cal-meeting-${dayKey(saturday)}`,
-      title: 'جلسه هفتگی تیم مددکاری',
-      kind: 'meeting',
-      date: dayKey(saturday),
-      time: '08:00',
-      durationMin: 60,
-      href: '/work',
-      tone: 'neutral',
+      taskId: t.id,
+      taskStatus: t.status,
     });
   }
 

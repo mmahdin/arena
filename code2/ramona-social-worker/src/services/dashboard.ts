@@ -1,7 +1,7 @@
 import type { CalendarEvent, CaseFile, Tone, UserProfile, Visit } from '@/types';
 import { db } from '@/data/db';
-import { isOpenTask, sortTasks, visitDisplayState } from '@/lib/domain';
-import { dayKey, daysUntil, faDate, greeting } from '@/lib/jalali';
+import { isOpenTask, visitDisplayState } from '@/lib/domain';
+import { dayKey, daysUntil, faDate } from '@/lib/jalali';
 import { WELLBEING } from '@/lib/labels';
 import { latency } from './_utils';
 import { buildEvents } from './calendar';
@@ -35,25 +35,15 @@ export interface AgendaItem {
   durationMin?: number;
   href: string;
   tone: Tone;
-  state: 'upcoming' | 'done' | 'needs-outcome';
+  state: 'upcoming' | 'done' | 'needs-outcome' | 'revision' | 'cancelled';
   visit?: Visit;
 }
 
 export interface TodayPayload {
   user: UserProfile;
-  greeting: string;
   dateLabel: string;
   agenda: AgendaItem[];
   attention: AttentionItem[];
-  upcomingTasks: ReturnType<typeof sortTasks>;
-  monitoring: ChildSummary[];
-  stats: {
-    agendaTotal: number;
-    agendaDone: number;
-    openTasks: number;
-    unread: number;
-    activeCases: number;
-  };
 }
 
 const today = () => dayKey(new Date());
@@ -83,7 +73,7 @@ export function buildAttention(): AttentionItem[] {
       title: `${Math.abs(daysUntil(t.dueDate, now))} روز از مهلت گذشته`,
       detail: t.title,
       tone: 'danger',
-      href: t.reportId ? `/reports/${t.reportId}` : '/work',
+      href: t.reportId ? `/reports/${t.reportId}` : t.visitId ? `/visits/${t.visitId}` : `/calendar?date=${t.dueDate}`,
     });
   }
 
@@ -122,12 +112,21 @@ export function buildAttention(): AttentionItem[] {
       title: daysUntil(t.dueDate, now) === 0 ? 'مهلت امروز' : 'مهلت فردا',
       detail: t.title,
       tone: 'warning',
-      href: t.visitId ? `/visits/${t.visitId}` : t.reportId ? `/reports/${t.reportId}` : '/work',
+      href: t.visitId ? `/visits/${t.visitId}` : t.reportId ? `/reports/${t.reportId}` : `/calendar?date=${t.dueDate}`,
     });
   }
 
   const severity: Record<Tone, number> = { danger: 0, warning: 1, accent: 2, brand: 3, info: 4, success: 5, neutral: 6 };
-  return items.sort((a, b) => severity[a.tone] - severity[b.tone]).slice(0, 4);
+  // A returned report may also be overdue. Surface the action only once.
+  const seenLinks = new Set<string>();
+  return items
+    .sort((a, b) => severity[a.tone] - severity[b.tone])
+    .filter((item) => {
+      if (item.href.startsWith('/calendar?date=')) return true;
+      if (seenLinks.has(item.href)) return false;
+      seenLinks.add(item.href);
+      return true;
+    });
 }
 
 export function buildAgenda(date: Date = new Date()): AgendaItem[] {
@@ -137,15 +136,19 @@ export function buildAgenda(date: Date = new Date()): AgendaItem[] {
     .filter((e) => e.date === key)
     .map<AgendaItem>((e) => {
       const visit = e.kind === 'visit' ? db.visits.find((v) => v.id === e.id.replace('cal-', '')) : undefined;
-      const state = visit
+      const state: AgendaItem['state'] = visit
         ? visitDisplayState(visit, now) === 'completed'
           ? 'done'
           : visitDisplayState(visit, now) === 'needs-outcome'
             ? 'needs-outcome'
-            : 'upcoming'
-        : e.kind === 'deadline'
-          ? 'upcoming'
-          : 'upcoming';
+            : visitDisplayState(visit, now) === 'cancelled' || visitDisplayState(visit, now) === 'not-done'
+              ? 'cancelled'
+              : 'upcoming'
+        : e.taskStatus === 'done'
+          ? 'done'
+          : e.taskStatus === 'revision'
+            ? 'revision'
+            : 'upcoming';
       const caseFile: CaseFile | undefined = e.caseCode
         ? db.cases.find((c) => c.code === e.caseCode)
         : undefined;
@@ -156,7 +159,7 @@ export function buildAgenda(date: Date = new Date()): AgendaItem[] {
         subtitle: e.kind === 'visit' ? e.title.split('—')[0].trim() : caseFile?.code,
         time: e.time,
         durationMin: e.durationMin,
-        href: e.href ?? '#',
+        href: e.href ?? `/calendar?date=${e.date}`,
         tone: e.tone,
         state,
         visit,
@@ -169,26 +172,22 @@ export function buildAgenda(date: Date = new Date()): AgendaItem[] {
 export function buildToday(): TodayPayload {
   const now = new Date();
   const agenda = buildAgenda(now);
-  const monitoring = listChildrenSync()
-    .filter((ch) => daysUntil(ch.nextFollowUp, now) <= 10)
-    .sort((a, b) => a.nextFollowUp.localeCompare(b.nextFollowUp))
-    .slice(0, 3);
+  // A visit outcome or deadline already shown in today's agenda is not a
+  // second alert. Older unresolved work and returned reports still surface.
+  const attention = buildAttention().filter((item) => !agenda.some((entry) => {
+    const sameTaskOrVisit = entry.id === item.id.replace(/^at-/, 'cal-');
+    return (
+      (item.kind === 'visit-outcome' && sameTaskOrVisit && entry.state === 'needs-outcome') ||
+      (item.kind === 'deadline' && sameTaskOrVisit && entry.state !== 'done') ||
+      (item.kind === 'revision' && entry.href === item.href && entry.state === 'revision')
+    );
+  }));
 
   return {
     user: db.user,
-    greeting: greeting(now),
     dateLabel: faDate(now, { weekday: true }),
     agenda,
-    attention: buildAttention(),
-    upcomingTasks: sortTasks(db.tasks.filter((t) => isOpenTask(t) && t.dueDate >= today())).slice(0, 4),
-    monitoring,
-    stats: {
-      agendaTotal: agenda.length,
-      agendaDone: agenda.filter((a) => a.state === 'done').length,
-      openTasks: db.tasks.filter(isOpenTask).length,
-      unread: db.notifications.filter((n) => !n.read).length,
-      activeCases: db.cases.filter((c) => c.stage !== 'closed').length,
-    },
+    attention,
   };
 }
 

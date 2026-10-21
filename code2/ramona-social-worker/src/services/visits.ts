@@ -65,10 +65,7 @@ export async function recordVisitOutcome(
     ...visit,
     status: input.status,
     outcome: { status: input.status, note: input.note, at: nowIso() },
-    checklist:
-      input.status === 'completed'
-        ? visit.checklist.map((c) => ({ ...c, done: true }))
-        : visit.checklist,
+    checklist: visit.checklist,
   };
   db.visits = replace(db.visits, next);
 

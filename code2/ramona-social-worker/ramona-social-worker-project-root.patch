@@ -1,0 +1,2915 @@
+diff --git a/README.md b/README.md
+index 2989361..56c7be6 100644
+--- a/README.md
++++ b/README.md
+@@ -25,9 +25,9 @@ npm run preview    # اجرای خروجی تولید
+ 
+ | مسیر | صفحه |
+ | --- | --- |
+-| `/` | امروز (برنامه روز، نیازمند توجه، میان‌آمار) |
+-| `/work` | کارها (باز/انجام‌شده، گروه‌بندی مهلت) |
+-| `/calendar` | تقویم جلالی + رویدادهای روز |
++| `/` | امروز (برنامه روز و موارد نیازمند رسیدگی) |
++| `/work` | مسیر قدیمی؛ انتقال خودکار به `/calendar?view=tasks` |
++| `/calendar` ، `/calendar?view=tasks` | تقویم جلالی، برنامه روز و فهرست همه کارها |
+ | `/cases` ، `/cases/:caseId` | پرونده‌ها و صفحه پرونده خانواده |
+ | `/children/:childId` | صفحه کودک (روند وضعیت، پیگیری‌ها) |
+ | `/visits/:visitId` | جزئیات بازدید + ثبت نتیجه |
+@@ -39,8 +39,8 @@ npm run preview    # اجرای خروجی تولید
+ | `/design-system` | راهنمای زنده توکن‌ها و اجزا |
+ | `*` | صفحهٔ پیدا نشد |
+ 
+-ناوبری اصلی پنج تب است: امروز · کارها · تقویم · پرونده‌ها · بیشتر. بقیه بخش‌ها از
+-طریق تب «بیشتر» یا پیوندهای درون‌صفحه‌ای erreichbarند تا نوار پایین شلوغ نشود.
++ناوبری اصلی پنج تب است: امروز · تقویم · پرونده‌ها · گزارش‌ها · بیشتر. بقیه بخش‌ها از
++طریق تب «بیشتر» یا پیوندهای درون‌صفحه‌ای در دسترس هستند تا نوار پایین شلوغ نشود.
+ 
+ ## ساختار پروژه
+ 
+diff --git a/src/app/AppShell.tsx b/src/app/AppShell.tsx
+index b2b1094..dd85102 100644
+--- a/src/app/AppShell.tsx
++++ b/src/app/AppShell.tsx
+@@ -1,5 +1,5 @@
+ import { useEffect, useRef } from 'react';
+-import { Route, Routes, useLocation } from 'react-router-dom';
++import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+ import { Moon, Sun } from 'lucide-react';
+ import { TabBar } from '@/components/layout/TabBar';
+ import { Logo } from '@/components/layout/Logo';
+@@ -8,7 +8,6 @@ import { OVERLAY_ROOT_ID } from '@/components/ui/Sheet';
+ import { useSettings } from '@/store/settings';
+ 
+ import { TodayScreen } from '@/features/today/TodayScreen';
+-import { WorkScreen } from '@/features/work/WorkScreen';
+ import { CalendarScreen } from '@/features/calendar/CalendarScreen';
+ import { CasesScreen } from '@/features/cases/CasesScreen';
+ import { CaseDetailScreen } from '@/features/cases/CaseDetailScreen';
+@@ -26,17 +25,17 @@ import { DesignSystemScreen } from '@/features/design-system/DesignSystemScreen'
+ import { NotFoundScreen } from '@/features/misc/NotFoundScreen';
+ 
+ /** Destinations that own a tab in the primary navigation. */
+-const TAB_ROUTES = ['/', '/work', '/calendar', '/cases', '/more'];
++const TAB_ROUTES = ['/', '/calendar', '/cases', '/reports', '/more'];
+ 
+ export function AppShell() {
+-  const { pathname } = useLocation();
++  const { pathname, search } = useLocation();
+   const scrollRef = useRef<HTMLDivElement>(null);
+   const { resolvedTheme, setTheme } = useSettings();
+ 
+   // Every navigation starts at the top of the new screen.
+   useEffect(() => {
+     scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+-  }, [pathname]);
++  }, [pathname, search]);
+ 
+   const showTabs = TAB_ROUTES.includes(pathname);
+ 
+@@ -48,7 +47,7 @@ export function AppShell() {
+             <div id="app-scroll" ref={scrollRef} className="app-scroll">
+               <Routes>
+                 <Route path="/" element={<TodayScreen />} />
+-                <Route path="/work" element={<WorkScreen />} />
++                <Route path="/work" element={<Navigate to="/calendar?view=tasks" replace />} />
+                 <Route path="/calendar" element={<CalendarScreen />} />
+                 <Route path="/cases" element={<CasesScreen />} />
+                 <Route path="/cases/:caseId" element={<CaseDetailScreen />} />
+diff --git a/src/components/layout/TabBar.tsx b/src/components/layout/TabBar.tsx
+index 3a6bb36..12acb5b 100644
+--- a/src/components/layout/TabBar.tsx
++++ b/src/components/layout/TabBar.tsx
+@@ -1,18 +1,10 @@
+ import { NavLink, useLocation } from 'react-router-dom';
+ import type { LucideIcon } from 'lucide-react';
+-import { CalendarDays, FolderHeart, ListChecks, Menu, Sunrise } from 'lucide-react';
++import { CalendarDays, FileText, FolderHeart, Menu, Sunrise } from 'lucide-react';
+ import { cn } from '@/lib/cn';
+ import { useApp } from '@/store/app-store';
+-import { isOpenTask, taskBucket } from '@/lib/domain';
+ 
+-/**
+- * Primary navigation.
+- *
+- * Five destinations, no more: Today, Work, Calendar, Cases, More. Everything
+- * else (reports, monitoring, notifications, profile) is reachable in one tap
+- * from "More" and contextually from the screens where it matters. This keeps
+- * the bar legible at a glance and the thumb's travel short.
+- */
++/** Each primary destination has a single, distinct responsibility. */
+ interface TabDef {
+   to: string;
+   label: string;
+@@ -22,16 +14,16 @@ interface TabDef {
+ 
+ const TABS: TabDef[] = [
+   { to: '/', label: 'امروز', icon: Sunrise, exact: true },
+-  { to: '/work', label: 'کارها', icon: ListChecks },
+   { to: '/calendar', label: 'تقویم', icon: CalendarDays },
+   { to: '/cases', label: 'پرونده‌ها', icon: FolderHeart },
++  { to: '/reports', label: 'گزارش‌ها', icon: FileText },
+   { to: '/more', label: 'بیشتر', icon: Menu },
+-]
++];
+ 
+ export function TabBar() {
+   const { pathname } = useLocation();
+-  const { tasks } = useApp();
+-  const urgent = tasks.filter((t) => isOpenTask(t) && ['overdue', 'today'].includes(taskBucket(t))).length;
++  const { reports } = useApp();
++  const revisions = reports.filter((r) => r.status === 'revision').length;
+ 
+   return (
+     <nav
+@@ -41,7 +33,7 @@ export function TabBar() {
+     >
+       <ul className="flex items-stretch" style={{ height: 'var(--tabbar-h)' }}>
+         {TABS.map((tab) => {
+-          const active = tab.exact ? pathname === tab.to : pathname.startsWith(tab.to);
++          const active = tab.exact ? pathname === tab.to : pathname === tab.to || pathname.startsWith(`${tab.to}/`);
+           const Icon = tab.icon;
+           return (
+             <li key={tab.to} className="flex-1">
+@@ -57,8 +49,8 @@ export function TabBar() {
+                   )}
+                 >
+                   <Icon className="size-[20px]" strokeWidth={active ? 2.4 : 2} aria-hidden />
+-                  {tab.to === '/work' && urgent > 0 && (
+-                    <span className="absolute end-1.5 top-0.5 size-1.5 rounded-full bg-danger" />
++                  {tab.to === '/reports' && revisions > 0 && (
++                    <span className="absolute end-1 top-0.5 size-1.5 rounded-full bg-danger" aria-label="گزارش نیازمند اصلاح" />
+                   )}
+                 </span>
+                 <span
+diff --git a/src/data/mock/notifications.ts b/src/data/mock/notifications.ts
+index 59fe657..9e5ce12 100644
+--- a/src/data/mock/notifications.ts
++++ b/src/data/mock/notifications.ts
+@@ -60,7 +60,7 @@ export const notifications: AppNotification[] = [
+     at: at(-1, 16, 45),
+     read: true,
+     priority: 'critical',
+-    href: '/work',
++    href: '/calendar?view=tasks',
+   },
+   {
+     id: 'n-7',
+diff --git a/src/features/_shared/AgendaTimeline.tsx b/src/features/_shared/AgendaTimeline.tsx
+index 9544df7..3f08b30 100644
+--- a/src/features/_shared/AgendaTimeline.tsx
++++ b/src/features/_shared/AgendaTimeline.tsx
+@@ -37,14 +37,16 @@ export function AgendaTimeline({ items, className }: { items: AgendaItem[]; clas
+             ? 'bg-success'
+             : item.state === 'needs-outcome'
+               ? 'bg-warning'
+-              : item.kind === 'meeting'
++              : item.state === 'revision'
++                ? 'bg-warning'
++                : item.kind === 'meeting'
+                 ? 'bg-ink-3'
+                 : 'bg-brand';
+ 
+         return (
+           <li key={item.id} className="relative flex gap-2.5">
+             <div className="w-12 shrink-0 pt-2.5 text-end">
+-              <span className="block text-sm font-bold text-ink tabular-nums">{item.time ? faTime(item.time) : '—'}</span>
++              <span className="block text-sm font-bold text-ink tabular-nums">{item.time ? faTime(item.time) : 'مهلت'}</span>
+               {item.durationMin && (
+                 <span className="mt-0.5 block text-2xs text-ink-3 tabular-nums">{faDuration(item.durationMin)}</span>
+               )}
+@@ -74,26 +76,31 @@ export function AgendaTimeline({ items, className }: { items: AgendaItem[]; clas
+ function AgendaCard({ item }: { item: AgendaItem }) {
+   const done = item.state === 'done';
+   const needsOutcome = item.state === 'needs-outcome';
++  const revision = item.state === 'revision';
+ 
+   return (
+     <Link
+       to={item.href}
+       className={cn(
+         'press block rounded-lg border bg-surface p-3.5 shadow-xs',
+-        done ? 'border-line-soft opacity-70' : needsOutcome ? 'border-warning/40' : 'border-line',
++        done ? 'border-line-soft' : needsOutcome || revision ? 'border-warning/40' : 'border-line',
+       )}
+     >
+       <div className="flex items-start justify-between gap-3">
+         <div className="min-w-0">
+-          <p className={cn('truncate text-base font-bold', done ? 'text-ink-2 line-through decoration-line-strong' : 'text-ink')}>
++          <p className={cn('truncate text-base font-bold', done ? 'text-ink-2' : 'text-ink')}>
+             {item.title}
+           </p>
+           {item.subtitle && <p className="mt-0.5 truncate text-sm text-ink-3">{item.subtitle}</p>}
+         </div>
+         {done ? (
+-          <Badge tone="success">{VISIT_STATUS.completed.label}</Badge>
++          <Badge tone="success">{item.visit ? VISIT_STATUS.completed.label : 'انجام‌شده'}</Badge>
+         ) : needsOutcome ? (
+           <Badge tone="warning">ثبت نتیجه</Badge>
++        ) : revision ? (
++          <Badge tone="warning">نیازمند اصلاح</Badge>
++        ) : item.state === 'cancelled' ? (
++          <Badge tone="neutral">انجام‌نشده</Badge>
+         ) : item.kind === 'meeting' ? (
+           <Badge tone="neutral">جلسه</Badge>
+         ) : null}
+diff --git a/src/features/_shared/CaseCard.tsx b/src/features/_shared/CaseCard.tsx
+index 239939c..44aa4bb 100644
+--- a/src/features/_shared/CaseCard.tsx
++++ b/src/features/_shared/CaseCard.tsx
+@@ -1,86 +1,41 @@
+ import { Link } from 'react-router-dom';
+-import { ArrowLeft, Baby, MapPin } from 'lucide-react';
++import { MapPin } from 'lucide-react';
+ import type { CaseFile } from '@/types';
+ import { cn } from '@/lib/cn';
+-import { fa } from '@/lib/digits';
+-import { relativeTime } from '@/lib/jalali';
+-import { CASE_STAGE, CASE_TYPE, PRIORITY, WELLBEING } from '@/lib/labels';
++import { CASE_STAGE, CASE_TYPE, PRIORITY } from '@/lib/labels';
+ import { Avatar } from '@/components/ui/Avatar';
+ import { Badge } from '@/components/ui/Badge';
+ import { PrivacyText } from '@/components/ui/PrivacyText';
+ 
+-/**
+- * Case card.
+- *
+- * Three visual levels and no more: identity, status, next action. Everything
+- * else about a family lives on the case page — a list card that tries to say
+- * everything ends up saying nothing.
+- */
++/** Cases are reference material, not another task dashboard. */
+ export function CaseCard({ caseFile, className }: { caseFile: CaseFile; className?: string }) {
+-  const stage = CASE_STAGE[caseFile.stage];
+-  const type = CASE_TYPE[caseFile.type];
+-  const priority = PRIORITY[caseFile.priority];
+   const closed = caseFile.stage === 'closed';
++  const important = caseFile.priority === 'critical' || caseFile.priority === 'high';
+ 
+   return (
+     <Link
+       to={`/cases/${caseFile.id}`}
+-      className={cn(
+-        'press block rounded-lg border border-line bg-surface p-4 shadow-xs hover:border-line-strong',
+-        closed && 'opacity-75',
+-        className,
+-      )}
++      className={cn('press block rounded-lg border border-line bg-surface p-4 shadow-xs hover:border-line-strong', closed && 'opacity-75', className)}
+     >
+       <div className="flex items-start gap-3">
+-        <Avatar name={caseFile.familyName} tone={caseFile.type === 'adoption' ? 'brand' : 'info'} className="mt-0.5" />
++        <Avatar name={caseFile.familyName} tone="neutral" className="mt-0.5" />
+         <div className="min-w-0 flex-1">
+-          <div className="flex items-start justify-between gap-2">
+-            <h3 className="truncate text-md font-bold text-ink">
++          <div className="flex flex-wrap items-start justify-between gap-2">
++            <h3 className="min-w-0 flex-1 text-base font-bold leading-relaxed text-ink">
+               <PrivacyText value={caseFile.familyName} interactive={false} />
+             </h3>
+-            {!closed && caseFile.priority !== 'low' && <Badge tone={priority.tone}>{priority.label}</Badge>}
++            {!closed && important && <Badge tone={PRIORITY[caseFile.priority].tone}>{PRIORITY[caseFile.priority].label}</Badge>}
+           </div>
+-          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-ink-3">
++          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-3">
+             <span className="tabular-nums">{caseFile.code}</span>
+-            <span aria-hidden className="size-1 rounded-full bg-line-strong" />
+-            <span className="flex items-center gap-1">
+-              <MapPin className="size-3.5" strokeWidth={2.25} aria-hidden />
+-              {caseFile.district ?? caseFile.city}
+-            </span>
++            <span aria-hidden>·</span>
++            <span className="inline-flex items-center gap-1"><MapPin className="size-3.5" aria-hidden />{caseFile.district ?? caseFile.city}</span>
++          </p>
++          <p className="mt-2 text-sm text-ink-2">
++            {CASE_TYPE[caseFile.type].label} <span className="mx-1 text-ink-3">·</span> {CASE_STAGE[caseFile.stage].label}
+           </p>
+         </div>
+       </div>
+-
+-      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+-        <Badge tone={stage.tone}>{stage.label}</Badge>
+-        <Badge tone={type.tone} variant="outline">
+-          {type.label}
+-        </Badge>
+-        {caseFile.children.map((c) => (
+-          <span
+-            key={c.id}
+-            className="flex items-center gap-1.5 rounded-pill bg-sunken px-2 py-1 text-2xs font-medium text-ink-2"
+-          >
+-            <Baby className="size-3.5" strokeWidth={2.25} aria-hidden />
+-            {c.firstName} · {fa(c.age)} ساله
+-            {c.wellbeing !== 'stable' && (
+-              <span
+-                className={cn('size-1.5 rounded-full', WELLBEING[c.wellbeing].tone === 'warning' ? 'bg-warning' : 'bg-danger')}
+-                aria-label={WELLBEING[c.wellbeing].label}
+-              />
+-            )}
+-          </span>
+-        ))}
+-      </div>
+-
+-      {caseFile.nextAction && !closed && (
+-        <div className="mt-3 flex items-center gap-2 rounded-md bg-sunken px-3 py-2.5">
+-          <ArrowLeft className="size-4 shrink-0 text-brand" strokeWidth={2.5} aria-hidden />
+-          <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink-2">{caseFile.nextAction.label}</span>
+-        </div>
+-      )}
+-
+-      <p className="mt-2.5 text-2xs text-ink-3">آخرین فعالیت {relativeTime(caseFile.lastActivityAt)}</p>
+     </Link>
+   );
+ }
+diff --git a/src/features/_shared/ReportRow.tsx b/src/features/_shared/ReportRow.tsx
+index f0f55ae..5d136d1 100644
+--- a/src/features/_shared/ReportRow.tsx
++++ b/src/features/_shared/ReportRow.tsx
+@@ -1,58 +1,26 @@
+ import { ListRow } from '@/components/ui/ListRow';
+-import { IconTile, REPORT_TYPE_ICON } from '@/components/ui/DomainIcon';
+ import { Badge } from '@/components/ui/Badge';
+-import { ProgressRing } from '@/components/ui/Progress';
+ import { REPORT_STATUS, REPORT_TYPE } from '@/lib/labels';
+ import { relativeTime } from '@/lib/jalali';
+-import { reportCompletion } from '@/lib/domain';
+ import type { Report } from '@/types';
+-import { Meta } from './Meta';
+ 
+-/**
+- * Report row.
+- *
+- * A draft shows how much is left (ring), a report under review shows who has
+- * it, and a returned report shows the reviewer's words — the three states a
+- * social worker actually needs to distinguish at a glance.
+- */
+-export function ReportRow({ report, divider }: { report: Report; divider?: boolean }) {
++/** Keep report lists scannable; review comments belong inside the report. */
++export function ReportRow({ report, divider, showCase = true }: { report: Report; divider?: boolean; showCase?: boolean }) {
+   const status = REPORT_STATUS[report.status];
+-  const completion = reportCompletion(report);
+-  const comment = report.comments[report.comments.length - 1];
+-
+   return (
+-    <div className={divider ? 'border-b border-line-soft last:border-0' : undefined}>
+-      <ListRow
+-        to={`/reports/${report.id}`}
+-        chevron
+-        leading={<IconTile icon={REPORT_TYPE_ICON[report.type]} tone={REPORT_TYPE[report.type].tone} />}
+-        title={report.title}
+-        meta={
+-          <Meta>
+-            <span className="tabular-nums">{report.caseCode}</span>
+-            <span>{REPORT_TYPE[report.type].label}</span>
+-            <span>{relativeTime(report.updatedAt)}</span>
+-          </Meta>
+-        }
+-        trailing={
+-          report.status === 'draft' ? (
+-            <ProgressRing value={completion.pct} size={38} />
+-          ) : (
+-            <Badge tone={status.tone}>{status.label}</Badge>
+-          )
+-        }
+-      />
+-      {report.status === 'revision' && comment && (
+-        <p className="mx-4 mb-3.5 -mt-2 rounded-md border-s-2 border-warning bg-warning-soft px-3 py-2 text-xs leading-relaxed text-warning">
+-          <span className="font-bold">{comment.author}: </span>
+-          <span className="clamp-2 text-ink-2">{comment.body}</span>
+-        </p>
+-      )}
+-      {report.status === 'draft' && (
+-        <p className="mx-4 mb-3.5 -mt-2 text-xs text-ink-3">
+-          {completion.pct === 100 ? 'آماده ارسال برای بازبینی' : `${(100 - completion.pct).toLocaleString('fa-IR')}٪ باقی‌مانده`}
+-        </p>
+-      )}
+-    </div>
++    <ListRow
++      to={`/reports/${report.id}`}
++      chevron
++      divider={divider}
++      title={report.title}
++      meta={
++        <>
++          <span>{showCase ? report.caseCode : REPORT_TYPE[report.type].label}</span>
++          <span aria-hidden>·</span>
++          <span>{relativeTime(report.updatedAt)}</span>
++        </>
++      }
++      trailing={<Badge tone={status.tone}>{status.label}</Badge>}
++    />
+   );
+ }
+diff --git a/src/features/_shared/TaskRow.tsx b/src/features/_shared/TaskRow.tsx
+index 3cb0259..2d70450 100644
+--- a/src/features/_shared/TaskRow.tsx
++++ b/src/features/_shared/TaskRow.tsx
+@@ -7,19 +7,13 @@ import { IconTile, TASK_ICON } from '@/components/ui/DomainIcon';
+ import { IconButton } from '@/components/ui/IconButton';
+ import { Sheet, SheetOption } from '@/components/ui/Sheet';
+ import { Badge } from '@/components/ui/Badge';
+-import { PRIORITY, TASK_STATUS, TASK_TYPE } from '@/lib/labels';
++import { TASK_STATUS, TASK_TYPE } from '@/lib/labels';
+ import { taskBucket } from '@/lib/domain';
+-import { deadlineLabel } from '@/lib/jalali';
++import { dayKey, deadlineLabel, faDate } from '@/lib/jalali';
+ import { useApp } from '@/store/app-store';
+-import { Meta, MetaTone, PriorityRail } from './Meta';
++import { Meta, MetaTone } from './Meta';
+ 
+-/**
+- * Work item row — the atom of the whole product.
+- *
+- * Priority is a colour rail, type is an icon, urgency is the deadline text.
+- * Three independent channels, so a queue can be scanned by any of them
+- * without the row getting busier.
+- */
++/** Compact queue row; task actions never sit inside a navigation link. */
+ export function TaskRow({
+   task,
+   divider,
+@@ -36,6 +30,9 @@ export function TaskRow({
+   const [menuOpen, setMenuOpen] = useState(false);
+   const done = task.status === 'done';
+   const bucket = taskBucket(task);
++  const requiresWorkflow = !!task.reportId || !!task.visitId || task.type === 'report' || task.type === 'visit';
++  const canCompleteHere = !requiresWorkflow && task.status !== 'blocked';
++  const canPostpone = !done && !requiresWorkflow && task.status !== 'blocked';
+ 
+   const href = task.reportId
+     ? `/reports/${task.reportId}`
+@@ -43,116 +40,106 @@ export function TaskRow({
+       ? `/visits/${task.visitId}`
+       : task.caseId
+         ? `/cases/${task.caseId}`
+-        : '/work';
++        : '/calendar?view=tasks';
+ 
+-  const deadlineTone = done
+-    ? 'neutral'
+-    : bucket === 'overdue'
+-      ? 'danger'
+-      : bucket === 'today'
+-        ? 'warning'
+-        : 'neutral';
++  const deadlineTone = done ? 'neutral' : bucket === 'overdue' ? 'danger' : bucket === 'today' ? 'warning' : 'neutral';
+ 
+   return (
+     <>
+-      <ListRow
+-        to={href}
+-        onClick={onOpen}
+-        divider={divider}
+-        muted={done}
+-        dense={compact}
+-        accent={
+-          !done && (task.priority === 'critical' || task.priority === 'high') ? (
+-            <PriorityRail tone={task.priority === 'critical' ? 'danger' : 'warning'} />
+-          ) : undefined
+-        }
+-        leading={<IconTile icon={TASK_ICON[task.type]} tone={done ? 'neutral' : TASK_TYPE[task.type].tone} />}
+-        title={task.title}
+-        meta={
+-          <Meta>
+-            {task.caseCode && <span className="tabular-nums">{task.caseCode}</span>}
+-            <MetaTone tone={deadlineTone}>{deadlineLabel(task.dueDate)}</MetaTone>
+-          </Meta>
+-        }
+-        trailing={
+-          <>
+-            {task.status === 'revision' && <Badge tone="warning">اصلاح</Badge>}
+-            {task.status === 'blocked' && <Badge tone="danger">مسدود</Badge>}
+-            {done && <CheckCircle2 className="size-5 text-success" strokeWidth={2.25} aria-label="انجام‌شده" />}
+-            <IconButton
+-              label="گزینه‌های کار"
+-              size="sm"
+-              onClick={(e) => {
+-                e.preventDefault();
+-                e.stopPropagation();
+-                setMenuOpen(true);
+-              }}
+-            >
+-              <MoreVertical className="size-4" />
+-            </IconButton>
+-          </>
+-        }
+-      />
++      <div className={`relative flex min-w-0 items-center ${divider ? 'border-b border-line-soft' : ''}`}>
++        <div className="min-w-0 flex-1">
++          <ListRow
++            to={href}
++            onClick={onOpen}
++            muted={done}
++            dense={compact}
++            leading={<IconTile icon={TASK_ICON[task.type]} tone={done ? 'neutral' : TASK_TYPE[task.type].tone} />}
++            title={task.title}
++            meta={
++              <Meta>
++                {task.caseCode && <span className="tabular-nums">{task.caseCode}</span>}
++                <MetaTone tone={deadlineTone}>
++                  {done && task.completedAt ? faDate(task.completedAt, { year: false }) : deadlineLabel(task.dueDate)}
++                </MetaTone>
++              </Meta>
++            }
++            trailing={
++              task.status === 'revision' ? <Badge tone="warning">اصلاح</Badge> :
++              task.status === 'blocked' ? <Badge tone="danger">متوقف</Badge> :
++              done ? <CheckCircle2 className="size-5 text-success" strokeWidth={2.25} aria-label="انجام‌شده" /> : undefined
++            }
++          />
++        </div>
++        <div className="pe-2">
++          <IconButton label="گزینه‌های کار" size="sm" onClick={() => setMenuOpen(true)}>
++            <MoreVertical className="size-4" />
++          </IconButton>
++        </div>
++      </div>
+ 
+       <Sheet
+         open={menuOpen}
+         onClose={() => setMenuOpen(false)}
+         title={task.title}
+-        description={`${TASK_TYPE[task.type].label} · ${TASK_STATUS[task.status].label} · اولویت ${PRIORITY[task.priority].label}`}
++        description={`${TASK_TYPE[task.type].label} · ${TASK_STATUS[task.status].label}`}
+       >
+         <div className="space-y-2 pb-4">
+-          {!done ? (
++          {canCompleteHere && (!done ? (
+             <SheetOption
+               icon={<CheckCircle2 className="size-[18px]" />}
+-              title="علامت‌گذاری به‌عنوان انجام‌شده"
+-              description="کار از فهرست فعال خارج می‌شود."
++              title="ثبت به‌عنوان انجام‌شده"
+               onClick={async () => {
+                 setMenuOpen(false);
+                 await setTaskStatus(task.id, 'done');
+-                toast({ title: 'کار انجام‌شده ثبت شد', description: task.title, tone: 'success' });
++                toast({ title: 'کار انجام‌شده ثبت شد', tone: 'success' });
+               }}
+             />
+           ) : (
+             <SheetOption
+               icon={<Undo2 className="size-[18px]" />}
+-              title="بازگرداندن به فهرست فعال"
++              title="بازگرداندن به کارهای باز"
+               onClick={async () => {
+                 setMenuOpen(false);
+                 await setTaskStatus(task.id, 'todo');
+                 toast({ title: 'کار دوباره فعال شد', tone: 'info' });
+               }}
+             />
++          ))}
++          {canPostpone && (
++            <SheetOption
++              icon={<CalendarPlus className="size-[18px]" />}
++              title={task.dueDate < dayKey(new Date()) ? 'انتقال مهلت به فردا' : 'یک روز تمدید مهلت'}
++              onClick={async () => {
++                setMenuOpen(false);
++                await postponeTask(task.id, 1);
++                toast({ title: 'مهلت کار به فردا منتقل شد', tone: 'info' });
++              }}
++            />
++          )}
++          {task.visitId && (
++            <SheetOption
++              icon={<CalendarPlus className="size-[18px]" />}
++              title="ثبت نتیجه در صفحه بازدید"
++              onClick={() => { setMenuOpen(false); navigate(`/visits/${task.visitId}`); }}
++            />
+           )}
+-          <SheetOption
+-            icon={<CalendarPlus className="size-[18px]" />}
+-            title="موکول به فردا"
+-            description="مهلت کار یک روز جابه‌جا می‌شود."
+-            onClick={async () => {
+-              setMenuOpen(false);
+-              await postponeTask(task.id, 1);
+-              toast({ title: 'به فردا موکول شد', description: task.title, tone: 'info' });
+-            }}
+-          />
+           {task.reportId && (
+             <SheetOption
+               icon={<FileText className="size-[18px]" />}
+               title="باز کردن گزارش مرتبط"
+-              onClick={() => {
+-                setMenuOpen(false);
+-                navigate(`/reports/${task.reportId}`);
+-              }}
++              onClick={() => { setMenuOpen(false); navigate(`/reports/${task.reportId}`); }}
+             />
+           )}
+           {task.caseId && (
+             <SheetOption
+               icon={<FolderHeart className="size-[18px]" />}
+-              title="مشاهده پرونده"
+-              onClick={() => {
+-                setMenuOpen(false);
+-                navigate(`/cases/${task.caseId}`);
+-              }}
++              title="اطلاعات پرونده"
++              onClick={() => { setMenuOpen(false); navigate(`/cases/${task.caseId}`); }}
+             />
+           )}
++          {requiresWorkflow && !task.reportId && !task.visitId && (
++            <p className="px-2 py-2 text-sm leading-relaxed text-ink-3">وضعیت این کار از طریق فرایند مربوط ثبت می‌شود.</p>
++          )}
+         </div>
+       </Sheet>
+     </>
+diff --git a/src/features/calendar/CalendarScreen.tsx b/src/features/calendar/CalendarScreen.tsx
+index 6517a98..63e4e9b 100644
+--- a/src/features/calendar/CalendarScreen.tsx
++++ b/src/features/calendar/CalendarScreen.tsx
+@@ -1,14 +1,19 @@
+ import { useMemo, useState } from 'react';
+-import { Link } from 'react-router-dom';
+-import { CalendarCheck2, ChevronLeft, ChevronRight, Clock3, MapPin } from 'lucide-react';
++import { Link, useSearchParams } from 'react-router-dom';
++import { CalendarCheck2, CheckCircle2, ChevronLeft, ChevronRight, Clock3, MapPin } from 'lucide-react';
+ import type { CalendarEvent } from '@/types';
+ import { useApp } from '@/store/app-store';
+ import { Screen } from '@/components/layout/Screen';
+ import { ScreenHeader } from '@/components/layout/ScreenHeader';
+ import { IconButton } from '@/components/ui/IconButton';
++import { Badge } from '@/components/ui/Badge';
++import { ListGroup } from '@/components/ui/ListRow';
++import { SegmentedControl } from '@/components/ui/SegmentedControl';
+ import { EmptyState } from '@/components/ui/EmptyState';
+ import { TONE } from '@/components/ui/tone';
++import { TaskRow } from '@/features/_shared/TaskRow';
+ import { cn } from '@/lib/cn';
++import { isOpenTask, sortTasks } from '@/lib/domain';
+ import { fa } from '@/lib/digits';
+ import {
+   addMonthsJalali,
+@@ -20,211 +25,227 @@ import {
+   faTime,
+   isSameDay,
+   persianWeekdayIndex,
++  toGregorian,
+   toJalali,
+   WEEKDAYS_SHORT,
+ } from '@/lib/jalali';
+ import { buildEvents } from '@/services/calendar';
+ 
+-/**
+- * Calendar.
+- *
+- * A Jalali month grid with per-day load indicators, and the selected day's
+- * agenda underneath. The grid answers "how busy is that week?", the list
+- * answers "what exactly do I do then?" — both without leaving the screen.
+- */
++type View = 'calendar' | 'tasks';
++type TaskScope = 'open' | 'done';
++
++/** One destination for the dated agenda and the full task queue. */
+ export function CalendarScreen() {
+   const { visits, tasks } = useApp();
++  const [params, setParams] = useSearchParams();
++  const view: View = params.get('view') === 'tasks' ? 'tasks' : 'calendar';
++  const [taskScope, setTaskScope] = useState<TaskScope>('open');
+   const today = useMemo(() => new Date(), []);
+   const [cursor, setCursor] = useState(() => toJalali(today));
+   const [selected, setSelected] = useState(() => dayKey(today));
+-
+-  // Rebuilt from the store so recording a visit outcome updates the grid.
+   const events = useMemo(() => buildEvents(), [visits, tasks]);
+-
+   const grid = useMemo(() => buildMonthGrid(cursor.jy, cursor.jm, today), [cursor, today]);
++  const overdueCount = tasks.filter((t) => isOpenTask(t) && t.dueDate < dayKey(today)).length;
++  const openCount = tasks.filter(isOpenTask).length;
++  const doneCount = tasks.filter((t) => t.status === 'done').length;
+ 
+   const byDay = useMemo(() => {
+     const map = new Map<string, CalendarEvent[]>();
+-    for (const e of events) {
+-      const list = map.get(e.date) ?? [];
+-      list.push(e);
+-      map.set(e.date, list);
+-    }
++    for (const e of events) map.set(e.date, [...(map.get(e.date) ?? []), e]);
+     return map;
+   }, [events]);
+ 
+   const selectedEvents = useMemo(
+-    () =>
+-      (byDay.get(selected) ?? []).slice().sort((a, b) => (a.time ?? '99:99').localeCompare(b.time ?? '99:99')),
++    () => (byDay.get(selected) ?? []).slice().sort((a, b) => (a.time ?? '99:99').localeCompare(b.time ?? '99:99')),
+     [byDay, selected],
+   );
+ 
+-  const monthCount = useMemo(() => {
+-    const { jy, jm } = cursor;
+-    return events.filter((e) => {
+-      const j = toJalali(new Date(`${e.date}T00:00:00`));
+-      return j.jy === jy && j.jm === jm;
+-    }).length;
+-  }, [events, cursor]);
++  const visibleTasks = useMemo(
++    () => sortTasks(tasks.filter((t) => taskScope === 'open' ? isOpenTask(t) : t.status === 'done')),
++    [tasks, taskScope],
++  );
++
++  const changeMonth = (offset: number) => {
++    const next = addMonthsJalali(cursor, offset);
++    setCursor(next);
++    setSelected(dayKey(toGregorian({ ...next, jd: 1 })));
++  };
++
++  const selectDate = (key: string, date: Date) => {
++    setSelected(key);
++    const next = toJalali(date);
++    if (next.jy !== cursor.jy || next.jm !== cursor.jm) setCursor(next);
++  };
+ 
+-  const isCurrentMonth = cursor.jy === toJalali(today).jy && cursor.jm === toJalali(today).jm;
++  const returnToday = () => {
++    setCursor(toJalali(today));
++    setSelected(dayKey(today));
++    setParams({});
++  };
+ 
+   return (
+     <Screen bottomGap={false}>
+       <ScreenHeader
+         title="تقویم کاری"
+-        subtitle={`${fa(monthCount)} برنامه در ${faMonthTitle(cursor.jy, cursor.jm)}`}
+-        actions={
+-          <IconButton label="بازگشت به امروز" onClick={() => { setCursor(toJalali(today)); setSelected(dayKey(today)); }}>
++        subtitle="برنامه‌ها و مسئولیت‌های شما"
++        actions={view === 'calendar' ? (
++          <IconButton label="بازگشت به امروز" onClick={returnToday}>
+             <CalendarCheck2 className="size-[20px]" strokeWidth={2} />
+           </IconButton>
+-        }
++        ) : undefined}
+       >
+-        {/* month navigation */}
+-        <div className="mt-3 flex items-center justify-between gap-2 rounded-md border border-line bg-surface p-1.5">
+-          <IconButton label="ماه قبل" size="sm" onClick={() => setCursor((c) => addMonthsJalali(c, -1))}>
+-            <ChevronRight className="size-[18px]" strokeWidth={2.4} />
+-          </IconButton>
+-          <p className="flex-1 text-center text-md font-bold text-ink">{faMonthTitle(cursor.jy, cursor.jm)}</p>
+-          <IconButton label="ماه بعد" size="sm" onClick={() => setCursor((c) => addMonthsJalali(c, 1))}>
+-            <ChevronLeft className="size-[18px]" strokeWidth={2.4} />
+-          </IconButton>
+-        </div>
++        <SegmentedControl<View>
++          className="mt-3"
++          ariaLabel="نمایش برنامه کاری"
++          value={view}
++          onChange={(v) => setParams(v === 'tasks' ? { view: 'tasks' } : {})}
++          items={[{ value: 'calendar', label: 'تقویم' }, { value: 'tasks', label: 'همه کارها' }]}
++        />
+       </ScreenHeader>
+ 
+-      <div className="pt-3">
+-        <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-xs">
+-          {/* weekday header */}
+-          <div className="grid grid-cols-7 border-b border-line-soft bg-sunken/60">
+-            {WEEKDAYS_SHORT.map((d, i) => (
+-              <span
+-                key={d}
+-                className={cn(
+-                  'py-2 text-center text-2xs font-bold',
+-                  i === 6 ? 'text-danger/80' : 'text-ink-3',
+-                )}
+-              >
+-                {d}
+-              </span>
+-            ))}
++      {view === 'calendar' ? (
++        <div className="pt-4 pb-8">
++          {overdueCount > 0 && (
++            <button
++              type="button"
++              onClick={() => { setTaskScope('open'); setParams({ view: 'tasks' }); }}
++              className="press mb-4 flex w-full items-center justify-between rounded-md border border-warning/30 bg-warning-soft px-3.5 py-3 text-start text-sm font-semibold text-ink"
++            >
++              <span>{fa(overdueCount)} کار از مهلت گذشته</span>
++              <span className="text-sm text-brand-ink">مشاهده کارها</span>
++            </button>
++          )}
++
++          <div className="mb-2 flex items-center justify-between gap-2 rounded-md border border-line bg-surface p-1.5">
++            <IconButton label="ماه قبل" size="sm" onClick={() => changeMonth(-1)}>
++              <ChevronRight className="size-[18px]" strokeWidth={2.4} />
++            </IconButton>
++            <p className="flex-1 text-center text-md font-bold text-ink">{faMonthTitle(cursor.jy, cursor.jm)}</p>
++            <IconButton label="ماه بعد" size="sm" onClick={() => changeMonth(1)}>
++              <ChevronLeft className="size-[18px]" strokeWidth={2.4} />
++            </IconButton>
+           </div>
+ 
+-          {/* day grid */}
+-          <div className="grid grid-cols-7">
+-            {grid.map((cell) => {
+-              const key = dayKey(cell.date);
+-              const dayEvents = byDay.get(key) ?? [];
+-              const isSelected = key === selected;
+-              const isFriday = persianWeekdayIndex(cell.date) === 6;
+-              return (
+-                <button
+-                  key={key}
+-                  type="button"
+-                  onClick={() => setSelected(key)}
+-                  aria-pressed={isSelected}
+-                  aria-label={`${faDate(cell.date, { weekday: true })} — ${fa(dayEvents.length)} برنامه`}
+-                  className={cn(
+-                    'relative flex h-[52px] flex-col items-center justify-center gap-1 transition-colors',
+-                    !cell.inMonth && 'opacity-35',
+-                    isSelected ? 'bg-brand-soft' : 'hover:bg-sunken',
+-                  )}
+-                >
+-                  <span
++          <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-xs">
++            <div className="grid grid-cols-7 border-b border-line-soft bg-sunken/60">
++              {WEEKDAYS_SHORT.map((d, i) => (
++                <span key={d} className={cn('py-2 text-center text-xs font-bold', i === 6 ? 'text-danger' : 'text-ink-2')}>{d}</span>
++              ))}
++            </div>
++            <div className="grid grid-cols-7">
++              {grid.map((cell) => {
++                const key = dayKey(cell.date);
++                const dayEvents = byDay.get(key) ?? [];
++                const isSelected = key === selected;
++                const isFriday = persianWeekdayIndex(cell.date) === 6;
++                return (
++                  <button
++                    key={key}
++                    type="button"
++                    onClick={() => selectDate(key, cell.date)}
++                    aria-pressed={isSelected}
++                    aria-label={`${faDate(cell.date, { weekday: true })} — ${fa(dayEvents.length)} مورد`}
+                     className={cn(
+-                      'grid size-7 place-items-center rounded-full text-sm tabular-nums transition-colors',
+-                      cell.isToday && !isSelected && 'bg-ink text-bg font-extrabold',
+-                      cell.isToday && isSelected && 'bg-brand text-white font-extrabold',
+-                      !cell.isToday && (isSelected ? 'font-bold text-brand-ink' : isFriday ? 'text-danger/85' : 'text-ink'),
++                      'relative flex h-12 min-w-0 flex-col items-center justify-center gap-1 transition-colors',
++                      !cell.inMonth && 'opacity-40',
++                      isSelected ? 'bg-brand-soft' : 'hover:bg-sunken',
+                     )}
+                   >
+-                    {fa(cell.jalali.jd)}
+-                  </span>
+-                  <span className="flex h-1.5 items-center gap-0.5">
+-                    {dayEvents.slice(0, 3).map((e) => (
+-                      <span key={e.id} className={cn('size-1.5 rounded-full', TONE[e.tone].dot)} />
+-                    ))}
+-                  </span>
+-                </button>
+-              );
+-            })}
++                    <span className={cn(
++                      'grid size-7 place-items-center rounded-full text-sm tabular-nums transition-colors',
++                      cell.isToday && !isSelected && 'bg-ink text-bg font-extrabold',
++                      isSelected && 'bg-brand text-white font-extrabold',
++                      !cell.isToday && !isSelected && (isFriday ? 'text-danger' : 'text-ink'),
++                    )}>{fa(cell.jalali.jd)}</span>
++                    <span className="flex h-1.5 items-center gap-0.5">
++                      {dayEvents.slice(0, 3).map((e) => (
++                        <span key={e.id} className={cn('size-1.5 rounded-full', TONE[e.tone].dot)} />
++                      ))}
++                    </span>
++                  </button>
++                );
++              })}
++            </div>
+           </div>
+-        </div>
+ 
+-        {/* legend */}
+-        <div className="mt-2.5 flex flex-wrap items-center gap-x-3.5 gap-y-1 px-1 text-2xs text-ink-3">
+-          <LegendDot className="bg-brand" label="بازدید" />
+-          <LegendDot className="bg-warning" label="مهلت مهم" />
+-          <LegendDot className="bg-info" label="مهلت" />
+-          <LegendDot className="bg-success" label="انجام‌شده" />
+-          <LegendDot className="bg-ink-3" label="جلسه" />
++          <section className="mt-6" aria-label="برنامه روز انتخاب‌شده">
++            <div className="mb-3 flex items-center justify-between gap-2">
++              <h2 className="text-md font-bold text-ink">
++                {isSameDay(new Date(`${selected}T00:00:00`), today) ? 'امروز' : faDate(selected, { weekday: true })}
++              </h2>
++              <span className="text-xs text-ink-3 tabular-nums">{fa(selectedEvents.length)} مورد</span>
++            </div>
++            {selectedEvents.length === 0 ? (
++              <div className="rounded-lg border border-dashed border-line-strong bg-surface/60">
++                <EmptyState
++                  icon={<CalendarCheck2 className="size-6" />}
++                  title="موردی برای این روز ثبت نشده"
++                  description="برای کارهای بدون برنامه زمانی مشخص، «همه کارها» را ببینید."
++                />
++              </div>
++            ) : (
++              <ListGroup>
++                {selectedEvents.map((e, i) => (
++                  <EventRow key={e.id} event={e} divider={i < selectedEvents.length - 1} />
++                ))}
++              </ListGroup>
++            )}
++          </section>
+         </div>
+-
+-        {/* selected day */}
+-        <section className="mt-6 pb-8">
+-          <div className="mb-2.5 flex items-baseline justify-between">
+-            <h2 className="text-md font-bold text-ink">
+-              {isSameDay(new Date(`${selected}T00:00:00`), today) ? 'امروز' : faDate(selected, { weekday: true })}
+-            </h2>
+-            <span className="text-2xs text-ink-3 tabular-nums">
+-              {!isCurrentMonth && `${faMonthTitle(cursor.jy, cursor.jm)} · `}
+-              {fa(selectedEvents.length)} برنامه
+-            </span>
+-          </div>
+-
+-          {selectedEvents.length === 0 ? (
+-            <div className="rounded-lg border border-dashed border-line-strong bg-surface/60">
+-              <EmptyState
+-                icon={<CalendarCheck2 className="size-6" />}
+-                title="برنامه‌ای ثبت نشده"
+-                description="این روز خالی است؛ می‌توانید از فهرست کارها موارد پیش‌رو را ببینید."
+-              />
++      ) : (
++        <div className="pt-4 pb-8">
++          <SegmentedControl<TaskScope>
++            ariaLabel="وضعیت کارها"
++            value={taskScope}
++            onChange={setTaskScope}
++            items={[{ value: 'open', label: 'در انتظار', count: openCount }, { value: 'done', label: 'انجام‌شده', count: doneCount }]}
++          />
++          <p className="mt-3 text-xs leading-relaxed text-ink-3">
++            کارها بر اساس نزدیک‌ترین مهلت مرتب شده‌اند. برای بازدیدها و گزارش‌ها، نتیجه را در صفحه مربوط ثبت کنید.
++          </p>
++          {visibleTasks.length === 0 ? (
++            <div className="mt-4 rounded-lg border border-dashed border-line-strong bg-surface">
++              <EmptyState icon={<CheckCircle2 className="size-6" />} title="کاری در این وضعیت نیست" />
+             </div>
+           ) : (
+-            <ul className="space-y-2">
+-              {selectedEvents.map((e) => (
+-                <EventCard key={e.id} event={e} />
++            <ListGroup className="mt-4">
++              {visibleTasks.map((task, i) => (
++                <TaskRow key={task.id} task={task} divider={i < visibleTasks.length - 1} />
+               ))}
+-            </ul>
++            </ListGroup>
+           )}
+-        </section>
+-      </div>
++        </div>
++      )}
+     </Screen>
+   );
+ }
+ 
+-function LegendDot({ className, label }: { className: string; label: string }) {
+-  return (
+-    <span className="flex items-center gap-1.5">
+-      <span className={cn('size-1.5 rounded-full', className)} aria-hidden />
+-      {label}
+-    </span>
+-  );
+-}
+-
+-function EventCard({ event }: { event: CalendarEvent }) {
++function EventRow({ event, divider }: { event: CalendarEvent; divider?: boolean }) {
+   const Icon = event.kind === 'visit' ? MapPin : event.kind === 'meeting' ? Clock3 : CalendarCheck2;
++  const done = event.taskStatus === 'done' || (event.kind === 'visit' && event.tone === 'success');
++  const revision = event.taskStatus === 'revision';
++  const blocked = event.taskStatus === 'blocked';
+   return (
+-    <li>
+-      <Link
+-        to={event.href ?? '#'}
+-        className="press flex items-center gap-3 rounded-lg border border-line bg-surface p-3.5 shadow-xs hover:border-line-strong"
+-      >
+-        <span className={cn('w-14 shrink-0 text-center text-sm font-bold tabular-nums', TONE[event.tone].text)}>
+-          {event.time ? faTime(event.time) : '—'}
+-        </span>
+-        <span className={cn('h-9 w-1 shrink-0 rounded-pill', TONE[event.tone].dot)} aria-hidden />
+-        <span className="min-w-0 flex-1">
+-          <span className="block truncate text-base font-semibold text-ink">{event.title}</span>
+-          <span className="mt-0.5 flex items-center gap-1.5 overflow-hidden text-xs text-ink-3">
+-            <Icon className="size-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
+-            <span className="truncate">
+-              {event.kind === 'visit' ? 'بازدید' : event.kind === 'meeting' ? 'جلسه' : 'مهلت انجام'}
+-              {event.caseCode ? ` · ${event.caseCode}` : ''}
+-              {event.durationMin ? ` · ${faDuration(event.durationMin)}` : ''}
+-            </span>
++    <Link
++      to={event.href ?? '/calendar?view=tasks'}
++      className={cn('press flex min-h-16 items-center gap-3 px-3 py-3.5 hover:bg-sunken', divider && 'border-b border-line-soft')}
++    >
++      <span className="w-[3.3rem] shrink-0 text-center text-xs font-bold tabular-nums text-ink-2">
++        {event.time ? faTime(event.time) : 'مهلت'}
++      </span>
++      <span className={cn('h-10 w-1 shrink-0 rounded-pill', TONE[event.tone].dot)} aria-hidden />
++      <span className="min-w-0 flex-1">
++        <span className="block text-sm font-bold leading-relaxed text-ink">{event.title}</span>
++        <span className="mt-0.5 flex items-center gap-1.5 text-xs leading-relaxed text-ink-3">
++          <Icon className="size-3.5 shrink-0" strokeWidth={2.1} aria-hidden />
++          <span>
++            {event.kind === 'visit' ? 'بازدید' : event.kind === 'meeting' ? 'جلسه' : 'وظیفه'}
++            {event.caseCode ? ` · ${event.caseCode}` : ''}
++            {event.durationMin ? ` · ${faDuration(event.durationMin)}` : ''}
+           </span>
+         </span>
+-      </Link>
+-    </li>
++      </span>
++      {done ? <Badge tone="success">انجام‌شده</Badge> : revision ? <Badge tone="warning">اصلاح</Badge> : blocked ? <Badge tone="danger">متوقف</Badge> : null}
++    </Link>
+   );
+ }
+diff --git a/src/features/cases/CaseDetailScreen.tsx b/src/features/cases/CaseDetailScreen.tsx
+index b0bbfa9..e800d9f 100644
+--- a/src/features/cases/CaseDetailScreen.tsx
++++ b/src/features/cases/CaseDetailScreen.tsx
+@@ -1,102 +1,75 @@
+ import { useMemo, useState, type ReactNode } from 'react';
+ import { Link, useNavigate, useParams } from 'react-router-dom';
+-import {
+-  BadgeCheck,
+-  Building2,
+-  ClipboardPlus,
+-  FileText,
+-  Flag,
+-  MapPin,
+-  MoreVertical,
+-  Paperclip,
+-  PenLine,
+-  Phone,
+-  Users,
+-} from 'lucide-react';
+-import type { CaseEvent, CaseFile, Tone, VisitPurpose } from '@/types';
++import { ChevronDown, ClipboardPlus, FileText, MapPin, Phone, Users } from 'lucide-react';
+ import { useApp } from '@/store/app-store';
+ import { useSettings } from '@/store/settings';
+ import { ActionFooter, Screen, Section } from '@/components/layout/Screen';
+ import { ScreenHeader } from '@/components/layout/ScreenHeader';
+-import { IconButton } from '@/components/ui/IconButton';
++import { SectionHeader, SectionAction } from '@/components/ui/SectionHeader';
+ import { Button } from '@/components/ui/Button';
+ import { Badge } from '@/components/ui/Badge';
+ import { Card } from '@/components/ui/Card';
+ import { KeyValue } from '@/components/ui/Field';
+-import { SegmentedControl } from '@/components/ui/SegmentedControl';
+-import { Sheet, SheetOption } from '@/components/ui/Sheet';
+-import { Stepper } from '@/components/ui/Stepper';
+ import { EmptyState } from '@/components/ui/EmptyState';
+-import { IconTile } from '@/components/ui/DomainIcon';
+ import { PrivacyText } from '@/components/ui/PrivacyText';
+-import { Avatar } from '@/components/ui/Avatar';
+-import { ChildFollowUpRow } from '@/features/_shared/ChildRow';
+ import { ReportRow } from '@/features/_shared/ReportRow';
+-import { CASE_STAGE, CASE_TYPE, PRIORITY, VISIT_PURPOSE } from '@/lib/labels';
+-import { fa } from '@/lib/digits';
+-import { dayKey, faDate, relativeTime } from '@/lib/jalali';
+-import { cn } from '@/lib/cn';
+-import { TONE } from '@/components/ui/tone';
++import { CASE_STAGE, CASE_TYPE, PRIORITY, VISIT_PURPOSE, VISIT_STATUS } from '@/lib/labels';
++import { visitDisplayState } from '@/lib/domain';
++import { fa, toLatinDigits } from '@/lib/digits';
++import { faDate, relativeTime } from '@/lib/jalali';
+ 
+-type Tab = 'summary' | 'reports' | 'activity';
+-
+-/**
+- * Case file.
+- *
+- * A case is what everything else hangs off: visits, reports and monitoring.
+- * The page therefore opens with "where is this case and what happens next",
+- * then offers depth through three tabs rather than one long wall of data.
+- */
++/** A case is a concise reference for a field worker, not a workflow console. */
+ export function CaseDetailScreen() {
+   const { caseId } = useParams();
+   const navigate = useNavigate();
+-  const { cases, visits, reports, toast, createReportDraft } = useApp();
++  const { cases, visits, reports, user, toast, createReportDraft } = useApp();
+   const { fieldPrivacy } = useSettings();
+-  const [tab, setTab] = useState<Tab>('summary');
+-  const [menuOpen, setMenuOpen] = useState(false);
+-
++  const [showAllReports, setShowAllReports] = useState(false);
++  const [creating, setCreating] = useState(false);
+   const caseFile = cases.find((c) => c.id === caseId);
+ 
+   const caseVisits = useMemo(
+-    () =>
+-      visits
+-        .filter((v) => v.caseId === caseId)
+-        .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)),
++    () => visits.filter((v) => v.caseId === caseId).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)),
+     [visits, caseId],
+   );
+-  const caseReports = useMemo(() => reports.filter((r) => r.caseId === caseId), [reports, caseId]);
++  const caseReports = useMemo(
++    () => reports.filter((r) => r.caseId === caseId && r.author === user?.name).sort((a, b) => {
++      const priority = (status: string) => status === 'revision' ? 0 : status === 'draft' ? 1 : 2;
++      return priority(a.status) - priority(b.status) || b.updatedAt.localeCompare(a.updatedAt);
++    }),
++    [reports, caseId, user?.name],
++  );
+ 
+   if (!caseFile) {
+     return (
+       <Screen>
+         <ScreenHeader back title="پرونده" />
+         <EmptyState title="پرونده یافت نشد" description="ممکن است دسترسی شما به این پرونده محدود شده باشد." />
+-        <Button block onClick={() => navigate('/cases')}>
+-          بازگشت به پرونده‌ها
+-        </Button>
++        <Button block onClick={() => navigate('/cases')}>بازگشت به پرونده‌ها</Button>
+       </Screen>
+     );
+   }
+ 
+-  const todayKey = dayKey(new Date());
+-  const upcoming = caseVisits.find((v) => v.status === 'scheduled' && v.date >= todayKey);
++  const pendingVisit = caseVisits.find((v) => visitDisplayState(v) === 'needs-outcome');
+   const stage = CASE_STAGE[caseFile.stage];
++  const closed = caseFile.stage === 'closed';
++  const reportsToShow = showAllReports ? caseReports : caseReports.slice(0, 3);
+ 
+   const openNewReport = async () => {
+-    setMenuOpen(false);
+-    const id = await createReportDraft({
+-      type:
+-        caseFile.stage === 'initial-assessment'
+-          ? 'home-assessment'
+-          : caseFile.stage === 'post-placement'
+-            ? 'monitoring'
+-            : 'visit',
+-      caseId: caseFile.id,
+-      childId: caseFile.children[0]?.id,
+-    });
+-    if (id) {
+-      toast({ title: 'پیش‌نویس گزارش ایجاد شد', tone: 'success' });
+-      navigate(`/reports/${id}`);
++    if (creating || closed) return;
++    setCreating(true);
++    try {
++      const id = await createReportDraft({
++        type: caseFile.stage === 'initial-assessment' ? 'home-assessment' : caseFile.stage === 'post-placement' ? 'monitoring' : 'visit',
++        caseId: caseFile.id,
++        childId: caseFile.children[0]?.id,
++      });
++      if (id) {
++        toast({ title: 'پیش‌نویس گزارش ایجاد شد', tone: 'success' });
++        navigate(`/reports/${id}`);
++      }
++    } finally {
++      setCreating(false);
+     }
+   };
+ 
+@@ -105,324 +78,171 @@ export function CaseDetailScreen() {
+       <ScreenHeader
+         back
+         title={<PrivacyText value={caseFile.familyName} interactive={false} />}
+-        subtitle={`${caseFile.code} · ${stage.label}`}
+-        actions={
+-          <>
+-            {caseFile.phone && (
+-              <IconButton
+-                label="تماس با خانواده"
+-                onClick={() => toast({ title: 'در حال برقراری تماس', description: caseFile.phone, tone: 'info' })}
+-              >
+-                <Phone className="size-[18px]" strokeWidth={2.1} />
+-              </IconButton>
+-            )}
+-            <IconButton label="گزینه‌های پرونده" onClick={() => setMenuOpen(true)}>
+-              <MoreVertical className="size-[18px]" strokeWidth={2.1} />
+-            </IconButton>
+-          </>
+-        }
++        subtitle={`${caseFile.code} · ${CASE_TYPE[caseFile.type].label}`}
+       />
+ 
+       <div className="pt-4">
+-        <Card className="space-y-4">
+-          <div className="flex flex-wrap items-center gap-1.5">
+-            <Badge tone={stage.tone}>{stage.label}</Badge>
+-            <Badge tone={CASE_TYPE[caseFile.type].tone} variant="outline">
+-              {CASE_TYPE[caseFile.type].label}
+-            </Badge>
+-            {caseFile.stage !== 'closed' && (
+-              <Badge tone={PRIORITY[caseFile.priority].tone} variant="outline">
+-                اولویت {PRIORITY[caseFile.priority].label}
+-              </Badge>
+-            )}
+-          </div>
+-
+-          <Stepper stage={caseFile.stage} />
+-
+-          {caseFile.nextAction && caseFile.stage !== 'closed' && (
+-            <div className="rounded-md bg-sunken p-3.5">
+-              <p className="text-2xs font-bold text-ink-3">اقدام بعدی</p>
+-              <p className="mt-1 text-sm font-semibold leading-relaxed text-ink">{caseFile.nextAction.label}</p>
+-              {upcoming && (
+-                <Button
+-                  size="sm"
+-                  variant="ghost"
+-                  className="mt-1.5 -ms-2"
+-                  iconStart={<MapPin className="size-4" />}
+-                  onClick={() => navigate(`/visits/${upcoming.id}`)}
+-                >
+-                  جزئیات بازدید
+-                </Button>
+-              )}
+-            </div>
+-          )}
++        <div className="flex flex-wrap items-center gap-2">
++          <Badge tone={stage.tone}>{stage.label}</Badge>
++          {!closed && caseFile.priority === 'critical' && <Badge tone={PRIORITY[caseFile.priority].tone}>اولویت فوری</Badge>}
++        </div>
+ 
+-          {caseFile.notes && (
+-            <p className="border-s-2 border-line-strong ps-3 text-sm leading-relaxed text-ink-2">{caseFile.notes}</p>
++        <Section>
++          <SectionHeader title="اطلاعات ضروری" />
++          <Card className="divide-y divide-line-soft px-4 py-1">
++            <KeyValue label="سرپرست خانوار" value={<PrivacyText value={caseFile.headOfHousehold} />} />
++            <KeyValue
++              label="شماره تماس"
++              icon={<Phone className="size-3.5 text-ink-3" />}
++              value={caseFile.phone ? <PrivacyText value={caseFile.phone} /> : '—'}
++            />
++            <KeyValue
++              label="نشانی"
++              icon={<MapPin className="size-3.5 text-ink-3" />}
++              value={<PrivacyText value={`${caseFile.city}، ${caseFile.address}`} />}
++            />
++          </Card>
++          {caseFile.phone && !fieldPrivacy && (
++            <a
++              href={`tel:${toLatinDigits(caseFile.phone).replace(/[^0-9+]/g, '')}`}
++              className="press mt-2 inline-flex min-h-10 items-center gap-2 px-1 text-sm font-semibold text-brand-ink"
++            >
++              <Phone className="size-4" aria-hidden /> تماس با خانواده
++            </a>
+           )}
+-        </Card>
++        </Section>
+ 
+-        <SegmentedControl<Tab>
+-          className="mt-4"
+-          value={tab}
+-          onChange={setTab}
+-          ariaLabel="بخش‌های پرونده"
+-          items={[
+-            { value: 'summary', label: 'خلاصه' },
+-            { value: 'reports', label: 'گزارش‌ها', count: caseReports.length },
+-            { value: 'activity', label: 'فعالیت‌ها', count: caseFile.timeline.length },
+-          ]}
+-        />
+-      </div>
++        {caseFile.notes && (
++          <p className="mt-4 rounded-md bg-sunken px-4 py-3 text-sm leading-relaxed text-ink-2">
++            {caseFile.notes}
++          </p>
++        )}
+ 
+-      {tab === 'summary' && (
+-        <>
+-          <Section>
+-            <SectionTitle icon={Users} title="اطلاعات خانوار" />
+-            <Card className="divide-y divide-line-soft px-4 py-1">
+-              <KeyValue label="سرپرست خانوار" value={<PrivacyText value={caseFile.headOfHousehold} />} />
+-              <KeyValue
+-                label="شماره تماس"
+-                icon={<Phone className="size-3.5 text-ink-3" />}
+-                value={caseFile.phone ? <PrivacyText value={caseFile.phone} /> : '—'}
+-              />
+-              <KeyValue
+-                label="نشانی"
+-                icon={<MapPin className="size-3.5 text-ink-3" />}
+-                value={<PrivacyText value={`${caseFile.city}، ${caseFile.address}`} />}
+-              />
+-              {caseFile.housing && (
+-                <KeyValue
+-                  label="وضعیت سکونت"
+-                  icon={<Building2 className="size-3.5 text-ink-3" />}
+-                  value={`${caseFile.housing.tenure} · ${fa(caseFile.housing.rooms)} اتاق`}
+-                />
++        <Section>
++          <SectionHeader
++            title="گزارش‌های من"
++            action={!closed ? <SectionAction onClick={() => { void openNewReport(); }}>گزارش جدید</SectionAction> : undefined}
++          />
++          {caseReports.length === 0 ? (
++            <Card className="border-dashed">
++              <p className="text-sm text-ink-3">هنوز گزارشی برای این پرونده ثبت نکرده‌اید.</p>
++            </Card>
++          ) : (
++            <Card padded={false}>
++              {reportsToShow.map((report, i) => (
++                <ReportRow key={report.id} report={report} showCase={false} divider={i < reportsToShow.length - 1} />
++              ))}
++              {caseReports.length > 3 && (
++                <button
++                  type="button"
++                  onClick={() => setShowAllReports((v) => !v)}
++                  className="press w-full border-t border-line-soft px-4 py-3 text-center text-sm font-semibold text-brand-ink"
++                  aria-expanded={showAllReports}
++                >
++                  {showAllReports ? 'نمایش کمتر' : `نمایش ${fa(caseReports.length - 3)} گزارش دیگر`}
++                </button>
+               )}
+-              {caseFile.housing && <KeyValue label="شرایط منزل" value={caseFile.housing.condition} />}
+-              {caseFile.income && <KeyValue label="وضعیت درآمد" value={caseFile.income} />}
+-              <KeyValue label="گشایش پرونده" value={faDate(caseFile.openedAt)} />
+             </Card>
+-          </Section>
++          )}
++        </Section>
+ 
++        <Disclosure title="اطلاعات تکمیلی" count={caseFile.members.length + caseFile.children.length}>
++          {caseFile.housing && (
++            <div className="mb-4 space-y-2">
++              <h3 className="text-sm font-bold text-ink">شرایط سکونت</h3>
++              <p className="text-sm leading-relaxed text-ink-2">
++                {caseFile.housing.tenure} · {fa(caseFile.housing.rooms)} اتاق · {caseFile.housing.condition}
++              </p>
++            </div>
++          )}
++          {caseFile.income && (
++            <div className="mb-4 space-y-1">
++              <h3 className="text-sm font-bold text-ink">وضعیت اقتصادی ثبت‌شده</h3>
++              <p className="text-sm leading-relaxed text-ink-2">{caseFile.income}</p>
++            </div>
++          )}
+           {caseFile.members.length > 0 && (
+-            <Section>
+-              <SectionTitle icon={Users} title="اعضای خانوار" />
+-              <Card padded={false} className="divide-y divide-line-soft">
++            <div className="mb-4">
++              <h3 className="mb-2 flex items-center gap-2 text-sm font-bold text-ink"><Users className="size-4" aria-hidden /> اعضای خانوار</h3>
++              <ul className="divide-y divide-line-soft">
+                 {caseFile.members.map((m) => (
+-                  <div key={m.id} className="flex items-center gap-3 px-4 py-3">
+-                    <Avatar name={m.name} size="sm" tone="neutral" />
+-                    <div className="min-w-0 flex-1">
+-                      <p className="truncate text-base font-semibold text-ink">
+-                        <PrivacyText value={m.name} interactive={false} />
+-                      </p>
+-                      <p className="text-xs text-ink-3">
+-                        {m.relation} · {fa(m.age)} ساله{m.occupation ? ` · ${m.occupation}` : ''}
+-                      </p>
+-                    </div>
+-                  </div>
++                  <li key={m.id} className="flex flex-wrap justify-between gap-2 py-2 text-sm">
++                    <PrivacyText value={m.name} interactive={false} />
++                    <span className="text-ink-3">{m.relation} · {fa(m.age)} سال</span>
++                  </li>
+                 ))}
+-              </Card>
+-            </Section>
++              </ul>
++            </div>
++          )}
++          {caseFile.children.length > 0 && (
++            <div className="mb-2">
++              <h3 className="mb-2 text-sm font-bold text-ink">کودکان مرتبط</h3>
++              {caseFile.children.map((ch) => (
++                <Link key={ch.id} to={`/children/${ch.id}`} className="press flex min-h-10 items-center justify-between border-t border-line-soft py-2 text-sm text-brand-ink">
++                  <span><PrivacyText value={ch.firstName} interactive={false} /> · {fa(ch.age)} سال</span>
++                  <span>مشاهده</span>
++                </Link>
++              ))}
++            </div>
+           )}
+-
+-          <Section>
+-            <SectionTitle icon={Users} title="کودکان پرونده" />
+-            {caseFile.children.length === 0 ? (
+-              <Card className="border-dashed">
+-                <p className="text-sm leading-relaxed text-ink-3">
+-                  این پرونده در مرحله ارزیابی متقاضیان است و هنوز کودکی به آن تخصیص نیافته است.
+-                </p>
+-              </Card>
+-            ) : (
+-              <Card padded={false} className="divide-y divide-line-soft">
+-                {caseFile.children.map((ch) => (
+-                  <ChildFollowUpRow
+-                    key={ch.id}
+-                    child={{ ...ch, caseCode: caseFile.code, familyName: caseFile.familyName, caseId: caseFile.id }}
+-                  />
+-                ))}
+-              </Card>
+-            )}
+-          </Section>
+-
+-          <Section>
+-            <SectionTitle
+-              icon={MapPin}
+-              title="بازدیدها"
+-              action={caseVisits.length > 4 ? <span className="text-2xs text-ink-3">{fa(caseVisits.length)} مورد</span> : undefined}
+-            />
+-            {caseVisits.length === 0 ? (
+-              <Card className="border-dashed">
+-                <p className="text-sm text-ink-3">بازدیدی برای این پرونده ثبت نشده است.</p>
+-              </Card>
+-            ) : (
+-              <Card padded={false} className="divide-y divide-line-soft">
+-                {caseVisits.slice(0, 4).map((v) => (
+-                  <Link key={v.id} to={`/visits/${v.id}`} className="press flex items-center gap-3 px-4 py-3 hover:bg-sunken">
+-                    <IconTile
+-                      icon={v.status === 'completed' ? BadgeCheck : MapPin}
+-                      tone={v.status === 'completed' ? 'success' : v.status === 'scheduled' ? 'brand' : 'warning'}
+-                      size="sm"
+-                    />
+-                    <div className="min-w-0 flex-1">
+-                      <p className="truncate text-base font-semibold text-ink tabular-nums">
+-                        {faDate(v.date, { year: false })} — {fa(v.time)}
+-                      </p>
+-                      <p className="truncate text-xs text-ink-3">{VISIT_PURPOSE[v.purpose as VisitPurpose].label}</p>
+-                    </div>
+-                    <Badge tone={v.status === 'completed' ? 'success' : v.status === 'scheduled' ? 'info' : 'warning'}>
+-                      {v.status === 'completed' ? 'انجام شد' : v.status === 'scheduled' ? 'زمان‌بندی‌شده' : 'ثبت‌نشده'}
+-                    </Badge>
+-                  </Link>
+-                ))}
+-              </Card>
+-            )}
+-          </Section>
+-
+           {caseFile.documents.length > 0 && (
+-            <Section>
+-              <SectionTitle icon={Paperclip} title="مستندات" />
+-              <Card padded={false} className="divide-y divide-line-soft">
++            <div className="mt-4">
++              <h3 className="mb-2 text-sm font-bold text-ink">مستندات ثبت‌شده</h3>
++              <ul className="divide-y divide-line-soft">
+                 {caseFile.documents.map((d) => (
+-                  <button
+-                    key={d.id}
+-                    type="button"
+-                    onClick={() => toast({ title: 'نمایش مستند', description: d.title, tone: 'info' })}
+-                    className="press flex w-full items-center gap-3 px-4 py-3 text-start hover:bg-sunken"
+-                  >
+-                    <IconTile icon={d.kind === 'image' ? Paperclip : FileText} tone="neutral" size="sm" />
+-                    <span className="min-w-0 flex-1">
+-                      <span className="block truncate text-base font-medium text-ink">{d.title}</span>
+-                      <span className="block text-xs text-ink-3">{relativeTime(d.updatedAt)}</span>
+-                    </span>
+-                  </button>
++                  <li key={d.id} className="flex items-center justify-between gap-2 py-2 text-sm">
++                    <span className="min-w-0 flex-1 text-ink-2">{d.title}</span>
++                    <span className="shrink-0 text-xs text-ink-3">{relativeTime(d.updatedAt)}</span>
++                  </li>
+                 ))}
+-              </Card>
+-            </Section>
++              </ul>
++              <p className="mt-2 text-xs text-ink-3">دریافت فایل‌های پیوست در نسخه نمایشی فعال نیست.</p>
++            </div>
+           )}
+-        </>
+-      )}
++        </Disclosure>
++
++        {caseVisits.length > 0 && (
++          <Disclosure title="سوابق بازدید" count={caseVisits.length}>
++            <div className="divide-y divide-line-soft">
++              {caseVisits.map((visit) => (
++                <Link key={visit.id} to={`/visits/${visit.id}`} className="press flex min-h-14 items-center justify-between gap-3 py-3">
++                  <span className="min-w-0 flex-1">
++                    <span className="block text-sm font-semibold text-ink">{VISIT_PURPOSE[visit.purpose].label}</span>
++                    <span className="mt-1 block text-xs text-ink-3">{faDate(visit.date, { year: false })} · {fa(visit.time)}</span>
++                  </span>
++                  <span className="text-xs text-ink-2">{VISIT_STATUS[visit.status].label}</span>
++                </Link>
++              ))}
++            </div>
++          </Disclosure>
++        )}
++      </div>
+ 
+-      {tab === 'reports' && (
+-        <Section>
+-          {caseReports.length === 0 ? (
+-            <EmptyState
+-              icon={<FileText className="size-6" />}
+-              title="گزارشی ثبت نشده"
+-              description="پس از نخستین بازدید، پیش‌نویس گزارش به‌صورت خودکار ایجاد می‌شود."
+-            />
++      {!closed && (
++        <ActionFooter>
++          {pendingVisit ? (
++            <Button block iconStart={<ClipboardPlus className="size-[18px]" />} onClick={() => navigate(`/visits/${pendingVisit.id}`)}>
++              ثبت نتیجه بازدید
++            </Button>
+           ) : (
+-            <Card padded={false} className="divide-y divide-line-soft">
+-              {caseReports.map((r) => (
+-                <ReportRow key={r.id} report={r} />
+-              ))}
+-            </Card>
++            <Button block loading={creating} iconStart={<FileText className="size-[18px]" />} onClick={() => { void openNewReport(); }}>
++              ثبت گزارش جدید
++            </Button>
+           )}
+-        </Section>
++        </ActionFooter>
+       )}
+-
+-      {tab === 'activity' && (
+-        <Section>
+-          <Timeline events={caseFile.timeline} />
+-        </Section>
+-      )}
+-
+-      <ActionFooter hint={fieldPrivacy ? 'حالت محرمانگی فعال است.' : undefined}>
+-        <Button block iconStart={<ClipboardPlus className="size-[18px]" />} onClick={() => setMenuOpen(true)}>
+-          ثبت فعالیت
+-        </Button>
+-      </ActionFooter>
+-
+-      <Sheet open={menuOpen} onClose={() => setMenuOpen(false)} title="ثبت فعالیت" description={caseFile.familyName}>
+-        <div className="space-y-2 pb-4">
+-          {upcoming && (
+-            <SheetOption
+-              icon={<MapPin className="size-[18px]" />}
+-              title="ثبت نتیجه بازدید"
+-              description={`${faDate(upcoming.date, { year: false })} — ${fa(upcoming.time)}`}
+-              onClick={() => {
+-                setMenuOpen(false);
+-                navigate(`/visits/${upcoming.id}`);
+-              }}
+-            />
+-          )}
+-          <SheetOption
+-            icon={<FileText className="size-[18px]" />}
+-            title="گزارش جدید برای این پرونده"
+-            description="پیش‌نویس بر اساس قالب ارزیابی ساخته می‌شود"
+-            onClick={openNewReport}
+-          />
+-          <SheetOption
+-            icon={<PenLine className="size-[18px]" />}
+-            title="یادداشت داخلی"
+-            description="در فازهای بعدی فعال می‌شود"
+-            onClick={() => {
+-              setMenuOpen(false);
+-              toast({ title: 'یادداشت داخلی', description: 'این قابلیت در فاز بعدی پیاده‌سازی می‌شود.', tone: 'info' });
+-            }}
+-          />
+-        </div>
+-      </Sheet>
+     </Screen>
+   );
+ }
+ 
+-function SectionTitle({ icon: Icon, title, action }: { icon: typeof Users; title: string; action?: ReactNode }) {
++function Disclosure({ title, count, children }: { title: string; count?: number; children: ReactNode }) {
+   return (
+-    <div className="mb-2.5 flex items-center justify-between gap-3">
+-      <h2 className="flex items-center gap-2 text-md font-bold text-ink">
+-        <Icon className="size-4 text-ink-3" strokeWidth={2.25} aria-hidden />
+-        {title}
+-      </h2>
+-      {action}
+-    </div>
+-  );
+-}
+-
+-function Timeline({ events }: { events: CaseEvent[] }) {
+-  if (events.length === 0) {
+-    return (
+-      <Card className="border-dashed">
+-        <p className="text-sm text-ink-3">فعالیتی ثبت نشده است.</p>
+-      </Card>
+-    );
+-  }
+-
+-  const meta: Record<CaseEvent['kind'], { icon: typeof Flag; tone: Tone }> = {
+-    visit: { icon: MapPin, tone: 'brand' },
+-    report: { icon: FileText, tone: 'info' },
+-    stage: { icon: Flag, tone: 'accent' },
+-    note: { icon: PenLine, tone: 'neutral' },
+-    decision: { icon: BadgeCheck, tone: 'success' },
+-  };
+-
+-  return (
+-    <ol className="relative space-y-4">
+-      <span className="absolute bottom-3 start-[15px] top-3 w-px bg-line" aria-hidden />
+-      {events.map((e) => {
+-        const m = meta[e.kind];
+-        return (
+-          <li key={e.id} className="relative flex gap-3.5">
+-            <span
+-              className={cn(
+-                'relative z-10 grid size-8 shrink-0 place-items-center rounded-full ring-4 ring-bg',
+-                TONE[m.tone].soft,
+-                TONE[m.tone].text,
+-              )}
+-            >
+-              <m.icon className="size-4" strokeWidth={2.25} aria-hidden />
+-            </span>
+-            <div className="min-w-0 flex-1 pb-1">
+-              <p className="text-base font-semibold leading-snug text-ink">{e.title}</p>
+-              {e.detail && <p className="mt-1 text-sm leading-relaxed text-ink-2">{e.detail}</p>}
+-              <p className="mt-1 text-2xs text-ink-3">
+-                {relativeTime(e.at)}
+-                {e.actor ? ` · ${e.actor}` : ''}
+-              </p>
+-            </div>
+-          </li>
+-        );
+-      })}
+-    </ol>
++    <details className="group mt-4 overflow-hidden rounded-lg border border-line bg-surface shadow-xs">
++      <summary className="press flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-bold text-ink [&::-webkit-details-marker]:hidden">
++        <span>{title}{typeof count === 'number' && <span className="ms-2 text-xs font-medium text-ink-3">{fa(count)}</span>}</span>
++        <ChevronDown className="size-4 text-ink-3 transition-transform group-open:rotate-180" aria-hidden />
++      </summary>
++      <div className="border-t border-line-soft px-4 pb-4 pt-3">{children}</div>
++    </details>
+   );
+ }
+diff --git a/src/features/cases/CasesScreen.tsx b/src/features/cases/CasesScreen.tsx
+index bf59935..cc19adb 100644
+--- a/src/features/cases/CasesScreen.tsx
++++ b/src/features/cases/CasesScreen.tsx
+@@ -13,13 +13,12 @@ import { Sheet, SheetOption } from '@/components/ui/Sheet';
+ import { CaseCard } from '@/features/_shared/CaseCard';
+ import { fa } from '@/lib/digits';
+ 
+-type QuickFilter = 'all' | CaseType | 'attention' | 'closed';
++type QuickFilter = 'all' | CaseType | 'closed';
+ 
+ const FILTERS: { value: QuickFilter; label: string }[] = [
+   { value: 'all', label: 'همه' },
+   { value: 'hosting', label: 'میزبانی' },
+   { value: 'adoption', label: 'فرزندخواندگی' },
+-  { value: 'attention', label: 'نیازمند توجه' },
+   { value: 'closed', label: 'بایگانی' },
+ ];
+ 
+@@ -42,9 +41,7 @@ export function CasesScreen() {
+     let rows = cases.slice();
+     if (filter === 'hosting' || filter === 'adoption') rows = rows.filter((c) => c.type === filter);
+     if (filter === 'closed') rows = rows.filter((c) => c.stage === 'closed');
+-    if (filter === 'attention')
+-      rows = rows.filter((c) => c.priority === 'critical' || c.priority === 'high' || c.children.some((ch) => ch.wellbeing !== 'stable'));
+-    if (filter === 'all') rows = rows.filter((c) => c.stage !== 'closed');
++    if (filter !== 'closed') rows = rows.filter((c) => c.stage !== 'closed');
+     if (stage !== 'all') rows = rows.filter((c) => c.stage === stage);
+     if (query.trim()) {
+       const needle = query.trim().toLowerCase();
+@@ -59,16 +56,6 @@ export function CasesScreen() {
+   }, [cases, filter, stage, query]);
+ 
+   const activeCount = cases.filter((c) => c.stage !== 'closed').length;
+-  const counts = {
+-    all: activeCount,
+-    hosting: cases.filter((c) => c.type === 'hosting' && c.stage !== 'closed').length,
+-    adoption: cases.filter((c) => c.type === 'adoption' && c.stage !== 'closed').length,
+-    attention: cases.filter(
+-      (c) => c.stage !== 'closed' && (c.priority === 'critical' || c.children.some((ch) => ch.wellbeing !== 'stable')),
+-    ).length,
+-    closed: cases.filter((c) => c.stage === 'closed').length,
+-  } as Record<QuickFilter, number>;
+-
+   const stages: { value: CaseStage | 'all'; label: string }[] = [
+     { value: 'all', label: 'همه مراحل' },
+     { value: 'initial-assessment', label: 'ارزیابی اولیه' },
+@@ -101,7 +88,7 @@ export function CasesScreen() {
+           <SearchBar value={query} onChange={setQuery} placeholder="جست‌وجوی نام خانواده، کد پرونده یا کودک" />
+           <ChipRail flush>
+             {FILTERS.map((f) => (
+-              <Chip key={f.value} selected={filter === f.value} count={counts[f.value]} onClick={() => setFilter(f.value)}>
++              <Chip key={f.value} selected={filter === f.value} onClick={() => { setFilter(f.value); setStage('all'); }}>
+                 {f.label}
+               </Chip>
+             ))}
+diff --git a/src/features/more/MoreScreen.tsx b/src/features/more/MoreScreen.tsx
+index e0b9c2c..3b29cb0 100644
+--- a/src/features/more/MoreScreen.tsx
++++ b/src/features/more/MoreScreen.tsx
+@@ -1,5 +1,4 @@
+-import { FileText, HeartPulse, Bell, CircleUser, Settings, Palette, LifeBuoy, LogOut, ShieldCheck } from 'lucide-react';
+-import { useNavigate } from 'react-router-dom';
++import { HeartPulse, Bell, CircleUser, Settings, Palette, LifeBuoy, LogOut, ShieldCheck } from 'lucide-react';
+ import { useApp } from '@/store/app-store';
+ import { Screen } from '@/components/layout/Screen';
+ import { ScreenHeader } from '@/components/layout/ScreenHeader';
+@@ -14,16 +13,12 @@ import { Logo } from '@/components/layout/Logo';
+  * More.
+  *
+  * The overflow tab is not a junk drawer: it holds the destinations that are
+- * used less often but must never be more than two taps away — reports,
+- * monitoring, notifications, profile and settings. Each row carries its own
+- * count, so the tab still tells you whether something needs you.
++ * used less often: monitoring, notifications, profile and settings.
++ * Reports have their own primary destination instead of appearing twice.
+  */
+ export function MoreScreen() {
+-  const navigate = useNavigate();
+-  const { reports, cases, unreadCount, toast } = useApp();
++  const { cases, unreadCount, toast } = useApp();
+ 
+-  const drafts = reports.filter((r) => r.status === 'draft').length;
+-  const revisions = reports.filter((r) => r.status === 'revision').length;
+   const monitored = cases.filter((c) => c.stage !== 'closed').reduce((n, c) => n + c.children.length, 0);
+ 
+   return (
+@@ -31,17 +26,8 @@ export function MoreScreen() {
+       <ScreenHeader title="بیشتر" subtitle="دسترسی به سایر بخش‌های فضای کاری" />
+ 
+       <Section className="pt-4">
+-        <GroupLabel>کار و گزارش</GroupLabel>
++        <GroupLabel>پایش</GroupLabel>
+         <ListGroup>
+-          <ListRow
+-            to="/reports"
+-            chevron
+-            divider
+-            leading={<IconTile icon={FileText} tone="info" />}
+-            title="گزارش‌ها"
+-            meta={`${fa(reports.length)} گزارش · ${fa(drafts)} پیش‌نویس`}
+-            trailing={revisions > 0 ? <Badge tone="warning">{fa(revisions)} اصلاح</Badge> : undefined}
+-          />
+           <ListRow
+             to="/monitoring"
+             chevron
+diff --git a/src/features/reports/ReportEditorScreen.tsx b/src/features/reports/ReportEditorScreen.tsx
+index 7e615d4..eaedb64 100644
+--- a/src/features/reports/ReportEditorScreen.tsx
++++ b/src/features/reports/ReportEditorScreen.tsx
+@@ -1,19 +1,17 @@
+ import { useEffect, useMemo, useState } from 'react';
+-import { useNavigate, useParams } from 'react-router-dom';
+-import { CheckCircle2, CloudUpload, Lock, MessageSquareQuote, Paperclip, Plus, Save } from 'lucide-react';
++import { Link, useNavigate, useParams } from 'react-router-dom';
++import { CheckCircle2, ChevronDown, CloudUpload, Lock, MessageSquareQuote, Paperclip } from 'lucide-react';
+ import { useApp } from '@/store/app-store';
+ import { ActionFooter, Screen, Section } from '@/components/layout/Screen';
+ import { ScreenHeader } from '@/components/layout/ScreenHeader';
+ import { Badge } from '@/components/ui/Badge';
+ import { Button } from '@/components/ui/Button';
+-import { IconButton } from '@/components/ui/IconButton';
+ import { Card, ToneCard } from '@/components/ui/Card';
+ import { ProgressBar } from '@/components/ui/Progress';
+ import { EmptyState } from '@/components/ui/EmptyState';
+-import { IconTile, REPORT_TYPE_ICON } from '@/components/ui/DomainIcon';
+-import { Sheet, SheetOption } from '@/components/ui/Sheet';
++import { IconTile } from '@/components/ui/DomainIcon';
+ import { ReportFieldControl } from './ReportFieldControl';
+-import { REPORT_STATUS, REPORT_TYPE } from '@/lib/labels';
++import { REPORT_STATUS } from '@/lib/labels';
+ import { reportCompletion } from '@/lib/domain';
+ import { fa } from '@/lib/digits';
+ import { relativeTime } from '@/lib/jalali';
+@@ -22,19 +20,19 @@ import { relativeTime } from '@/lib/jalali';
+  * Report editor.
+  *
+  * One generic editor for every professional form. Completion is always
+- * visible, drafts save themselves, and the review conversation (supervisor
++ * visible, fields update in the session, and the review conversation (supervisor
+  * comments) sits at the top of the returned report — the social worker should
+  * never have to hunt for the reason it came back.
+  */
+ export function ReportEditorScreen() {
+   const { reportId } = useParams();
+   const navigate = useNavigate();
+-  const { reports, cases, editReportField, editReportMeta, submitReport, toast } = useApp();
++  const { reports, cases, editReportField, submitReport, toast } = useApp();
+ 
+   const report = reports.find((r) => r.id === reportId);
+   const caseFile = cases.find((c) => c.id === report?.caseId);
+   const [saving, setSaving] = useState(false);
+-  const [menuOpen, setMenuOpen] = useState(false);
++  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+   const [tick, setTick] = useState(0);
+ 
+   // Keeps the "saved …" label honest as time passes.
+@@ -45,6 +43,17 @@ export function ReportEditorScreen() {
+ 
+   const completion = useMemo(() => (report ? reportCompletion(report) : null), [report, tick]);
+ 
++  // Open one meaningful section at a time, without jumping away while typing.
++  useEffect(() => {
++    if (!report) return;
++    const firstIncomplete = report.sections.find((section) => section.fields.some((f) =>
++      f.kind === 'checklist' ? f.value.length === 0 : f.kind === 'scale' ? f.value <= 0 : !String(f.value).trim(),
++    ));
++    setActiveSectionId(firstIncomplete?.id ?? report.sections[0]?.id ?? null);
++    // The active section should change when the report changes, not on each field edit.
++    // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, [report?.id]);
++
+   if (!report || !completion) {
+     return (
+       <Screen>
+@@ -87,28 +96,20 @@ export function ReportEditorScreen() {
+       <ScreenHeader
+         back
+         title={report.title}
+-        subtitle={
+-          <span className="flex items-center gap-1.5">
+-            <span className="tabular-nums">{report.caseCode}</span>
+-            {caseFile && <span>· {caseFile.familyName}</span>}
+-          </span>
+-        }
+-        actions={
+-          <>
+-            <Badge tone={status.tone}>{status.label}</Badge>
+-            <IconButton label="گزینه‌های گزارش" onClick={() => setMenuOpen(true)}>
+-              <Paperclip className="size-[18px]" strokeWidth={2.1} />
+-            </IconButton>
+-          </>
+-        }
++        subtitle={caseFile ? (
++          <Link to={`/cases/${caseFile.id}`} className="press hover:underline underline-offset-4">
++            {caseFile.familyName} · {report.caseCode}
++          </Link>
++        ) : report.caseCode}
++        actions={<Badge tone={status.tone}>{status.label}</Badge>}
+       />
+ 
+       <div className="pt-3">
+-        {/* autosave line */}
++        {/* This demo has an in-memory store, not durable server-side autosave. */}
+         <div className="flex items-center justify-between px-1 text-2xs text-ink-3">
+           <span className="flex items-center gap-1.5">
+             <CloudUpload className="size-3.5 text-success" strokeWidth={2.4} aria-hidden />
+-            ذخیره خودکار · {relativeTime(report.updatedAt)}
++            ثبت در این نشست · {relativeTime(report.updatedAt)}
+           </span>
+           <span className="tabular-nums">
+             {fa(completion.filled)} از {fa(completion.total)} فیلد
+@@ -159,22 +160,14 @@ export function ReportEditorScreen() {
+         </Section>
+       )}
+ 
+-      <Section>
+-        <Card className="space-y-3">
+-          <div className="flex items-center gap-3">
+-            <IconTile icon={REPORT_TYPE_ICON[report.type]} tone={REPORT_TYPE[report.type].tone} />
+-            <div className="min-w-0">
+-              <p className="truncate text-base font-bold text-ink">{REPORT_TYPE[report.type].label}</p>
+-              <p className="text-xs text-ink-3">نویسنده: {report.author}</p>
+-            </div>
++      {report.summary && (
++        <Section>
++          <div className="rounded-md bg-sunken px-4 py-3">
++            <p className="mb-1 text-xs font-bold text-ink-3">خلاصه ثبت‌شده</p>
++            <p className="text-sm leading-relaxed text-ink-2">{report.summary}</p>
+           </div>
+-          {report.summary ? (
+-            <p className="border-s-2 border-line-strong ps-3 text-sm leading-relaxed text-ink-2">{report.summary}</p>
+-          ) : (
+-            <p className="text-sm text-ink-3">خلاصه‌ای برای این گزارش ثبت نشده است.</p>
+-          )}
+-        </Card>
+-      </Section>
++        </Section>
++      )}
+ 
+       {report.sections.length === 0 && (
+         <Section>
+@@ -187,115 +180,78 @@ export function ReportEditorScreen() {
+         </Section>
+       )}
+ 
+-      {report.sections.map((section, index) => {
+-        const filled = section.fields.filter((f) =>
+-          f.kind === 'checklist' ? f.value.length > 0 : f.kind === 'scale' ? f.value > 0 : String(f.value).trim().length > 0,
+-        ).length;
+-        const complete = filled === section.fields.length;
++      {report.sections.length > 0 && (
++        <Section>
++          <h2 className="mb-2.5 text-md font-bold text-ink">بخش‌های گزارش</h2>
++          <div className="space-y-2">
++            {report.sections.map((section, index) => {
++              const filled = section.fields.filter((f) =>
++                f.kind === 'checklist' ? f.value.length > 0 : f.kind === 'scale' ? f.value > 0 : String(f.value).trim().length > 0,
++              ).length;
++              const complete = filled === section.fields.length;
++              const expanded = activeSectionId === section.id;
+ 
+-        return (
+-          <Section key={section.id}>
+-            <div className="mb-2.5 flex items-center justify-between gap-3 px-1">
+-              <h2 className="flex items-center gap-2 text-md font-bold text-ink">
+-                <span className="grid size-6 place-items-center rounded-sm bg-brand-soft text-2xs font-extrabold text-brand-ink tabular-nums">
+-                  {fa(index + 1)}
+-                </span>
+-                {section.title}
+-              </h2>
+-              {complete ? (
+-                <CheckCircle2 className="size-[18px] text-success" strokeWidth={2.4} aria-label="تکمیل شده" />
+-              ) : (
+-                <span className="text-2xs text-ink-3 tabular-nums">
+-                  {fa(filled)}/{fa(section.fields.length)}
+-                </span>
+-              )}
+-            </div>
+-            <Card className="space-y-5">
+-              {section.fields.map((field) => (
+-                <ReportFieldControl
+-                  key={field.id}
+-                  field={field}
+-                  disabled={locked}
+-                  onChange={(value) => editReportField(report.id, section.id, field.id, value)}
+-                />
+-              ))}
+-            </Card>
+-          </Section>
+-        );
+-      })}
++              return (
++                <div key={section.id} className="overflow-hidden rounded-lg border border-line bg-surface shadow-xs">
++                  <button
++                    type="button"
++                    onClick={() => setActiveSectionId(expanded ? null : section.id)}
++                    aria-expanded={expanded}
++                    aria-controls={`report-section-${section.id}`}
++                    className="press flex min-h-14 w-full items-center gap-3 px-4 py-3 text-start"
++                  >
++                    <span className="grid size-7 shrink-0 place-items-center rounded-md bg-brand-soft text-sm font-extrabold text-brand-ink tabular-nums">
++                      {fa(index + 1)}
++                    </span>
++                    <span className="min-w-0 flex-1 text-sm font-bold leading-relaxed text-ink">{section.title}</span>
++                    {complete ? <CheckCircle2 className="size-4 shrink-0 text-success" aria-label="تکمیل‌شده" /> : (
++                      <span className="shrink-0 text-xs text-ink-3 tabular-nums">{fa(filled)}/{fa(section.fields.length)}</span>
++                    )}
++                    <ChevronDown className={`size-4 shrink-0 text-ink-3 transition-transform ${expanded ? 'rotate-180' : ''}`} aria-hidden />
++                  </button>
++                  {expanded && (
++                    <div id={`report-section-${section.id}`} className="space-y-5 border-t border-line-soft px-4 pb-5 pt-4">
++                      {section.fields.map((field) => (
++                        <ReportFieldControl
++                          key={field.id}
++                          field={field}
++                          disabled={locked}
++                          onChange={(value) => editReportField(report.id, section.id, field.id, value)}
++                        />
++                      ))}
++                    </div>
++                  )}
++                </div>
++              );
++            })}
++          </div>
++        </Section>
++      )}
+ 
+-      <Section>
+-        <div className="mb-2.5 flex items-center justify-between px-1">
+-          <h2 className="text-md font-bold text-ink">پیوست‌ها</h2>
+-          <Button
+-            size="sm"
+-            variant="ghost"
+-            iconStart={<Plus className="size-4" />}
+-            disabled={locked}
+-            onClick={() => toast({ title: 'افزودن پیوست', description: 'انتخاب فایل در فاز بعدی فعال می‌شود.', tone: 'info' })}
+-          >
+-            افزودن
+-          </Button>
+-        </div>
+-        {report.attachments.length === 0 ? (
+-          <Card className="border-dashed">
+-            <p className="text-sm text-ink-3">پیوستی اضافه نشده است.</p>
+-          </Card>
+-        ) : (
++      {report.attachments.length > 0 && (
++        <Section>
++          <h2 className="mb-2.5 text-md font-bold text-ink">پیوست‌های موجود</h2>
+           <Card padded={false} className="divide-y divide-line-soft">
+             {report.attachments.map((a) => (
+               <div key={a.id} className="flex items-center gap-3 px-4 py-3">
+                 <IconTile icon={Paperclip} tone="neutral" size="sm" />
+                 <div className="min-w-0 flex-1">
+-                  <p className="truncate text-base font-medium text-ink">{a.name}</p>
++                  <p className="text-sm font-medium text-ink">{a.name}</p>
+                   <p className="text-xs text-ink-3">{a.size}</p>
+                 </div>
+               </div>
+             ))}
+           </Card>
+-        )}
+-      </Section>
++        </Section>
++      )}
+ 
+       {!locked && (
+-        <ActionFooter hint="پس از ارسال، گزارش در فهرست «در بازبینی» قرار می‌گیرد.">
+-          <Button
+-            variant="secondary"
+-            className="flex-1"
+-            iconStart={<Save className="size-4" />}
+-            onClick={() => toast({ title: 'پیش‌نویس ذخیره شد', tone: 'success' })}
+-          >
+-            ذخیره پیش‌نویس
+-          </Button>
+-          <Button className="flex-1" loading={saving} onClick={onSubmit} iconStart={<CloudUpload className="size-4" />}>
++        <ActionFooter hint="تغییرات فقط تا پایان این نشست نگهداری می‌شوند.">
++          <Button block loading={saving} onClick={onSubmit} iconStart={<CloudUpload className="size-4" />}>
+             ارسال برای بازبینی
+           </Button>
+         </ActionFooter>
+       )}
+-
+-      <Sheet open={menuOpen} onClose={() => setMenuOpen(false)} title="گزینه‌های گزارش">
+-        <div className="space-y-2 pb-4">
+-          {caseFile && (
+-            <SheetOption
+-              icon={<Paperclip className="size-[18px]" />}
+-              title="مشاهده پرونده"
+-              description={caseFile.familyName}
+-              onClick={() => {
+-                setMenuOpen(false);
+-                navigate(`/cases/${caseFile.id}`);
+-              }}
+-            />
+-          )}
+-          <SheetOption
+-            icon={<Save className="size-[18px]" />}
+-            title="ذخیره پیش‌نویس"
+-            onClick={() => {
+-              setMenuOpen(false);
+-              editReportMeta(report.id, { summary: report.summary });
+-              toast({ title: 'پیش‌نویس ذخیره شد', tone: 'success' });
+-            }}
+-          />
+-        </div>
+-      </Sheet>
+     </Screen>
+   );
+ }
+diff --git a/src/features/reports/ReportsScreen.tsx b/src/features/reports/ReportsScreen.tsx
+index f7a4b49..d581e5f 100644
+--- a/src/features/reports/ReportsScreen.tsx
++++ b/src/features/reports/ReportsScreen.tsx
+@@ -1,137 +1,108 @@
+ import { useMemo, useState } from 'react';
+ import { useNavigate } from 'react-router-dom';
+ import { FileText, FolderHeart, Plus } from 'lucide-react';
+-import type { ReportStatus } from '@/types';
++import type { Report } from '@/types';
+ import { useApp } from '@/store/app-store';
+ import { Screen } from '@/components/layout/Screen';
+ import { ScreenHeader } from '@/components/layout/ScreenHeader';
+ import { IconButton } from '@/components/ui/IconButton';
+-import { Chip, ChipRail } from '@/components/ui/Chip';
++import { SegmentedControl } from '@/components/ui/SegmentedControl';
+ import { Card } from '@/components/ui/Card';
+ import { Sheet, SheetOption } from '@/components/ui/Sheet';
+ import { EmptyState } from '@/components/ui/EmptyState';
+ import { ReportRow } from '@/features/_shared/ReportRow';
+-import { REPORT_STATUS } from '@/lib/labels';
+ import { fa } from '@/lib/digits';
+ 
+-type Filter = ReportStatus | 'all';
++type Filter = 'all' | 'action' | 'sent';
++const needsAction = (r: Report) => r.status === 'draft' || r.status === 'revision';
+ 
+-const FILTERS: { value: Filter; label: string }[] = [
+-  { value: 'all', label: 'همه' },
+-  { value: 'draft', label: 'پیش‌نویس' },
+-  { value: 'revision', label: 'نیازمند اصلاح' },
+-  { value: 'in-review', label: 'در بازبینی' },
+-  { value: 'submitted', label: 'ارسال‌شده' },
+-  { value: 'approved', label: 'تأییدشده' },
+-];
+-
+-/**
+- * Reports.
+- *
+- * The report lifecycle is the contract between the social worker and the
+- * supervisor, so the list is organised by *state* — draft, returned, under
+- * review, approved — not by date. State tells you what to do next.
+- */
++/** Reports are their own workspace, with one clear actionable queue. */
+ export function ReportsScreen() {
+-  const { reports, cases, toast, createReportDraft } = useApp();
++  const { reports, cases, user, toast, createReportDraft } = useApp();
++  const myReports = useMemo(() => reports.filter((r) => r.author === user?.name), [reports, user?.name]);
+   const navigate = useNavigate();
+   const [filter, setFilter] = useState<Filter>('all');
+   const [pickerOpen, setPickerOpen] = useState(false);
+ 
+-  const counts = useMemo(() => {
+-    const base: Record<string, number> = { all: reports.length };
+-    for (const r of reports) base[r.status] = (base[r.status] ?? 0) + 1;
+-    return base;
+-  }, [reports]);
++  const counts = useMemo(() => ({
++    all: myReports.length,
++    action: myReports.filter(needsAction).length,
++    sent: myReports.filter((r) => !needsAction(r)).length,
++  }), [myReports]);
+ 
+   const visible = useMemo(() => {
+-    const rows = filter === 'all' ? reports : reports.filter((r) => r.status === filter);
+-    return rows.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+-  }, [reports, filter]);
+-
+-  const draftCount = counts.draft ?? 0;
+-  const revisionCount = counts.revision ?? 0;
++    const rows = myReports.filter((r) => filter === 'all' || (filter === 'action' ? needsAction(r) : !needsAction(r)));
++    return rows.slice().sort((a, b) => {
++      if (filter !== 'sent') {
++        const weight = (r: Report) => r.status === 'revision' ? 0 : r.status === 'draft' ? 1 : 2;
++        if (weight(a) !== weight(b)) return weight(a) - weight(b);
++      }
++      return b.updatedAt.localeCompare(a.updatedAt);
++    });
++  }, [myReports, filter]);
+ 
+   return (
+     <Screen bottomGap={false}>
+       <ScreenHeader
+         title="گزارش‌ها"
+-        subtitle={`${fa(draftCount)} پیش‌نویس${revisionCount > 0 ? ` · ${fa(revisionCount)} نیازمند اصلاح` : ''}`}
++        subtitle={counts.action > 0 ? `${fa(counts.action)} گزارش در انتظار اقدام شما` : 'گزارش‌های ثبت‌شده شما'}
+         actions={
+           <IconButton label="گزارش جدید" onClick={() => setPickerOpen(true)}>
+             <Plus className="size-[22px]" strokeWidth={2.2} />
+           </IconButton>
+         }
+       >
+-        <div className="mt-3">
+-          <ChipRail flush>
+-            {FILTERS.map((f) => (
+-              <Chip key={f.value} selected={filter === f.value} count={counts[f.value] ?? 0} onClick={() => setFilter(f.value)}>
+-                {f.label}
+-              </Chip>
+-            ))}
+-          </ChipRail>
+-        </div>
++        <SegmentedControl<Filter>
++          className="mt-3"
++          ariaLabel="فیلتر گزارش‌ها"
++          value={filter}
++          onChange={setFilter}
++          items={[
++            { value: 'all', label: 'همه', count: counts.all },
++            { value: 'action', label: 'نیازمند اقدام', count: counts.action },
++            { value: 'sent', label: 'ارسال‌شده', count: counts.sent },
++          ]}
++        />
+       </ScreenHeader>
+ 
+       <div className="pt-4 pb-8">
+         {visible.length === 0 ? (
+-          <EmptyState
+-            icon={<FileText className="size-6" />}
+-            title="گزارشی در این وضعیت نیست"
+-            description="با ثبت نتیجه یک بازدید، پیش‌نویس گزارش به‌صورت خودکار ساخته می‌شود."
+-          />
++          <EmptyState icon={<FileText className="size-6" />} title="گزارشی در این بخش نیست" />
+         ) : (
+-          <Card padded={false} className="divide-y divide-line-soft">
+-            {visible.map((r) => (
+-              <ReportRow key={r.id} report={r} />
+-            ))}
++          <Card padded={false}>
++            {visible.map((r, i) => <ReportRow key={r.id} report={r} divider={i < visible.length - 1} />)}
+           </Card>
+         )}
+-
+-        <p className="mt-5 px-1 text-2xs leading-relaxed text-ink-3">
+-          گزارش‌های ارسالی برای بازبینی سرپرست ارسال می‌شوند و ممکن است برای تکمیل بازگردانده شوند.
+-          نظر نهایی درباره صلاحیت و جایگذاری در صلاحیت کمیته تخصصی و مراجع ذی‌صلاح است.
+-        </p>
+       </div>
+ 
+       <Sheet
+         open={pickerOpen}
+         onClose={() => setPickerOpen(false)}
+         title="گزارش جدید"
+-        description="پرونده مورد نظر را انتخاب کنید؛ پیش‌نویس بر اساس قالب مناسب ساخته می‌شود."
++        description="پرونده مربوط را انتخاب کنید."
+         tall
+       >
+         <div className="space-y-2 pb-4">
+-          {cases
+-            .filter((c) => c.stage !== 'closed')
+-            .map((c) => (
+-              <SheetOption
+-                key={c.id}
+-                icon={<FolderHeart className="size-[18px]" />}
+-                title={c.familyName}
+-                description={`${c.code} · ${REPORT_STATUS.draft.label} · ${
+-                  c.stage === 'initial-assessment' ? 'قالب ارزیابی منزل' : c.stage === 'post-placement' ? 'قالب پایش کودک' : 'قالب گزارش بازدید'
+-                }`}
+-                onClick={async () => {
+-                  setPickerOpen(false);
+-                  const id = await createReportDraft({
+-                    type:
+-                      c.stage === 'initial-assessment'
+-                        ? 'home-assessment'
+-                        : c.stage === 'post-placement'
+-                          ? 'monitoring'
+-                          : 'visit',
+-                    caseId: c.id,
+-                    childId: c.children[0]?.id,
+-                  });
+-                  if (id) {
+-                    toast({ title: 'پیش‌نویس گزارش ایجاد شد', tone: 'success' });
+-                    navigate(`/reports/${id}`);
+-                  }
+-                }}
+-              />
+-            ))}
++          {cases.filter((c) => c.stage !== 'closed').map((c) => (
++            <SheetOption
++              key={c.id}
++              icon={<FolderHeart className="size-[18px]" />}
++              title={c.familyName}
++              description={c.code}
++              onClick={async () => {
++                setPickerOpen(false);
++                const id = await createReportDraft({
++                  type: c.stage === 'initial-assessment' ? 'home-assessment' : c.stage === 'post-placement' ? 'monitoring' : 'visit',
++                  caseId: c.id,
++                  childId: c.children[0]?.id,
++                });
++                if (id) {
++                  toast({ title: 'پیش‌نویس گزارش ایجاد شد', tone: 'success' });
++                  navigate(`/reports/${id}`);
++                }
++              }}
++            />
++          ))}
+         </div>
+       </Sheet>
+     </Screen>
+diff --git a/src/features/search/SearchScreen.tsx b/src/features/search/SearchScreen.tsx
+index 6b803d4..6737f28 100644
+--- a/src/features/search/SearchScreen.tsx
++++ b/src/features/search/SearchScreen.tsx
+@@ -148,7 +148,7 @@ export function SearchScreen() {
+                   {results.tasks.map((t) => (
+                     <ListRow
+                       key={t.id}
+-                      onClick={() => navigate(t.visitId ? `/visits/${t.visitId}` : t.reportId ? `/reports/${t.reportId}` : '/work')}
++                      onClick={() => navigate(t.visitId ? `/visits/${t.visitId}` : t.reportId ? `/reports/${t.reportId}` : '/calendar?view=tasks')}
+                       chevron
+                       leading={<IconTile icon={TASK_ICON[t.type]} tone={TASK_TYPE[t.type].tone} size="sm" />}
+                       title={t.title}
+diff --git a/src/features/today/TodayScreen.tsx b/src/features/today/TodayScreen.tsx
+index 94cadb8..5b2e3d3 100644
+--- a/src/features/today/TodayScreen.tsx
++++ b/src/features/today/TodayScreen.tsx
+@@ -1,6 +1,6 @@
+-import { useMemo } from 'react';
++import { useMemo, useState } from 'react';
+ import { Link, useNavigate } from 'react-router-dom';
+-import { Bell, EyeOff, ShieldCheck } from 'lucide-react';
++import { Bell, EyeOff } from 'lucide-react';
+ import { useApp } from '@/store/app-store';
+ import { useSettings } from '@/store/settings';
+ import { buildToday } from '@/services/dashboard';
+@@ -8,29 +8,18 @@ import { Screen, Section } from '@/components/layout/Screen';
+ import { SectionAction, SectionHeader } from '@/components/ui/SectionHeader';
+ import { IconButton } from '@/components/ui/IconButton';
+ import { Avatar } from '@/components/ui/Avatar';
+-import { ListGroup } from '@/components/ui/ListRow';
+-import { EmptyState } from '@/components/ui/EmptyState';
+ import { Skeleton, RowSkeleton } from '@/components/ui/Skeleton';
+-import { TaskRow } from '@/features/_shared/TaskRow';
+ import { AgendaTimeline } from '@/features/_shared/AgendaTimeline';
+ import { AttentionList } from '@/features/_shared/AttentionList';
+-import { ChildFollowUpRow } from '@/features/_shared/ChildRow';
+ import { fa } from '@/lib/digits';
+-import { Inbox } from 'lucide-react';
+ 
+-/**
+- * Today — the landing screen.
+- *
+- * Reading order answers three questions in sequence: what is broken, what is
+- * my day, what is next. Nothing here is decorative, and nothing requires the
+- * social worker to think about the platform's internal structure.
+- */
++/** Today is a focused brief: what must be addressed, and today's agenda. */
+ export function TodayScreen() {
+   const { tasks, visits, reports, notifications, user, status, unreadCount } = useApp();
+   const { fieldPrivacy, toggleFieldPrivacy } = useSettings();
+   const navigate = useNavigate();
++  const [showAllAttention, setShowAllAttention] = useState(false);
+ 
+-  // Recomputed from the store, which the service layer keeps authoritative.
+   const today = useMemo(
+     () => buildToday(),
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+@@ -43,40 +32,32 @@ export function TodayScreen() {
+         <div className="space-y-3 pt-6">
+           <Skeleton className="h-4 w-24" />
+           <Skeleton className="h-7 w-48" />
+-          <Skeleton className="h-16 w-full rounded-lg" />
+-        </div>
+-        <div className="mt-6">
+-          <RowSkeleton />
+-          <RowSkeleton />
+-          <RowSkeleton />
+         </div>
++        <div className="mt-6"><RowSkeleton /><RowSkeleton /><RowSkeleton /></div>
+       </Screen>
+     );
+   }
+ 
+-  const firstName = user.name.split(' ')[0];
+-  const { agenda, attention, upcomingTasks, monitoring, stats } = today;
++  const visibleAttention = showAllAttention ? today.attention : today.attention.slice(0, 3);
++  const moreAttention = today.attention.length - visibleAttention.length;
+ 
+   return (
+     <Screen bottomGap={false}>
+-      {/* ---------------------------------------------------------------- */}
+-      <header className="sticky top-0 z-30 -mx-gutter bg-bg/85 px-gutter pb-3 pt-4 backdrop-blur-xl">
++      <header className="sticky top-0 z-30 -mx-gutter bg-bg/90 px-gutter pb-3 pt-4 backdrop-blur-xl">
+         <div className="flex items-start justify-between gap-3">
+           <div className="min-w-0">
+             <p className="text-xs font-medium text-ink-3">{today.dateLabel}</p>
+-            <h1 className="mt-0.5 truncate text-xl font-extrabold tracking-tight text-ink">
+-              {today.greeting}، {firstName}
+-            </h1>
++            <h1 className="mt-0.5 truncate text-xl font-extrabold tracking-tight text-ink">{user.name}</h1>
+           </div>
+           <div className="flex shrink-0 items-center gap-1">
+             {fieldPrivacy && (
+               <button
+                 type="button"
+                 onClick={toggleFieldPrivacy}
+-                className="press flex h-10 items-center gap-1.5 rounded-md bg-accent-soft px-2.5 text-2xs font-bold text-accent-ink"
++                className="press flex h-10 items-center gap-1 rounded-md bg-accent-soft px-2.5 text-xs font-bold text-accent-ink"
+                 aria-label="خاموش کردن حالت محرمانگی"
+               >
+-                <EyeOff className="size-4" strokeWidth={2.4} aria-hidden />
++                <EyeOff className="size-4" strokeWidth={2.3} aria-hidden />
+                 محرمانه
+               </button>
+             )}
+@@ -90,90 +71,30 @@ export function TodayScreen() {
+         </div>
+       </header>
+ 
+-      {/* ---------------------------------------------------------------- */}
+-      <div className="mt-1 grid grid-cols-3 overflow-hidden rounded-lg border border-line bg-surface shadow-xs">
+-        <StatCell value={stats.agendaTotal} label="برنامه امروز" to="/calendar" />
+-        <StatCell value={stats.openTasks} label="کار باز" to="/work" divider />
+-        <StatCell value={stats.activeCases} label="پرونده فعال" to="/cases" divider />
+-      </div>
+-
+-      {/* ---------------------------------------------------------------- */}
+-      {attention.length > 0 && (
++      {today.attention.length > 0 && (
+         <Section>
+           <SectionHeader
+-            title="نیازمند توجه شما"
+-            hint={attention.length > 1 ? `${fa(attention.length)} مورد برای رسیدگی` : undefined}
++            title="نیازمند رسیدگی"
++            hint={`${fa(today.attention.length)} اقدام باقی‌مانده`}
+           />
+-          <AttentionList items={attention} />
++          <AttentionList items={visibleAttention} />
++          {today.attention.length > 3 && (
++            <button
++              type="button"
++              onClick={() => setShowAllAttention((v) => !v)}
++              className="press mt-2 w-full rounded-md py-2 text-center text-sm font-semibold text-brand-ink"
++              aria-expanded={showAllAttention}
++            >
++              {showAllAttention ? 'نمایش کمتر' : `نمایش ${fa(moreAttention)} مورد دیگر`}
++            </button>
++          )}
+         </Section>
+       )}
+ 
+-      {/* ---------------------------------------------------------------- */}
+-      <Section>
+-        <SectionHeader title="برنامه امروز" action={<SectionAction to="/calendar">تقویم</SectionAction>} />
+-        <AgendaTimeline items={agenda} />
++      <Section className="pb-8">
++        <SectionHeader title="برنامه امروز" action={<SectionAction to="/calendar">تقویم کاری</SectionAction>} />
++        <AgendaTimeline items={today.agenda} />
+       </Section>
+-
+-      {/* ---------------------------------------------------------------- */}
+-      <Section>
+-        <SectionHeader title="کارهای پیش‌رو" action={<SectionAction to="/work">همه کارها</SectionAction>} />
+-        {upcomingTasks.length === 0 ? (
+-          <div className="rounded-lg border border-dashed border-line-strong bg-surface/60">
+-            <EmptyState
+-              icon={<Inbox className="size-6" />}
+-              title="کاری در پیش ندارید"
+-              description="همه کارهای با مهلت نزدیک انجام شده‌اند."
+-            />
+-          </div>
+-        ) : (
+-          <ListGroup>
+-            {upcomingTasks.map((t, i) => (
+-              <TaskRow key={t.id} task={t} divider={i < upcomingTasks.length - 1} />
+-            ))}
+-          </ListGroup>
+-        )}
+-      </Section>
+-
+-      {/* ---------------------------------------------------------------- */}
+-      {monitoring.length > 0 && (
+-        <Section>
+-          <SectionHeader title="پایش کودکان" action={<SectionAction to="/monitoring">همه موارد</SectionAction>} />
+-          <ListGroup>
+-            {monitoring.map((child, i) => (
+-              <ChildFollowUpRow key={child.id} child={child} divider={i < monitoring.length - 1} />
+-            ))}
+-          </ListGroup>
+-        </Section>
+-      )}
+-
+-      {/* ---------------------------------------------------------------- */}
+-      <p className="mt-8 flex items-start gap-2 px-1 pb-8 text-2xs leading-relaxed text-ink-3">
+-        <ShieldCheck className="mt-0.5 size-4 shrink-0 text-brand" strokeWidth={2.25} aria-hidden />
+-        دسترسی شما به پرونده‌ها بر اساس مسئولیت محوله محدود است. تصمیم‌گیری درباره صلاحیت، جایگذاری
+-        و امور حقوقی در صلاحیت مراجع ذی‌صلاح است.
+-      </p>
+     </Screen>
+   );
+ }
+-
+-function StatCell({
+-  value,
+-  label,
+-  to,
+-  divider,
+-}: {
+-  value: number;
+-  label: string;
+-  to: string;
+-  divider?: boolean;
+-}) {
+-  return (
+-    <Link
+-      to={to}
+-      className={`press flex flex-col items-center gap-0.5 px-2 py-3 hover:bg-sunken ${divider ? 'border-s border-line-soft' : ''}`}
+-    >
+-      <span className="text-xl font-extrabold text-ink tabular-nums">{fa(value)}</span>
+-      <span className="text-2xs font-medium text-ink-3">{label}</span>
+-    </Link>
+-  );
+-}
+diff --git a/src/features/visits/VisitDetailScreen.tsx b/src/features/visits/VisitDetailScreen.tsx
+index ead837b..23ad980 100644
+--- a/src/features/visits/VisitDetailScreen.tsx
++++ b/src/features/visits/VisitDetailScreen.tsx
+@@ -89,7 +89,17 @@ export function VisitDetailScreen() {
+   const doneCount = visit.checklist.filter((c) => c.done).length;
+   const closed = visit.status !== 'scheduled';
+ 
++  const openOutcomeSheet = () => {
++    setNote(fieldNote);
++    setSelected(visit.status === 'scheduled' ? 'completed' : visit.status);
++    setSheetOpen(true);
++  };
++
+   const submitOutcome = async () => {
++    if (selected === 'completed' && visit.checklist.some((item) => item.required && !item.done)) {
++      toast({ title: 'چک‌لیست کامل نیست', description: 'لطفاً ابتدا موارد الزامی بازدید را بررسی کنید.', tone: 'warning' });
++      return;
++    }
+     setSaving(true);
+     const result = await recordVisitOutcome(visit.id, selected, note.trim());
+     setSaving(false);
+@@ -246,6 +256,7 @@ export function VisitDetailScreen() {
+                 required={item.required}
+                 label={item.label}
+                 onChange={() => toggleChecklistItem(visit.id, item.id)}
++                disabled={closed}
+               />
+             ))}
+           </div>
+@@ -257,7 +268,7 @@ export function VisitDetailScreen() {
+           <Card>
+             <TextArea
+               label="یادداشت میدانی"
+-              hint="این یادداشت فقط روی دستگاه شما ذخیره می‌شود و در گزارش نهایی قابل ویرایش است."
++              hint="این متن با ثبت نتیجه بازدید ذخیره می‌شود؛ پیش از آن با خروج از صفحه از بین می‌رود."
+               rows={4}
+               value={fieldNote}
+               onChange={(e) => setFieldNote(e.target.value)}
+@@ -286,7 +297,7 @@ export function VisitDetailScreen() {
+       >
+         {closed ? (
+           <>
+-            <Button variant="secondary" className="flex-1" onClick={() => setSheetOpen(true)}>
++            <Button variant="secondary" className="flex-1" onClick={openOutcomeSheet}>
+               ویرایش نتیجه
+             </Button>
+             {visit.reportId && (
+@@ -296,7 +307,7 @@ export function VisitDetailScreen() {
+             )}
+           </>
+         ) : (
+-          <Button block iconStart={<ClipboardList className="size-[18px]" />} onClick={() => setSheetOpen(true)}>
++          <Button block iconStart={<ClipboardList className="size-[18px]" />} onClick={openOutcomeSheet}>
+             ثبت نتیجه بازدید
+           </Button>
+         )}
+diff --git a/src/features/work/WorkScreen.tsx b/src/features/work/WorkScreen.tsx
+deleted file mode 100644
+index a9d3954..0000000
+--- a/src/features/work/WorkScreen.tsx
++++ /dev/null
+@@ -1,151 +0,0 @@
+-import { useMemo, useState } from 'react';
+-import { CheckCircle2, Inbox } from 'lucide-react';
+-import type { TaskType } from '@/types';
+-import { useApp } from '@/store/app-store';
+-import { Screen } from '@/components/layout/Screen';
+-import { ScreenHeader } from '@/components/layout/ScreenHeader';
+-import { SegmentedControl } from '@/components/ui/SegmentedControl';
+-import { Chip, ChipRail } from '@/components/ui/Chip';
+-import { SearchBar } from '@/components/ui/SearchBar';
+-import { ListGroup } from '@/components/ui/ListRow';
+-import { EmptyState } from '@/components/ui/EmptyState';
+-import { TaskRow } from '@/features/_shared/TaskRow';
+-import { isOpenTask, sortTasks, taskBucket, TASK_BUCKET_LABEL, TASK_BUCKET_ORDER } from '@/lib/domain';
+-import { fa } from '@/lib/digits';
+-
+-type Scope = 'open' | 'revision' | 'done';
+-
+-const TYPE_FILTERS: { value: TaskType | 'all'; label: string }[] = [
+-  { value: 'all', label: 'همه' },
+-  { value: 'visit', label: 'بازدید' },
+-  { value: 'report', label: 'گزارش' },
+-  { value: 'assessment', label: 'ارزیابی' },
+-  { value: 'monitoring', label: 'پایش' },
+-  { value: 'document', label: 'مستندات' },
+-  { value: 'meeting', label: 'جلسه' },
+-];
+-
+-/**
+- * Work — one queue for everything assigned to this social worker.
+- *
+- * Visits, reports, assessments and follow-ups are all "work items" here. They
+- * are not split into separate destinations, because in the field the question
+- * is never "which module is this in?" — it is "what is due, and what is late?".
+- */
+-export function WorkScreen() {
+-  const { tasks } = useApp();
+-  const [scope, setScope] = useState<Scope>('open');
+-  const [type, setType] = useState<TaskType | 'all'>('all');
+-  const [query, setQuery] = useState('');
+-
+-  const counts = useMemo(
+-    () => ({
+-      open: tasks.filter(isOpenTask).length,
+-      revision: tasks.filter((t) => t.status === 'revision').length,
+-      done: tasks.filter((t) => t.status === 'done').length,
+-    }),
+-    [tasks],
+-  );
+-
+-  const visible = useMemo(() => {
+-    let rows = tasks.slice();
+-    if (scope === 'open') rows = rows.filter((t) => isOpenTask(t) && t.status !== 'revision');
+-    if (scope === 'revision') rows = rows.filter((t) => t.status === 'revision');
+-    if (scope === 'done') rows = rows.filter((t) => t.status === 'done');
+-    if (type !== 'all') rows = rows.filter((t) => t.type === type);
+-    if (query.trim()) {
+-      const needle = query.trim().toLowerCase();
+-      rows = rows.filter((t) =>
+-        [t.title, t.caseCode ?? '', t.assignedBy, t.description ?? ''].join(' ').toLowerCase().includes(needle),
+-      );
+-    }
+-    return sortTasks(rows);
+-  }, [tasks, scope, type, query]);
+-
+-  const groups = useMemo(() => {
+-    if (scope === 'done') return [{ key: 'done', label: 'انجام‌شده', items: visible }];
+-    return TASK_BUCKET_ORDER.map((bucket) => ({
+-      key: bucket,
+-      label: TASK_BUCKET_LABEL[bucket],
+-      items: visible.filter((t) => taskBucket(t) === bucket),
+-    })).filter((g) => g.items.length > 0);
+-  }, [visible, scope]);
+-
+-  return (
+-    <Screen bottomGap={false}>
+-      <ScreenHeader
+-        title="کارها"
+-        subtitle={`${fa(counts.open)} مورد باز · مرتب‌شده بر اساس مهلت`}
+-      >
+-        <div className="mt-3 space-y-3">
+-          <SegmentedControl<Scope>
+-            ariaLabel="محدوده کارها"
+-            value={scope}
+-            onChange={setScope}
+-            items={[
+-              { value: 'open', label: 'فعال', count: counts.open },
+-              { value: 'revision', label: 'اصلاح', count: counts.revision },
+-              { value: 'done', label: 'انجام‌شده', count: counts.done },
+-            ]}
+-          />
+-        </div>
+-      </ScreenHeader>
+-
+-      <div className="pt-3">
+-        <SearchBar value={query} onChange={setQuery} placeholder="جست‌وجو در کارها، پرونده یا ارجاع‌دهنده" />
+-        <div className="mt-3">
+-          <ChipRail>
+-            {TYPE_FILTERS.map((f) => (
+-              <Chip key={f.value} selected={type === f.value} onClick={() => setType(f.value)}>
+-                {f.label}
+-              </Chip>
+-            ))}
+-          </ChipRail>
+-        </div>
+-      </div>
+-
+-      {visible.length === 0 ? (
+-        <EmptyState
+-          className="mt-4"
+-          icon={scope === 'done' ? <CheckCircle2 className="size-6" /> : <Inbox className="size-6" />}
+-          title={scope === 'done' ? 'هنوز کاری را کامل نکرده‌اید' : 'موردی یافت نشد'}
+-          description={
+-            scope === 'done'
+-              ? 'کارهای کامل‌شده اینجا بایگانی می‌شوند.'
+-              : 'فیلترها را تغییر دهید یا عبارت دیگری را جست‌وجو کنید.'
+-          }
+-        />
+-      ) : (
+-        <div className="pb-8">
+-          {groups.map((group) => (
+-            <section key={group.key} className="mt-6 first:mt-4">
+-              <div className="mb-2 flex items-baseline justify-between">
+-                <h2
+-                  className={`text-sm font-bold ${group.key === 'overdue' ? 'text-danger' : 'text-ink-2'}`}
+-                >
+-                  {group.label}
+-                </h2>
+-                <span className="text-2xs text-ink-3 tabular-nums">{fa(group.items.length)} مورد</span>
+-              </div>
+-              <ListGroup>
+-                {group.items.map((t, i) => (
+-                  <TaskRow key={t.id} task={t} divider={i < group.items.length - 1} />
+-                ))}
+-              </ListGroup>
+-              {group.key === 'revision' && (
+-                <p className="mt-2 px-1 text-xs leading-relaxed text-ink-3">
+-                  این گزارش‌ها توسط سرپرست بازگردانده شده‌اند. پس از اصلاح، دوباره برای بازبینی ارسال
+-                  کنید.
+-                </p>
+-              )}
+-            </section>
+-          ))}
+-
+-          <p className="mt-6 px-2 text-center text-2xs leading-relaxed text-ink-3">
+-            کارها توسط سامانه یا سرپرست واحد به شما محول می‌شوند.
+-          </p>
+-        </div>
+-      )}
+-    </Screen>
+-  );
+-}
+diff --git a/src/services/calendar.ts b/src/services/calendar.ts
+index 46643fb..620f165 100644
+--- a/src/services/calendar.ts
++++ b/src/services/calendar.ts
+@@ -1,7 +1,7 @@
+ import type { CalendarEvent } from '@/types';
+ import { db } from '@/data/db';
+-import { isOpenTask } from '@/lib/domain';
+-import { addDays, buildMonthGrid, dayKey, persianWeekdayIndex } from '@/lib/jalali';
++import { buildMonthGrid, dayKey } from '@/lib/jalali';
++import { toLatinDigits } from '@/lib/digits';
+ import { VISIT_PURPOSE } from '@/lib/labels';
+ import { latency } from './_utils';
+ 
+@@ -31,32 +31,21 @@ export function buildEvents(): CalendarEvent[] {
+   }
+ 
+   for (const t of db.tasks) {
+-    if (!isOpenTask(t) || t.visitId) continue; // visits already represent their own slot
++    if (t.visitId) continue; // visits already represent their own slot; retain other completed tasks
++    // Only show a meeting time when the assignment explicitly contains one.
++    const match = t.type === 'meeting' ? toLatinDigits(t.description ?? '').match(/ساعت\s*(\d{1,2}):(\d{2})/) : null;
++    const scheduledTime = match ? `${match[1].padStart(2, '0')}:${match[2]}` : undefined;
+     events.push({
+       id: `cal-${t.id}`,
+       title: t.title,
+       kind: t.type === 'meeting' ? 'meeting' : 'deadline',
+       date: t.dueDate,
+-      time: t.type === 'meeting' ? '08:00' : undefined,
+-      href: t.reportId ? `/reports/${t.reportId}` : t.caseId ? `/cases/${t.caseId}` : '/work',
+-      tone: t.priority === 'critical' ? 'danger' : t.priority === 'high' ? 'warning' : 'info',
++      time: scheduledTime,
++      href: t.reportId ? `/reports/${t.reportId}` : t.caseId ? `/cases/${t.caseId}` : '/calendar?view=tasks',
++      tone: t.status === 'done' ? 'success' : t.status === 'revision' ? 'warning' : t.priority === 'critical' ? 'danger' : t.priority === 'high' ? 'warning' : 'info',
+       caseCode: t.caseCode,
+-    });
+-  }
+-
+-  // Standing Saturday team meeting for the surrounding weeks.
+-  const today = new Date();
+-  for (let week = -2; week <= 3; week += 1) {
+-    const saturday = addDays(today, week * 7 - persianWeekdayIndex(today));
+-    events.push({
+-      id: `cal-meeting-${dayKey(saturday)}`,
+-      title: 'جلسه هفتگی تیم مددکاری',
+-      kind: 'meeting',
+-      date: dayKey(saturday),
+-      time: '08:00',
+-      durationMin: 60,
+-      href: '/work',
+-      tone: 'neutral',
++      taskId: t.id,
++      taskStatus: t.status,
+     });
+   }
+ 
+diff --git a/src/services/dashboard.ts b/src/services/dashboard.ts
+index 4eac49d..d37be02 100644
+--- a/src/services/dashboard.ts
++++ b/src/services/dashboard.ts
+@@ -1,7 +1,7 @@
+ import type { CalendarEvent, CaseFile, Tone, UserProfile, Visit } from '@/types';
+ import { db } from '@/data/db';
+-import { isOpenTask, sortTasks, visitDisplayState } from '@/lib/domain';
+-import { dayKey, daysUntil, faDate, greeting } from '@/lib/jalali';
++import { isOpenTask, visitDisplayState } from '@/lib/domain';
++import { dayKey, daysUntil, faDate } from '@/lib/jalali';
+ import { WELLBEING } from '@/lib/labels';
+ import { latency } from './_utils';
+ import { buildEvents } from './calendar';
+@@ -35,25 +35,15 @@ export interface AgendaItem {
+   durationMin?: number;
+   href: string;
+   tone: Tone;
+-  state: 'upcoming' | 'done' | 'needs-outcome';
++  state: 'upcoming' | 'done' | 'needs-outcome' | 'revision' | 'cancelled';
+   visit?: Visit;
+ }
+ 
+ export interface TodayPayload {
+   user: UserProfile;
+-  greeting: string;
+   dateLabel: string;
+   agenda: AgendaItem[];
+   attention: AttentionItem[];
+-  upcomingTasks: ReturnType<typeof sortTasks>;
+-  monitoring: ChildSummary[];
+-  stats: {
+-    agendaTotal: number;
+-    agendaDone: number;
+-    openTasks: number;
+-    unread: number;
+-    activeCases: number;
+-  };
+ }
+ 
+ const today = () => dayKey(new Date());
+@@ -83,7 +73,7 @@ export function buildAttention(): AttentionItem[] {
+       title: `${Math.abs(daysUntil(t.dueDate, now))} روز از مهلت گذشته`,
+       detail: t.title,
+       tone: 'danger',
+-      href: t.reportId ? `/reports/${t.reportId}` : '/work',
++      href: t.reportId ? `/reports/${t.reportId}` : t.visitId ? `/visits/${t.visitId}` : '/calendar?view=tasks',
+     });
+   }
+ 
+@@ -122,12 +112,21 @@ export function buildAttention(): AttentionItem[] {
+       title: daysUntil(t.dueDate, now) === 0 ? 'مهلت امروز' : 'مهلت فردا',
+       detail: t.title,
+       tone: 'warning',
+-      href: t.visitId ? `/visits/${t.visitId}` : t.reportId ? `/reports/${t.reportId}` : '/work',
++      href: t.visitId ? `/visits/${t.visitId}` : t.reportId ? `/reports/${t.reportId}` : '/calendar?view=tasks',
+     });
+   }
+ 
+   const severity: Record<Tone, number> = { danger: 0, warning: 1, accent: 2, brand: 3, info: 4, success: 5, neutral: 6 };
+-  return items.sort((a, b) => severity[a.tone] - severity[b.tone]).slice(0, 4);
++  // A returned report may also be overdue. Surface the action only once.
++  const seenLinks = new Set<string>();
++  return items
++    .sort((a, b) => severity[a.tone] - severity[b.tone])
++    .filter((item) => {
++      if (item.href === '/calendar?view=tasks') return true;
++      if (seenLinks.has(item.href)) return false;
++      seenLinks.add(item.href);
++      return true;
++    });
+ }
+ 
+ export function buildAgenda(date: Date = new Date()): AgendaItem[] {
+@@ -137,15 +136,19 @@ export function buildAgenda(date: Date = new Date()): AgendaItem[] {
+     .filter((e) => e.date === key)
+     .map<AgendaItem>((e) => {
+       const visit = e.kind === 'visit' ? db.visits.find((v) => v.id === e.id.replace('cal-', '')) : undefined;
+-      const state = visit
++      const state: AgendaItem['state'] = visit
+         ? visitDisplayState(visit, now) === 'completed'
+           ? 'done'
+           : visitDisplayState(visit, now) === 'needs-outcome'
+             ? 'needs-outcome'
+-            : 'upcoming'
+-        : e.kind === 'deadline'
+-          ? 'upcoming'
+-          : 'upcoming';
++            : visitDisplayState(visit, now) === 'cancelled' || visitDisplayState(visit, now) === 'not-done'
++              ? 'cancelled'
++              : 'upcoming'
++        : e.taskStatus === 'done'
++          ? 'done'
++          : e.taskStatus === 'revision'
++            ? 'revision'
++            : 'upcoming';
+       const caseFile: CaseFile | undefined = e.caseCode
+         ? db.cases.find((c) => c.code === e.caseCode)
+         : undefined;
+@@ -156,7 +159,7 @@ export function buildAgenda(date: Date = new Date()): AgendaItem[] {
+         subtitle: e.kind === 'visit' ? e.title.split('—')[0].trim() : caseFile?.code,
+         time: e.time,
+         durationMin: e.durationMin,
+-        href: e.href ?? '#',
++        href: e.href ?? '/calendar?view=tasks',
+         tone: e.tone,
+         state,
+         visit,
+@@ -169,26 +172,22 @@ export function buildAgenda(date: Date = new Date()): AgendaItem[] {
+ export function buildToday(): TodayPayload {
+   const now = new Date();
+   const agenda = buildAgenda(now);
+-  const monitoring = listChildrenSync()
+-    .filter((ch) => daysUntil(ch.nextFollowUp, now) <= 10)
+-    .sort((a, b) => a.nextFollowUp.localeCompare(b.nextFollowUp))
+-    .slice(0, 3);
++  // A visit outcome or deadline already shown in today's agenda is not a
++  // second alert. Older unresolved work and returned reports still surface.
++  const attention = buildAttention().filter((item) => !agenda.some((entry) => {
++    const sameTaskOrVisit = entry.id === item.id.replace(/^at-/, 'cal-');
++    return (
++      (item.kind === 'visit-outcome' && sameTaskOrVisit && entry.state === 'needs-outcome') ||
++      (item.kind === 'deadline' && sameTaskOrVisit && entry.state !== 'done') ||
++      (item.kind === 'revision' && entry.href === item.href && entry.state === 'revision')
++    );
++  }));
+ 
+   return {
+     user: db.user,
+-    greeting: greeting(now),
+     dateLabel: faDate(now, { weekday: true }),
+     agenda,
+-    attention: buildAttention(),
+-    upcomingTasks: sortTasks(db.tasks.filter((t) => isOpenTask(t) && t.dueDate >= today())).slice(0, 4),
+-    monitoring,
+-    stats: {
+-      agendaTotal: agenda.length,
+-      agendaDone: agenda.filter((a) => a.state === 'done').length,
+-      openTasks: db.tasks.filter(isOpenTask).length,
+-      unread: db.notifications.filter((n) => !n.read).length,
+-      activeCases: db.cases.filter((c) => c.stage !== 'closed').length,
+-    },
++    attention,
+   };
+ }
+ 
+diff --git a/src/services/tasks.ts b/src/services/tasks.ts
+index 9142a12..9cf0bca 100644
+--- a/src/services/tasks.ts
++++ b/src/services/tasks.ts
+@@ -47,7 +47,9 @@ export const reopenTask = (id: string) => setTaskStatus(id, 'todo');
+ export function postponeTask(id: string, days: number): Promise<Task | undefined> {
+   const task = findTask(id);
+   if (!task) return latency(undefined);
+-  const next: Task = { ...task, dueDate: dayKey(addDays(task.dueDate, days)), status: task.status === 'done' ? task.status : 'todo' };
++  if (task.status === 'done' || task.visitId) return latency(task, 0);
++  const base = task.dueDate > dayKey(new Date()) ? task.dueDate : dayKey(new Date());
++  const next: Task = { ...task, dueDate: dayKey(addDays(base, days)), status: 'todo' };
+   db.tasks = replace(db.tasks, next);
+   return latency(next, 120);
+ }
+diff --git a/src/services/visits.ts b/src/services/visits.ts
+index a926764..fd5e792 100644
+--- a/src/services/visits.ts
++++ b/src/services/visits.ts
+@@ -65,10 +65,7 @@ export async function recordVisitOutcome(
+     ...visit,
+     status: input.status,
+     outcome: { status: input.status, note: input.note, at: nowIso() },
+-    checklist:
+-      input.status === 'completed'
+-        ? visit.checklist.map((c) => ({ ...c, done: true }))
+-        : visit.checklist,
++    checklist: visit.checklist,
+   };
+   db.visits = replace(db.visits, next);
+ 
+diff --git a/src/types/index.ts b/src/types/index.ts
+index d99355d..9ad3332 100644
+--- a/src/types/index.ts
++++ b/src/types/index.ts
+@@ -258,6 +258,9 @@ export interface CalendarEvent {
+   href?: string;
+   tone: Tone;
+   caseCode?: string;
++  /** Present only on deadline entries, for related task actions and status. */
++  taskId?: ID;
++  taskStatus?: TaskStatus;
+ }
+ 
+ export interface UserProfile {

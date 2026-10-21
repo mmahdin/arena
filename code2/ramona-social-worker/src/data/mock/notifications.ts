@@ -60,7 +60,7 @@ export const notifications: AppNotification[] = [
     at: at(-1, 16, 45),
     read: true,
     priority: 'critical',
-    href: '/work',
+    href: '/reports/r-mousavi-visit',
   },
   {
     id: 'n-7',

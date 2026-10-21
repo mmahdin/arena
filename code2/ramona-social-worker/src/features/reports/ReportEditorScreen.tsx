@@ -1,19 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { CheckCircle2, CloudUpload, Lock, MessageSquareQuote, Paperclip, Plus, Save } from 'lucide-react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { CheckCircle2, ChevronDown, CloudUpload, Lock, MessageSquareQuote, Paperclip } from 'lucide-react';
 import { useApp } from '@/store/app-store';
 import { ActionFooter, Screen, Section } from '@/components/layout/Screen';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { IconButton } from '@/components/ui/IconButton';
 import { Card, ToneCard } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/Progress';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { IconTile, REPORT_TYPE_ICON } from '@/components/ui/DomainIcon';
-import { Sheet, SheetOption } from '@/components/ui/Sheet';
+import { IconTile } from '@/components/ui/DomainIcon';
 import { ReportFieldControl } from './ReportFieldControl';
-import { REPORT_STATUS, REPORT_TYPE } from '@/lib/labels';
+import { REPORT_STATUS } from '@/lib/labels';
 import { reportCompletion } from '@/lib/domain';
 import { fa } from '@/lib/digits';
 import { relativeTime } from '@/lib/jalali';
@@ -22,19 +20,19 @@ import { relativeTime } from '@/lib/jalali';
  * Report editor.
  *
  * One generic editor for every professional form. Completion is always
- * visible, drafts save themselves, and the review conversation (supervisor
+ * visible, fields update in the session, and the review conversation (supervisor
  * comments) sits at the top of the returned report — the social worker should
  * never have to hunt for the reason it came back.
  */
 export function ReportEditorScreen() {
   const { reportId } = useParams();
   const navigate = useNavigate();
-  const { reports, cases, editReportField, editReportMeta, submitReport, toast } = useApp();
+  const { reports, cases, editReportField, submitReport, toast } = useApp();
 
   const report = reports.find((r) => r.id === reportId);
   const caseFile = cases.find((c) => c.id === report?.caseId);
   const [saving, setSaving] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
 
   // Keeps the "saved …" label honest as time passes.
@@ -44,6 +42,17 @@ export function ReportEditorScreen() {
   }, []);
 
   const completion = useMemo(() => (report ? reportCompletion(report) : null), [report, tick]);
+
+  // Open one meaningful section at a time, without jumping away while typing.
+  useEffect(() => {
+    if (!report) return;
+    const firstIncomplete = report.sections.find((section) => section.fields.some((f) =>
+      f.kind === 'checklist' ? f.value.length === 0 : f.kind === 'scale' ? f.value <= 0 : !String(f.value).trim(),
+    ));
+    setActiveSectionId(firstIncomplete?.id ?? report.sections[0]?.id ?? null);
+    // The active section should change when the report changes, not on each field edit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [report?.id]);
 
   if (!report || !completion) {
     return (
@@ -87,28 +96,20 @@ export function ReportEditorScreen() {
       <ScreenHeader
         back
         title={report.title}
-        subtitle={
-          <span className="flex items-center gap-1.5">
-            <span className="tabular-nums">{report.caseCode}</span>
-            {caseFile && <span>· {caseFile.familyName}</span>}
-          </span>
-        }
-        actions={
-          <>
-            <Badge tone={status.tone}>{status.label}</Badge>
-            <IconButton label="گزینه‌های گزارش" onClick={() => setMenuOpen(true)}>
-              <Paperclip className="size-[18px]" strokeWidth={2.1} />
-            </IconButton>
-          </>
-        }
+        subtitle={caseFile ? (
+          <Link to={`/cases/${caseFile.id}`} className="press hover:underline underline-offset-4">
+            {caseFile.familyName} · {report.caseCode}
+          </Link>
+        ) : report.caseCode}
+        actions={<Badge tone={status.tone}>{status.label}</Badge>}
       />
 
       <div className="pt-3">
-        {/* autosave line */}
+        {/* This demo has an in-memory store, not durable server-side autosave. */}
         <div className="flex items-center justify-between px-1 text-2xs text-ink-3">
           <span className="flex items-center gap-1.5">
             <CloudUpload className="size-3.5 text-success" strokeWidth={2.4} aria-hidden />
-            ذخیره خودکار · {relativeTime(report.updatedAt)}
+            ثبت در این نشست · {relativeTime(report.updatedAt)}
           </span>
           <span className="tabular-nums">
             {fa(completion.filled)} از {fa(completion.total)} فیلد
@@ -159,22 +160,14 @@ export function ReportEditorScreen() {
         </Section>
       )}
 
-      <Section>
-        <Card className="space-y-3">
-          <div className="flex items-center gap-3">
-            <IconTile icon={REPORT_TYPE_ICON[report.type]} tone={REPORT_TYPE[report.type].tone} />
-            <div className="min-w-0">
-              <p className="truncate text-base font-bold text-ink">{REPORT_TYPE[report.type].label}</p>
-              <p className="text-xs text-ink-3">نویسنده: {report.author}</p>
-            </div>
+      {report.summary && (
+        <Section>
+          <div className="rounded-md bg-sunken px-4 py-3">
+            <p className="mb-1 text-xs font-bold text-ink-3">خلاصه ثبت‌شده</p>
+            <p className="text-sm leading-relaxed text-ink-2">{report.summary}</p>
           </div>
-          {report.summary ? (
-            <p className="border-s-2 border-line-strong ps-3 text-sm leading-relaxed text-ink-2">{report.summary}</p>
-          ) : (
-            <p className="text-sm text-ink-3">خلاصه‌ای برای این گزارش ثبت نشده است.</p>
-          )}
-        </Card>
-      </Section>
+        </Section>
+      )}
 
       {report.sections.length === 0 && (
         <Section>
@@ -187,115 +180,78 @@ export function ReportEditorScreen() {
         </Section>
       )}
 
-      {report.sections.map((section, index) => {
-        const filled = section.fields.filter((f) =>
-          f.kind === 'checklist' ? f.value.length > 0 : f.kind === 'scale' ? f.value > 0 : String(f.value).trim().length > 0,
-        ).length;
-        const complete = filled === section.fields.length;
+      {report.sections.length > 0 && (
+        <Section>
+          <h2 className="mb-2.5 text-md font-bold text-ink">بخش‌های گزارش</h2>
+          <div className="space-y-2">
+            {report.sections.map((section, index) => {
+              const filled = section.fields.filter((f) =>
+                f.kind === 'checklist' ? f.value.length > 0 : f.kind === 'scale' ? f.value > 0 : String(f.value).trim().length > 0,
+              ).length;
+              const complete = filled === section.fields.length;
+              const expanded = activeSectionId === section.id;
 
-        return (
-          <Section key={section.id}>
-            <div className="mb-2.5 flex items-center justify-between gap-3 px-1">
-              <h2 className="flex items-center gap-2 text-md font-bold text-ink">
-                <span className="grid size-6 place-items-center rounded-sm bg-brand-soft text-2xs font-extrabold text-brand-ink tabular-nums">
-                  {fa(index + 1)}
-                </span>
-                {section.title}
-              </h2>
-              {complete ? (
-                <CheckCircle2 className="size-[18px] text-success" strokeWidth={2.4} aria-label="تکمیل شده" />
-              ) : (
-                <span className="text-2xs text-ink-3 tabular-nums">
-                  {fa(filled)}/{fa(section.fields.length)}
-                </span>
-              )}
-            </div>
-            <Card className="space-y-5">
-              {section.fields.map((field) => (
-                <ReportFieldControl
-                  key={field.id}
-                  field={field}
-                  disabled={locked}
-                  onChange={(value) => editReportField(report.id, section.id, field.id, value)}
-                />
-              ))}
-            </Card>
-          </Section>
-        );
-      })}
+              return (
+                <div key={section.id} className="overflow-hidden rounded-lg border border-line bg-surface shadow-xs">
+                  <button
+                    type="button"
+                    onClick={() => setActiveSectionId(expanded ? null : section.id)}
+                    aria-expanded={expanded}
+                    aria-controls={`report-section-${section.id}`}
+                    className="press flex min-h-14 w-full items-center gap-3 px-4 py-3 text-start"
+                  >
+                    <span className="grid size-7 shrink-0 place-items-center rounded-md bg-brand-soft text-sm font-extrabold text-brand-ink tabular-nums">
+                      {fa(index + 1)}
+                    </span>
+                    <span className="min-w-0 flex-1 text-sm font-bold leading-relaxed text-ink">{section.title}</span>
+                    {complete ? <CheckCircle2 className="size-4 shrink-0 text-success" aria-label="تکمیل‌شده" /> : (
+                      <span className="shrink-0 text-xs text-ink-3 tabular-nums">{fa(filled)}/{fa(section.fields.length)}</span>
+                    )}
+                    <ChevronDown className={`size-4 shrink-0 text-ink-3 transition-transform ${expanded ? 'rotate-180' : ''}`} aria-hidden />
+                  </button>
+                  {expanded && (
+                    <div id={`report-section-${section.id}`} className="space-y-5 border-t border-line-soft px-4 pb-5 pt-4">
+                      {section.fields.map((field) => (
+                        <ReportFieldControl
+                          key={field.id}
+                          field={field}
+                          disabled={locked}
+                          onChange={(value) => editReportField(report.id, section.id, field.id, value)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+      )}
 
-      <Section>
-        <div className="mb-2.5 flex items-center justify-between px-1">
-          <h2 className="text-md font-bold text-ink">پیوست‌ها</h2>
-          <Button
-            size="sm"
-            variant="ghost"
-            iconStart={<Plus className="size-4" />}
-            disabled={locked}
-            onClick={() => toast({ title: 'افزودن پیوست', description: 'انتخاب فایل در فاز بعدی فعال می‌شود.', tone: 'info' })}
-          >
-            افزودن
-          </Button>
-        </div>
-        {report.attachments.length === 0 ? (
-          <Card className="border-dashed">
-            <p className="text-sm text-ink-3">پیوستی اضافه نشده است.</p>
-          </Card>
-        ) : (
+      {report.attachments.length > 0 && (
+        <Section>
+          <h2 className="mb-2.5 text-md font-bold text-ink">پیوست‌های موجود</h2>
           <Card padded={false} className="divide-y divide-line-soft">
             {report.attachments.map((a) => (
               <div key={a.id} className="flex items-center gap-3 px-4 py-3">
                 <IconTile icon={Paperclip} tone="neutral" size="sm" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-base font-medium text-ink">{a.name}</p>
+                  <p className="text-sm font-medium text-ink">{a.name}</p>
                   <p className="text-xs text-ink-3">{a.size}</p>
                 </div>
               </div>
             ))}
           </Card>
-        )}
-      </Section>
+        </Section>
+      )}
 
       {!locked && (
-        <ActionFooter hint="پس از ارسال، گزارش در فهرست «در بازبینی» قرار می‌گیرد.">
-          <Button
-            variant="secondary"
-            className="flex-1"
-            iconStart={<Save className="size-4" />}
-            onClick={() => toast({ title: 'پیش‌نویس ذخیره شد', tone: 'success' })}
-          >
-            ذخیره پیش‌نویس
-          </Button>
-          <Button className="flex-1" loading={saving} onClick={onSubmit} iconStart={<CloudUpload className="size-4" />}>
+        <ActionFooter hint="تغییرات فقط تا پایان این نشست نگهداری می‌شوند.">
+          <Button block loading={saving} onClick={onSubmit} iconStart={<CloudUpload className="size-4" />}>
             ارسال برای بازبینی
           </Button>
         </ActionFooter>
       )}
-
-      <Sheet open={menuOpen} onClose={() => setMenuOpen(false)} title="گزینه‌های گزارش">
-        <div className="space-y-2 pb-4">
-          {caseFile && (
-            <SheetOption
-              icon={<Paperclip className="size-[18px]" />}
-              title="مشاهده پرونده"
-              description={caseFile.familyName}
-              onClick={() => {
-                setMenuOpen(false);
-                navigate(`/cases/${caseFile.id}`);
-              }}
-            />
-          )}
-          <SheetOption
-            icon={<Save className="size-[18px]" />}
-            title="ذخیره پیش‌نویس"
-            onClick={() => {
-              setMenuOpen(false);
-              editReportMeta(report.id, { summary: report.summary });
-              toast({ title: 'پیش‌نویس ذخیره شد', tone: 'success' });
-            }}
-          />
-        </div>
-      </Sheet>
     </Screen>
   );
 }
