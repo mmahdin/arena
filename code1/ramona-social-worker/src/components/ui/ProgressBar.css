@@ -1,0 +1,21 @@
+.progress {
+  width: 100%;
+  background: var(--neutral-100);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress--sm { height: 0.3125rem; }
+.progress--md { height: 0.4375rem; }
+
+.progress__fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--brand-500);
+  transition: width var(--duration-slow) var(--ease-out);
+}
+
+.progress--warning .progress__fill { background: var(--warning-500); }
+.progress--danger .progress__fill { background: var(--danger-500); }
+.progress--info .progress__fill { background: var(--info-500); }
+.progress--neutral .progress__fill { background: var(--neutral-400); }

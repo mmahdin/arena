@@ -1,0 +1,145 @@
+.app-frame {
+  position: relative;
+  min-height: 100dvh;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(23, 113, 92, 0.1) 0%, transparent 55%),
+    radial-gradient(90% 70% at 0% 100%, rgba(184, 92, 56, 0.08) 0%, transparent 55%),
+    var(--color-canvas-deep);
+}
+
+.app-column {
+  position: relative;
+  width: 100%;
+  max-width: var(--app-max-width);
+  min-height: 100dvh;
+  margin-inline: auto;
+  background: var(--color-canvas);
+}
+
+.app-main {
+  padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom));
+  min-height: 100dvh;
+}
+
+.app-main--with-nav {
+  padding-bottom: calc(var(--nav-height) + var(--space-5) + env(safe-area-inset-bottom));
+}
+
+.skip-link {
+  position: absolute;
+  top: -100px;
+  inset-inline-start: var(--space-4);
+  z-index: 200;
+  background: var(--neutral-900);
+  color: #fff;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+}
+
+.skip-link:focus {
+  top: var(--space-3);
+}
+
+/* Side context — only on wide screens. Keeps the mobile canvas primary. */
+.app-aside {
+  display: none;
+}
+
+@media (min-width: 82rem) {
+  .app-aside {
+    display: flex;
+    flex-direction: column;
+    width: 17rem;
+    position: fixed;
+    top: 4.5rem;
+    inset-inline-end: clamp(2rem, 5vw, 5rem);
+  }
+
+  .app-aside__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .app-aside__mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.75rem;
+    background: var(--brand-600);
+    color: #fff;
+    font-weight: var(--weight-bold);
+    font-size: var(--text-lg);
+  }
+
+  .app-aside__name {
+    font-size: var(--text-xl);
+    font-weight: var(--weight-bold);
+    color: var(--color-text);
+  }
+
+  .app-aside__product {
+    margin-top: var(--space-6);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    color: var(--brand-700);
+    letter-spacing: 0.02em;
+  }
+
+  .app-aside__note {
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+    color: var(--color-text-secondary);
+  }
+
+  .app-aside__rule {
+    width: 2.5rem;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--brand-300);
+    margin: var(--space-6) 0;
+  }
+
+  .app-aside__points {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--color-text-tertiary);
+  }
+
+  .app-aside__points li {
+    position: relative;
+    padding-inline-start: var(--space-4);
+    line-height: var(--leading-snug);
+  }
+
+  .app-aside__points li::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0.5rem;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: var(--brand-300);
+  }
+
+  .app-aside__footer {
+    margin-top: var(--space-8);
+    font-size: 0.6875rem;
+    color: var(--neutral-400);
+  }
+
+}
+
+/* Wide screens: the mobile canvas stays primary, framed like a device. */
+@media (min-width: 48rem) {
+  .app-column {
+    box-shadow: 0 0 0 1px rgba(24, 32, 29, 0.05), 0 40px 80px -48px rgba(24, 32, 29, 0.5);
+  }
+}

@@ -1,0 +1,14 @@
+/* Entry stylesheet.
+ *
+ * Order matters: `@import` must come first (PostCSS spec), then Tailwind's
+ * directives. The imported files carry their own `@layer` wrappers, so Tailwind
+ * still places base/components/utilities content in the right layer.
+ */
+@import './tokens.css';
+@import './fonts.css';
+@import './base.css';
+@import './components.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

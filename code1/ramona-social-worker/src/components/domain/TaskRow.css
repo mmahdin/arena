@@ -1,0 +1,111 @@
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out);
+}
+
+.task-item:hover {
+  border-color: var(--color-border-strong);
+}
+
+.task-item__main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3125rem;
+  min-width: 0;
+  flex: 1;
+  padding-block: 0.125rem;
+}
+
+.task-item__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  justify-content: space-between;
+}
+
+.task-item__title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+  color: var(--color-text);
+}
+
+.task-item__flag {
+  flex-shrink: 0;
+  font-size: 0.625rem;
+  font-weight: var(--weight-semibold);
+  color: var(--accent-600);
+  background: var(--accent-50);
+  border-radius: var(--radius-full);
+  padding: 0.1875rem 0.4375rem;
+  line-height: 1;
+  margin-top: 0.1875rem;
+}
+
+.task-item__flag.is-urgent {
+  color: var(--danger-600);
+  background: var(--danger-50);
+}
+
+.task-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.3125rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  min-width: 0;
+}
+
+.task-item__type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.task-item__sep {
+  color: var(--neutral-300);
+  flex-shrink: 0;
+}
+
+.task-item__due {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1875rem;
+  flex-shrink: 0;
+  font-weight: var(--weight-medium);
+}
+
+.task-item__due.is-overdue {
+  color: var(--danger-500);
+}
+
+.task-item__due.is-today {
+  color: var(--accent-600);
+}
+
+.task-item__due.is-soon {
+  color: var(--warning-500);
+}
+
+.task-item.is-done {
+  background: var(--color-surface-muted);
+}
+
+.task-item.is-done .task-item__title {
+  color: var(--color-text-tertiary);
+  text-decoration: line-through;
+  text-decoration-color: var(--neutral-300);
+  text-decoration-thickness: 1px;
+}
+
+.task-item.is-done .task-item__meta {
+  opacity: 0.8;
+}

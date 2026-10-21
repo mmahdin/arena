@@ -1,0 +1,129 @@
+.case-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+}
+
+.case-card:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.case-card:active {
+  transform: scale(0.994);
+}
+
+.case-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.case-card__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.625rem;
+  background: var(--brand-50);
+  color: var(--brand-700);
+  flex-shrink: 0;
+}
+
+.case-card__mark.is-alert {
+  background: var(--warning-50);
+  color: var(--warning-600);
+}
+
+.case-card__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.case-card__title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.case-card__sub {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.case-card__sep {
+  color: var(--neutral-300);
+}
+
+.case-card__chev {
+  color: var(--neutral-400);
+  flex-shrink: 0;
+}
+
+.case-card__badges {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.case-card__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.case-card__progress-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+.case-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.case-card__next {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--brand-700);
+  flex-shrink: 0;
+}
+
+.case-card__next--muted {
+  color: var(--color-text-tertiary);
+  font-weight: var(--weight-regular);
+}
+
+.case-card__district {
+  font-size: 0.6875rem;
+  color: var(--color-text-tertiary);
+  max-width: 45%;
+}

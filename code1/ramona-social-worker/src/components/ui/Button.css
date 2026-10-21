@@ -1,0 +1,198 @@
+/* ==========================================================================
+   Button — primary action language of the product
+   ========================================================================== */
+
+.btn {
+  --btn-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--btn-height);
+  padding-inline: var(--space-5);
+  border-radius: var(--radius-md);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+  user-select: none;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.btn--block {
+  width: 100%;
+}
+
+.btn--sm {
+  --btn-height: 2.25rem;
+  padding-inline: var(--space-3);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
+  gap: var(--space-1);
+}
+
+.btn--lg {
+  --btn-height: 3.125rem;
+  font-size: var(--text-base);
+  border-radius: var(--radius-lg);
+}
+
+.btn__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.btn__icon svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.btn__label {
+  display: inline-block;
+}
+
+/* ---------- Variants ---------- */
+
+.btn--primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: 0 1px 2px rgba(9, 57, 46, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+.btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+.btn--primary:active:not(:disabled) {
+  background: var(--brand-800);
+}
+
+.btn--secondary {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: var(--shadow-xs);
+}
+.btn--secondary:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+  border-color: var(--neutral-300);
+}
+
+.btn--soft {
+  background: var(--brand-50);
+  color: var(--brand-700);
+}
+.btn--soft:hover:not(:disabled) {
+  background: var(--brand-100);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+  padding-inline: var(--space-3);
+}
+.btn--ghost:hover:not(:disabled) {
+  background: var(--color-surface-sunken);
+  color: var(--color-text);
+}
+
+.btn--danger {
+  background: var(--danger-500);
+  color: #fff;
+}
+.btn--danger:hover:not(:disabled) {
+  background: var(--danger-600);
+}
+
+/* ---------- Loading ---------- */
+
+.btn__spinner {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: btn-spin 0.7s linear infinite;
+}
+
+.btn.is-loading .btn__label {
+  opacity: 0.85;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================================================
+   IconButton
+   ========================================================================== */
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  transition: background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+}
+
+.icon-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.icon-btn:active {
+  transform: scale(0.94);
+}
+
+.icon-btn--sm {
+  width: 2.125rem;
+  height: 2.125rem;
+}
+.icon-btn--sm svg {
+  width: 1.0625rem;
+  height: 1.0625rem;
+}
+
+.icon-btn--plain:hover {
+  background: var(--color-surface-sunken);
+  color: var(--color-text);
+}
+
+.icon-btn--surface {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-xs);
+}
+
+.icon-btn--soft {
+  background: var(--brand-50);
+  color: var(--brand-700);
+}
+.icon-btn--soft:hover {
+  background: var(--brand-100);
+}
+
+.icon-btn[aria-pressed="true"] {
+  background: var(--brand-50);
+  color: var(--brand-700);
+}

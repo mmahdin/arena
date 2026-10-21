@@ -1,0 +1,111 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.field__label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+}
+
+.field__required {
+  color: var(--danger-500);
+  margin-inline-start: 0.125rem;
+}
+
+.field__counter {
+  font-size: var(--text-2xs);
+  color: var(--color-text-tertiary);
+}
+
+.field__hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-snug);
+}
+
+.field__error {
+  font-size: var(--text-xs);
+  color: var(--color-text-danger);
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: var(--text-md);
+  transition: border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.input,
+.select {
+  height: 2.75rem;
+  padding-inline: var(--space-3);
+}
+
+.textarea {
+  min-height: 7rem;
+  padding: var(--space-3);
+  line-height: var(--leading-normal);
+  resize: vertical;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--brand-400);
+  box-shadow: var(--focus-ring);
+}
+
+.input:disabled,
+.textarea:disabled,
+.select:disabled {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+
+.field--error .input,
+.field--error .textarea,
+.field--error .select {
+  border-color: var(--danger-500);
+}
+
+.select-wrap {
+  position: relative;
+}
+
+.select {
+  appearance: none;
+  padding-inline-end: 2.5rem;
+  cursor: pointer;
+}
+
+.select-wrap__chevron {
+  position: absolute;
+  inset-inline-end: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}

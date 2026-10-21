@@ -1,0 +1,150 @@
+/* ==========================================================================
+   Component-level CSS.
+   Only patterns that are awkward to express as utilities live here.
+   Real components are React components in `src/components/ui`.
+   ========================================================================== */
+
+@layer components {
+  /* Tap feedback: a shared, subtle press state for every interactive surface. */
+  .press {
+    transition:
+      transform var(--dur-fast) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-out),
+      opacity var(--dur-fast) var(--ease-out);
+  }
+  .press:active:not(:disabled) {
+    transform: scale(0.982);
+  }
+
+  /* Hairline separator that starts after the row's leading element. */
+  .hairline {
+    position: relative;
+  }
+  .hairline::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    inset-inline-end: 0;
+    bottom: 0;
+    height: 1px;
+    background: rgb(var(--s-line-soft));
+  }
+
+  /* Horizontal rails fade out at their scrollable edge (the left in RTL). */
+  .rail-fade {
+    mask-image: linear-gradient(to left, #000 0, #000 calc(100% - 28px), transparent 100%);
+  }
+
+  /* Scroll containers get a soft fade instead of a hard edge. */
+  .edge-fade-b {
+    mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 24px), transparent 100%);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Desktop stage
+   The product is mobile-first. On wide screens the app is presented inside a
+   device viewport so the mobile layout is reviewed exactly as shipped,
+   instead of being stretched. Below `lg` the stage disappears entirely and
+   the app fills the screen edge-to-edge.
+   -------------------------------------------------------------------------- */
+.stage {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(120% 90% at 12% 0%, rgb(var(--p-brand-100) / 0.5) 0%, transparent 55%),
+    radial-gradient(90% 70% at 100% 100%, rgb(var(--p-accent-soft) / 0.75) 0%, transparent 60%),
+    rgb(var(--s-sunken));
+  padding: 0;
+}
+
+[data-theme='dark'] .stage {
+  background:
+    radial-gradient(120% 90% at 12% 0%, rgb(var(--p-brand-800) / 0.35) 0%, transparent 55%),
+    radial-gradient(90% 70% at 100% 100%, rgb(60 40 30 / 0.35) 0%, transparent 60%),
+    rgb(9 14 13);
+}
+
+@media (min-width: 1024px) {
+  .stage {
+    padding: 92px 32px 32px;
+    gap: 40px;
+  }
+  .device {
+    position: relative;
+    width: 412px;
+    height: min(880px, calc(100vh - 124px));
+    border-radius: 46px;
+    padding: 10px;
+    background: linear-gradient(160deg, #2b2f2e, #14181700 40%), #1b1f1e;
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.08),
+      0 40px 90px -30px rgb(12 19 17 / 0.55),
+      0 12px 32px -12px rgb(12 19 17 / 0.35);
+  }
+  .device::before {
+    /* notch / dynamic island */
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92px;
+    height: 26px;
+    border-radius: 999px;
+    background: #101312;
+    z-index: 60;
+    pointer-events: none;
+  }
+  .device-viewport {
+    border-radius: 36px;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    background: rgb(var(--s-bg));
+    position: relative;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .device {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.device-viewport {
+  position: relative;
+  height: 100dvh;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  background: rgb(var(--s-bg));
+}
+
+@media (min-width: 1024px) {
+  .device-viewport {
+    height: 100%;
+  }
+}
+
+/* The single scrolling region of the app. Sticky headers and the tab bar are
+   laid out around it, so they never fight with window scroll. */
+.app-scroll {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.app-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
