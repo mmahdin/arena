@@ -42,3 +42,5 @@ typings/
 
 ATTRIBUTIONS.md
 /build
+
+*.patch
