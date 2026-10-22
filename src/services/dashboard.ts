@@ -73,12 +73,12 @@ export function buildAttention(): AttentionItem[] {
       title: `${Math.abs(daysUntil(t.dueDate, now))} روز از مهلت گذشته`,
       detail: t.title,
       tone: 'danger',
-      href: t.reportId ? `/reports/${t.reportId}` : t.visitId ? `/visits/${t.visitId}` : `/calendar?date=${t.dueDate}`,
+      href: t.reportId ? `/reports/${t.reportId}` : t.visitId ? `/visits/${t.visitId}` : `/visits?date=${t.dueDate}`,
     });
   }
 
   // 3. Visits that happened but were never closed out.
-  for (const v of db.visits.filter((x) => visitDisplayState(x, now) === 'needs-outcome')) {
+  for (const v of db.visits.filter((x) => !x.pool && x.assigneeId === db.user.id && visitDisplayState(x, now) === 'needs-outcome')) {
     const c = db.cases.find((x) => x.id === v.caseId);
     items.push({
       id: `at-${v.id}`,
@@ -112,7 +112,7 @@ export function buildAttention(): AttentionItem[] {
       title: daysUntil(t.dueDate, now) === 0 ? 'مهلت امروز' : 'مهلت فردا',
       detail: t.title,
       tone: 'warning',
-      href: t.visitId ? `/visits/${t.visitId}` : t.reportId ? `/reports/${t.reportId}` : `/calendar?date=${t.dueDate}`,
+      href: t.visitId ? `/visits/${t.visitId}` : t.reportId ? `/reports/${t.reportId}` : `/visits?date=${t.dueDate}`,
     });
   }
 
@@ -122,7 +122,7 @@ export function buildAttention(): AttentionItem[] {
   return items
     .sort((a, b) => severity[a.tone] - severity[b.tone])
     .filter((item) => {
-      if (item.href.startsWith('/calendar?date=')) return true;
+      if (item.href.startsWith('/visits?date=')) return true;
       if (seenLinks.has(item.href)) return false;
       seenLinks.add(item.href);
       return true;
@@ -159,7 +159,7 @@ export function buildAgenda(date: Date = new Date()): AgendaItem[] {
         subtitle: e.kind === 'visit' ? e.title.split('—')[0].trim() : caseFile?.code,
         time: e.time,
         durationMin: e.durationMin,
-        href: e.href ?? `/calendar?date=${e.date}`,
+        href: e.href ?? `/visits?date=${e.date}`,
         tone: e.tone,
         state,
         visit,

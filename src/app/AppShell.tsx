@@ -7,8 +7,8 @@ import { ToastHost } from '@/components/ui/Toasts';
 import { OVERLAY_ROOT_ID } from '@/components/ui/Sheet';
 import { useSettings } from '@/store/settings';
 
-import { CalendarScreen } from '@/features/calendar/CalendarScreen';
 import { VisitsScreen } from '@/features/visits/VisitsScreen';
+import { PoolScreen } from '@/features/pool/PoolScreen';
 import { CasesScreen } from '@/features/cases/CasesScreen';
 import { CaseDetailScreen } from '@/features/cases/CaseDetailScreen';
 import { ChildDetailScreen } from '@/features/cases/ChildDetailScreen';
@@ -25,7 +25,13 @@ import { DesignSystemScreen } from '@/features/design-system/DesignSystemScreen'
 import { NotFoundScreen } from '@/features/misc/NotFoundScreen';
 
 /** Destinations that own a tab in the primary navigation. */
-const TAB_ROUTES = ['/visits', '/cases', '/reports'];
+const TAB_ROUTES = ['/visits', '/pool', '/cases', '/reports'];
+
+/** Old month-calendar route: the same calendar now lives inside the visits screen. */
+function LegacyCalendarRedirect() {
+  const { search } = useLocation();
+  return <Navigate to={`/visits${search}`} replace />;
+}
 
 export function AppShell() {
   const { pathname, search } = useLocation();
@@ -49,7 +55,8 @@ export function AppShell() {
                 <Route path="/" element={<Navigate to="/visits" replace />} />
                 <Route path="/work" element={<Navigate to="/visits" replace />} />
                 <Route path="/visits" element={<VisitsScreen />} />
-                <Route path="/calendar" element={<CalendarScreen />} />
+                <Route path="/pool" element={<PoolScreen />} />
+                <Route path="/calendar" element={<LegacyCalendarRedirect />} />
                 <Route path="/cases" element={<CasesScreen />} />
                 <Route path="/cases/:caseId" element={<CaseDetailScreen />} />
                 <Route path="/children/:childId" element={<ChildDetailScreen />} />

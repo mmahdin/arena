@@ -1,18 +1,30 @@
-import type { Report, Visit, VisitStatus } from '@/types';
+import type { Report, Task, Visit, VisitStatus } from '@/types';
 import { db, findCase, findTask, findVisit, replace } from '@/data/db';
 import { dayKey } from '@/lib/jalali';
 import { latency, nowIso, uid } from './_utils';
 import { templateFor } from '@/data/mock/report-templates';
+import { visitKindLabel } from '@/lib/visit-workflow';
 
 export interface VisitQuery {
   caseId?: string;
+  /**
+   * `mine` (default) = visits owned by the signed-in worker;
+   * `pool` = visits published to the open pool and not yet claimed.
+   */
+  assignment?: 'mine' | 'pool' | 'all';
   /** 'upcoming' = today onwards and still scheduled */
   scope?: 'upcoming' | 'past' | 'today' | 'all';
 }
 
+const isPool = (visit: Visit) => Boolean(visit.pool);
+const isMine = (visit: Visit) => !visit.pool && visit.assigneeId === db.user.id;
+
 export function listVisits(q: VisitQuery = {}): Promise<Visit[]> {
   const today = dayKey(new Date());
   let rows = db.visits.slice();
+  if (q.assignment === 'pool') rows = rows.filter(isPool);
+  else if (q.assignment === 'all') rows = rows.slice();
+  else rows = rows.filter(isMine);
   if (q.caseId) rows = rows.filter((v) => v.caseId === q.caseId);
   if (q.scope === 'today') rows = rows.filter((v) => v.date === today);
   if (q.scope === 'upcoming') rows = rows.filter((v) => v.date >= today);
@@ -21,8 +33,72 @@ export function listVisits(q: VisitQuery = {}): Promise<Visit[]> {
   return latency(rows);
 }
 
+/** Visits that still wait for a social worker, soonest first. */
+export function listPoolVisits(): Promise<Visit[]> {
+  const rows = db.visits
+    .filter(isPool)
+    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  return latency(rows);
+}
+
 export function getVisit(id: string): Promise<Visit | undefined> {
   return latency(db.visits.find((v) => v.id === id));
+}
+
+/**
+ * Claim a visit from the open pool.
+ *
+ * One transaction: the visit leaves the pool and gains an owner, a work item
+ * is created for the day, and the case timeline records who accepted it — so
+ * the calendar, the visit queue and the family history agree immediately.
+ */
+export async function claimVisit(visitId: string): Promise<Visit | undefined> {
+  const visit = findVisit(visitId);
+  if (!visit || !visit.pool) return latency(undefined, 0);
+
+  const claimed: Visit = {
+    ...visit,
+    assigneeId: db.user.id,
+    assignedBy: 'پذیرش شخصی از مخزن آزاد',
+    pool: undefined,
+  };
+  db.visits = replace(db.visits, claimed);
+
+  const caseFile = findCase(visit.caseId);
+  const workItem: Task = {
+    id: uid('t'),
+    title: `${visitKindLabel(visit)} — ${caseFile?.familyName ?? 'خانواده'}`,
+    type: 'visit',
+    status: 'todo',
+    priority: caseFile?.priority ?? 'medium',
+    dueDate: visit.date,
+    createdAt: nowIso(),
+    caseId: visit.caseId,
+    caseCode: caseFile?.code,
+    childId: visit.childIds?.[0],
+    visitId: visit.id,
+    assignedBy: 'پذیرش شخصی از مخزن آزاد',
+    description: visit.summary,
+    estimatedMin: visit.durationMin,
+  };
+  db.tasks = [workItem, ...db.tasks];
+
+  if (caseFile) {
+    caseFile.timeline = [
+      {
+        id: uid('e'),
+        at: nowIso(),
+        kind: 'visit',
+        title: 'بازدید از مخزن آزاد پذیرفته شد',
+        detail: `${db.user.name} — ${visit.city}`,
+        actor: db.user.name,
+      },
+      ...caseFile.timeline,
+    ];
+    caseFile.lastActivityAt = nowIso();
+  }
+
+  return latency(claimed, 240);
 }
 
 export function toggleChecklistItem(visitId: string, itemId: string): Promise<Visit | undefined> {
@@ -60,7 +136,7 @@ export async function recordVisitOutcome(
   input: VisitOutcomeInput,
 ): Promise<VisitOutcomeResult | undefined> {
   const visit = findVisit(visitId);
-  if (!visit) return undefined;
+  if (!visit || visit.pool) return undefined;
 
   const next: Visit = {
     ...visit,
@@ -138,7 +214,7 @@ export async function recordVisitOutcome(
 }
 
 export function visitsByCase(caseId: string): Visit[] {
-  return db.visits.filter((v) => v.caseId === caseId);
+  return db.visits.filter((v) => v.caseId === caseId && isMine(v));
 }
 
 export function visitById(id: string): Visit | undefined {

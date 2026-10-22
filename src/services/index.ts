@@ -27,6 +27,7 @@ export async function bootstrap(): Promise<{
   user: UserProfile;
   cases: CaseFile[];
   visits: Visit[];
+  poolVisits: Visit[];
   tasks: Task[];
   reports: Report[];
   notifications: AppNotification[];
@@ -34,7 +35,8 @@ export async function bootstrap(): Promise<{
   return latency({
     user: db.user,
     cases: db.cases,
-    visits: db.visits,
+    visits: db.visits.filter((visit) => !visit.pool && visit.assigneeId === db.user.id),
+    poolVisits: db.visits.filter((visit) => visit.pool),
     tasks: db.tasks,
     reports: db.reports,
     notifications: db.notifications,

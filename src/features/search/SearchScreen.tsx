@@ -148,7 +148,7 @@ export function SearchScreen() {
                   {results.tasks.map((t) => (
                     <ListRow
                       key={t.id}
-                      onClick={() => navigate(t.visitId ? `/visits/${t.visitId}` : t.reportId ? `/reports/${t.reportId}` : t.caseId ? `/cases/${t.caseId}` : `/calendar?date=${t.dueDate}`)}
+                      onClick={() => navigate(t.visitId ? `/visits/${t.visitId}` : t.reportId ? `/reports/${t.reportId}` : t.caseId ? `/cases/${t.caseId}` : `/visits?date=${t.dueDate}`)}
                       chevron
                       leading={<IconTile icon={TASK_ICON[t.type]} tone={TASK_TYPE[t.type].tone} size="sm" />}
                       title={t.title}

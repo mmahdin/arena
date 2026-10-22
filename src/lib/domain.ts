@@ -43,6 +43,31 @@ export function isUpcoming(visit: Visit, now: Date = new Date()): boolean {
   return visit.status === 'scheduled' && !visitNeedsOutcome(visit, now);
 }
 
+/** Minutes since midnight of the visit's start — ordering and overlap checks. */
+export function visitStartMinutes(visit: Visit): number {
+  const [h, m] = visit.time.split(':').map(Number);
+  return h * 60 + m;
+}
+
+export function visitEndMinutes(visit: Visit): number {
+  return visitStartMinutes(visit) + visit.durationMin;
+}
+
+/** Two visits on the same day whose time windows intersect. */
+export function visitsOverlap(a: Visit, b: Visit): boolean {
+  return a.date === b.date && visitStartMinutes(a) < visitEndMinutes(b) && visitStartMinutes(b) < visitEndMinutes(a);
+}
+
+/**
+ * The next commitment that would collide with `visit`.
+ *
+ * Accepting an open-pool visit is a commitment, so the worker sees a conflict
+ * before it happens rather than discovering a double booking on the way.
+ */
+export function conflictingVisit(visit: Visit, others: Visit[]): Visit | undefined {
+  return others.find((other) => other.id !== visit.id && visitsOverlap(visit, other));
+}
+
 /* ------------------------------------------------------------------ *
  * Tasks
  * ------------------------------------------------------------------ */

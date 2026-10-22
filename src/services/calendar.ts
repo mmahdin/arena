@@ -16,6 +16,9 @@ export function buildEvents(): CalendarEvent[] {
   const events: CalendarEvent[] = [];
 
   for (const v of db.visits) {
+    // Open-pool visits belong to dispatch until someone accepts them; showing
+    // them here would make an unowned visit look like part of the worker's day.
+    if (v.pool || v.assigneeId !== db.user.id) continue;
     const c = db.cases.find((x) => x.id === v.caseId);
     events.push({
       id: `cal-${v.id}`,
@@ -41,7 +44,7 @@ export function buildEvents(): CalendarEvent[] {
       kind: t.type === 'meeting' ? 'meeting' : 'deadline',
       date: t.dueDate,
       time: scheduledTime,
-      href: t.reportId ? `/reports/${t.reportId}` : t.caseId ? `/cases/${t.caseId}` : `/calendar?date=${t.dueDate}`,
+      href: t.reportId ? `/reports/${t.reportId}` : t.caseId ? `/cases/${t.caseId}` : `/visits?date=${t.dueDate}`,
       tone: t.status === 'done' ? 'success' : t.status === 'revision' ? 'warning' : t.priority === 'critical' ? 'danger' : t.priority === 'high' ? 'warning' : 'info',
       caseCode: t.caseCode,
       taskId: t.id,

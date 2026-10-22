@@ -46,6 +46,8 @@ interface AppData {
   user: UserProfile | null;
   cases: CaseFile[];
   visits: Visit[];
+  /** Unassigned visits published to the open pool. */
+  poolVisits: Visit[];
   tasks: Task[];
   reports: Report[];
   notifications: AppNotification[];
@@ -59,6 +61,8 @@ interface AppContextValue extends AppData {
   /* visits */
   toggleChecklistItem: (visitId: string, itemId: string) => void;
   recordVisitOutcome: (visitId: string, status: VisitStatus, note: string) => Promise<{ reportId?: string }>;
+  /** Accept an open-pool visit; it becomes part of the worker's programme. */
+  claimVisit: (visitId: string) => Promise<boolean>;
   /* reports */
   editReportField: (reportId: string, sectionId: string, fieldId: string, value: string | number | string[]) => void;
   editReportMeta: (reportId: string, patch: { title?: string; summary?: string }) => void;
@@ -86,6 +90,7 @@ const empty: AppData = {
   user: null,
   cases: [],
   visits: [],
+  poolVisits: [],
   tasks: [],
   reports: [],
   notifications: [],
@@ -112,15 +117,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const reload = useCallback(async () => {
-    const [user, cases, visits, tasks, reports, notifications] = await Promise.all([
+    const [user, cases, visits, poolVisits, tasks, reports, notifications] = await Promise.all([
       api.getCurrentUser(),
       api.listCases(),
       api.listVisits(),
+      api.listPoolVisits(),
       api.listTasks(),
       api.listReports(),
       api.listNotifications(),
     ]);
-    setData({ status: 'ready', user, cases, visits, tasks, reports, notifications });
+    setData({ status: 'ready', user, cases, visits, poolVisits, tasks, reports, notifications });
   }, []);
 
   useEffect(() => {
@@ -172,6 +178,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     [],
   );
+
+  const claimVisit = useCallback(async (visitId: string) => {
+    const claimed = await api.claimVisit(visitId);
+    if (!claimed) return false;
+    const [visits, poolVisits, tasks, cases] = await Promise.all([
+      api.listVisits(),
+      api.listPoolVisits(),
+      api.listTasks(),
+      api.listCases(),
+    ]);
+    setData((d) => ({ ...d, visits, poolVisits, tasks, cases }));
+    return true;
+  }, []);
 
   const editReportField = useCallback(
     (reportId: string, sectionId: string, fieldId: string, value: string | number | string[]) => {
@@ -242,6 +261,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       postponeTask,
       toggleChecklistItem,
       recordVisitOutcome,
+      claimVisit,
       editReportField,
       editReportMeta,
       submitReport,
@@ -260,6 +280,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       postponeTask,
       toggleChecklistItem,
       recordVisitOutcome,
+      claimVisit,
       editReportField,
       editReportMeta,
       submitReport,

@@ -35,7 +35,7 @@ export function TaskRow({
       ? `/visits/${task.visitId}`
       : task.caseId
         ? `/cases/${task.caseId}`
-        : `/calendar?date=${task.dueDate}`;
+        : `/visits?date=${task.dueDate}`;
 
   const deadlineTone = done ? 'neutral' : bucket === 'overdue' ? 'danger' : bucket === 'today' ? 'warning' : 'neutral';
 

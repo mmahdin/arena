@@ -148,6 +148,20 @@ export interface CaseDocument {
   updatedAt: ISODateTime;
 }
 
+/**
+ * Dispatch information for a visit that no social worker owns yet.
+ *
+ * Open visits already have a fixed date and time; they wait in the shared pool
+ * until someone with the right coverage accepts them. The field disappears the
+ * moment a visit is claimed.
+ */
+export interface VisitPool {
+  /** When dispatch published the visit to the open pool. */
+  publishedAt: ISODateTime;
+  /** Plain-language reason, so a worker can decide without opening the case. */
+  note?: string;
+}
+
 export interface Visit {
   id: ID;
   caseId: ID;
@@ -165,6 +179,10 @@ export interface Visit {
   checklist: ChecklistItem[];
   reportId?: ID;
   assignedBy: string;
+  /** Social worker who owns the visit. Empty while it waits in the open pool. */
+  assigneeId?: ID;
+  /** Present only on visits that are still unassigned. */
+  pool?: VisitPool;
   /** Populated once the social worker records an outcome. */
   outcome?: { status: VisitStatus; note: string; at: ISODateTime };
 }
