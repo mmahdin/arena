@@ -33,7 +33,7 @@ const PLACEMENT_LABEL = {
 export function ChildDetailScreen() {
   const { childId } = useParams();
   const navigate = useNavigate();
-  const { cases, visits, reports, toast, createReportDraft } = useApp();
+  const { myCases: cases, myVisits: visits, reports, toast, createReportDraft } = useApp();
 
   const found = useMemo(() => {
     for (const c of cases) {

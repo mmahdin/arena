@@ -23,7 +23,7 @@ type Filter = 'all' | Wellbeing | 'week';
  * quiet majority rather than hiding them.
  */
 export function MonitoringScreen() {
-  const { cases } = useApp();
+  const { myCases: cases } = useApp();
   const [filter, setFilter] = useState<Filter>('all');
 
   const children = useMemo(

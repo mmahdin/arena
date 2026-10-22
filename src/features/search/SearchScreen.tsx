@@ -27,7 +27,7 @@ const RECENT = ['موسوی', 'ارزیابی اولیه', 'نجفی', 'هستی
  */
 export function SearchScreen() {
   const navigate = useNavigate();
-  const { cases, reports, tasks } = useApp();
+  const { myCases: cases, reports, tasks } = useApp();
   const [query, setQuery] = useState('');
   const q = query.trim().toLowerCase();
 

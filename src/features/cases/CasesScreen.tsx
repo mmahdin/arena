@@ -6,10 +6,14 @@ import { ScreenHeader } from '@/components/layout/ScreenHeader';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { CaseCard } from '@/features/_shared/CaseCard';
+import { fa } from '@/lib/digits';
 
-/** One searchable directory of assigned families; no archive or status tabs. */
+/** One searchable directory of the families in my caseload; no archive or
+ * status tabs. A family joins this list when one of its visits becomes mine
+ * (assigned by the unit or claimed from «بازدیدهای آزاد») — until then it
+ * exists only as an anonymous pool visit. */
 export function CasesScreen() {
-  const { cases, visits } = useApp();
+  const { myCases: cases, myVisits: visits, status } = useApp();
   const [query, setQuery] = useState('');
 
   const visible = useMemo(() => {
@@ -34,7 +38,10 @@ export function CasesScreen() {
 
   return (
     <Screen bottomGap={false}>
-      <ScreenHeader title="خانواده‌ها">
+      <ScreenHeader
+        title="خانواده‌ها"
+        subtitle={status === 'ready' ? `${fa(cases.length)} خانواده در حوزه مسئولیت شما` : 'خانواده‌های حوزه مسئولیت شما'}
+      >
         <div className="mt-3">
           <SearchBar value={query} onChange={setQuery} placeholder="جست‌وجوی خانواده یا محله" />
         </div>

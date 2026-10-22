@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { FileText } from 'lucide-react';
+import { FileCheck2, FileText } from 'lucide-react';
 import type { Report } from '@/types';
 import { useApp } from '@/store/app-store';
 import { Screen } from '@/components/layout/Screen';
@@ -9,42 +9,49 @@ import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ReportRow } from '@/features/_shared/ReportRow';
-import { VisitRow } from '@/features/_shared/VisitRow';
-import { reportForVisit } from '@/lib/visit-workflow';
+import { REPORT_QUEUE_LABEL, reportQueue, type ReportQueue } from '@/lib/domain';
 import { fa } from '@/lib/digits';
 
-type Filter = 'action' | 'review' | 'approved';
-const isAction = (r: Report) => r.status === 'draft' || r.status === 'revision';
-const isReview = (r: Report) => r.status === 'submitted' || r.status === 'in-review';
-
-/** Reports are a work queue: act, wait for review, or view approved results. */
+/**
+ * «گزارش‌ها» — the report queue, and only the report queue.
+ *
+ * Three piles from the author's seat: what waits on me, what waits on the
+ * reviewer, what is approved. Visits are never listed here — a visit that
+ * still needs its outcome is handled in «بازدیدهای من», and recording
+ * «انجام شد» there is exactly what creates the draft that appears in this
+ * queue. One object, one place to act on it; the two lifecycles stay
+ * distinguishable everywhere else as separate status signals.
+ */
 export function ReportsScreen() {
-  const { reports, user, cases, visits } = useApp();
+  const { reports, user, cases, myVisits } = useApp();
   const myReports = useMemo(() => reports.filter((r) => r.author === user?.name), [reports, user?.name]);
   const [params, setParams] = useSearchParams();
   const requested = params.get('filter');
-  const filter: Filter = requested === 'review' || requested === 'approved' ? requested : 'action';
+  const filter: ReportQueue = requested === 'review' || requested === 'approved' ? requested : 'action';
 
-  const missing = visits.filter((v) => v.status === 'completed' && !reportForVisit(v, reports));
-  const revision = myReports.filter((r) => r.status === 'revision').sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-  const drafts = myReports.filter((r) => r.status === 'draft').sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-  const reviewing = myReports.filter(isReview).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-  const approved = myReports.filter((r) => r.status === 'approved').sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-  const empty = filter === 'action' ? revision.length + drafts.length + missing.length === 0 : filter === 'review' ? reviewing.length === 0 : approved.length === 0;
+  const byRecent = (rows: Report[]) => [...rows].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  const revision = byRecent(myReports.filter((r) => r.status === 'revision'));
+  const drafts = byRecent(myReports.filter((r) => r.status === 'draft'));
+  const reviewing = byRecent(myReports.filter((r) => reportQueue(r) === 'review'));
+  const approved = byRecent(myReports.filter((r) => reportQueue(r) === 'approved'));
+  const actionCount = revision.length + drafts.length;
+  const visibleCount = filter === 'action' ? actionCount : filter === 'review' ? reviewing.length : approved.length;
+
+  const visitOf = (report: Report) => myVisits.find((v) => v.id === report.visitId || v.reportId === report.id);
 
   return (
     <Screen bottomGap={false}>
       <ScreenHeader
         title="گزارش‌ها"
-        subtitle={`${fa(myReports.filter(isAction).length + missing.length)} مورد نیازمند اقدام شما`}
+        subtitle={actionCount > 0 ? `${fa(actionCount)} گزارش نیازمند اقدام شما` : 'صف گزارش‌های بازدیدهای شما'}
       >
-        <SegmentedControl<Filter>
+        <SegmentedControl<ReportQueue>
           className="mt-3"
-          ariaLabel="وضعیت گزارش‌ها"
+          ariaLabel="صف گزارش‌ها"
           value={filter}
           onChange={(value) => setParams({ filter: value }, { replace: true })}
           items={[
-            { value: 'action', label: 'اقدام من', count: revision.length + drafts.length + missing.length },
+            { value: 'action', label: 'اقدام من', count: actionCount },
             { value: 'review', label: 'در بررسی', count: reviewing.length },
             { value: 'approved', label: 'تأییدشده', count: approved.length },
           ]}
@@ -52,36 +59,45 @@ export function ReportsScreen() {
       </ScreenHeader>
 
       <div className="space-y-6 pb-8 pt-5">
-        {empty && <EmptyState icon={<FileText className="size-6" />} title="گزارشی در این وضعیت نیست" />}
+        {visibleCount === 0 && (
+          <EmptyState
+            icon={filter === 'action' ? <FileCheck2 className="size-6" /> : <FileText className="size-6" />}
+            title={`گزارشی در «${REPORT_QUEUE_LABEL[filter]}» نیست`}
+            description={
+              filter === 'action'
+                ? 'با ثبت نتیجه «انجام شد» برای هر بازدید، پیش‌نویس گزارش آن همین‌جا آماده تکمیل می‌شود.'
+                : undefined
+            }
+          />
+        )}
         {filter === 'action' && <>
-          {revision.length > 0 && <ReportGroup title="نیازمند اصلاح" rows={revision} cases={cases} />}
-          {missing.length > 0 && <section>
-            <h2 className="mb-2.5 px-1 text-sm font-bold text-ink">بازدیدهای بدون گزارش</h2>
-            <Card padded={false}>
-              {missing.map((visit, i) => <VisitRow key={visit.id} visit={visit}
-                family={cases.find((c) => c.id === visit.caseId)} reports={reports}
-                divider={i < missing.length - 1} />)}
-            </Card>
-          </section>}
-          {drafts.length > 0 && <ReportGroup title="پیش‌نویس‌ها · منتظر تکمیل و ارسال" rows={drafts} cases={cases} />}
+          {revision.length > 0 && <ReportGroup title="نیازمند اصلاح" rows={revision} cases={cases} visitOf={visitOf} />}
+          {drafts.length > 0 && <ReportGroup title="پیش‌نویس‌ها · منتظر تکمیل و ارسال" rows={drafts} cases={cases} visitOf={visitOf} />}
         </>}
-        {filter === 'review' && reviewing.length > 0 && <ReportGroup title="ارسال‌شده برای بررسی" rows={reviewing} cases={cases} />}
-        {filter === 'approved' && approved.length > 0 && <ReportGroup title="گزارش‌های تأییدشده" rows={approved} cases={cases} />}
+        {filter === 'review' && reviewing.length > 0 && <ReportGroup title="ارسال‌شده برای بررسی" rows={reviewing} cases={cases} visitOf={visitOf} />}
+        {filter === 'approved' && approved.length > 0 && <ReportGroup title="گزارش‌های تأییدشده" rows={approved} cases={cases} visitOf={visitOf} />}
       </div>
     </Screen>
   );
 }
 
-function ReportGroup({ title, rows, cases }: {
+function ReportGroup({ title, rows, cases, visitOf }: {
   title: string;
   rows: Report[];
   cases: ReturnType<typeof useApp>['cases'];
+  visitOf: (report: Report) => ReturnType<typeof useApp>['myVisits'][number] | undefined;
 }) {
   return <section>
     <h2 className="mb-2.5 px-1 text-sm font-bold text-ink">{title}</h2>
     <Card padded={false}>
       {rows.map((report, i) => (
-        <ReportRow key={report.id} report={report} familyName={cases.find((c) => c.id === report.caseId)?.familyName} divider={i < rows.length - 1} />
+        <ReportRow
+          key={report.id}
+          report={report}
+          familyName={cases.find((c) => c.id === report.caseId)?.familyName}
+          visit={visitOf(report)}
+          divider={i < rows.length - 1}
+        />
       ))}
     </Card>
   </section>;

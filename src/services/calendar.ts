@@ -15,7 +15,8 @@ import { latency } from './_utils';
 export function buildEvents(): CalendarEvent[] {
   const events: CalendarEvent[] = [];
 
-  for (const v of db.visits) {
+  // Only my own schedule belongs on my calendar — pool visits live in «بازدیدهای آزاد» until claimed.
+  for (const v of db.visits.filter((x) => x.assignedToId === db.user.id)) {
     const c = db.cases.find((x) => x.id === v.caseId);
     events.push({
       id: `cal-${v.id}`,

@@ -43,6 +43,104 @@ export function isUpcoming(visit: Visit, now: Date = new Date()): boolean {
   return visit.status === 'scheduled' && !visitNeedsOutcome(visit, now);
 }
 
+/**
+ * The visit lifecycle, seen from "what do I do with it" — the buckets of the
+ * «همه بازدیدها» list. Report state is intentionally *not* a bucket: a
+ * completed visit with an unfinished report is still a completed visit, and
+ * the report is managed in the reports queue. The two lifecycles only ever
+ * meet as a secondary signal on a row, never as one merged status.
+ */
+export type VisitBucket = 'needs-outcome' | 'upcoming' | 'completed' | 'not-done';
+
+export function visitBucket(visit: Visit, now: Date = new Date()): VisitBucket {
+  const state = visitDisplayState(visit, now);
+  if (state === 'needs-outcome') return 'needs-outcome';
+  if (state === 'scheduled') return 'upcoming';
+  if (state === 'completed') return 'completed';
+  return 'not-done';
+}
+
+export const VISIT_BUCKET_LABEL: Record<VisitBucket, string> = {
+  'needs-outcome': 'نیازمند ثبت نتیجه',
+  upcoming: 'پیش‌رو',
+  completed: 'انجام‌شده',
+  'not-done': 'انجام‌نشده و لغوشده',
+};
+
+/** Urgency first — the order filters and grouped lists are read in. */
+export const VISIT_BUCKET_ORDER: VisitBucket[] = ['needs-outcome', 'upcoming', 'completed', 'not-done'];
+
+/* ------------------------------------------------------------------ *
+ * Assignment — «بازدیدهای من» در برابر «بازدیدهای آزاد»
+ * ------------------------------------------------------------------ */
+
+export const isMyVisit = (visit: Visit, userId: string): boolean => visit.assignedToId === userId;
+
+export const isPoolVisit = (visit: Visit): boolean => visit.assignedToId === null;
+
+/** Visits the signed-in social worker is responsible for. */
+export function myVisits(visits: Visit[], userId: string): Visit[] {
+  return visits.filter((v) => isMyVisit(v, userId));
+}
+
+/**
+ * The pool: unassigned visits that are still claimable. A pool visit whose
+ * time has passed is not offered for claiming — it goes back to the unit for
+ * re-scheduling instead of silently expiring in someone's list.
+ */
+export function poolVisits(visits: Visit[], now: Date = new Date()): Visit[] {
+  return visits
+    .filter((v) => isPoolVisit(v) && v.status === 'scheduled' && !visitNeedsOutcome(v, now))
+    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+}
+
+/**
+ * A family belongs to my caseload once at least one of its visits is (or was)
+ * mine. Families that only have pool visits stay out of «خانواده‌ها» until a
+ * visit is claimed — claiming is the moment the family becomes my
+ * responsibility, and its full record becomes visible to me.
+ */
+export function myCaseIds(visits: Visit[], userId: string): Set<string> {
+  return new Set(myVisits(visits, userId).map((v) => v.caseId));
+}
+
+/* ------------------------------------------------------------------ *
+ * Schedule fit — does a visit fit into my day?
+ * ------------------------------------------------------------------ */
+
+export function visitStart(visit: Visit): Date {
+  const [h, m] = visit.time.split(':').map(Number);
+  const start = new Date(`${visit.date}T00:00:00`);
+  start.setHours(h, m, 0, 0);
+  return start;
+}
+
+export const visitEnd = (visit: Visit): Date =>
+  new Date(visitStart(visit).getTime() + visit.durationMin * 60_000);
+
+/** Cancelled / not-done visits no longer occupy the day. */
+const occupiesSchedule = (visit: Visit): boolean =>
+  visit.status === 'scheduled' || visit.status === 'completed';
+
+export function visitsOverlap(a: Visit, b: Visit): boolean {
+  if (a.date !== b.date) return false;
+  return visitStart(a) < visitEnd(b) && visitStart(b) < visitEnd(a);
+}
+
+/** My visits that collide with a candidate — shown before claiming. */
+export function scheduleConflicts(candidate: Visit, mine: Visit[]): Visit[] {
+  return mine
+    .filter((v) => v.id !== candidate.id && occupiesSchedule(v) && visitsOverlap(v, candidate))
+    .sort((a, b) => a.time.localeCompare(b.time));
+}
+
+/** My visits on the candidate's day — the load a claim would add to. */
+export function visitsOnSameDay(visit: Visit, mine: Visit[]): Visit[] {
+  return mine
+    .filter((v) => v.id !== visit.id && v.date === visit.date && occupiesSchedule(v))
+    .sort((a, b) => a.time.localeCompare(b.time));
+}
+
 /* ------------------------------------------------------------------ *
  * Tasks
  * ------------------------------------------------------------------ */
@@ -90,6 +188,26 @@ export function sortTasks(list: Task[]): Task[] {
 /* ------------------------------------------------------------------ *
  * Reports
  * ------------------------------------------------------------------ */
+
+/**
+ * The report lifecycle from the author's seat: something waits on me, on the
+ * reviewer, or is finished. This queue is about reports only — a visit that
+ * has no report yet is handled from the visit (recording «انجام شد» creates
+ * the draft), so visits never appear as rows inside the reports queue.
+ */
+export type ReportQueue = 'action' | 'review' | 'approved';
+
+export function reportQueue(report: Report): ReportQueue {
+  if (report.status === 'approved') return 'approved';
+  if (report.status === 'submitted' || report.status === 'in-review') return 'review';
+  return 'action'; // draft | revision
+}
+
+export const REPORT_QUEUE_LABEL: Record<ReportQueue, string> = {
+  action: 'نیازمند اقدام من',
+  review: 'در انتظار بررسی',
+  approved: 'تأییدشده',
+};
 
 export function reportCompletion(report: Report): { filled: number; total: number; pct: number } {
   let filled = 0;

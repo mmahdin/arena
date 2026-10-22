@@ -18,7 +18,7 @@ import { Logo } from '@/components/layout/Logo';
  * Reports have their own primary destination instead of appearing twice.
  */
 export function MoreScreen() {
-  const { cases, unreadCount, toast } = useApp();
+  const { myCases: cases, unreadCount, toast } = useApp();
   const navigate = useNavigate();
 
   const monitored = cases.filter((c) => c.stage !== 'closed').reduce((n, c) => n + c.children.length, 0);

@@ -20,7 +20,7 @@ import { fa } from '@/lib/digits';
  * including what the user is *not* allowed to do.
  */
 export function ProfileScreen() {
-  const { user, cases, visits, reports } = useApp();
+  const { user, myCases: cases, myVisits: visits, reports } = useApp();
   const navigate = useNavigate();
 
   if (!user) return <Screen />;

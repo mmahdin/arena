@@ -8,12 +8,21 @@ export interface VisitQuery {
   caseId?: string;
   /** 'upcoming' = today onwards and still scheduled */
   scope?: 'upcoming' | 'past' | 'today' | 'all';
+  /**
+   * Whose visits: mine, the unassigned pool, or everything the client is
+   * allowed to see (the store loads 'all' once and derives both lists with
+   * the pure selectors in `lib/domain`, so claiming a visit updates every
+   * screen from a single state change).
+   */
+  assignment?: 'mine' | 'pool' | 'all';
 }
 
 export function listVisits(q: VisitQuery = {}): Promise<Visit[]> {
   const today = dayKey(new Date());
   let rows = db.visits.slice();
   if (q.caseId) rows = rows.filter((v) => v.caseId === q.caseId);
+  if (q.assignment === 'mine') rows = rows.filter((v) => v.assignedToId === db.user.id);
+  if (q.assignment === 'pool') rows = rows.filter((v) => v.assignedToId === null);
   if (q.scope === 'today') rows = rows.filter((v) => v.date === today);
   if (q.scope === 'upcoming') rows = rows.filter((v) => v.date >= today);
   if (q.scope === 'past') rows = rows.filter((v) => v.date < today);
@@ -135,6 +144,87 @@ export async function recordVisitOutcome(
   }
 
   return latency({ visit: next, reportId, taskId: task?.id }, 260);
+}
+
+/**
+ * Claim a pool visit.
+ *
+ * The visit already has a fixed date and time; claiming only changes who is
+ * responsible for it. From this moment the family's full record is part of
+ * the claimer's caseload (see `myCaseIds` in `lib/domain`), the visit shows
+ * up in their daily schedule, and it leaves the pool for everyone else.
+ */
+export function claimVisit(visitId: string): Promise<Visit | undefined> {
+  const visit = findVisit(visitId);
+  if (!visit || visit.assignedToId !== null || visit.status !== 'scheduled') {
+    return latency(undefined, 0);
+  }
+  const next: Visit = { ...visit, assignedToId: db.user.id, claimedAt: nowIso() };
+  db.visits = replace(db.visits, next);
+
+  const caseFile = findCase(visit.caseId);
+  if (caseFile) {
+    caseFile.timeline = [
+      {
+        id: uid('e'),
+        at: nowIso(),
+        kind: 'visit',
+        title: 'بازدید از مخزن بازدیدهای آزاد پذیرفته شد',
+        detail: 'مسئولیت انجام بازدید به مددکار پذیرنده واگذار شد.',
+        actor: db.user.name,
+      },
+      ...caseFile.timeline,
+    ];
+    caseFile.lastActivityAt = nowIso();
+  }
+
+  // The unit (and the social worker's own feed) can see the visit is covered.
+  db.notifications = [
+    {
+      id: uid('n'),
+      type: 'assignment',
+      title: 'بازدید آزاد پذیرفته شد',
+      body: `بازدید ساعت ${next.time} به برنامه شما اضافه شد و اطلاعات کامل خانواده در دسترس است.`,
+      at: nowIso(),
+      read: true,
+      href: `/visits/${next.id}`,
+    },
+    ...db.notifications,
+  ];
+
+  return latency(next, 260);
+}
+
+/**
+ * Return one of my upcoming visits to the pool, so a colleague can take it.
+ * Only visits that have not happened yet can be released — once an outcome
+ * exists, the visit (and its report) stays with whoever performed it.
+ */
+export function releaseVisit(visitId: string): Promise<Visit | undefined> {
+  const visit = findVisit(visitId);
+  if (!visit || visit.assignedToId !== db.user.id || visit.status !== 'scheduled') {
+    return latency(undefined, 0);
+  }
+  const next: Visit = { ...visit, assignedToId: null, claimedAt: undefined };
+  db.visits = replace(db.visits, next);
+
+  const caseFile = findCase(visit.caseId);
+  if (caseFile) {
+    caseFile.timeline = [
+      {
+        id: uid('e'),
+        at: nowIso(),
+        kind: 'visit',
+        title: 'بازدید به مخزن بازدیدهای آزاد بازگردانده شد',
+        detail: 'بازدید در انتظار پذیرش توسط مددکار دیگری است.',
+        actor: db.user.name,
+      },
+      ...caseFile.timeline,
+    ];
+    caseFile.lastActivityAt = nowIso();
+  }
+
+  return latency(next, 260);
 }
 
 export function visitsByCase(caseId: string): Visit[] {

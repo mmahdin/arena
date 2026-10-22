@@ -19,7 +19,7 @@ import {
   addMonthsJalali, buildMonthGrid, dayKey, faDate, faMonthTitle,
   isSameDay, persianWeekdayIndex, toGregorian, toJalali, WEEKDAYS_SHORT, faTime, faDuration,
 } from '@/lib/jalali';
-import { visitChronological, visitProgress } from '@/lib/visit-workflow';
+import { visitChronological, visitStatusMeta } from '@/lib/visit-workflow';
 
 function linkedDate(value: string | null): Date | undefined {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
@@ -29,7 +29,7 @@ function linkedDate(value: string | null): Date | undefined {
 
 /** Calendar is an alternate view of visits, never a second task dashboard. */
 export function CalendarScreen() {
-  const { visits, cases, reports, tasks } = useApp();
+  const { myVisits: visits, cases, reports, tasks } = useApp();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const focusedDate = params.get('date');
@@ -105,7 +105,7 @@ export function CalendarScreen() {
                   {fa(cell.jalali.jd)}
                 </span>
                 <span className="flex h-1.5 items-center gap-0.5">
-                  {dayVisits.slice(0, 3).map((v) => <span key={v.id} className={cn('size-1.5 rounded-full', TONE[visitProgress(v, reports).tone].dot)} />)}
+                  {dayVisits.slice(0, 3).map((v) => <span key={v.id} className={cn('size-1.5 rounded-full', TONE[visitStatusMeta(v).tone].dot)} />)}
                 </span>
               </button>;
             })}

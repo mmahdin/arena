@@ -3,7 +3,9 @@ import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Visit } from '@/types';
 import { Card } from '@/components/ui/Card';
 import { IconButton } from '@/components/ui/IconButton';
+import { TONE } from '@/components/ui/tone';
 import { cn } from '@/lib/cn';
+import { visitStatusMeta } from '@/lib/visit-workflow';
 import { fa } from '@/lib/digits';
 import {
   buildMonthGrid, dayKey, faDate, faMonthTitle, isSameDay,
@@ -85,7 +87,7 @@ export function VisitCalendar({
                 aria-current={cell.isToday ? 'date' : undefined}
                 aria-label={`${faDate(cell.date, { weekday: true })}، ${fa(visits.length)} بازدید`}
                 className={cn(
-                  'press flex min-h-11 min-w-0 items-center justify-center rounded-md py-1 transition-colors',
+                  'press flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-md py-1 transition-colors',
                   active ? 'bg-brand-soft' : 'hover:bg-sunken',
                   expanded && !cell.inMonth && 'opacity-40',
                 )}
@@ -95,6 +97,13 @@ export function VisitCalendar({
                   active ? 'bg-brand font-extrabold text-white' : cell.isToday ? 'ring-1 ring-brand font-bold text-brand-ink' : friday ? 'text-danger' : 'text-ink',
                 )}>
                   {fa(cell.jalali.jd)}
+                </span>
+                {/* One dot per visit that day (max 3), coloured by the visit's
+                    own status — a warning dot reads as «نتیجه‌اش ثبت نشده». */}
+                <span className="flex h-1.5 items-center gap-[3px]" aria-hidden>
+                  {visits.slice(0, 3).map((visit) => (
+                    <span key={visit.id} className={cn('size-1.5 rounded-full', TONE[visitStatusMeta(visit).tone].dot)} />
+                  ))}
                 </span>
               </button>
             );

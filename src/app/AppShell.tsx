@@ -9,6 +9,7 @@ import { useSettings } from '@/store/settings';
 
 import { CalendarScreen } from '@/features/calendar/CalendarScreen';
 import { VisitsScreen } from '@/features/visits/VisitsScreen';
+import { AvailableVisitsScreen } from '@/features/pool/AvailableVisitsScreen';
 import { CasesScreen } from '@/features/cases/CasesScreen';
 import { CaseDetailScreen } from '@/features/cases/CaseDetailScreen';
 import { ChildDetailScreen } from '@/features/cases/ChildDetailScreen';
@@ -25,7 +26,7 @@ import { DesignSystemScreen } from '@/features/design-system/DesignSystemScreen'
 import { NotFoundScreen } from '@/features/misc/NotFoundScreen';
 
 /** Destinations that own a tab in the primary navigation. */
-const TAB_ROUTES = ['/visits', '/cases', '/reports'];
+const TAB_ROUTES = ['/visits', '/available', '/cases', '/reports'];
 
 export function AppShell() {
   const { pathname, search } = useLocation();
@@ -49,6 +50,7 @@ export function AppShell() {
                 <Route path="/" element={<Navigate to="/visits" replace />} />
                 <Route path="/work" element={<Navigate to="/visits" replace />} />
                 <Route path="/visits" element={<VisitsScreen />} />
+                <Route path="/available" element={<AvailableVisitsScreen />} />
                 <Route path="/calendar" element={<CalendarScreen />} />
                 <Route path="/cases" element={<CasesScreen />} />
                 <Route path="/cases/:caseId" element={<CaseDetailScreen />} />

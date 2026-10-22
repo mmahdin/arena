@@ -10,7 +10,8 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { PrivacyText } from '@/components/ui/PrivacyText';
 import { Button } from '@/components/ui/Button';
 import { visitDisplayState } from '@/lib/domain';
-import { nextVisit, visitChronological, visitKindLabel, visitProgress } from '@/lib/visit-workflow';
+import { nextVisit, visitChronological, visitKindLabel, visitReportMeta, visitStatusMeta } from '@/lib/visit-workflow';
+import { TONE } from '@/components/ui/tone';
 import { fa, toLatinDigits } from '@/lib/digits';
 import { faDate, faTime } from '@/lib/jalali';
 
@@ -18,11 +19,12 @@ import { faDate, faTime } from '@/lib/jalali';
 export function CaseDetailScreen() {
   const { caseId } = useParams();
   const navigate = useNavigate();
-  const { cases, visits, reports } = useApp();
+  const { cases, myCases, myVisits, reports } = useApp();
   const { fieldPrivacy } = useSettings();
   const family = cases.find((c) => c.id === caseId);
+  const inMyCaseload = myCases.some((c) => c.id === caseId);
 
-  const familyVisits = useMemo(() => visits.filter((v) => v.caseId === caseId), [visits, caseId]);
+  const familyVisits = useMemo(() => myVisits.filter((v) => v.caseId === caseId), [myVisits, caseId]);
   const scheduled = familyVisits.filter((v) => visitDisplayState(v) === 'scheduled').sort(visitChronological);
   const history = familyVisits.filter((v) => visitDisplayState(v) !== 'scheduled')
     .sort((a, b) => visitChronological(b, a));
@@ -33,6 +35,20 @@ export function CaseDetailScreen() {
       <ScreenHeader back title="خانواده" />
       <EmptyState title="خانواده یافت نشد" description="اطلاعات این خانواده در دسترس نیست." />
       <Button block onClick={() => navigate('/cases')}>بازگشت به خانواده‌ها</Button>
+    </Screen>
+  );
+
+
+  // The family's record opens only once one of its visits is mine. Before a
+  // claim, the family exists solely as an anonymous pool visit.
+  if (!inMyCaseload) return (
+    <Screen>
+      <ScreenHeader back title="خانواده" />
+      <EmptyState
+        title="این خانواده هنوز در حوزه مسئولیت شما نیست"
+        description="اطلاعات خانواده پس از پذیرش یکی از بازدیدهای آن در «بازدیدهای آزاد» در دسترس قرار می‌گیرد."
+      />
+      <Button block onClick={() => navigate('/available')}>مشاهده بازدیدهای آزاد</Button>
     </Screen>
   );
 
@@ -163,8 +179,9 @@ function VisitHistoryItem({ visit, reports, last }: {
   reports: Report[];
   last: boolean;
 }) {
-  const progress = visitProgress(visit, reports);
-  const needsAction = progress.tone === 'warning' || progress.tone === 'danger';
+  // Visit status and its report's status stay two separate signals here too.
+  const status = visitStatusMeta(visit);
+  const reportMeta = visitReportMeta(visit, reports);
 
   return (
     <li className="relative ps-5">
@@ -176,7 +193,8 @@ function VisitHistoryItem({ visit, reports, last }: {
           <span className="block text-sm font-semibold text-ink">{visitKindLabel(visit)}</span>
           <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-ink-3">
             <span>{faDate(visit.date, { year: false })} · {faTime(visit.time)}</span>
-            <span className={needsAction ? 'font-medium text-ink-2' : undefined}>{progress.label}</span>
+            <span>{status.label}</span>
+            {reportMeta && <span className={`font-semibold ${TONE[reportMeta.tone].text}`}>{reportMeta.label}</span>}
           </span>
         </span>
         <ChevronLeft className="size-4 text-ink-3" aria-hidden />

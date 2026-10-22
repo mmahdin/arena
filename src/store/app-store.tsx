@@ -23,6 +23,7 @@ import type {
 } from '@/types';
 import * as api from '@/services';
 import { uid } from '@/services/_utils';
+import { myCaseIds, myVisits as selectMyVisits, poolVisits as selectPoolVisits } from '@/lib/domain';
 
 /**
  * Application store.
@@ -53,12 +54,27 @@ interface AppData {
 
 interface AppContextValue extends AppData {
   reload: () => Promise<void>;
+  /**
+   * Derived scopes, computed once here so every screen agrees on what is
+   * "mine". `visits`/`cases` stay the raw collections (detail screens look
+   * anything up by id); lists and counts should use these instead.
+   */
+  /** Visits I am responsible for — «بازدیدهای من». */
+  myVisits: Visit[];
+  /** Claimable unassigned visits — «بازدیدهای آزاد». */
+  poolVisits: Visit[];
+  /** Families in my caseload — at least one of their visits is/was mine. */
+  myCases: CaseFile[];
   /* tasks */
   setTaskStatus: (id: string, status: TaskStatus) => Promise<void>;
   postponeTask: (id: string, days: number) => Promise<void>;
   /* visits */
   toggleChecklistItem: (visitId: string, itemId: string) => void;
   recordVisitOutcome: (visitId: string, status: VisitStatus, note: string) => Promise<{ reportId?: string }>;
+  /** Take responsibility for a pool visit; returns it once it is mine. */
+  claimVisit: (visitId: string) => Promise<Visit | undefined>;
+  /** Give one of my upcoming visits back to the pool. */
+  releaseVisit: (visitId: string) => Promise<Visit | undefined>;
   /* reports */
   editReportField: (reportId: string, sectionId: string, fieldId: string, value: string | number | string[]) => void;
   editReportMeta: (reportId: string, patch: { title?: string; summary?: string }) => void;
@@ -173,6 +189,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+
+  // Claiming or releasing only flips `assignedToId` in the db; reloading the
+  // two collections updates the pool, my schedule, my families and every
+  // badge at once, because all of them derive from that single field.
+  const claimVisit = useCallback(async (visitId: string) => {
+    const claimed = await api.claimVisit(visitId);
+    if (!claimed) return undefined;
+    const [visits, cases, notifications] = await Promise.all([
+      api.listVisits(),
+      api.listCases(),
+      api.listNotifications(),
+    ]);
+    setData((d) => ({ ...d, visits, cases, notifications }));
+    return claimed;
+  }, []);
+
+  const releaseVisit = useCallback(async (visitId: string) => {
+    const released = await api.releaseVisit(visitId);
+    if (!released) return undefined;
+    const [visits, cases] = await Promise.all([api.listVisits(), api.listCases()]);
+    setData((d) => ({ ...d, visits, cases }));
+    return released;
+  }, []);
+
   const editReportField = useCallback(
     (reportId: string, sectionId: string, fieldId: string, value: string | number | string[]) => {
       setData((d) => ({
@@ -237,11 +277,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppContextValue>(
     () => ({
       ...data,
+      myVisits: data.user ? selectMyVisits(data.visits, data.user.id) : [],
+      poolVisits: selectPoolVisits(data.visits),
+      myCases: data.user
+        ? data.cases.filter((c) => myCaseIds(data.visits, data.user!.id).has(c.id))
+        : [],
       reload,
       setTaskStatus,
       postponeTask,
       toggleChecklistItem,
       recordVisitOutcome,
+      claimVisit,
+      releaseVisit,
       editReportField,
       editReportMeta,
       submitReport,
@@ -260,6 +307,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       postponeTask,
       toggleChecklistItem,
       recordVisitOutcome,
+      claimVisit,
+      releaseVisit,
       editReportField,
       editReportMeta,
       submitReport,

@@ -165,6 +165,16 @@ export interface Visit {
   checklist: ChecklistItem[];
   reportId?: ID;
   assignedBy: string;
+  /**
+   * Who is responsible for this visit. `null` means the visit is still in the
+   * shared pool of unassigned visits («بازدیدهای آزاد») and any social worker
+   * in the coverage area may claim it. Assignment is deliberately separate
+   * from `status`: claiming a visit moves it between workers, it never
+   * changes what has (or has not) happened at the visit itself.
+   */
+  assignedToId: ID | null;
+  /** Set when a social worker claimed this visit from the pool. */
+  claimedAt?: ISODateTime;
   /** Populated once the social worker records an outcome. */
   outcome?: { status: VisitStatus; note: string; at: ISODateTime };
 }

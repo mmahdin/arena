@@ -3,6 +3,16 @@ import { at, hoursAgo, minutesAgo } from './time';
 
 export const notifications: AppNotification[] = [
   {
+    id: 'n-pool',
+    type: 'assignment',
+    title: 'بازدیدهای آزاد جدید در حوزه شما',
+    body: 'چند بازدید زمان‌بندی‌شده در منطقه ۱۲ و لواسان هنوز مددکار ندارند و منتظر پذیرش‌اند.',
+    at: minutesAgo(15),
+    read: false,
+    priority: 'medium',
+    href: '/available',
+  },
+  {
     id: 'n-1',
     type: 'revision',
     title: 'گزارش شما نیازمند اصلاح است',

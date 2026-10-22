@@ -78,7 +78,7 @@ export function buildAttention(): AttentionItem[] {
   }
 
   // 3. Visits that happened but were never closed out.
-  for (const v of db.visits.filter((x) => visitDisplayState(x, now) === 'needs-outcome')) {
+  for (const v of db.visits.filter((x) => x.assignedToId === db.user.id && visitDisplayState(x, now) === 'needs-outcome')) {
     const c = db.cases.find((x) => x.id === v.caseId);
     items.push({
       id: `at-${v.id}`,
