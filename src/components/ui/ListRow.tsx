@@ -14,7 +14,7 @@ export interface ListRowProps {
   onClick?: () => void;
   /** Hairline separator that respects the leading element's width. */
   divider?: boolean;
-  /** Dims the row — used for completed/archived items. */
+  /** Dims rows that are not currently actionable. */
   muted?: boolean;
   /** Emphasised leading edge (priority rail). */
   accent?: ReactNode;

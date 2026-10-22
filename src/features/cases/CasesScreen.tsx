@@ -3,53 +3,55 @@ import { FolderSearch } from 'lucide-react';
 import { useApp } from '@/store/app-store';
 import { Screen } from '@/components/layout/Screen';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
-import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { CaseCard } from '@/features/_shared/CaseCard';
-import { fa } from '@/lib/digits';
 
-type Scope = 'active' | 'closed';
-
-/** Families are the reference point for recurring visits, not a second task list. */
+/** One searchable directory of assigned families; no archive or status tabs. */
 export function CasesScreen() {
   const { cases, visits } = useApp();
-  const [scope, setScope] = useState<Scope>('active');
   const [query, setQuery] = useState('');
 
-  const visible = useMemo(() => cases.filter((c) => {
-    if ((c.stage === 'closed') !== (scope === 'closed')) return false;
-    if (!query.trim()) return true;
+  const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return [c.familyName, c.code, c.city, c.district ?? '', c.headOfHousehold].join(' ').toLowerCase().includes(needle);
-  }), [cases, scope, query]);
-  const active = cases.filter((c) => c.stage !== 'closed').length;
+    if (!needle) return cases;
+    // Keep case references searchable without occupying the family's card.
+    return cases.filter((c) =>
+      [c.familyName, c.code, c.city, c.district ?? '', c.headOfHousehold]
+        .join(' ').toLowerCase().includes(needle),
+    );
+  }, [cases, query]);
+
+  const visitsByCase = useMemo(() => {
+    const grouped = new Map<string, typeof visits>();
+    for (const visit of visits) {
+      const rows = grouped.get(visit.caseId) ?? [];
+      rows.push(visit);
+      grouped.set(visit.caseId, rows);
+    }
+    return grouped;
+  }, [visits]);
 
   return (
     <Screen bottomGap={false}>
-      <ScreenHeader title="خانواده‌ها" subtitle={`${fa(active)} خانواده فعال در حوزه مسئولیت شما`}>
-        <div className="mt-3 space-y-2.5">
-          <SearchBar value={query} onChange={setQuery} placeholder="جست‌وجوی نام خانواده یا کد پرونده" />
-          <SegmentedControl<Scope>
-            value={scope}
-            onChange={setScope}
-            ariaLabel="وضعیت خانواده‌ها"
-            items={[
-              { value: 'active', label: 'فعال', count: active },
-              { value: 'closed', label: 'بایگانی', count: cases.length - active },
-            ]}
-          />
+      <ScreenHeader title="خانواده‌ها">
+        <div className="mt-3">
+          <SearchBar value={query} onChange={setQuery} placeholder="جست‌وجوی خانواده یا محله" />
         </div>
       </ScreenHeader>
 
       <div className="pb-8 pt-4">
         {!visible.length ? (
-          <EmptyState icon={<FolderSearch className="size-6" />} title="خانواده‌ای یافت نشد" description="عبارت جست‌وجو یا وضعیت را تغییر دهید." />
+          <EmptyState
+            icon={<FolderSearch className="size-6" />}
+            title={query.trim() ? 'خانواده‌ای یافت نشد' : 'خانواده‌ای ثبت نشده'}
+            description={query.trim() ? 'نام خانواده یا محله را بررسی کنید.' : undefined}
+          />
         ) : (
-          <ul className="space-y-2.5">
-            {visible.map((c) => (
-              <li key={c.id}>
-                <CaseCard caseFile={c} visits={visits.filter((v) => v.caseId === c.id)} />
+          <ul className="space-y-3">
+            {visible.map((family) => (
+              <li key={family.id}>
+                <CaseCard caseFile={family} visits={visitsByCase.get(family.id) ?? []} />
               </li>
             ))}
           </ul>

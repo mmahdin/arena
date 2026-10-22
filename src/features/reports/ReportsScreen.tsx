@@ -17,7 +17,7 @@ type Filter = 'action' | 'review' | 'approved';
 const isAction = (r: Report) => r.status === 'draft' || r.status === 'revision';
 const isReview = (r: Report) => r.status === 'submitted' || r.status === 'in-review';
 
-/** Reports are a work queue: act, wait for review, or consult the archive. */
+/** Reports are a work queue: act, wait for review, or view approved results. */
 export function ReportsScreen() {
   const { reports, user, cases, visits } = useApp();
   const myReports = useMemo(() => reports.filter((r) => r.author === user?.name), [reports, user?.name]);

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Bell, CheckCircle2, HeartPulse, Home, MapPin, Palette } from 'lucide-react';
 import { Screen, Section } from '@/components/layout/Screen';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
@@ -77,14 +77,15 @@ export function DesignSystemScreen() {
         {/* ---------------------------------------------------- colour */}
         <Section>
           <SectionHeader title="رنگ" hint="مقادیر زنده از توکن‌های CSS — با تغییر پوسته به‌روز می‌شوند" />
-          <SwatchGroup title="برند" tokens={['--p-brand-50', '--p-brand-100', '--p-brand-200', '--p-brand-300', '--p-brand-400', '--p-brand-500', '--p-brand-600', '--p-brand-700', '--p-brand-800', '--p-brand-900']} />
-          <SwatchGroup title="خنثی (کاغذی)" tokens={['--p-sand-0', '--p-sand-50', '--p-sand-100', '--p-sand-200', '--p-sand-300', '--p-sand-500', '--p-sand-700', '--p-sand-900']} className="mt-3" />
+          <SwatchGroup title="بنفش رمونا · هویت و اقدام" tokens={['--p-brand-50', '--p-brand-100', '--p-brand-200', '--p-brand-300', '--p-brand-400', '--p-brand-500', '--p-brand-600', '--p-brand-700', '--p-brand-800', '--p-brand-900']} />
+          <SwatchGroup title="فیروزه‌ای رمونا · تأکید و اطلاعات" tokens={['--p-teal-50', '--p-teal-100', '--p-teal-200', '--p-teal-300', '--p-teal-400', '--p-teal-500', '--p-teal-600', '--p-teal-700', '--p-teal-800', '--p-teal-900']} className="mt-3" />
+          <SwatchGroup title="خنثی" tokens={['--p-neutral-0', '--p-neutral-50', '--p-neutral-100', '--p-neutral-200', '--p-neutral-300', '--p-neutral-500', '--p-neutral-700', '--p-neutral-900']} className="mt-3" />
           <SwatchGroup title="معنایی" tokens={['--s-primary', '--s-success', '--s-warning', '--s-danger', '--s-info', '--s-accent']} className="mt-3" />
           <div className="mt-3 grid grid-cols-2 gap-2">
-            <ContrastSample bg="bg-primary" fg="text-primary-fg" label="دکمه اصلی" ratio="۶٫۴:۱" />
-            <ContrastSample bg="bg-surface" fg="text-ink" label="متن روی سطح" ratio="۱۵:۱" />
-            <ContrastSample bg="bg-brand-soft" fg="text-brand-ink" label="برچسب برند" ratio="۸:۱" />
-            <ContrastSample bg="bg-sunken" fg="text-ink-2" label="متن ثانویه" ratio="۶٫۵:۱" />
+            <ContrastSample bg="bg-primary" fg="text-primary-fg" label="دکمه اصلی" theme={resolvedTheme} />
+            <ContrastSample bg="bg-surface" fg="text-ink" label="متن روی سطح" theme={resolvedTheme} />
+            <ContrastSample bg="bg-brand-soft" fg="text-brand-ink" label="برچسب برند" theme={resolvedTheme} />
+            <ContrastSample bg="bg-sunken" fg="text-ink-2" label="متن ثانویه" theme={resolvedTheme} />
           </div>
         </Section>
 
@@ -380,13 +381,44 @@ function rgbToHex(rgb: string): string {
   return `#${parts.slice(0, 3).map((p) => p.toString(16).padStart(2, '0')).join('')}`;
 }
 
-function ContrastSample({ bg, fg, label, ratio }: { bg: string; fg: string; label: string; ratio: string }) {
+/** Read real computed colours so contrast values stay accurate in both themes. */
+function ContrastSample({ bg, fg, label, theme }: { bg: string; fg: string; label: string; theme: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [ratio, setRatio] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    const style = getComputedStyle(ref.current);
+    const ink = parseRgb(style.color);
+    const surface = parseRgb(style.backgroundColor);
+    if (ink && surface) {
+      const a = luminance(ink);
+      const b = luminance(surface);
+      setRatio((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05));
+    }
+  }, [theme, bg, fg]);
+
   return (
-    <div className={cn('rounded-md border border-line px-3 py-2.5', bg, fg)}>
+    <div ref={ref} className={cn('rounded-md border border-line px-3 py-2.5', bg, fg)}>
       <p className="text-sm font-bold">{label}</p>
-      <p className="text-2xs opacity-80 tabular-nums" dir="ltr">AA · {ratio}</p>
+      <p className="text-2xs opacity-80 tabular-nums" dir="ltr">
+        {ratio === null ? '—' : `${ratio >= 4.5 ? 'AA' : 'Contrast'} · ${ratio.toFixed(1)}:1`}
+      </p>
     </div>
   );
+}
+
+function parseRgb(css: string): [number, number, number] | null {
+  const values = css.match(/[\d.]+/g)?.slice(0, 3).map(Number);
+  return values?.length === 3 ? values as [number, number, number] : null;
+}
+
+function luminance(rgb: [number, number, number]): number {
+  const channels = rgb.map((channel) => {
+    const scaled = channel / 255;
+    return scaled <= 0.04045 ? scaled / 12.92 : ((scaled + 0.055) / 1.055) ** 2.4;
+  });
+  return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
 }
 
 function TypeSample({ className, label, children }: { className?: string; label: string; children: ReactNode }) {

@@ -27,7 +27,7 @@ interface Meta {
 }
 
 export const CASE_TYPE: Record<CaseType, Meta> = {
-  hosting: { label: 'میزبانی', tone: 'info' },
+  hosting: { label: 'میزبانی', tone: 'accent' },
   adoption: { label: 'فرزندخواندگی', tone: 'brand' },
 };
 
@@ -45,7 +45,7 @@ export const CASE_STAGE: Record<CaseStage, Meta> = {
   introduction: { label: 'معرفی و آشنایی', tone: 'brand' },
   placement: { label: 'جایگذاری', tone: 'accent' },
   'post-placement': { label: 'پایش پس از جایگذاری', tone: 'success' },
-  closed: { label: 'بایگانی‌شده', tone: 'neutral' },
+  closed: { label: 'پایان‌یافته', tone: 'neutral' },
 };
 
 export const CASE_STAGE_SHORT: Record<CaseStage, string> = {
@@ -53,7 +53,7 @@ export const CASE_STAGE_SHORT: Record<CaseStage, string> = {
   introduction: 'معرفی',
   placement: 'جایگذاری',
   'post-placement': 'پایش',
-  closed: 'بایگانی',
+  closed: 'پایان‌یافته',
 };
 
 export const PRIORITY: Record<Priority, Meta> = {

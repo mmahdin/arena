@@ -1,104 +1,105 @@
 /* ==========================================================================
    Ramona Design Tokens
    --------------------------------------------------------------------------
-   Single source of truth for the visual language of the Ramona Platform.
-   Tokens are declared as raw RGB triplets so Tailwind can apply opacity
-   modifiers (e.g. `bg-brand/10`). Semantic tokens are re-mapped per theme
-   in `[data-theme="dark"]` — components never reference a raw palette value,
-   only a semantic token. That is what keeps theming cheap and consistent.
-
-   Naming:
-     --s-*   semantic (use these in components)
-     --p-*   primitive palette (referenced by semantic tokens only)
-     --r-*   radius      --sp-* spacing      --sh-* elevation
+   One palette for the whole product, derived from the supplied Ramona mark:
+   violet #8F288C and turquoise #24BDCD (with its darker #15808D facet).
+   Keep primitive colours here; components must use semantic --s-* tokens.
+   Raw RGB triplets allow Tailwind opacity modifiers (bg-brand/10, etc.).
    ========================================================================== */
 
 :root {
   color-scheme: light;
 
-  /* ---- Primitive palette: brand "کاج" (pine teal) ---------------------- */
-  --p-brand-50: 237 245 243;
-  --p-brand-100: 213 233 228;
-  --p-brand-200: 169 211 202;
-  --p-brand-300: 119 184 172;
-  --p-brand-400: 71 155 141;
-  --p-brand-500: 42 126 113;
-  --p-brand-600: 28 101 91;
-  --p-brand-700: 23 82 74;
-  --p-brand-800: 19 66 60;
-  --p-brand-900: 16 54 48;
+  /* ---- Ramona violet: identity and primary actions --------------------- */
+  --p-brand-50: 251 244 251;
+  --p-brand-100: 246 228 245;
+  --p-brand-200: 235 193 233;
+  --p-brand-300: 212 143 209;
+  --p-brand-400: 181 83 177;
+  --p-brand-500: 143 40 140; /* exact primary purple in the logo */
+  --p-brand-600: 124 33 121;
+  --p-brand-700: 100 28 102;
+  --p-brand-800: 80 27 80;
+  --p-brand-900: 59 25 62;
 
-  /* ---- Primitive palette: warm neutrals ("کاغذ" / paper) --------------- */
-  --p-sand-0: 255 255 255;
-  --p-sand-25: 250 249 246;
-  --p-sand-50: 245 244 240;
-  --p-sand-100: 239 237 231;
-  --p-sand-200: 229 226 218;
-  --p-sand-300: 211 207 196;
-  --p-sand-400: 176 173 162;
-  --p-sand-500: 138 136 127;
-  --p-sand-600: 102 114 109;
-  --p-sand-700: 85 97 92;
-  --p-sand-800: 45 56 52;
-  --p-sand-900: 22 33 30;
-  --p-sand-950: 12 19 17;
+  /* ---- Ramona turquoise: secondary accent and information ------------- */
+  --p-teal-50: 237 250 251;
+  --p-teal-100: 217 246 248;
+  --p-teal-200: 176 235 239;
+  --p-teal-300: 125 220 228;
+  --p-teal-400: 36 189 205; /* exact turquoise in the logo */
+  --p-teal-500: 24 161 177;
+  --p-teal-600: 21 128 141; /* dark facet of the logo */
+  --p-teal-700: 17 105 115;
+  --p-teal-800: 15 83 92;
+  --p-teal-900: 12 64 72;
 
-  /* ---- Primitive palette: semantic hues -------------------------------- */
-  --p-success: 46 125 82;
-  --p-success-soft: 230 243 235;
-  --p-warning: 169 118 11;
-  --p-warning-soft: 251 242 223;
-  --p-danger: 179 38 30;
-  --p-danger-soft: 251 234 232;
-  --p-info: 42 106 150;
-  --p-info-soft: 232 241 248;
-  --p-accent: 192 101 59; /* clay — human warmth, used sparingly */
-  --p-accent-soft: 251 237 229;
-  --p-accent-ink: 143 69 38;
+  /* ---- Cool, near-neutral canvas: lets the logo colours breathe ------- */
+  --p-neutral-0: 255 255 255;
+  --p-neutral-25: 251 250 252;
+  --p-neutral-50: 248 247 250;
+  --p-neutral-100: 240 238 244;
+  --p-neutral-200: 229 226 234;
+  --p-neutral-300: 207 204 214;
+  --p-neutral-400: 167 162 176;
+  --p-neutral-500: 130 126 141;
+  --p-neutral-600: 102 99 113;
+  --p-neutral-700: 78 75 90;
+  --p-neutral-800: 48 46 61;
+  --p-neutral-900: 29 27 40;
+  --p-neutral-950: 19 16 28;
+
+  /* ---- Status colours remain semantic, not decorative ------------------ */
+  --p-success: 40 122 77;
+  --p-success-soft: 229 244 234;
+  --p-warning: 150 94 7;
+  --p-warning-soft: 252 244 228;
+  --p-danger: 176 43 47;
+  --p-danger-soft: 252 236 237;
 
   /* ---- Semantic: surfaces ---------------------------------------------- */
-  --s-bg: var(--p-sand-50);
-  --s-surface: var(--p-sand-0);
-  --s-raised: var(--p-sand-0);
-  --s-sunken: var(--p-sand-100);
-  --s-scrim: 12 19 17;
+  --s-bg: var(--p-neutral-50);
+  --s-surface: var(--p-neutral-0);
+  --s-raised: var(--p-neutral-0);
+  --s-sunken: var(--p-neutral-100);
+  --s-scrim: var(--p-neutral-950);
 
-  /* ---- Semantic: lines -------------------------------------------------- */
-  --s-line: var(--p-sand-200);
-  --s-line-strong: var(--p-sand-300);
-  --s-line-soft: 236 234 228;
+  /* ---- Semantic: borders ----------------------------------------------- */
+  --s-line: var(--p-neutral-200);
+  --s-line-strong: var(--p-neutral-300);
+  --s-line-soft: 239 237 242;
 
-  /* ---- Semantic: text --------------------------------------------------- */
-  --s-ink: var(--p-sand-900);
-  --s-ink-2: var(--p-sand-700);
-  --s-ink-3: var(--p-sand-600);
-  --s-ink-inverse: var(--p-sand-0);
+  /* ---- Semantic: typography -------------------------------------------- */
+  --s-ink: var(--p-neutral-900);
+  --s-ink-2: var(--p-neutral-700);
+  --s-ink-3: var(--p-neutral-600);
+  --s-ink-inverse: var(--p-neutral-0);
 
-  /* ---- Semantic: brand / interactive ------------------------------------ */
-  --s-brand: var(--p-brand-600);
-  --s-brand-strong: var(--p-brand-700);
+  /* ---- Semantic: brand, calls to action and focus ----------------------- */
+  --s-brand: var(--p-brand-500);
+  --s-brand-strong: var(--p-brand-600);
   --s-brand-soft: var(--p-brand-50);
   --s-brand-muted: var(--p-brand-100);
   --s-brand-ink: var(--p-brand-700);
-  --s-primary: var(--p-brand-600);
+  --s-primary: var(--p-brand-500);
   --s-primary-fg: 255 255 255;
-  --s-primary-hover: var(--p-brand-700);
-  --s-focus: var(--p-brand-400);
+  --s-primary-hover: var(--p-brand-600);
+  --s-focus: var(--p-brand-500);
 
-  /* ---- Semantic: status -------------------------------------------------- */
+  /* ---- Semantic: status ------------------------------------------------- */
   --s-success: var(--p-success);
   --s-success-soft: var(--p-success-soft);
   --s-warning: var(--p-warning);
   --s-warning-soft: var(--p-warning-soft);
   --s-danger: var(--p-danger);
   --s-danger-soft: var(--p-danger-soft);
-  --s-info: var(--p-info);
-  --s-info-soft: var(--p-info-soft);
-  --s-accent: var(--p-accent);
-  --s-accent-soft: var(--p-accent-soft);
-  --s-accent-ink: var(--p-accent-ink);
+  --s-info: var(--p-teal-700);
+  --s-info-soft: var(--p-teal-50);
+  --s-accent: var(--p-teal-600);
+  --s-accent-soft: var(--p-teal-50);
+  --s-accent-ink: var(--p-teal-800);
 
-  /* ---- Radius ------------------------------------------------------------ */
+  /* ---- Radius ----------------------------------------------------------- */
   --r-xs: 8px;
   --r-sm: 10px;
   --r-md: 14px;
@@ -107,7 +108,7 @@
   --r-2xl: 28px;
   --r-pill: 999px;
 
-  /* ---- Spacing rhythm (4px base) ---------------------------------------- */
+  /* ---- Spacing rhythm (4px base) --------------------------------------- */
   --sp-1: 4px;
   --sp-2: 8px;
   --sp-3: 12px;
@@ -117,24 +118,23 @@
   --sp-8: 32px;
   --sp-10: 40px;
   --sp-12: 48px;
-  /* Horizontal page gutter — generous on purpose, keeps cards calm. */
   --sp-gutter: 20px;
 
-  /* ---- Elevation --------------------------------------------------------- */
-  --sh-xs: 0 1px 2px rgb(22 33 30 / 0.05);
-  --sh-sm: 0 1px 3px rgb(22 33 30 / 0.06), 0 1px 2px rgb(22 33 30 / 0.04);
-  --sh-md: 0 6px 20px -6px rgb(22 33 30 / 0.12), 0 2px 6px -2px rgb(22 33 30 / 0.06);
-  --sh-lg: 0 18px 48px -16px rgb(22 33 30 / 0.28), 0 4px 12px -4px rgb(22 33 30 / 0.08);
-  --sh-bar: 0 -1px 0 rgb(22 33 30 / 0.06), 0 -8px 24px -16px rgb(22 33 30 / 0.18);
+  /* ---- Elevation -------------------------------------------------------- */
+  --sh-xs: 0 1px 2px rgb(29 27 40 / 0.05);
+  --sh-sm: 0 1px 3px rgb(29 27 40 / 0.06), 0 1px 2px rgb(29 27 40 / 0.04);
+  --sh-md: 0 6px 20px -6px rgb(29 27 40 / 0.12), 0 2px 6px -2px rgb(29 27 40 / 0.06);
+  --sh-lg: 0 18px 48px -16px rgb(29 27 40 / 0.28), 0 4px 12px -4px rgb(29 27 40 / 0.08);
+  --sh-bar: 0 -1px 0 rgb(29 27 40 / 0.06), 0 -8px 24px -16px rgb(29 27 40 / 0.18);
 
-  /* ---- Motion ------------------------------------------------------------ */
+  /* ---- Motion ----------------------------------------------------------- */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --dur-fast: 120ms;
   --dur-base: 200ms;
   --dur-slow: 320ms;
 
-  /* ---- Layout ------------------------------------------------------------ */
+  /* ---- Layout ----------------------------------------------------------- */
   --tabbar-h: 62px;
   --topbar-h: 56px;
   --app-max-w: 440px;
@@ -143,42 +143,42 @@
 [data-theme='dark'] {
   color-scheme: dark;
 
-  --s-bg: 13 20 18;
-  --s-surface: 21 30 27;
-  --s-raised: 27 38 34;
-  --s-sunken: 16 24 21;
+  --s-bg: 21 18 29;
+  --s-surface: 30 26 39;
+  --s-raised: 40 34 50;
+  --s-sunken: 25 22 34;
   --s-scrim: 0 0 0;
 
-  --s-line: 38 50 45;
-  --s-line-strong: 55 68 62;
-  --s-line-soft: 32 43 39;
+  --s-line: 57 49 68;
+  --s-line-strong: 78 68 91;
+  --s-line-soft: 47 40 58;
 
-  --s-ink: 233 239 236;
-  --s-ink-2: 172 184 178;
-  --s-ink-3: 133 146 140;
-  --s-ink-inverse: 12 19 17;
+  --s-ink: 245 241 248;
+  --s-ink-2: 194 186 203;
+  --s-ink-3: 166 158 177;
+  --s-ink-inverse: 23 16 29;
 
-  --s-brand: 96 176 161;
-  --s-brand-strong: 122 194 180;
-  --s-brand-soft: 20 44 40;
-  --s-brand-muted: 26 56 51;
-  --s-brand-ink: 154 214 202;
-  --s-primary: 62 148 135;
-  --s-primary-fg: 6 32 28;
-  --s-primary-hover: 78 164 150;
-  --s-focus: 96 176 161;
+  --s-brand: 205 130 202;
+  --s-brand-strong: 222 154 218;
+  --s-brand-soft: 56 30 59;
+  --s-brand-muted: 74 40 76;
+  --s-brand-ink: 237 178 233;
+  --s-primary: 205 130 202;
+  --s-primary-fg: 29 18 33;
+  --s-primary-hover: 222 154 218;
+  --s-focus: 222 154 218;
 
-  --s-success: 95 185 138;
-  --s-success-soft: 20 41 30;
-  --s-warning: 220 168 60;
-  --s-warning-soft: 44 35 20;
-  --s-danger: 226 121 111;
-  --s-danger-soft: 46 26 24;
-  --s-info: 111 168 206;
-  --s-info-soft: 20 36 47;
-  --s-accent: 217 138 95;
-  --s-accent-soft: 51 33 26;
-  --s-accent-ink: 232 168 132;
+  --s-success: 118 200 152;
+  --s-success-soft: 23 48 36;
+  --s-warning: 240 182 92;
+  --s-warning-soft: 53 39 22;
+  --s-danger: 243 136 141;
+  --s-danger-soft: 59 30 39;
+  --s-info: 125 216 225;
+  --s-info-soft: 18 55 63;
+  --s-accent: 125 216 225;
+  --s-accent-soft: 18 55 63;
+  --s-accent-ink: 154 231 238;
 
   --sh-xs: 0 1px 2px rgb(0 0 0 / 0.4);
   --sh-sm: 0 1px 3px rgb(0 0 0 / 0.45);

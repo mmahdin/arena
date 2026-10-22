@@ -11,12 +11,12 @@ import { ListRow } from '@/components/ui/ListRow';
 import { IconTile, REPORT_TYPE_ICON, TASK_ICON } from '@/components/ui/DomainIcon';
 import { Avatar } from '@/components/ui/Avatar';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { CASE_STAGE, REPORT_STATUS, REPORT_TYPE, TASK_TYPE, WELLBEING } from '@/lib/labels';
+import { CASE_TYPE, REPORT_STATUS, REPORT_TYPE, TASK_TYPE, WELLBEING } from '@/lib/labels';
 import { fa } from '@/lib/digits';
 import { faDate } from '@/lib/jalali';
 import { Meta } from '@/features/_shared/Meta';
 
-const RECENT = ['موسوی', 'ارزیابی اولیه', 'RAM-0455', 'هستی'];
+const RECENT = ['موسوی', 'ارزیابی اولیه', 'نجفی', 'هستی'];
 
 /**
  * Global search.
@@ -96,9 +96,9 @@ export function SearchScreen() {
                       key={c.id}
                       to={`/cases/${c.id}`}
                       chevron
-                      leading={<Avatar name={c.familyName} tone={c.type === 'adoption' ? 'brand' : 'info'} size="sm" />}
+                      leading={<Avatar name={c.familyName} tone={CASE_TYPE[c.type].tone} size="sm" />}
                       title={c.familyName}
-                      meta={<Meta><span className="tabular-nums">{c.code}</span><span>{CASE_STAGE[c.stage].label}</span></Meta>}
+                      meta={<span className="text-sm text-ink-3">{CASE_TYPE[c.type].label} · {c.district ?? c.city}</span>}
                     />
                   ))}
                 </Card>

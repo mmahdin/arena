@@ -62,7 +62,7 @@ export function ReportEditorScreen() {
     return (
       <Screen>
         <ScreenHeader back title="گزارش" />
-        <EmptyState title="گزارش یافت نشد" description="ممکن است این گزارش حذف یا بایگانی شده باشد." />
+        <EmptyState title="گزارش یافت نشد" description="این گزارش حذف شده یا در دسترس نیست." />
         <Button block onClick={() => navigate('/reports')}>
           بازگشت به گزارش‌ها
         </Button>

@@ -66,7 +66,7 @@ export const notifications: AppNotification[] = [
     id: 'n-7',
     type: 'revision',
     title: 'گزارش شما تأیید شد',
-    body: 'گزارش پایش سه‌ماهه آرشا شریفی توسط سرپرست تأیید و در پرونده بایگانی شد.',
+    body: 'گزارش پایش سه‌ماهه آرشا شریفی توسط سرپرست تأیید و در پرونده ثبت شد.',
     at: at(-4, 15, 30),
     read: true,
     href: '/reports/r-arsha-monitoring',

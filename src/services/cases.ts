@@ -10,13 +10,12 @@ export interface ChildSummary extends Child {
 
 export interface CaseQuery {
   query?: string;
-  stage?: CaseStage | 'active';
+  stage?: CaseStage;
   type?: CaseType;
 }
 
 function matches(c: CaseFile, q: CaseQuery): boolean {
-  if (q.stage === 'active' && c.stage === 'closed') return false;
-  if (q.stage && q.stage !== 'active' && c.stage !== q.stage) return false;
+  if (q.stage && c.stage !== q.stage) return false;
   if (q.type && c.type !== q.type) return false;
   if (q.query) {
     const needle = q.query.trim().toLowerCase();
@@ -34,7 +33,6 @@ export function listCases(q: CaseQuery = {}): Promise<CaseFile[]> {
   const result = db.cases
     .filter((c) => matches(c, q))
     .sort((a, b) => {
-      if ((a.stage === 'closed') !== (b.stage === 'closed')) return a.stage === 'closed' ? 1 : -1;
       return order[a.priority] - order[b.priority] || b.lastActivityAt.localeCompare(a.lastActivityAt);
     });
   return latency(result);

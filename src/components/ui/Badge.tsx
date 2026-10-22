@@ -26,7 +26,7 @@ export function Badge({ tone = 'neutral', variant = 'soft', size = 'sm', icon, c
         size === 'sm' ? 'h-6 px-2 text-2xs' : 'h-7 px-3 text-xs',
         variant === 'soft' && cn(t.soft, t.text),
         variant === 'outline' && cn('border bg-transparent', t.border, t.text),
-        variant === 'solid' && cn(t.solid, 'text-white'),
+        variant === 'solid' && cn(t.solid, 'text-ink-inverse'),
         className,
       )}
     >
