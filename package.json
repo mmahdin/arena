@@ -1,0 +1,29 @@
+{
+  "name": "arena",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mmahdin/arena.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mmahdin/arena/issues"
+  },
+  "homepage": "https://github.com/mmahdin/arena#readme",
+  "dependencies": {
+    "@fontsource-variable/estedad": "^5.3.0",
+    "@fontsource-variable/vazirmatn": "^5.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "vite": "^8.3.5"
+  },
+  "type": "module"
+}

@@ -44,3 +44,4 @@ ATTRIBUTIONS.md
 /build
 
 *.patch
+dist-ssr/
