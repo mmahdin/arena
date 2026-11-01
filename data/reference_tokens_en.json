@@ -1,0 +1,159 @@
+{
+  "source": "61 JPG references, photo_61 through photo_1, submitted 2026-11-01",
+  "disclaimer": "These are visually inferred and implementation-recommended values; NOT official The Path exported design tokens or proof of proprietary specifications.",
+  "reference_inspired_palette": {
+    "surface_canvas": {
+      "hex": "#F2F2F2",
+      "usage": "Warm gray canvas for onboarding forms (approximate, not official)."
+    },
+    "surface_card": {
+      "hex": "#FFFFFF",
+      "usage": "Neutral card surfaces and pale button fills (recommended)."
+    },
+    "ink_primary": {
+      "hex": "#1B1B1B",
+      "usage": "Primary ink and dark conversation surface (approximate)."
+    },
+    "text_secondary": {
+      "hex": "#747474",
+      "usage": "Muted supporting copy (recommended)."
+    },
+    "border_soft": {
+      "hex": "#DADADA",
+      "usage": "Subtle boundaries and stepper hairlines (recommended)."
+    },
+    "cta_disabled": {
+      "hex": "#D9D9D9",
+      "usage": "Low-emphasis disabled CTA background (recommended; contrast must be tested)."
+    },
+    "olive_dark": {
+      "hex": "#34431F",
+      "usage": "Olive accent for select controls and graphic details (recommended)."
+    },
+    "olive_ribbon": {
+      "hex": "#9CA866",
+      "usage": "Curved visual ribbon in introduction (approximate)."
+    },
+    "teal_expressions": {
+      "hex": "#56939A",
+      "usage": "Teal used in camera/expression explainer; reference only, not planned MVP functionality."
+    },
+    "atmosphere_orange": {
+      "hex": "#EF782A",
+      "usage": "Warm orange haze for emotional interludes (approximate)."
+    },
+    "atmosphere_coral": {
+      "hex": "#D54B35",
+      "usage": "Coral accent in blurred gradient (approximate)."
+    },
+    "atmosphere_lavender": {
+      "hex": "#9198B6",
+      "usage": "Muted lavender and slate-blue lighting in splash (approximate)."
+    },
+    "atmosphere_blue": {
+      "hex": "#3071B1",
+      "usage": "Blue-violet atmosphere for transition scenes (approximate)."
+    },
+    "atmosphere_pink": {
+      "hex": "#F6AEC5",
+      "usage": "Soft pink curved detail header (approximate)."
+    },
+    "forest_deep": {
+      "hex": "#344923",
+      "usage": "Dark forest-green social-proof background (approximate)."
+    }
+  },
+  "original_app_usage": {
+    "surface_primary": "surface_canvas",
+    "surface_elevated": "surface_card",
+    "text_primary": "ink_primary",
+    "text_secondary": "text_secondary",
+    "primary_action": "ink_primary",
+    "secondary_accent": "olive_dark",
+    "accent_use": "On controls and special moments, never as indiscriminate gradients behind each card",
+    "focus": "Accessible focus ring, not color alone"
+  },
+  "suggested_persian_fonts": {
+    "heading": {
+      "family": "Estedad",
+      "weight": [
+        500,
+        600
+      ],
+      "sizes_px": [
+        28,
+        34,
+        40
+      ]
+    },
+    "body": {
+      "family": "Vazirmatn",
+      "weight": [
+        400,
+        500,
+        600
+      ],
+      "sizes_px": [
+        14,
+        16,
+        18
+      ]
+    },
+    "optional_quotation": {
+      "family": "Noto Naskh Arabic",
+      "use": "Test only for large editorial quotation"
+    }
+  },
+  "spacing_px": [
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    32,
+    40,
+    48,
+    64
+  ],
+  "radii_px": {
+    "small_card": 12,
+    "content_card": 18,
+    "hero_card": 22,
+    "pill": 999
+  },
+  "controls": {
+    "primary_cta_height_px": 52,
+    "option_min_height_px": 48,
+    "touch_target_min_px": 44,
+    "horizontal_gutter_px": 24
+  },
+  "target_mobile_viewports_css_px": [
+    {
+      "w": 360,
+      "h": 800
+    },
+    {
+      "w": 390,
+      "h": 844
+    },
+    {
+      "w": 430,
+      "h": 932
+    }
+  ],
+  "system_states": [
+    "idle",
+    "focused",
+    "selected",
+    "disabled",
+    "loading",
+    "error",
+    "empty",
+    "populated",
+    "keyboard-open",
+    "rtl-text-wrap"
+  ],
+  "reduced_motion": true,
+  "implementation_note": "Use a separate original design system. Never interpret sampled values as source code or pixel-perfect official data."
+}

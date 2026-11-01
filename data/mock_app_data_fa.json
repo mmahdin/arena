@@ -1,0 +1,439 @@
+{
+  "_readme_en": "All text displayed to users is intentionally Persian. This is sample content for a frontend prototype, not user data, verified clinical data or model-generated output.",
+  "_privacy_and_validity_en": "Do not claim real encryption, diagnosis, clinical instrument validity, AI inference or secure cross-chat memory. Demo-only, frontend-local state.",
+  "user": {
+    "id": "demo_user",
+    "display_name": "رها",
+    "greeting": "سلام رها، امروز چی ذهنت رو مشغول کرده؟",
+    "chosen_style_id": "empathetic",
+    "primary_goal_ids": [
+      "decisions"
+    ],
+    "demo_account": true
+  },
+  "navigation": [
+    {
+      "id": "home",
+      "label": "خانه"
+    },
+    {
+      "id": "conversations",
+      "label": "گفت‌وگوها"
+    },
+    {
+      "id": "profile",
+      "label": "شناخت من"
+    },
+    {
+      "id": "assessments",
+      "label": "آزمون‌ها"
+    }
+  ],
+  "onboarding_questions": [
+    {
+      "id": "preferred_name",
+      "type": "short_text",
+      "required": false,
+      "title": "دوست داری چی صدات کنیم؟",
+      "placeholder": "نام دلخواهت",
+      "helper": "هر اسمی که باهاش راحت‌تری."
+    },
+    {
+      "id": "primary_goal",
+      "type": "single_select",
+      "required": false,
+      "title": "این روزها بیشتر دوست داری روی چی تمرکز کنی؟",
+      "options": [
+        {
+          "id": "decisions",
+          "label": "تصمیم‌گیری"
+        },
+        {
+          "id": "work",
+          "label": "فشار و دغدغه‌های کاری"
+        },
+        {
+          "id": "relationships",
+          "label": "روابط و گفت‌وگو با دیگران"
+        },
+        {
+          "id": "self_discovery",
+          "label": "شناخت بهتر خودم"
+        },
+        {
+          "id": "unsure",
+          "label": "هنوز مطمئن نیستم"
+        }
+      ]
+    },
+    {
+      "id": "preferred_support",
+      "type": "single_select",
+      "required": false,
+      "title": "چه جور واکنشی بیشتر بهت کمک می‌کنه؟",
+      "options": [
+        {
+          "id": "empathy",
+          "label": "اول احساساتم درک بشه"
+        },
+        {
+          "id": "logic",
+          "label": "موضوع رو منطقی بررسی کنیم"
+        },
+        {
+          "id": "direct",
+          "label": "زودتر به راه‌حل برسیم"
+        },
+        {
+          "id": "questions",
+          "label": "یکی خوب گوش بده و سؤال بپرسه"
+        },
+        {
+          "id": "examples",
+          "label": "با مثال بهتر می‌فهمم"
+        }
+      ]
+    },
+    {
+      "id": "optional_context",
+      "type": "long_text",
+      "required": false,
+      "title": "اگه دوست داری، یکم بیشتر برام بگو.",
+      "placeholder": "از هرجا راحتی شروع کن…",
+      "helper": "می‌تونی این مرحله رو رد کنی."
+    }
+  ],
+  "communication_styles": [
+    {
+      "id": "empathetic",
+      "name": "همدل",
+      "subtitle": "اول احساساتت را می‌شنود، بعد همراهت فکر می‌کند.",
+      "tags": [
+        "همراه",
+        "آرام"
+      ],
+      "abstract_art_direction": "Soft lavender-white translucent sculptural layers, not a human portrait.",
+      "accent": "#9198B6",
+      "example_prompt": "این روزها برای تصمیم‌گیری خیلی گیج می‌شم.",
+      "example_reply": "وقتی چند انتخاب مهم هم‌زمان جلوته، گیج شدن می‌تونه خسته‌کننده باشه. دوست داری اول بگی کدوم بخش تصمیم بیشتر ذهنت رو درگیر کرده تا با هم روشن‌ترش کنیم؟"
+    },
+    {
+      "id": "analytical",
+      "name": "تحلیل‌گر",
+      "subtitle": "مسئله را به بخش‌های روشن و قابل‌بررسی تقسیم می‌کند.",
+      "tags": [
+        "منطقی",
+        "منظم"
+      ],
+      "abstract_art_direction": "Layered deep olive geometric transparent shapes in a calm atmospheric field.",
+      "accent": "#34431F",
+      "example_prompt": "این روزها برای تصمیم‌گیری خیلی گیج می‌شم.",
+      "example_reply": "می‌تونیم تصمیم رو به سه بخش تقسیم کنیم: گزینه‌هایی که داری، چیزهایی که برات مهم‌اند و پیامد هر گزینه. اول بگو بین چه انتخاب‌هایی مرددی؟"
+    },
+    {
+      "id": "direct",
+      "name": "صریح",
+      "subtitle": "بی‌حاشیه به اصل موضوع و قدم بعدی می‌رسد.",
+      "tags": [
+        "شفاف",
+        "مستقیم"
+      ],
+      "abstract_art_direction": "Minimal bold charcoal shape, restrained warm orange highlight, decisive edges but soft composition.",
+      "accent": "#EF782A",
+      "example_prompt": "این روزها برای تصمیم‌گیری خیلی گیج می‌شم.",
+      "example_reply": "برای شروع لازم نیست همه جواب‌ها رو داشته باشی. فقط دو انتخاب اصلی رو بنویس و بگو مهم‌ترین معیار تو چیه. از همون‌جا جلو می‌ریم."
+    },
+    {
+      "id": "listener",
+      "name": "شنونده",
+      "subtitle": "با سؤال‌های دقیق کمک می‌کند حرفت را باز کنی.",
+      "tags": [
+        "صبور",
+        "پرسشگر"
+      ],
+      "abstract_art_direction": "Pale blue-gray concentric semi-transparent curves suggesting listening; no ear or face motif.",
+      "accent": "#56939A",
+      "example_prompt": "این روزها برای تصمیم‌گیری خیلی گیج می‌شم.",
+      "example_reply": "می‌خوام بهتر بفهمم این گیجی برات چه شکلیه. وقتی به تصمیم فکر می‌کنی، بیشتر از اشتباه کردن می‌ترسی یا از اینکه یکی از گزینه‌ها رو از دست بدی؟"
+    },
+    {
+      "id": "example_led",
+      "name": "مثال‌محور",
+      "subtitle": "با مثال‌های ملموس موضوع را قابل‌فهم می‌کند.",
+      "tags": [
+        "ملموس",
+        "روشن"
+      ],
+      "abstract_art_direction": "Warm ivory atmosphere with restrained amber overlapping circles suggesting practical illustrations.",
+      "accent": "#DCA46C",
+      "example_prompt": "این روزها برای تصمیم‌گیری خیلی گیج می‌شم.",
+      "example_reply": "تصمیم‌گیری گاهی مثل انتخاب یک مسیر تازه‌ست؛ لازم نیست کل جاده رو ببینی، فقط باید قدم اول رو بشناسی. مثلاً اگه بین دو شغل مرددی، می‌تونیم هرکدوم رو با سه معیار ساده مقایسه کنیم."
+    }
+  ],
+  "conversations": [
+    {
+      "id": "thread_work",
+      "title": "فشار کاری",
+      "style_id": "empathetic",
+      "updated_at_demo": "دیروز",
+      "preview": "این هفته حجم کارها خیلی زیاد شده…",
+      "tags": [
+        "کار"
+      ],
+      "messages": [
+        {
+          "id": "w1",
+          "role": "user",
+          "text": "این هفته حجم کارها خیلی زیاد شده و نمی‌دونم از کجا شروع کنم."
+        },
+        {
+          "id": "w2",
+          "role": "assistant",
+          "text": "به نظر می‌رسه چند کار هم‌زمان ذهنت رو درگیر کرده. دوست داری با هم فقط سه کار اصلی رو مشخص کنیم تا شروعش ساده‌تر بشه؟"
+        }
+      ]
+    },
+    {
+      "id": "thread_decision",
+      "title": "یک تصمیم مهم",
+      "style_id": "analytical",
+      "updated_at_demo": "۲ ساعت پیش",
+      "preview": "بین ادامه دادن این مسیر و تغییرش مرددم.",
+      "tags": [
+        "تصمیم‌گیری"
+      ],
+      "messages": [
+        {
+          "id": "d1",
+          "role": "user",
+          "text": "بین ادامه دادن این مسیر و تغییرش مرددم."
+        },
+        {
+          "id": "d2",
+          "role": "assistant",
+          "text": "برای روشن‌تر شدن انتخاب، بیایم معیارها رو جدا کنیم: رضایت، امکان رشد و میزان فشار. قبلاً هم درباره سنگینی کار صحبت کرده بودی؛ دوست داری اون بخش رو هم به‌عنوان یکی از معیارها بررسی کنیم؟",
+          "used_memory_ids": [
+            "memory_workload"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "thread_weekend",
+      "title": "برنامه آخر هفته",
+      "style_id": "listener",
+      "updated_at_demo": "۴ روز پیش",
+      "preview": "دلم می‌خواد آخر هفته برای خودم وقت بذارم.",
+      "tags": [
+        "زندگی روزمره"
+      ],
+      "messages": [
+        {
+          "id": "e1",
+          "role": "user",
+          "text": "دلم می‌خواد آخر هفته برای خودم وقت بذارم."
+        },
+        {
+          "id": "e2",
+          "role": "assistant",
+          "text": "چه کاری هست که این روزها برای خودت کم‌تر انجامش دادی و دلت می‌خواد دوباره تجربه‌ش کنی؟"
+        }
+      ]
+    }
+  ],
+  "memory_items": [
+    {
+      "id": "memory_workload",
+      "text": "در دوره‌های شلوغ کاری، شروع کردن از بین چند کار هم‌زمان برایش دشوار می‌شود.",
+      "source_type": "conversation",
+      "source_id": "thread_work",
+      "enabled": true,
+      "editable": true,
+      "sensitivity": "personal",
+      "demo_relevance_topics": [
+        "career_decision",
+        "workload"
+      ]
+    },
+    {
+      "id": "memory_prefers_examples",
+      "text": "معمولاً توضیح‌های همراه با مثال را راحت‌تر دنبال می‌کند.",
+      "source_type": "onboarding",
+      "source_id": "preferred_support",
+      "enabled": true,
+      "editable": true,
+      "sensitivity": "preference",
+      "demo_relevance_topics": [
+        "explaining_ideas",
+        "learning"
+      ]
+    },
+    {
+      "id": "memory_current_goal",
+      "text": "می‌خواهد مهارت تصمیم‌گیری خود را بهتر بشناسد.",
+      "source_type": "onboarding",
+      "source_id": "primary_goal",
+      "enabled": true,
+      "editable": true,
+      "sensitivity": "preference",
+      "demo_relevance_topics": [
+        "decisions"
+      ]
+    }
+  ],
+  "personal_insights": [
+    {
+      "id": "insight_reflective",
+      "text": "به نظر می‌رسه وقتی چند انتخاب مهم داری، مرور مرحله‌به‌مرحله گزینه‌ها برات مفیدتره.",
+      "status": "tentative",
+      "source_type": "conversation",
+      "source_id": "thread_decision",
+      "editable": true
+    },
+    {
+      "id": "insight_work",
+      "text": "گاهی حجم زیاد کار باعث می‌شه شروع‌کردن سخت‌تر به نظر بیاد.",
+      "status": "tentative",
+      "source_type": "conversation",
+      "source_id": "thread_work",
+      "editable": true
+    },
+    {
+      "id": "insight_goals",
+      "text": "یکی از هدف‌های فعلیت، شناخت بهتر روش تصمیم‌گیری خودته.",
+      "status": "self_reported",
+      "source_type": "onboarding",
+      "source_id": "primary_goal",
+      "editable": true
+    }
+  ],
+  "assessments": [
+    {
+      "id": "communication_preference",
+      "title": "سبک گفت‌وگو",
+      "description": "ببین کدوم شیوه گفت‌وگو برات راحت‌تره.",
+      "duration_minutes_demo": 3,
+      "status": "completed",
+      "is_clinical": false,
+      "result_id": "result_communication"
+    },
+    {
+      "id": "decision_habits",
+      "title": "روش تصمیم‌گیری",
+      "description": "نگاهی کوتاه به انتخاب‌ها و عادت‌های تصمیم‌گیری.",
+      "duration_minutes_demo": 4,
+      "status": "not_started",
+      "is_clinical": false,
+      "questions": [
+        {
+          "id": "q1",
+          "type": "single_select",
+          "title": "وقتی با دو انتخاب خوب روبه‌رو می‌شی، معمولاً اول چی کار می‌کنی؟",
+          "options": [
+            "گزینه‌ها رو می‌نویسم",
+            "با کسی صحبت می‌کنم",
+            "کمی زمان می‌دم",
+            "هنوز نمی‌دونم"
+          ]
+        },
+        {
+          "id": "q2",
+          "type": "single_select",
+          "title": "بیشتر از چه چیزی توی تصمیم‌گیری خسته می‌شی؟",
+          "options": [
+            "نامشخص بودن نتیجه",
+            "زیاد بودن گزینه‌ها",
+            "نظر دیگران",
+            "خسته نمی‌شم"
+          ]
+        },
+        {
+          "id": "q3",
+          "type": "single_select",
+          "title": "کدوم روش بیشتر کمکت می‌کنه؟",
+          "options": [
+            "مقایسه مزایا و معایب",
+            "یک مثال واقعی",
+            "گفت‌وگو و سؤال",
+            "شروع با یک قدم کوچک"
+          ]
+        },
+        {
+          "id": "q4",
+          "type": "single_select",
+          "title": "وقتی مردد می‌شی، دوست داری چطور به موضوع برگردی؟",
+          "options": [
+            "با برنامه مشخص",
+            "با یک گفت‌وگوی آرام",
+            "با دیدن گزینه‌ها روی کاغذ",
+            "بعد از استراحت"
+          ]
+        },
+        {
+          "id": "q5",
+          "type": "single_select",
+          "title": "دوست داری در تصمیم بعدی‌ات روی چی تمرکز کنی؟",
+          "options": [
+            "روشن کردن معیارها",
+            "کم کردن عجله",
+            "شنیدن دیدگاه‌های تازه",
+            "پذیرفتن عدم قطعیت"
+          ]
+        }
+      ],
+      "mock_result": {
+        "title": "مقایسه‌کردن بهت کمک می‌کنه",
+        "summary": "پاسخ‌های نمونه نشون می‌دن که بررسی چند معیار مشخص می‌تونه به روشن‌تر شدن انتخاب‌هات کمک کنه. این فقط یک برداشت آزمایشی از پاسخ‌های این نمونه است.",
+        "suggested_action": "می‌تونی برای تصمیم بعدی‌ات سه معیار مهم رو یادداشت کنی.",
+        "diagnostic": false
+      }
+    },
+    {
+      "id": "emotion_awareness",
+      "title": "آگاهی هیجانی",
+      "description": "تمرینی ساده برای توجه به احساسات روزمره.",
+      "duration_minutes_demo": 5,
+      "status": "in_progress",
+      "is_clinical": false
+    },
+    {
+      "id": "stress_habits",
+      "title": "عادت‌های مدیریت فشار",
+      "description": "روش‌هایی رو مرور کن که در روزهای شلوغ کمکت می‌کنن.",
+      "duration_minutes_demo": 4,
+      "status": "not_started",
+      "is_clinical": false
+    }
+  ],
+  "profile_section_labels": {
+    "goals": "چیزهایی که برات مهم‌اند",
+    "style": "سبک گفت‌وگوی دلخواه",
+    "insights": "برداشت‌های اولیه",
+    "memory": "حافظه من",
+    "assessments": "از آزمون‌ها"
+  },
+  "ui_copy": {
+    "start": "شروع کنیم",
+    "continue": "ادامه",
+    "skip": "فعلاً رد می‌کنم",
+    "new_chat": "گفت‌وگوی جدید",
+    "message_placeholder": "اینجا بنویس…",
+    "send": "ارسال",
+    "thinking": "در حال فکر کردن…",
+    "change_style": "تغییر سبک گفت‌وگو",
+    "compare_styles": "مقایسه پاسخ‌ها",
+    "choose_style": "این سبک رو انتخاب می‌کنم",
+    "memory_used": "این پاسخ از یکی از نکته‌های حافظه کمک گرفته",
+    "see_memory": "دیدن نکته حافظه",
+    "memory_edit": "ویرایش",
+    "memory_delete": "حذف از حافظه",
+    "insight_inaccurate": "این برداشت دقیق نیست",
+    "start_assessment": "شروع آزمون",
+    "continue_assessment": "ادامه آزمون",
+    "save_to_profile": "افزودن به شناخت من",
+    "assessment_disclaimer": "این یک تمرین آزمایشی برای خودشناسی است و تشخیص پزشکی نیست.",
+    "retry": "تلاش دوباره",
+    "settings": "تنظیمات",
+    "privacy": "حریم خصوصی"
+  }
+}
