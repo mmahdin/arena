@@ -44,3 +44,5 @@ ATTRIBUTIONS.md
 /build
 
 *.patch
+
+.venv/
