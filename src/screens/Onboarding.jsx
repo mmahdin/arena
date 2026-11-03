@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Flame, Landmark } from 'lucide-react';
 import { APPROACHES, QUESTIONS, REVIEWS, VOICES } from '../data';
 import {
@@ -130,10 +130,13 @@ function Experts({ navigate, back }) {
   );
 }
 
-function NameScreen({ navigate, back, name, setName }) {
+function NameScreen({ navigate, back, name, setName, profileEdit = false, savingProfile = false, onSaveName }) {
   const submit = (event) => {
     event.preventDefault();
-    if (name.trim()) nextFrom('name', navigate);
+    if (name.trim()) {
+      if (profileEdit) void onSaveName();
+      else nextFrom('name', navigate);
+    }
   };
   return (
     <Shell back={back} className="name-screen">
@@ -149,7 +152,7 @@ function NameScreen({ navigate, back, name, setName }) {
           autoComplete="given-name"
           maxLength={30}
         />
-        <PrimaryButton type="submit" disabled={!name.trim()}>ادامه</PrimaryButton>
+        <PrimaryButton type="submit" disabled={!name.trim() || savingProfile}>{profileEdit ? (savingProfile ? 'در حال ذخیره…' : 'ذخیره نام') : 'ادامه'}</PrimaryButton>
       </form>
     </Shell>
   );
@@ -191,13 +194,14 @@ function Interstitial({ route, navigate, back }) {
   );
 }
 
-function Privacy({ navigate, back, answers, setAnswer }) {
-  const sharing = answers.shareAnonymized ?? true;
+function Privacy({ navigate, back, privacySharing = true, privacyLoading = false, privacySaving = false,
+  privacyLoaded = false, privacyError = false, onTogglePrivacy, onRetryPrivacy }) {
+  const sharing = privacySharing;
   return (
     <Shell back={back} className="privacy-screen">
       <PageHeader
         title="تعهد ما به تو."
-        description="سلامت روان، مسئله‌ای شخصی و خصوصی است. گفت‌وگوها امن روی گوشی تو ذخیره می‌شوند و هر وقت بخواهی می‌توانی حسابت را حذف کنی."
+        description="سلامت روان موضوعی خصوصی است. گفت‌وگوهای تو برای ادامهٔ گفتگو در حساب همراه نگهداری می‌شوند."
       />
       <img className="privacy-art" src="/assets/privacy-flower.png" alt="گل با نشان قفل" />
       <button
@@ -205,11 +209,17 @@ function Privacy({ navigate, back, answers, setAnswer }) {
         className="privacy-card"
         role="switch"
         aria-checked={sharing}
-        onClick={() => setAnswer('shareAnonymized', !sharing)}
+        aria-disabled={!privacyLoaded || privacyLoading || privacySaving}
+        disabled={!privacyLoaded || privacyLoading || privacySaving}
+        onClick={onTogglePrivacy}
       >
         <span className={`toggle ${sharing ? 'is-on' : ''}`} aria-hidden="true"><span /></span>
-        <span>با اشتراک‌گذاری گفت‌وگوهای ناشناسم به بهترشدن همراه برای همه کمک می‌کنم.</span>
+        <span>اشتراک‌گذاری اختیاری گفتگوها</span>
       </button>
+      {privacyError && <div className="connected-notice" role="alert">
+        <p>ذخیره یا دریافت تنظیمات انجام نشد.</p>
+        <button type="button" onClick={onRetryPrivacy}>تلاش دوباره</button>
+      </div>}
       <PrimaryButton onClick={() => nextFrom('privacy', navigate)}>ادامه</PrimaryButton>
     </Shell>
   );
@@ -256,6 +266,8 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
 }
 
 function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
+  const advanceTimer = useRef(null);
+  useEffect(() => () => window.clearTimeout(advanceTimer.current), []);
   const config = QUESTIONS[route];
   const value = answers[route];
   const selected = config.type === 'multi' ? (value || []) : value;
@@ -265,7 +277,8 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
   const choose = (option) => {
     if (config.type === 'single') {
       setAnswer(route, option);
-      window.setTimeout(() => nextFrom(route, navigate), 160);
+      window.clearTimeout(advanceTimer.current);
+      advanceTimer.current = window.setTimeout(() => nextFrom(route, navigate), 160);
       return;
     }
     const exists = selected.includes(option);
@@ -341,50 +354,87 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
   );
 }
 
-function ApproachScreen({ navigate, back, answers, setAnswer }) {
+function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = false, savingProfile = false, onSaveApproach }) {
   const initial = answers.approach ? Math.max(0, APPROACHES.findIndex((item) => item.name === answers.approach)) : 2;
   const [active, setActive] = useState(initial);
-  const touchStart = useRef(0);
+  const [direction, setDirection] = useState(1);
+  const [drag, setDrag] = useState(0);
+  const gesture = useRef(null);
+  const selectedIndex = useRef(initial);
   const approach = APPROACHES[active];
   const select = (index) => {
     const next = Math.max(0, Math.min(APPROACHES.length - 1, index));
+    if (next === selectedIndex.current) return;
+    setDirection(next > selectedIndex.current ? 1 : -1);
+    selectedIndex.current = next;
     setActive(next);
     setAnswer('approach', APPROACHES[next].name);
+  };
+  const finishGesture = (event, cancelled = false) => {
+    const start = gesture.current;
+    if (!start || start.id !== event.pointerId) return;
+    gesture.current = null;
+    setDrag(0);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    if (!cancelled && Math.abs(dx) > 35 && Math.abs(dx) > Math.abs(dy) * 1.2) select(active + (dx < 0 ? 1 : -1));
   };
   return (
     <Shell theme="beige" back={back} className="approach-screen">
       <PageHeader title="کدام سبک گفت‌وگو را ترجیح می‌دهی؟" />
       <div
         className="approach-stage"
-        onTouchStart={(event) => { touchStart.current = event.touches[0].clientX; }}
-        onTouchEnd={(event) => {
-          const distance = touchStart.current - event.changedTouches[0].clientX;
-          if (Math.abs(distance) > 35) select(active + (distance > 0 ? 1 : -1));
+        role="region"
+        aria-label="نمونهٔ سبک گفت‌وگو"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          const target = { ArrowLeft: active + 1, ArrowRight: active - 1, Home: 0, End: APPROACHES.length - 1 }[event.key];
+          if (target === undefined) return;
+          event.preventDefault();
+          select(target);
         }}
+        onPointerDown={(event) => {
+          if (!event.isPrimary || event.button !== 0 || event.target.closest('button')) return;
+          gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={(event) => {
+          const start = gesture.current;
+          if (!start || start.id !== event.pointerId) return;
+          const dx = event.clientX - start.x;
+          if (Math.abs(dx) > Math.abs(event.clientY - start.y)) setDrag(Math.max(-48, Math.min(48, dx * 0.35)));
+        }}
+        onPointerUp={finishGesture}
+        onPointerCancel={(event) => finishGesture(event, true)}
+        onLostPointerCapture={(event) => finishGesture(event, true)}
       >
-        <span className="approach-peek approach-peek--before" />
-        <article className="approach-card" key={approach.name}>
+        <button type="button" className="approach-peek approach-peek--before" aria-label="سبک قبلی" disabled={active === 0} onClick={() => select(active - 1)} />
+        <article className={`approach-card${drag ? ' is-dragging' : ''}`} style={{ '--approach-drag': `${drag}px` }} aria-live="polite" aria-atomic="true">
           <p className="approach-user">سلام همراه، کمی گیر کرده‌ام.</p>
-          <p className="approach-response">{approach.response}</p>
+          <p className="approach-response" key={approach.name} style={{ '--approach-enter': `${direction * 18}px` }}>{approach.response}</p>
         </article>
-        <span className="approach-peek approach-peek--after" />
+        <button type="button" className="approach-peek approach-peek--after" aria-label="سبک بعدی" disabled={active === APPROACHES.length - 1} onClick={() => select(active + 1)} />
       </div>
       <PagerDots count={APPROACHES.length} active={active} onChange={select} />
-      <PrimaryButton className="with-skip" onClick={() => nextFrom('approach', navigate)}>امتحان «{approach.name}»</PrimaryButton>
-      <button type="button" className="skip-button" onClick={() => nextFrom('approach', navigate)}>فعلاً رد کن</button>
+      <PrimaryButton className="with-skip" disabled={savingProfile} onClick={() => {
+        if (profileEdit) onSaveApproach(approach.name);
+        else { setAnswer('approach', approach.name); nextFrom('approach', navigate); }
+      }}>{profileEdit ? (savingProfile ? 'در حال ذخیره…' : 'ذخیرهٔ سبک گفت‌وگو') : `امتحان «${approach.name}»`}</PrimaryButton>
+      <button type="button" className="skip-button" onClick={() => profileEdit ? back() : nextFrom('approach', navigate)}>{profileEdit ? 'انصراف' : 'فعلاً رد کن'}</button>
     </Shell>
   );
 }
 
-function Ready({ navigate }) {
+function Ready({ navigate, savingProfile = false }) {
   return (
     <Shell className="ready-screen">
       <PageHeader
         title="همراهِ تو بالاخره آماده است."
-        description="ممنون که این‌قدر از خودت گفتی! اگر آماده‌ای، همراه از اینجا به بعد با هدف‌ها و نیازهایت هماهنگ می‌شود."
+        description="نام و سبک گفت‌وگویت ثبت می‌شود. هر زمان آماده بودی می‌توانی شروع کنی."
       />
       <div className="ready-art artwork-wrap"><img src="/assets/ready-daisy.png" alt="گل همراه در حال قدم‌زدن" /></div>
-      <PrimaryButton onClick={() => nextFrom('ready', navigate)}>آماده‌ام</PrimaryButton>
+      <PrimaryButton disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>{savingProfile ? 'در حال ذخیره…' : 'آماده‌ام'}</PrimaryButton>
     </Shell>
   );
 }

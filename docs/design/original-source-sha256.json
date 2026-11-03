@@ -1,0 +1,19 @@
+{
+  "index.html": "e0777f66f70a3352bcd76fcf6086a0158c5346abbfa66c4bb98cd113510e1330",
+  "public/assets/expert-man.jpg": "e2584d73f10da29bd073dbb2543c3e48299c559d294a03542f7c76827deca966",
+  "public/assets/expert-woman.jpg": "47b9cb6d569b465abef91a5360817d1eeb45906be82e58c4749f8bbe51356d1a",
+  "public/assets/flower-person-large.png": "dec8f64e053054c75d813022d71cd7123c4965052c799e1ca1abaa1195d576f7",
+  "public/assets/flower-person-medium.png": "7ff85513bb1a395af3cbca567e1d9de6e55cbb5efa7a1652b351950b85b6408a",
+  "public/assets/flower-person-small.png": "b79b6b6855b8bb99e82fb04cc92c05b5238c07ae977cfb36bbec0fa01dc69051",
+  "public/assets/flower-person-tall.png": "7ffea4e69a464c79a1101ded14b10e66ab8940b0270d37253f0e920dd11585be",
+  "public/assets/privacy-flower.png": "5fe7899a5d6be2fe2a900e47745b8c5eaadd7a6a816749df85a9b999d2e09c25",
+  "public/assets/ready-daisy.png": "9de0d76a7f5903d3ae6dd6128d633ff13416a6ba47982dfb4aef628e0c88b3d8",
+  "public/assets/welcome-figures.png": "04c22aed54014f3649143f5f9400288c4d248596160b4dd8735f3305db23d596",
+  "src/App.jsx": "07a3f17bbdac0bd6c002c5f6c1bbabf2508886df1c560002ebe91d9b3ba332b2",
+  "src/components/UI.jsx": "285d36e204add908269910abb49eb1fa6326c3d52dc7a217ab49b9d381c9df23",
+  "src/data.js": "ffe3a8005b81bfc847a4c7c71624b8873c1f2de1f499dcb7cd4d8742f211c9f5",
+  "src/main.jsx": "4c35c319677b1346c9ba0272c8efb0a28c386ca4efb76141865f98331617bf60",
+  "src/screens/Main.jsx": "3997cd862d7761b95a7d8f864cede3963aa4ee37fbc475ba14e7c145f8a2e15c",
+  "src/screens/Onboarding.jsx": "9c206c3ae59f739ef957f0ac77b446e97cef74e16757d2edffce730e0073e471",
+  "src/styles.css": "62b816d40ae765ecab39f556e9602f021d8b0549a5ff0c30fe79a1967088f4c4"
+}

@@ -1,0 +1,535 @@
+openapi: 3.1.0
+info:
+  title: Wellbeing Internal MVP API
+  version: 0.1.0
+  description: Internal synthetic-data prototype only. NOT a public mental-health product.
+servers:
+  - url: http://127.0.0.1:8080
+paths:
+  /health/live:
+    get:
+      operationId: getLiveness
+      responses:
+        '200': {description: Liveness OK}
+  /health/ready:
+    get:
+      operationId: getReadiness
+      responses:
+        '200': {description: SQL Server available}
+        '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/dev/identity-session:
+    post:
+      operationId: findOrCreateLocalSyntheticSession
+      summary: LOCAL ONLY — resolve or create test identity from a phone-shaped identifier (NO OTP or authentication)
+      description: >-
+        Only APP_ENV=local with ALLOW_DEV_LOGIN=true. Accepts the synthetic
+        format 09xxxxxxxxx (11 digits), including Persian/Arabic digits.
+        This is not phone verification. Only synthetic local test values are authorized. Same identifier resolves to the same account;
+        session cookie is HttpOnly and revocable. No phone is stored in plaintext.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [phone]
+              properties:
+                phone: {type: string, minLength: 11, maxLength: 11, description: Local-only phone-shaped 09xxxxxxxxx identifier}
+      responses:
+        '200':
+          description: Existing or newly created local test account; sets HttpOnly session cookie
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, created]
+                properties:
+                  ok: {type: boolean}
+                  created: {type: boolean}
+        '400': {$ref: '#/components/responses/Problem'}
+        '403': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/dev/users:
+    get:
+      operationId: listDevUsers
+      summary: LOCAL ONLY — enumerate synthetic test accounts
+      responses:
+        '200':
+          description: Test user list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/DevUser'}}
+  /api/v1/dev/session:
+    post:
+      operationId: createDevSession
+      summary: LOCAL ONLY — switch to synthetic test identity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId: {$ref: '#/components/schemas/UUID'}
+      responses:
+        '200': {description: Revocable local test session issued; replaces and revokes the previous browser session}
+        '400': {$ref: '#/components/responses/Problem'}
+        '500': {$ref: '#/components/responses/Problem'}
+        '404': {$ref: '#/components/responses/Problem'}
+    delete:
+      operationId: deleteDevSession
+      responses:
+        '204': {description: Development session revoked and cookie cleared (idempotent)}
+        '500': {$ref: '#/components/responses/Problem'}
+  /api/v1/me:
+    get:
+      operationId: getCurrentProfile
+      security: [{devSession: []}]
+      responses:
+        '200':
+          description: Current profile
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Profile'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/me/onboarding-progress:
+    get:
+      operationId: getOnboardingProgress
+      security: [{devSession: []}]
+      description: Read the furthest reached illustrated onboarding screen for the current session. No questionnaire answers are stored.
+      responses:
+        '200':
+          description: Saved route cursor, indexed by Hamrah v1 onboarding flow (0..23)
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/OnboardingProgress'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+    put:
+      operationId: advanceOnboardingProgress
+      security: [{devSession: []}]
+      description: >-
+        Only current session owner. Cursor can advance exactly one index at a time;
+        previously reached indices are idempotent and do not lower progress. Completion
+        still occurs exclusively through PATCH /me/profile. The API never accepts answers.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [furthestStep]
+              properties:
+                furthestStep: {type: integer, minimum: 0, maximum: 23}
+      responses:
+        '200':
+          description: Current highest completed screen index, never decreased
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/OnboardingProgress'}
+        '400': {$ref: '#/components/responses/Problem'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '409': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/me/profile:
+    patch:
+      operationId: updateCurrentProfile
+      description: Completes onboarding on first valid save; subsequent edits preserve onboardingCompletedAt. Name is trimmed; blank/control/direction-override characters are rejected.
+      security: [{devSession: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ProfileInput'}
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Profile'}
+        '400': {$ref: '#/components/responses/Problem'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/me/daily-reflections:
+    get:
+      operationId: listDailyReflections
+      summary: List up to 30 recent explicitly authored daily reflections
+      security: [{devSession: []}]
+      responses:
+        '200':
+          description: Most recent entries, newest day first
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/DailyReflection'}}
+        '401': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/me/daily-reflections/{date}:
+    parameters:
+      - name: date
+        in: path
+        required: true
+        description: The calendar day chosen by the user (YYYY-MM-DD); no inferred timezone
+        schema: {type: string, format: date, pattern: '^\d{4}-\d{2}-\d{2}$'}
+    get:
+      operationId: getDailyReflection
+      security: [{devSession: []}]
+      responses:
+        '200':
+          description: Reflection explicitly saved on this calendar day
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/DailyReflection'}
+        '400': {$ref: '#/components/responses/Problem'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '404': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+    put:
+      operationId: saveDailyReflection
+      summary: Create or replace one user-authored entry on the chosen day
+      description: Owner-scoped, idempotent by user and date. Never generated by AI or read into its prompt.
+      security: [{devSession: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [text]
+              properties:
+                text: {type: string, minLength: 1, maxLength: 4000}
+      responses:
+        '200':
+          description: Persisted entry
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/DailyReflection'}
+        '400': {$ref: '#/components/responses/Problem'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+    delete:
+      operationId: deleteDailyReflection
+      summary: Delete own entry, idempotently
+      security: [{devSession: []}]
+      responses:
+        '204': {description: Entry removed or was already absent}
+        '400': {$ref: '#/components/responses/Problem'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/me/privacy-preferences:
+    get:
+      operationId: getPrivacyPreferences
+      security: [{devSession: []}]
+      description: Internal UI preference only; no messages are shared or transmitted by this endpoint.
+      responses:
+        '200':
+          description: Current privacy preference (defaults to true for internal synthetic accounts)
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PrivacyPreferences'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '404': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+    put:
+      operationId: setPrivacyPreferences
+      security: [{devSession: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PrivacyPreferences'}
+      responses:
+        '200':
+          description: Preference saved; does not initiate conversation sharing
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PrivacyPreferences'}
+        '400': {$ref: '#/components/responses/Problem'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '404': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/me/bookmarks:
+    get:
+      operationId: listSavedMessages
+      description: Latest 100 saved messages belonging to the current session user, newest first. No message contents in logs.
+      security: [{devSession: []}]
+      responses:
+        '200':
+          description: Owned saved messages
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/SavedMessage'}}
+        '401': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/messages/{messageId}/bookmark:
+    parameters:
+      - name: messageId
+        in: path
+        required: true
+        schema: {$ref: '#/components/schemas/UUID'}
+    put:
+      operationId: saveMessage
+      summary: Idempotently bookmark an existing owned message
+      security: [{devSession: []}]
+      responses:
+        '200':
+          description: Saved or already saved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [saved]
+                properties:
+                  saved: {type: boolean, const: true}
+        '400': {$ref: '#/components/responses/Problem'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '404': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+    delete:
+      operationId: unsaveMessage
+      summary: Idempotently remove bookmark on existing owned message
+      security: [{devSession: []}]
+      responses:
+        '204': {description: Bookmark removed or already absent}
+        '400': {$ref: '#/components/responses/Problem'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '404': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/conversations:
+    get:
+      operationId: listConversations
+      security: [{devSession: []}]
+      responses:
+        '200':
+          description: Ordered recent conversations (max 100)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/Conversation'}}
+        '401': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+    post:
+      operationId: createConversation
+      description: Returns 409 ONBOARDING_REQUIRED until the current tester completes onboarding.
+      security: [{devSession: []}]
+      responses:
+        '201':
+          description: Conversation created (only after onboarding is completed)
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Conversation'}
+        '409': {$ref: '#/components/responses/Problem'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/conversations/{id}/messages:
+    parameters: [{$ref: '#/components/parameters/ConversationID'}]
+    get:
+      operationId: listMessages
+      security: [{devSession: []}]
+      responses:
+        '200':
+          description: Latest 100 messages in chronological order
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/Message'}}
+        '404': {$ref: '#/components/responses/Problem'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/conversations/{id}:
+    parameters: [{$ref: '#/components/parameters/ConversationID'}]
+    patch:
+      operationId: renameConversation
+      summary: Rename a conversation manually; automatic titles will not overwrite it
+      security: [{devSession: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [title]
+              properties:
+                title: {type: string, minLength: 1, maxLength: 60}
+      responses:
+        '200':
+          description: Renamed conversation
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Conversation'}
+        '400': {$ref: '#/components/responses/Problem'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '404': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+    delete:
+      operationId: deleteConversation
+      security: [{devSession: []}]
+      responses:
+        '204': {description: Deleted}
+        '404': {$ref: '#/components/responses/Problem'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/conversations/{id}/turns:
+    parameters: [{$ref: '#/components/parameters/ConversationID'}]
+    post:
+      operationId: submitTurn
+      summary: Single non-streaming AI turn with explicit idempotent clientTurnId
+      description: >-
+        Requires completed onboarding. A repeated clientTurnId with identical text
+        replays the saved answer. Changed text with the same ID is rejected (400).
+        While another request owns the turn, return 409 TURN_ALREADY_PROCESSING;
+        retry that same ID (do not mint another one). A processing reservation is
+        reclaimable after a 120-second lease if the original worker crashes.
+        Only the current lease holder can commit or release the pending turn.
+        The response remains ordinary JSON; no streaming is available.
+      security: [{devSession: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [clientTurnId, message]
+              properties:
+                clientTurnId: {$ref: '#/components/schemas/UUID'}
+                message: {type: string, minLength: 1, maxLength: 4000}
+      responses:
+        '200':
+          description: Answer generated and stored atomically with user message
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TurnResult'}
+        '400': {$ref: '#/components/responses/Problem'}
+        '404': {$ref: '#/components/responses/Problem'}
+        '409': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+        '401': {$ref: '#/components/responses/Problem'}
+components:
+  securitySchemes:
+    devSession:
+      type: apiKey
+      in: cookie
+      name: wellbeing_dev_session
+      description: Local synthetic identity selector. HMAC cookie plus revocable SQL session; never use for real users.
+  parameters:
+    ConversationID:
+      name: id
+      in: path
+      required: true
+      schema: {$ref: '#/components/schemas/UUID'}
+  responses:
+    Problem:
+      description: Stable machine error, without private content
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+  schemas:
+    UUID: {type: string, format: uuid}
+    DevUser:
+      type: object
+      required: [id, testKey]
+      properties:
+        id: {$ref: '#/components/schemas/UUID'}
+        testKey: {type: string}
+    OnboardingProgress:
+      type: object
+      required: [furthestStep, flowVersion]
+      properties:
+        furthestStep: {type: integer, minimum: 0, maximum: 23}
+        flowVersion: {type: string, enum: [hamrah-v1]}
+    PrivacyPreferences:
+      type: object
+      additionalProperties: false
+      required: [conversationSharingEnabled]
+      properties:
+        conversationSharingEnabled: {type: boolean}
+    DailyReflection:
+      type: object
+      additionalProperties: false
+      required: [date, text, createdAt, updatedAt]
+      properties:
+        date: {type: string, format: date}
+        text: {type: string, minLength: 1, maxLength: 4000}
+        createdAt: {type: string, format: date-time}
+        updatedAt: {type: string, format: date-time}
+    ProfileInput:
+      type: object
+      description: Required for initial onboarding and subsequent full profile edits. Unknown keys are not part of the contract.
+      required: [displayName, conversationStyle]
+      properties:
+        displayName: {type: string, minLength: 1, maxLength: 60}
+        conversationStyle: {type: string, enum: [balanced, listening, teaching, gentle_guidance, collaborative, guidance]}
+    Profile:
+      type: object
+      required: [userId, displayName, conversationStyle, onboardingCompletedAt]
+      properties:
+        userId: {$ref: '#/components/schemas/UUID'}
+        displayName: {type: string, description: Empty before onboarding}
+        conversationStyle: {type: string, enum: [balanced, listening, teaching, gentle_guidance, collaborative, guidance]}
+        onboardingCompletedAt: {type: [string, 'null'], format: date-time}
+    Conversation:
+      type: object
+      required: [id, title, createdAt, updatedAt]
+      properties:
+        id: {$ref: '#/components/schemas/UUID'}
+        title: {type: string}
+        createdAt: {type: string, format: date-time}
+        updatedAt: {type: string, format: date-time}
+    Message:
+      type: object
+      required: [id, role, content, createdAt]
+      properties:
+        id: {$ref: '#/components/schemas/UUID'}
+        role: {type: string, enum: [user, assistant]}
+        content: {type: string}
+        createdAt: {type: string, format: date-time}
+    SavedMessage:
+      type: object
+      required: [id, conversationId, role, content, createdAt, savedAt]
+      properties:
+        id: {$ref: '#/components/schemas/UUID'}
+        conversationId: {$ref: '#/components/schemas/UUID'}
+        role: {type: string, enum: [user, assistant]}
+        content: {type: string}
+        createdAt: {type: string, format: date-time}
+        savedAt: {type: string, format: date-time}
+    TurnResult:
+      type: object
+      required: [userMessageId, assistantMessageId, reply, promptVersion]
+      properties:
+        userMessageId: {$ref: '#/components/schemas/UUID'}
+        assistantMessageId: {$ref: '#/components/schemas/UUID'}
+        reply: {type: string}
+        promptVersion: {type: string}
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: {type: string}
+        title: {type: string}
+        status: {type: integer}
+        code: {type: string}
+        requestId: {type: string}

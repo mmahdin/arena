@@ -1,26 +1,15 @@
 import React from 'react';
 import {
   ArrowRight,
-  BatteryMedium,
   Check,
   Flower2,
   Plus,
-  Signal,
   Star,
-  Wifi,
 } from 'lucide-react';
 
-export function StatusBar({ dark = false }) {
-  return (
-    <div className={`status-bar ${dark ? 'status-bar--dark' : ''}`} aria-hidden="true">
-      <span className="status-time">۹:۰۲</span>
-      <div className="status-icons">
-        <Signal size={15} strokeWidth={2.3} />
-        <Wifi size={15} strokeWidth={2.3} />
-        <BatteryMedium size={20} strokeWidth={2.1} />
-      </div>
-    </div>
-  );
+export function StatusBar() {
+  // Keep the shared header spacing and safe area; device chrome belongs to the OS.
+  return <div className="screen-top-inset" aria-hidden="true" />;
 }
 
 export function BackButton({ onClick, dark = false, floating = false, label = 'بازگشت' }) {
