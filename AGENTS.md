@@ -1,3 +1,16 @@
+## Brand identity (2026-11-03) — read before touching illustrations
+The floral Ash-derived artwork has been replaced by the in-house identity **«هم‌سنگ»**: two
+stones leaning together with one ember in the notch. Geometry is generated in
+`src/brand/geometry.js`; scenes are composed in `src/brand/scenes.js` and rendered by
+`src/brand/Scene.jsx` / `Mark.jsx`. `public/brand/**`, `public/favicon.svg` and both copies of
+`docs/brand/Hamrah-Brand-Book.html` are generated from that module — regenerate with
+`node scripts/brand/build-assets.mjs` and `node scripts/brand/build-book.mjs` rather than
+hand-editing; a test fails if the committed SVGs drift from the geometry. Rules: exactly one
+ember per frame; no faces on characters; every scene rests on one ground line; never delete the
+legacy `public/assets/**` files (they are the comparison baseline). Full record:
+`docs/brand/IDENTITY.md`. `docs/design/original-source-sha256.json` no longer matches the
+redesigned screens by design; `check:foundation` still verifies file presence and structure.
+
 ## Temporary onboarding exclusions
 `testimonials`, `research`, and `experts` are temporarily excluded from onboarding by user request. Keep their components/assets and the canonical `FLOW`/hamrah-v1 ordinals intact. `EXCLUDED_ONBOARDING_ROUTES` in `src/features/profile/navigation.js` controls the visible flow (21 screens). Welcome goes to Name, whose original persisted ordinal remains4. Advance excluded ordinals sequentially through the existing API; never renumber saved progress or shorten the remaining intake. Research remains available from the completed-user About menu.
 

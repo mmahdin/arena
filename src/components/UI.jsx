@@ -2,10 +2,10 @@ import React from 'react';
 import {
   ArrowRight,
   Check,
-  Flower2,
   Plus,
   Star,
 } from 'lucide-react';
+import { Mark } from '../brand/Mark.jsx';
 
 export function StatusBar() {
   // Keep the shared header spacing and safe area; device chrome belongs to the OS.
@@ -102,7 +102,7 @@ export function EnvelopeArt({ onClick }) {
         <path d="M332 148 L214 69" />
       </svg>
       <span className="envelope-date">۳۱ اکتبر</span>
-      <span className="wax-seal"><Flower2 size={34} strokeWidth={1.25} /></span>
+      <span className="wax-seal"><Mark tone="reverse" size={30} label={null} /></span>
     </>
   );
 
@@ -112,6 +112,7 @@ export function EnvelopeArt({ onClick }) {
   return <div className="envelope-art">{content}</div>;
 }
 
+/** @deprecated Use SCENES.day from brand/scenes.js. Kept for compatibility. */
 export function ScribbleArt() {
   return (
     <svg className="scribble-art" viewBox="0 0 260 190" aria-hidden="true">
@@ -132,6 +133,7 @@ export function ScribbleArt() {
   );
 }
 
+/** @deprecated Use SCENES.insight from brand/scenes.js. Kept for compatibility. */
 export function ConstellationArt() {
   return (
     <svg className="constellation-art" viewBox="0 0 390 210" aria-hidden="true">
@@ -166,7 +168,7 @@ export function InsightSpiral() {
 export function MiniEnvelope() {
   return (
     <svg viewBox="0 0 100 72" className="mini-envelope" aria-hidden="true">
-      <path d="M8 14 C27 8 63 13 91 18 L86 61 C59 65 30 57 9 53 Z" fill="#fff" />
+      <path d="M8 14 C27 8 63 13 91 18 L86 61 C59 65 30 57 9 53 Z" fill="#f7f5ef" />
       <g fill="none" stroke="#24231f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
         <path d="M10 14 L51 42 L90 18" />
         <path d="M9 53 L39 31" />

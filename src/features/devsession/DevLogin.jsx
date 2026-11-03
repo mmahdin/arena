@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Flower2, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { PageHeader, PrimaryButton, StatusBar } from '../../components/UI';
+import { Lockup, Mark } from '../../brand/Mark.jsx';
 import { normalizeTestPhone } from './phone';
 
 /** Simple phone-shaped entry; backend runs only in private dev environments. */
@@ -20,9 +21,9 @@ export default function DevLogin({ session, login, retry }) {
     <section className="app-screen theme-light dev-login-screen" aria-busy={loading}>
       <StatusBar />
       <PageHeader title="به همراه خوش اومدی." />
-      <div className="dev-login-art" aria-hidden="true"><img src="/assets/ready-daisy.png" alt="" /></div>
+      <div className="dev-login-art" aria-hidden="true"><Lockup tone="ink" tagline="با هم، آرام‌تر" size="md" /></div>
       <div className="dev-login-panel">
-        <div className="dev-login-heading"><Flower2 size={20} /><strong>ورود به همراه</strong></div>
+        <div className="dev-login-heading"><Mark size={22} label={null} /><strong>ورود به همراه</strong></div>
         {loading && <p role="status">در حال بررسی نشست…</p>}
         {offline && <div className="dev-login-error" role="alert">
           <p>{session.error?.action === 'logout' ? 'خروج از حساب انجام نشد.' : 'ارتباط با همراه برقرار نشد.'}</p>
