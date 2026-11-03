@@ -779,3 +779,213 @@ svg { flex-shrink: 0; }
 .jdf-footer { flex-wrap: wrap; margin-top: 16px; padding-top: 12px; border-top: 1px solid #d3cabc; }
 .jdf-footer-button { padding-inline: 8px; font-size: 12px; font-weight: 600; }
 @media (max-width: 374px) { .jdf-dialog { padding: 14px; } }
+
+/* ==========================================================================
+   HAMRAH BRAND SYSTEM — «همسنگ», the companion stone
+   Two stones lean together and leave an ember in the crook between them.
+   The mark's halves become the app's characters; the ember is the only warm
+   thing in any frame. Tokens below are additive: nothing above is overridden
+   except the surfaces that previously carried the borrowed floral artwork.
+   ========================================================================== */
+:root {
+  /* Brand palette — the existing designer tokens, plus the one new ink. */
+  --brand-ink: #23201b;
+  --brand-dark: #12110d;
+  --brand-marble: #f3f2ee;
+  --brand-sand: #cec4b8;
+  --brand-ember: #c1664c;
+  --brand-ember-soft: #d98a72;
+  --brand-mist: #d5d9f7;
+  --brand-sun: #f6cf98;
+  --brand-moss: #9eda9e;
+  --brand-clayline: #c9c1b4;
+
+  /* The mark's own rhythm: two stones, one gap, never a third shape. */
+  --brand-mark-gap: 0.16em;
+  --brand-radius-stone: 42% 58% 55% 45% / 52% 46% 54% 48%;
+}
+
+/* ---------- Scenes ---------- */
+.brand-scene { display: block; width: 100%; height: 100%; overflow: visible; }
+.artwork-wrap .brand-scene { width: 100%; height: 100%; }
+
+/* Welcome: the pair, grounded and calm. */
+.welcome-art .brand-scene { width: 100%; height: 100%; }
+
+/* Interstitials keep their original stage; the scene scales into it. */
+.interstitial-art .brand-scene { width: 100%; height: 100%; object-fit: contain; }
+
+/* Name: a companion looks up at the ember it is about to be given. */
+.name-art {
+  position: absolute;
+  top: 46%;
+  inset-inline: 24px;
+  height: 34%;
+  pointer-events: none;
+  opacity: .98;
+}
+.name-art .brand-scene { width: 100%; height: 100%; }
+.name-screen .name-input { position: relative; z-index: 2; }
+.name-screen form { position: relative; z-index: 2; }
+
+/* Privacy: the vessel stone holds the ember. */
+.privacy-art {
+  position: absolute;
+  top: 46%;
+  inset-inline-start: 50%;
+  width: min(58%, 214px);
+  height: 116px;
+  transform: translateX(50%);
+  pointer-events: none;
+}
+.privacy-art .brand-scene { width: 100%; height: 100%; }
+
+/* Ready: the walk. */
+.ready-art .brand-scene { width: 100%; height: 100%; }
+
+/* Day + Insight panels: the scene sits in the original art band. */
+.day-scene {
+  position: absolute;
+  top: 24px;
+  inset-inline: 0;
+  height: 190px;
+  pointer-events: none;
+}
+.insight-scene {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ---------- Mark, tile and lockup ---------- */
+.brand-mark { display: block; flex-shrink: 0; }
+.brand-mark--reverse { color: var(--brand-marble); }
+
+.brand-tile {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 30%;
+  overflow: hidden;
+}
+.brand-tile__field { position: absolute; inset: 0; background: var(--brand-ink); border-radius: inherit; }
+.brand-tile .brand-scene { position: relative; width: 66%; height: 66%; }
+
+.brand-lockup { display: inline-flex; align-items: center; gap: 12px; }
+.brand-lockup__text { display: grid; gap: 2px; min-width: 0; }
+.brand-lockup__name {
+  font-family: 'Noto Naskh Arabic Variable', 'Estedad Variable', serif;
+  font-size: 26px;
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -.02em;
+}
+.brand-lockup__tagline {
+  color: #6f6a61;
+  font-size: 11px;
+  font-weight: 420;
+  letter-spacing: .01em;
+}
+.brand-lockup--reverse .brand-lockup__name { color: var(--brand-marble); }
+.brand-lockup--reverse .brand-lockup__tagline { color: #a8a29a; }
+.brand-lockup--sm .brand-lockup__name { font-size: 20px; }
+.brand-lockup--sm .brand-lockup__tagline { font-size: 10px; }
+
+/* Drawer brand: mark above the wordmark, the original type, new signature. */
+.drawer-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 73px 24px 0;
+  font-family: 'Noto Naskh Arabic Variable', serif;
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.drawer-brand .brand-mark { opacity: .96; }
+
+/* The wax seal now carries the mark, in the product's own clay red. */
+.wax-seal .brand-mark { width: 30px; height: 30px; }
+.wax-seal .brand-mark path { fill: #f6d9cf; }
+.wax-seal .brand-mark circle { fill: #81312a; }
+
+/* Dev login: the lockup replaces the borrowed daisy. */
+.dev-login-art { display: grid; place-items: center; }
+.dev-login-art .brand-lockup { flex-direction: column; gap: 8px; text-align: center; }
+.dev-login-art .brand-lockup__name { font-size: 34px; }
+.dev-login-art .brand-lockup__tagline { font-size: 12px; }
+
+@media (max-height: 740px) {
+  .name-art { top: 44%; height: 30%; }
+  .day-scene { height: 150px; top: 16px; }
+}
+
+/* ---------------------------------------------------------------------------
+   The ember breathes.
+   Only one thing in the product is ever warm, so only one thing may move:
+   the mark's ember. It breathes at resting rate (4s) while the companion is
+   listening, and quickens (1.6s) while it is thinking. All motion stops under
+   prefers-reduced-motion — the ember simply stays lit.
+   --------------------------------------------------------------------------- */
+.brand-scene .ember,
+.brand-scene circle:last-of-type:not(:first-of-type) { transform-box: fill-box; transform-origin: center; }
+
+.brand-mark.is-breathing circle,
+.brand-tile.is-breathing circle,
+.is-breathing .brand-scene circle { animation: ember-breathe 4s ease-in-out infinite; }
+
+.brand-mark.is-thinking circle,
+.is-thinking .brand-scene circle { animation: ember-breathe 1.6s ease-in-out infinite; }
+
+@keyframes ember-breathe {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .72; transform: scale(.88); }
+}
+
+/* The waiting dot in the chat typing indicator adopts the ember rhythm. */
+.typing-indicator i { background: var(--brand-ember); }
+.typing-indicator i:nth-child(1) { animation-delay: 0s; }
+
+/* The welcome pair: the two stones drift toward each other on first paint. */
+.welcome-art .brand-scene { animation: scene-arrive 620ms cubic-bezier(.2,.7,.2,1) both; }
+@keyframes scene-arrive {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Reduced motion: no breathing, no drift. */
+@media (prefers-reduced-motion: reduce) {
+  .brand-mark.is-breathing circle,
+  .brand-tile.is-breathing circle,
+  .is-breathing .brand-scene circle,
+  .brand-mark.is-thinking circle,
+  .is-thinking .brand-scene circle,
+  .welcome-art .brand-scene { animation: none !important; }
+}
+
+/* ---------- Focus + selection tuned to the brand ---------- */
+::selection { background: #e8c6b8; color: #171713; }
+.brand-scene { color: inherit; }
+
+/* ---------- Brand signatures inside the product ---------- */
+.chat-header-brand {
+  position: absolute;
+  top: 50px;
+  inset-inline-start: 50%;
+  transform: translateX(50%);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.chat-header-brand .brand-mark { opacity: .9; }
+
+.home-ember {
+  display: inline-grid;
+  place-items: center;
+  margin-top: 14px;
+  opacity: .85;
+}
+
+.history-title { display: flex; align-items: center; justify-content: center; gap: 9px; }
+.history-title-mark { display: inline-grid; place-items: center; opacity: .8; }

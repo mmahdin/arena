@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Flame, Landmark } from 'lucide-react';
+import Scene from '../brand/Scene.jsx';
+import { SCENES, PALETTES } from '../brand/scenes.js';
 import { APPROACHES, QUESTIONS, REVIEWS, VOICES } from '../data';
 import {
   BackButton,
@@ -59,7 +61,7 @@ function Welcome({ navigate }) {
         description="همراه، هوشی مصنوعی برای سلامت روان و حمایت عاطفی است."
       />
       <div className="welcome-art artwork-wrap">
-        <img src="/assets/welcome-figures.png" alt="دو شخصیت گل‌مانند دست‌در دست" />
+        <Scene scene={SCENES.welcome(PALETTES.light)} label="دو سنگِ همراه، دست‌در دست" />
       </div>
       <PrimaryButton onClick={() => nextFrom('welcome', navigate)}>شروع کنیم</PrimaryButton>
     </Shell>
@@ -141,6 +143,9 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
   return (
     <Shell back={back} className="name-screen">
       <PageHeader title="اسمت چیست؟" description="همراه با همین اسم صدایت می‌کند." />
+      <div className="name-art" aria-hidden="true">
+        <Scene scene={SCENES.name(PALETTES.light)} />
+      </div>
       <form onSubmit={submit}>
         <label className="sr-only" htmlFor="name">نام تو</label>
         <input
@@ -163,21 +168,25 @@ const INTERSTITIALS = {
     title: 'از ساده شروع کنیم.',
     description: 'همراه با دانستن زمینه بهتر کار می‌کند. هرچه بیشتر بداند، گفت‌وگوی اول بهتری خواهید داشت.',
     art: 'small',
+    alt: 'یک سنگِ همراه و سنگِ تازه‌ای که کنارش گذاشته شده',
   },
   'deeper-intro': {
     title: 'حالا کمی عمیق‌تر برویم.',
     description: 'به چند پرسش کوتاه جواب بده تا همراه بفهمد چرا اینجایی.',
     art: 'medium',
+    alt: 'سه سنگ که پله‌پله بالا می‌روند',
   },
   'know-intro': {
     title: 'حالا کمی بهتر بشناسیمت.',
     description: 'به همراه کمک کن تصویر بزرگ‌تری ببیند. هرچه بیشتر بگویی، بینش بهتری می‌گیری.',
     art: 'large',
+    alt: 'چند سنگ در کنار هم و دو نقطهٔ نور',
   },
   'almost-intro': {
     title: 'تقریباً رسیدی.',
     description: 'ممنون که این‌قدر باز بودی. حالا همراه را مطابق ترجیحاتت تنظیم کنیم.',
     art: 'tall',
+    alt: 'سنگ‌چین و سنگِ همراهی که کنارش ایستاده',
   },
 };
 
@@ -187,7 +196,7 @@ function Interstitial({ route, navigate, back }) {
     <Shell theme="dark" back={back} className={`interstitial-screen art-${item.art}`}>
       <PageHeader title={item.title} description={item.description} />
       <div className="interstitial-art artwork-wrap">
-        <img src={`/assets/flower-person-${item.art}.png`} alt="شخصیت گل‌مانند همراه" />
+        <Scene scene={SCENES[route](PALETTES.dark)} label={item.alt} />
       </div>
       <PrimaryButton light onClick={() => nextFrom(route, navigate)}>آماده‌ام</PrimaryButton>
     </Shell>
@@ -203,7 +212,9 @@ function Privacy({ navigate, back, privacySharing = true, privacyLoading = false
         title="تعهد ما به تو."
         description="سلامت روان موضوعی خصوصی است. گفت‌وگوهای تو برای ادامهٔ گفتگو در حساب همراه نگهداری می‌شوند."
       />
-      <img className="privacy-art" src="/assets/privacy-flower.png" alt="گل با نشان قفل" />
+      <div className="privacy-art" aria-hidden="true">
+        <Scene scene={SCENES.privacy(PALETTES.light)} />
+      </div>
       <button
         type="button"
         className="privacy-card"
@@ -433,7 +444,9 @@ function Ready({ navigate, savingProfile = false }) {
         title="همراهِ تو بالاخره آماده است."
         description="نام و سبک گفت‌وگویت ثبت می‌شود. هر زمان آماده بودی می‌توانی شروع کنی."
       />
-      <div className="ready-art artwork-wrap"><img src="/assets/ready-daisy.png" alt="گل همراه در حال قدم‌زدن" /></div>
+      <div className="ready-art artwork-wrap">
+        <Scene scene={SCENES.ready(PALETTES.light)} label="سنگ‌های همراه در حال قدم‌زدن" />
+      </div>
       <PrimaryButton disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>{savingProfile ? 'در حال ذخیره…' : 'آماده‌ام'}</PrimaryButton>
     </Shell>
   );

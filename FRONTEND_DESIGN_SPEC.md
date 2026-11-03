@@ -36,3 +36,26 @@
 - RTL keyboards and screen-reader labels work. Chat is not pretending to stream tokens.
 - No active real-user screen has unsupported clinical, research or privacy guarantees.
 - Every visible connected action either performs its advertised behavior or clearly says unavailable; demo-only art remains intact.
+
+---
+
+## Brand identity — «هم‌سنگ» (2026-11-03, visual layer only)
+
+The illustration system has been replaced with an in-house identity while every screen,
+route, layout value and interaction above is preserved. Full record: `docs/brand/IDENTITY.md`
+and the visual book `docs/brand/Hamrah-Brand-Book.html`.
+
+- **Mark:** two unequal stones leaning together, one ember in the notch, flat shared base.
+- **Characters:** the same pebble upright, two tapered legs, an ember at the heart, **no face**.
+  Poses: stand / walk / wave / offer / reach / hold / sit. Feeling is carried by posture.
+- **Rule of one ember:** at most one warm `#c1664c` element per frame.
+- **Source of truth:** `src/brand/geometry.js` → `src/brand/scenes.js` →
+  `src/brand/Scene.jsx`/`Mark.jsx`. `public/brand/*` and the brand book are generated from it.
+- **Slots changed:** welcome, name, the four interstitials, privacy, ready, home wax seal,
+  dev-login lockup, drawer brand, day and insight art bands, chat/history header signature,
+  favicon + manifest icons.
+- **Preserved:** `src/styles.css` tokens and layout, all copy, all routes, and every original
+  `/public/assets/*` file (kept, not deleted, for comparison).
+- `src/styles.css` remains the styling source of truth; the branded additions are appended in
+  clearly titled blocks and do not alter existing selectors except where an illustration slot
+  changed container.

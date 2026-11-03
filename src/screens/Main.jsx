@@ -8,7 +8,6 @@ import {
   ExternalLink,
   FileText,
   Flag,
-  Flower2,
   Grid2X2Plus,
   History as HistoryIcon,
   Info,
@@ -32,13 +31,14 @@ import { JalaliDateField } from '../components/date/JalaliDateField';
 import { gregorianDateOnlyToJalali, jalaliDateToGregorianDateOnly } from '../components/date/jalaliDate';
 import {
   BackButton,
-  ConstellationArt,
   EnvelopeArt,
   InsightSpiral,
   MiniEnvelope,
-  ScribbleArt,
   StatusBar,
 } from '../components/UI';
+import Scene from '../brand/Scene.jsx';
+import { Mark } from '../brand/Mark.jsx';
+import { SCENES, PALETTES } from '../brand/scenes.js';
 
 function Home({ navigate, name, underlay = false }) {
   return (
@@ -50,6 +50,9 @@ function Home({ navigate, name, underlay = false }) {
       </button>
       <header className="home-greeting">
         <h1>عصر بخیر،<br />{name || 'دوست من'}</h1>
+        <span className="home-ember" aria-hidden="true">
+          <Mark tone="reverse" size={18} label={null} breathing />
+        </span>
       </header>
       <div className="home-letter">
         <EnvelopeArt onClick={() => navigate('day')} />
@@ -147,7 +150,7 @@ function DayDetail({ back, navigate, notify, reflections = [], reflectionListPha
       <div className="day-art-panel">
         <StatusBar />
         <BackButton onClick={safeBack} />
-        <ScribbleArt />
+        <Scene className="day-scene" scene={SCENES.day(PALETTES.beige)} />
       </div>
       <div className="day-content">
         <button type="button" className="transcript-button" onClick={() => safeNavigate('chat')}>
@@ -223,7 +226,10 @@ function History({ back, conversations = [], historyPhase, historyError, onReloa
     <section className="app-screen theme-dark history-screen">
       <StatusBar dark />
       <BackButton dark onClick={back} />
-      <h1 className="history-title">تاریخچه</h1>
+      <h1 className="history-title">
+        <span className="history-title-mark" aria-hidden="true"><Mark tone="reverse" size={17} label={null} /></span>
+        تاریخچه
+      </h1>
       <div className="history-content" aria-live="polite">
         <h2>گفتگوهای من</h2>
         {historyPhase === 'loading' && <p className="connected-status">در حال دریافت گفتگوها…</p>}
@@ -283,7 +289,7 @@ const MENU_ITEMS = [
   { label: 'حساب و داده‌ها', icon: Settings2, route: 'privacy' },
   { label: 'درباره', icon: Info, route: 'research' },
   { label: 'پشتیبانی و بازخورد', icon: MessageSquare, action: 'support' },
-  { label: 'تمرین‌ها', icon: Flower2, route: 'home' },
+  { label: 'تمرین‌ها', icon: Sparkles, route: 'home' },
   { label: 'پرسش‌نامه‌ی سلامت', icon: BarChart3, route: 'survey', dot: true },
 ];
 
@@ -312,7 +318,10 @@ function Drawer({ navigate, name, notify, reset, onLogout, onSwitchTester }) {
       <Home navigate={() => {}} name={name} underlay />
       <button type="button" className="drawer-backdrop" onClick={() => navigate('home')} aria-label="بستن منو" />
       <aside className="drawer-panel" aria-label="منوی اصلی">
-        <div className="drawer-brand">همراه</div>
+        <div className="drawer-brand">
+          <Mark tone="reverse" size={44} label={null} />
+          <span>همراه</span>
+        </div>
         <nav className="drawer-nav">
           {MENU_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -416,6 +425,9 @@ function Chat({ navigate, messages = [], pendingTurn, sending, chatLoading, chat
       <StatusBar dark />
       <header className="chat-header">
         <BackButton dark onClick={() => navigate('home')} />
+        <div className="chat-header-brand" aria-hidden="true">
+          <Mark tone="reverse" size={24} label={null} thinking={Boolean(pendingTurn)} />
+        </div>
         <button type="button" className="connected-new-chat" disabled={sending} onClick={() => { if (onNewConversation()) setDraft(''); }} aria-label="گفتگوی جدید">گفتگوی جدید</button>
       </header>
       <div className="messages-scroll" ref={scrollRef} aria-live="polite">
@@ -478,7 +490,7 @@ function Insight({ back }) {
       <div className="insight-art-panel">
         <StatusBar />
         <BackButton onClick={back} />
-        <ConstellationArt />
+        <Scene className="insight-scene" scene={SCENES.insight(PALETTES.dark)} />
       </div>
       <article className="insight-detail">
         <h1>احساسات او را بیشتر از احساسات خودت محافظت می‌کنی</h1>
