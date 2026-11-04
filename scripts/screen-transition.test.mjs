@@ -7,7 +7,7 @@ const styles = readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8
 const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
 
 test('chat, home, history and all main dark screens use a dark underlying surface', () => {
-  for (const route of ['home', 'chat', 'history', 'survey', 'day', 'insight']) {
+  for (const route of ['home', 'chat', 'history', 'survey', 'day', 'letter', 'insight']) {
     assert.equal(screenSurfaceForRoute(route), 'dark', route);
   }
   for (const route of ['menu', 'research', 'experts', 'voice', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro']) {

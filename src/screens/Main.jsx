@@ -1,209 +1,218 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
-  AudioLines,
+  ArrowDown,
   BarChart3,
   Bookmark,
+  Check,
+  ChevronDown,
   ChevronLeft,
   Copy,
   ExternalLink,
-  FileText,
-  Flag,
   Flower2,
-  Grid2X2Plus,
   History as HistoryIcon,
   Info,
   LogOut,
   Mail,
   Menu as MenuIcon,
   MessageSquare,
+  MoreHorizontal,
   Pencil,
   Play,
-  RotateCcw,
+  Plus,
   Send,
   Settings2,
   Share2,
   SlidersHorizontal,
-  Sparkles,
-  ThumbsDown,
-  ThumbsUp,
 } from 'lucide-react';
-import { localReflectionDate, validReflectionDate } from '../features/reflection/api';
-import { JalaliDateField } from '../components/date/JalaliDateField';
-import { gregorianDateOnlyToJalali, jalaliDateToGregorianDateOnly } from '../components/date/jalaliDate';
 import {
   BackButton,
-  ConstellationArt,
+  BottomSheet,
   EnvelopeArt,
-  InsightSpiral,
   MiniEnvelope,
-  ScribbleArt,
   StatusBar,
 } from '../components/UI';
+import { LETTER_KIND, SAMPLE_LETTER } from '../features/letters/model';
 
-function Home({ navigate, name, underlay = false }) {
+const formatDate = (value) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 'تاریخ نامشخص' : new Intl.DateTimeFormat('fa-IR', { month: 'short', day: 'numeric' }).format(date);
+};
+const formatTime = (value) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat('fa-IR', { hour: '2-digit', minute: '2-digit' }).format(date);
+};
+
+function Home({ navigate, name, underlay = false, activeConversation, letterPhase, letters = [] }) {
+  const hasPersonalLetter = letterPhase === 'ready' && letters.length > 0;
   return (
     <section className={`app-screen theme-dark home-screen ${underlay ? 'is-underlay' : ''}`}>
       <StatusBar dark />
       <button type="button" className="home-menu-button" onClick={() => navigate('menu')} aria-label="بازکردن منو">
         <MenuIcon size={25} strokeWidth={2} />
-        <span className="notification-dot" />
       </button>
       <header className="home-greeting">
         <h1>سلام،<br />{name || 'دوست من'}</h1>
       </header>
       <div className="home-letter">
-        <EnvelopeArt onClick={() => navigate('day')} />
-        <span>بزن تا ببینی</span>
+        <p className="home-letter-eyebrow"><Mail size={15} aria-hidden="true" /> نامه‌ای از همراه</p>
+        <EnvelopeArt
+          onClick={() => navigate('letter')}
+          label={hasPersonalLetter ? 'نامهٔ تازه' : 'نامهٔ همراه'}
+          ariaLabel={hasPersonalLetter ? 'باز کردن نامهٔ همراه برای تو' : 'باز کردن نمونهٔ نامهٔ همراه'}
+        />
+        <div className="home-letter-hint">
+          <strong>{hasPersonalLetter ? 'یک نامه برای تو' : 'یک نمونه برای آشنایی'}</strong>
+          <span>{hasPersonalLetter ? 'بر پایهٔ گفت‌وگوهای تو' : 'هنوز نامهٔ شخصی ساخته نشده'}</span>
+        </div>
       </div>
-      <button type="button" className="reflection-card" onClick={() => navigate('day')}>
-        <span>یادداشت روزانه</span>
-        <strong>امروز برای حال خوبت چی کار کردی؟</strong>
-      </button>
-      <button type="button" className="chat-fab" onClick={() => navigate('chat')}>
-        <MessageSquare size={20} fill="currentColor" />
-        <span>گفت‌وگو</span>
-      </button>
+      <div className="home-chat-entry">
+        <p className="home-chat-note">
+          {activeConversation ? `ادامهٔ «${activeConversation.title || 'گفت‌وگوی قبلی'}»` : 'هر وقت آماده بودی، حرف بزنیم.'}
+        </p>
+        <button type="button" className="chat-fab" onClick={() => navigate('chat')}>
+          <MessageSquare size={20} aria-hidden="true" />
+          <span>گفت‌وگو با همراه</span>
+          <ChevronLeft size={19} aria-hidden="true" />
+        </button>
+      </div>
     </section>
   );
 }
 
 function Survey({ back, answers, setAnswer, navigate, notify }) {
   const options = ['اصلاً', 'چند روز', 'بیشتر از نصف روزها', 'تقریباً هر روز'];
+  const advanceTimer = useRef(null);
+  useEffect(() => () => window.clearTimeout(advanceTimer.current), []);
   const choose = (option) => {
     setAnswer('healthSurvey', option);
     notify('انتخاب شد.');
-    window.setTimeout(() => navigate('home'), 350);
+    window.clearTimeout(advanceTimer.current);
+    advanceTimer.current = window.setTimeout(() => navigate('home'), 350);
   };
   return (
     <section className="app-screen theme-dark survey-screen">
       <StatusBar dark />
       <BackButton dark onClick={back} />
       <div className="survey-copy">
-        <p>توی دو هفتهٔ گذشته، چند وقت یه بار این حس رو داشتی؟</p>
-        <h1>کم شدن علاقه یا لذتت از کارهایی که قبلاً دوست داشتی</h1>
+        <p className="survey-context" id="survey-context">توی دو هفتهٔ گذشته، چند وقت یه بار این حس رو داشتی؟</p>
+        <h1 id="survey-question">کم شدن علاقه یا لذتت از کارهایی که قبلاً دوست داشتی</h1>
+        <p className="survey-support">پاسخ درست یا غلط وجود نداره؛ نزدیک‌ترین گزینه رو انتخاب کن.</p>
       </div>
-      <div className="survey-options">
-        {options.map((option) => (
-          <button
-            type="button"
-            key={option}
-            className={answers.healthSurvey === option ? 'is-selected' : ''}
-            onClick={() => choose(option)}
-          >{option}</button>
-        ))}
-      </div>
+      <fieldset className="survey-options" aria-labelledby="survey-question" aria-describedby="survey-context">
+        <legend className="sr-only">گزینه‌های پاسخ</legend>
+        {options.map((option) => {
+          const selected = answers.healthSurvey === option;
+          return (
+            <label key={option} className={`survey-option ${selected ? 'is-selected' : ''}`}>
+              <input
+                type="radio"
+                name="healthSurvey"
+                value={option}
+                checked={selected}
+                onChange={() => choose(option)}
+              />
+              <span>{option}</span>
+              <Check size={18} className="survey-check" aria-hidden="true" />
+            </label>
+          );
+        })}
+      </fieldset>
     </section>
   );
 }
 
-function DayDetail({ back, navigate, notify, reflections = [], reflectionListPhase, reflectionListError, reflectionDayPhase,
-  reflectionDayError, reflectionDate, reflectionEntry, reflectionSaving, onOpenReflection,
-  onReloadReflections, onSaveReflection, onDeleteReflection }) {
-  const [selectedDate, setSelectedDate] = useState(localReflectionDate);
-  const [dateInput, setDateInput] = useState(() => gregorianDateOnlyToJalali(localReflectionDate()));
-  useEffect(() => { setDateInput(gregorianDateOnlyToJalali(selectedDate)); }, [selectedDate]);
-  const [draft, setDraft] = useState('');
-  const [dirty, setDirty] = useState(false);
-  useEffect(() => { void onOpenReflection(selectedDate); }, [selectedDate, onOpenReflection]);
-  useEffect(() => {
-    if (reflectionDayPhase === 'ready' && reflectionDate === selectedDate) {
-      setDraft(reflectionEntry?.text ?? '');
-      setDirty(false);
-    }
-  }, [reflectionDayPhase, reflectionDate, reflectionEntry?.updatedAt, selectedDate]);
-  const changeDay = (date) => {
-    if (!validReflectionDate(date) || date > localReflectionDate()) return false;
-    if (date === selectedDate) return true;
-    if (dirty && !window.confirm('یادداشتت ذخیره نشده. روز رو عوض می‌کنی؟')) return false;
-    setSelectedDate(date);
-    setDraft('');
-    setDirty(false);
-    return true;
-  };
-  const save = async (event) => {
-    event.preventDefault();
-    const ok = await onSaveReflection(selectedDate, draft);
-    if (ok) setDirty(false);
-    notify(ok ? 'یادداشتت ذخیره شد.' : 'یادداشت ذخیره نشد. دوباره تلاش کن.');
-  };
-  const remove = async () => {
-    if (!reflectionEntry || !window.confirm('این یادداشت حذف بشه؟ دیگه برنمی‌گرده.')) return;
-    const ok = await onDeleteReflection(selectedDate);
-    if (ok) { setDraft(''); setDirty(false); notify('یادداشت حذف شد.'); }
-    else notify('حذف نشد. دوباره تلاش کن.');
-  };
-  const safeNavigate = (target) => {
-    if (dirty && !window.confirm('یادداشتت ذخیره نشده. خارج می‌شی؟')) return;
-    navigate(target);
-  };
-  const safeBack = () => {
-    if (dirty && !window.confirm('یادداشتت ذخیره نشده. خارج می‌شی؟')) return;
-    back();
-  };
-  const loading = reflectionDayPhase === 'loading';
-  const dayLabel = new Intl.DateTimeFormat('fa-IR', { dateStyle: 'long' }).format(new Date(`${selectedDate}T12:00:00`));
+function LetterPaper({ letter }) {
+  const sample = letter.kind === LETTER_KIND.SAMPLE;
   return (
-    <section className="app-screen theme-dark day-screen scrolling-screen">
-      <div className="day-art-panel">
-        <StatusBar />
-        <BackButton onClick={safeBack} />
-        <ScribbleArt />
+    <article className={`letter-paper ${sample ? 'letter-paper--sample' : ''}`}>
+      <div className="letter-paper-meta">
+        <span className="letter-badge">{sample ? 'نمونهٔ نمایشی' : 'نامهٔ شخصی'}</span>
+        <time dateTime={letter.createdAt}>{new Intl.DateTimeFormat('fa-IR', { dateStyle: 'long' }).format(new Date(letter.createdAt))}</time>
       </div>
-      <div className="day-content">
-        <button type="button" className="transcript-button" onClick={() => safeNavigate('chat')}>
-          <FileText size={23} />
-          <span>رفتن به گفت‌وگو</span>
-        </button>
-        <h1>{dayLabel}</h1>
-        <form className="daily-reflection-form" onSubmit={save}>
-          <label htmlFor="daily-reflection-text">امروز برای حال خوبت چی کار کردی؟</label>
-          <JalaliDateField id="daily-reflection-date" label="تاریخ یادداشت" value={dateInput} required
-            disabled={reflectionSaving} maxDate={gregorianDateOnlyToJalali(localReflectionDate())}
-            onChange={value => {
-              setDateInput(value);
-              const date = jalaliDateToGregorianDateOnly(value);
-              if (date && date <= localReflectionDate() && !changeDay(date)) setDateInput(gregorianDateOnlyToJalali(selectedDate));
-            }} />
-          {loading && <p className="connected-status" role="status">در حال بارگذاری یادداشت…</p>}
-          {reflectionDayError && <div className="connected-notice" role="alert">
-            <p>یادداشت بارگذاری یا ذخیره نشد. دوباره تلاش کن.</p>
-            {reflectionDayPhase === 'error' && <button type="button" onClick={() => onOpenReflection(selectedDate)}>تلاش دوباره</button>}
-          </div>}
-          <textarea id="daily-reflection-text" rows={5} maxLength={4000} value={draft}
-            disabled={loading || reflectionSaving || reflectionDayPhase === 'error'}
-            onChange={event => { setDraft(event.target.value); setDirty(true); }}
-            placeholder="از امروزت بنویس…" />
-          <div className="daily-reflection-actions">
-            <button type="submit" disabled={loading || reflectionSaving || !draft.trim() || reflectionDayPhase === 'error' || !dirty}>
-              {reflectionSaving ? 'در حال ذخیره…' : 'ذخیره'}
-            </button>
-            {reflectionEntry && <button type="button" className="daily-reflection-delete" onClick={remove} disabled={reflectionSaving || loading}>حذف</button>}
-          </div>
-        </form>
-        <div className="daily-reflection-archive" aria-live="polite">
-          <h2>یادداشت‌های قبلی</h2>
-          {reflectionListPhase === 'loading' && <p className="connected-status">در حال بارگذاری یادداشت‌ها…</p>}
-          {reflectionListError && <div className="connected-notice" role="alert"><p>یادداشت‌ها بارگذاری نشدن.</p>
-            <button type="button" onClick={onReloadReflections}>تلاش دوباره</button></div>}
-          {reflectionListPhase === 'ready' && reflections.length === 0 && <p className="connected-status">هنوز یادداشتی ننوشتی.</p>}
-          {reflections.map(entry => <button type="button" key={entry.date} className="daily-reflection-history-row"
-            onClick={() => changeDay(entry.date)} aria-current={entry.date === selectedDate ? 'date' : undefined}>
-            <span>{new Intl.DateTimeFormat('fa-IR', {month:'short', day:'numeric'}).format(new Date(`${entry.date}T12:00:00`))}</span>
-            <span>{entry.text.length > 55 ? `${entry.text.slice(0,55)}…` : entry.text}</span>
-            <ChevronLeft size={17} />
-          </button>)}
+      <h2>{letter.title}</h2>
+      <p className="letter-salutation">{letter.salutation || 'دوست من،'}</p>
+      {letter.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+      {letter.question && <p className="letter-question">{letter.question}</p>}
+      <p className="letter-signature">همراه</p>
+    </article>
+  );
+}
+
+function Letters({ back, navigate, letterPhase = 'unavailable', letters = [], letterError, onReloadLetters, onOpenConversation }) {
+  const personalLetters = letterPhase === 'ready' ? letters : [];
+  const [view, setView] = useState(personalLetters.length ? 'personal' : 'sample');
+  useEffect(() => {
+    if (letterPhase === 'ready' && letters.length > 0) setView('personal');
+  }, [letterPhase, letters.length]);
+  const personalLetter = personalLetters[0] || null;
+  const letter = view === 'sample' ? SAMPLE_LETTER : personalLetter;
+  const sample = view === 'sample';
+
+  const personalState = () => {
+    if (letterPhase === 'loading') {
+      return <div className="letter-state" role="status"><span className="letter-spinner" aria-hidden="true" /><p>در حال بارگذاری نامه‌ها…</p></div>;
+    }
+    if (letterPhase === 'error') {
+      return <div className="letter-state connected-notice" role="alert">
+        <p>نامه‌ها بارگذاری نشدن. دوباره تلاش کن.</p>
+        <button type="button" onClick={onReloadLetters}>تلاش دوباره</button>
+      </div>;
+    }
+    if (letterPhase === 'unavailable' || letterPhase === 'idle') {
+      return <div className="letter-state">
+        <Mail size={30} aria-hidden="true" />
+        <h2>نامه‌های شخصی هنوز فعال نشده‌اند.</h2>
+        <p>این بخش آمادهٔ دریافت نامه‌های واقعی است. فعلاً می‌تونی نمونه رو ببینی یا گفت‌وگو رو ادامه بدی.</p>
+      </div>;
+    }
+    if (!personalLetter) {
+      return <div className="letter-state">
+        <Mail size={30} aria-hidden="true" />
+        <h2>هنوز نامه‌ای برای تو نداریم.</h2>
+        <p>وقتی گفت‌وگوهای معنادار شکل بگیرن، نامه‌ها اینجا ظاهر می‌شن.</p>
+      </div>;
+    }
+    return <LetterPaper letter={personalLetter} />;
+  };
+
+  return (
+    <section className="app-screen theme-dark letter-screen scrolling-screen">
+      <div className="letter-art-panel">
+        <StatusBar />
+        <BackButton onClick={back} />
+        <div className="letter-hero-art" aria-hidden="true"><MiniEnvelope /></div>
+      </div>
+      <div className="letter-content">
+        <header className="letter-heading">
+          <p className="letter-eyebrow">نامه‌ای از همراه</p>
+          <h1>{sample ? 'نمونهٔ نامه' : 'نامه‌ای برای تو'}</h1>
+        </header>
+        <div className="letter-tabs" role="tablist" aria-label="بخش نامه‌ها">
+          <button type="button" role="tab" id="letter-tab-personal" aria-selected={view === 'personal'} aria-controls="letter-panel" className={view === 'personal' ? 'is-active' : ''} onClick={() => setView('personal')}>نامه‌های من</button>
+          <button type="button" role="tab" id="letter-tab-sample" aria-selected={view === 'sample'} aria-controls="letter-panel" className={view === 'sample' ? 'is-active' : ''} onClick={() => setView('sample')}>نمونه</button>
         </div>
-        <button type="button" className="letter-card" onClick={() => safeNavigate('insight')}>
-          <span>نامه‌ای برای تو</span>
-          <strong>فکر زیاد همیشه به معنی فهمیدن نیست.</strong>
-          <MiniEnvelope />
-        </button>
+        <div id="letter-panel" role="tabpanel" aria-labelledby={view === 'personal' ? 'letter-tab-personal' : 'letter-tab-sample'}>
+          {sample ? <LetterPaper letter={SAMPLE_LETTER} /> : personalState()}
+        </div>
+        {sample && <p className="letter-demo-note">این متن فقط برای نمایش شکل نامه‌هاست و از گفت‌وگوهای تو ساخته نشده.</p>}
+        {!sample && personalLetter && personalLetter.sourceConversationIds.length > 0 && (
+          <div className="letter-provenance">
+            <span>بر پایهٔ گفت‌وگوهای تو نوشته شده.</span>
+            {onOpenConversation && <button type="button" onClick={() => onOpenConversation(personalLetter.sourceConversationIds[0])}>دیدن گفت‌وگوی مرتبط</button>}
+          </div>
+        )}
+        <div className="letter-footer">
+          <p>نامه‌ها برای خواندن و درنگ‌اند؛ برای حرف زدن، گفت‌وگو همیشه در دسترسه.</p>
+          <button type="button" className="letter-chat-button" onClick={() => navigate('chat')}>
+            <MessageSquare size={19} aria-hidden="true" /> گفت‌وگو با همراه
+          </button>
+        </div>
       </div>
     </section>
   );
 }
 
-function History({ back, conversations = [], historyPhase, historyError, onReloadHistory, onOpenConversation, onDeleteConversation, onRenameConversation, deletingId, renamingId, bookmarks = [], bookmarkPhase, bookmarkError, onReloadBookmarks }) {
+function History({ back, navigate, conversations = [], conversationId, historyPhase, historyError, onReloadHistory, onOpenConversation, onDeleteConversation, onRenameConversation, onNewConversation, deletingId, renamingId, bookmarks = [], bookmarkPhase, bookmarkError, onReloadBookmarks }) {
   const [editingId, setEditingId] = useState(null);
   const [draftTitle, setDraftTitle] = useState('');
   const [renameError, setRenameError] = useState(false);
@@ -215,15 +224,17 @@ function History({ back, conversations = [], historyPhase, historyError, onReloa
     if (success) { setEditingId(null); setRenameError(false); }
     else setRenameError(true);
   };
-  const formatDate = (value) => {
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? 'تاریخ نامشخص' : new Intl.DateTimeFormat('fa-IR', { month: 'short', day: 'numeric' }).format(date);
+  const startNew = () => {
+    if (onNewConversation?.()) navigate('chat');
   };
   return (
     <section className="app-screen theme-dark history-screen">
       <StatusBar dark />
       <BackButton dark onClick={back} />
       <h1 className="history-title">گفت‌وگوهای قبلی</h1>
+      <button type="button" className="history-new" onClick={startNew} aria-label="گفت‌وگوی جدید">
+        <Plus size={20} aria-hidden="true" />
+      </button>
       <div className="history-content" aria-live="polite">
         {historyPhase === 'loading' && <p className="connected-status">در حال بارگذاری گفت‌وگوها…</p>}
         {historyError && <div className="connected-notice" role="alert">
@@ -232,7 +243,7 @@ function History({ back, conversations = [], historyPhase, historyError, onReloa
         </div>}
         {historyPhase === 'ready' && conversations.length === 0 && <p className="connected-status">هنوز گفت‌وگویی نداری.</p>}
         {conversations.map((item) => (
-          <div className="connected-history-entry" key={item.id}>
+          <div className={`connected-history-entry ${item.id === conversationId ? 'is-active' : ''}`} key={item.id}>
             {editingId === item.id ? (
               <form className="conversation-title-editor" onSubmit={(event) => finishRename(event, item.id)}>
                 <label htmlFor={`rename-${item.id}`}>تغییر نام گفت‌وگو</label>
@@ -245,9 +256,12 @@ function History({ back, conversations = [], historyPhase, historyError, onReloa
               </form>
             ) : (
               <>
-                <button type="button" className="history-row" onClick={() => onOpenConversation(item.id)}>
+                <button type="button" className="history-row" onClick={() => onOpenConversation(item.id)} aria-current={item.id === conversationId ? 'true' : undefined}>
                   <span className="history-date"><strong>{item.title || 'گفت‌وگوی بدون عنوان'}</strong><small>{formatDate(item.updatedAt)}</small></span>
-                  <span className="history-actions"><MessageSquare size={22} /><ChevronLeft size={21} /></span>
+                  <span className="history-actions">
+                    {item.id === conversationId ? <Check size={20} aria-hidden="true" /> : <MessageSquare size={22} aria-hidden="true" />}
+                    <ChevronLeft size={21} aria-hidden="true" />
+                  </span>
                 </button>
                 <button type="button" className="connected-rename" disabled={Boolean(renamingId) || deletingId === item.id} onClick={() => beginRename(item)} aria-label={`تغییر نام ${item.title || 'گفت‌وگو'}`}>
                   <Pencil size={17} aria-hidden="true" />
@@ -277,13 +291,13 @@ function History({ back, conversations = [], historyPhase, historyError, onReloa
 
 const MENU_ITEMS = [
   { label: 'گفت‌وگوهای قبلی', icon: HistoryIcon, route: 'history' },
+  { label: 'نامه‌های همراه', icon: Mail, route: 'letter' },
   { label: 'سبک گفت‌وگو', icon: SlidersHorizontal, route: 'approach' },
   { label: 'اسم من', icon: Info, route: 'name' },
   { label: 'حریم خصوصی', icon: Settings2, route: 'privacy' },
   { label: 'درباره', icon: Info, route: 'research' },
   { label: 'پشتیبانی و نظرها', icon: MessageSquare, action: 'support' },
-  { label: 'تمرین‌ها', icon: Flower2, route: 'home' },
-  { label: 'پرسش‌نامهٔ حال روحی', icon: BarChart3, route: 'survey', dot: true },
+  { label: 'پرسش‌نامهٔ حال روحی', icon: BarChart3, route: 'survey' },
 ];
 
 function Drawer({ navigate, name, notify, reset, onLogout, onSwitchTester }) {
@@ -319,7 +333,6 @@ function Drawer({ navigate, name, notify, reset, onLogout, onSwitchTester }) {
               <button type="button" key={item.label} onClick={() => action(item)}>
                 <Icon size={24} strokeWidth={1.65} />
                 <span>{item.label}</span>
-                {item.dot && <i className="notification-dot" />}
               </button>
             );
           })}
@@ -342,40 +355,101 @@ function MessageActions({ message, close, notify, saved, saving, bookmarkReady, 
     catch { notify('کپی پیام ممکن نیست.'); }
     close();
   };
+  const readAloud = () => {
+    if ('speechSynthesis' in window && 'SpeechSynthesisUtterance' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'fa-IR';
+      window.speechSynthesis.speak(utterance);
+      notify('خواندن با صدای دستگاه شروع شد.');
+    } else notify('پخش صوتی روی این دستگاه ممکن نیست.');
+    close();
+  };
   return (
-    <>
-      <button type="button" className="message-menu-backdrop" onClick={close} aria-label="بستن گزینه‌ها" />
-      <div className="message-actions" role="menu">
-        <button type="button" role="menuitem" onClick={copy}><Copy size={21} /><span>کپی پیام</span></button>
-        <button type="button" role="menuitem" onClick={() => {
-          if ('speechSynthesis' in window && 'SpeechSynthesisUtterance' in window) {
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'fa-IR';
-            window.speechSynthesis.speak(utterance);
-            notify('پخش پیام شروع شد.');
-          } else notify('پخش صوتی روی این دستگاه ممکن نیست.');
-          close();
-        }}><Play size={21} /><span>خواندن پیام</span></button>
-        <button type="button" role="menuitem" disabled={!bookmarkReady || saving} onClick={async () => {
+    <BottomSheet open onClose={close} title="گزینه‌های پیام" className="message-actions-sheet">
+      <div className="message-actions">
+        <button type="button" onClick={copy}><Copy size={21} /><span>کپی پیام</span></button>
+        <button type="button" onClick={readAloud}><Play size={21} /><span>خواندن با صدای دستگاه</span></button>
+        <button type="button" disabled={!bookmarkReady || saving} onClick={async () => {
           const ok = await onToggleBookmark(message);
           notify(ok ? (saved ? 'از ذخیره‌شده‌ها حذف شد.' : 'پیام ذخیره شد.') : 'پیام ذخیره نشد. دوباره تلاش کن.');
           close();
         }}><Bookmark size={21} fill={saved ? 'currentColor' : 'none'} /><span>{saving ? 'در حال ذخیره…' : saved ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره پیام'}</span></button>
-        <button type="button" role="menuitem" onClick={() => { notify('این قابلیت هنوز فعال نیست.'); close(); }}><RotateCcw size={21} /><span>ساخت دوباره</span></button>
-        <button type="button" role="menuitem" onClick={() => { notify('این قابلیت هنوز فعال نیست.'); close(); }}><Flag size={21} /><span>گزارش پیام</span></button>
       </div>
-    </>
+    </BottomSheet>
   );
 }
 
-function Chat({ navigate, onboardingGreeting = '', messages = [], pendingTurn, sending, chatLoading, chatError, onSendMessage, onRetryMessage, onNewConversation, notify, bookmarks = [], bookmarkPhase, bookmarkError, bookmarkBusyId, onToggleBookmark, onReloadBookmarks }) {
-  const [draft, setDraft] = useState('');
+function ConversationSheet({ open, onClose, conversations = [], conversationId, historyPhase, historyError, onReloadHistory, onOpenConversation, onNewConversation, navigate, sending }) {
+  const startNew = () => {
+    if (onNewConversation?.()) {
+      onClose();
+      navigate('chat');
+    }
+  };
+  const openItem = (id) => {
+    if (onOpenConversation(id)) onClose();
+  };
+  return (
+    <BottomSheet open={open} onClose={onClose} title="گفت‌وگوها" className="conversation-sheet">
+      <button type="button" className="conversation-new" onClick={startNew} disabled={sending}>
+        <span className="conversation-new-icon"><Plus size={20} aria-hidden="true" /></span>
+        <span><strong>گفت‌وگوی جدید</strong><small>یک فضای جدا برای حرف‌های تازه</small></span>
+      </button>
+      <div className="conversation-list" aria-live="polite">
+        {historyPhase === 'loading' && <p className="connected-status">در حال بارگذاری گفت‌وگوها…</p>}
+        {historyError && <div className="connected-notice" role="alert">
+          <p>گفت‌وگوها بارگذاری نشدن.</p>
+          <button type="button" onClick={onReloadHistory}>تلاش دوباره</button>
+        </div>}
+        {historyPhase === 'ready' && conversations.length === 0 && <p className="connected-status">هنوز گفت‌وگویی نداری.</p>}
+        {conversations.map((item) => (
+          <button type="button" key={item.id} className={`conversation-item ${item.id === conversationId ? 'is-active' : ''}`} onClick={() => openItem(item.id)} aria-current={item.id === conversationId ? 'true' : undefined}>
+            <span className="conversation-item-icon">{item.id === conversationId ? <Check size={18} aria-hidden="true" /> : <MessageSquare size={18} aria-hidden="true" />}</span>
+            <span className="conversation-item-copy">
+              <strong>{item.title || 'گفت‌وگوی بدون عنوان'}</strong>
+              <small>{formatDate(item.updatedAt)}</small>
+            </span>
+            <ChevronLeft size={18} aria-hidden="true" />
+          </button>
+        ))}
+      </div>
+      <button type="button" className="conversation-manage" onClick={() => { onClose(); navigate('history'); }}>
+        مدیریت گفت‌وگوها
+      </button>
+    </BottomSheet>
+  );
+}
+
+function ChatSkeleton() {
+  return (
+    <div className="chat-loading" role="status" aria-label="در حال بارگذاری پیام‌ها">
+      <span className="sr-only">در حال بارگذاری پیام‌ها…</span>
+      <div className="chat-skeleton chat-skeleton--assistant" aria-hidden="true"><i /><i /><i /></div>
+      <div className="chat-skeleton chat-skeleton--user" aria-hidden="true"><i /><i /></div>
+      <div className="chat-skeleton chat-skeleton--assistant" aria-hidden="true"><i /><i /><i /><i /></div>
+    </div>
+  );
+}
+
+function Chat({
+  navigate, onboardingGreeting = '', messages = [], pendingTurn, sending, chatLoading, chatError,
+  onSendMessage, onRetryMessage, onRetryChatLoad, onNewConversation, notify,
+  bookmarks = [], bookmarkPhase, bookmarkError, bookmarkBusyId, onToggleBookmark, onReloadBookmarks,
+  conversations = [], conversationId, activeConversation, historyPhase, historyError, onReloadHistory,
+  onOpenConversation, chatDraft = '', onDraftChange,
+}) {
   const [menuFor, setMenuFor] = useState(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [showJump, setShowJump] = useState(false);
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
   const composerRef = useRef(null);
   const pressTimer = useRef(null);
+  const stickToBottom = useRef(true);
+  const draft = chatDraft;
+  const setDraft = (value) => onDraftChange?.(value);
+
   const resizeInput = () => {
     const input = inputRef.current;
     if (!input) return;
@@ -383,20 +457,39 @@ function Chat({ navigate, onboardingGreeting = '', messages = [], pendingTurn, s
     input.style.height = `${Math.min(input.scrollHeight, 140)}px`;
     input.style.overflowY = input.scrollHeight > 140 ? 'auto' : 'hidden';
   };
+  const scrollToBottom = (behavior = 'smooth') => {
+    const node = scrollRef.current;
+    if (!node) return;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    node.scrollTo({ top: node.scrollHeight, behavior: reduce ? 'auto' : behavior });
+  };
   useLayoutEffect(resizeInput, [draft]);
   useLayoutEffect(() => {
     const composer = composerRef.current;
+    if (!composer) return undefined;
     const observer = new ResizeObserver(() => {
-      composer.closest('.chat-screen').style.setProperty('--composer-height', `${composer.offsetHeight}px`);
+      composer.closest('.chat-screen')?.style.setProperty('--composer-height', `${composer.offsetHeight}px`);
     });
     observer.observe(composer);
     window.addEventListener('resize', resizeInput);
     return () => { observer.disconnect(); window.removeEventListener('resize', resizeInput); };
   }, []);
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [messages, pendingTurn, sending]);
+    stickToBottom.current = true;
+    setShowJump(false);
+  }, [conversationId]);
+  useEffect(() => {
+    if (!chatLoading && stickToBottom.current) scrollToBottom(messages.length ? 'smooth' : 'auto');
+  }, [messages, pendingTurn, sending, chatLoading]);
   useEffect(() => () => window.clearTimeout(pressTimer.current), []);
+
+  const onScroll = () => {
+    const node = scrollRef.current;
+    if (!node) return;
+    const distance = node.scrollHeight - node.scrollTop - node.clientHeight;
+    stickToBottom.current = distance < 120;
+    setShowJump(distance > 220);
+  };
   const send = (text) => {
     const clean = text.trim();
     if (!clean || sending || pendingTurn || chatLoading) return;
@@ -410,94 +503,125 @@ function Chat({ navigate, onboardingGreeting = '', messages = [], pendingTurn, s
   };
   const pressEnd = () => window.clearTimeout(pressTimer.current);
   const menuMessage = messages.find((message) => message.id === menuFor);
+  const title = activeConversation?.title || (conversationId ? 'گفت‌وگو' : 'گفت‌وگوی تازه');
+  const sendDisabled = !draft.trim() || sending || Boolean(pendingTurn) || chatLoading;
+
   return (
     <section className="app-screen theme-dark chat-screen">
       <StatusBar dark />
       <header className="chat-header">
         <BackButton dark onClick={() => navigate('home')} />
-        <button type="button" className="connected-new-chat" disabled={sending} onClick={() => { if (onNewConversation()) setDraft(''); }} aria-label="گفت‌وگوی جدید">گفت‌وگوی جدید</button>
+        <button type="button" className="chat-title-button" onClick={() => setSheetOpen(true)} aria-haspopup="dialog" aria-expanded={sheetOpen}>
+          <span className="chat-title">{title}</span>
+          <small className="chat-subtitle">{conversationId ? 'برای ادامهٔ همین گفت‌وگو' : 'یک فضای تازه برای حرف‌ها'}</small>
+          <ChevronDown size={16} aria-hidden="true" />
+        </button>
+        <button type="button" className="chat-history-button" onClick={() => setSheetOpen(true)} aria-label="گفت‌وگوها و گفت‌وگوی جدید">
+          <HistoryIcon size={21} aria-hidden="true" />
+        </button>
       </header>
-      <div className="messages-scroll" ref={scrollRef} aria-live="polite">
+      <div className="messages-scroll" ref={scrollRef} onScroll={onScroll} role="log" aria-live="polite" aria-busy={chatLoading}>
         <div className="messages-list">
-      {bookmarkPhase === 'error' && <div className="connected-notice" role="alert">
-        <p>وضعیت پیام‌های ذخیره‌شده در دسترس نیست.</p>
-        <button type="button" onClick={onReloadBookmarks}>تلاش دوباره</button>
-      </div>}
-
-          {chatLoading && <p className="connected-status">در حال بارگذاری پیام‌ها…</p>}
+          {bookmarkPhase === 'error' && <div className="connected-notice" role="alert">
+            <p>وضعیت پیام‌های ذخیره‌شده در دسترس نیست.</p>
+            <button type="button" onClick={onReloadBookmarks}>تلاش دوباره</button>
+          </div>}
+          {chatLoading && <ChatSkeleton />}
           {!chatLoading && messages.length === 0 && !pendingTurn && !chatError && (onboardingGreeting ? (
-            <div className="message-block message-assistant onboarding-welcome"><div className="message-text">
-              {onboardingGreeting.split(/\n\s*\n/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}
-            </div></div>
-          ) : <p className="connected-status">هر چی توی ذهنته بهم بگو.</p>)}
-          {messages.map((message) => (
-            <div key={message.id} className={`message-block message-${message.role}`}>
-              <div className={`message-text ${menuFor === message.id ? 'is-highlighted' : ''}`}
-                onContextMenu={(event) => { event.preventDefault(); if (message.role === 'assistant') setMenuFor(message.id); }}
-                onPointerDown={() => message.role === 'assistant' && pressStart(message.id)}
-                onPointerUp={pressEnd} onPointerCancel={pressEnd} onPointerMove={pressEnd}>
-                {message.content.split(/\n\s*\n/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+            <div className="message-block message-assistant onboarding-welcome">
+              <span className="message-author"><Flower2 size={14} aria-hidden="true" /> همراه</span>
+              <div className="message-text">
+                {onboardingGreeting.split(/\n\s*\n/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}
               </div>
             </div>
+          ) : (
+            <div className="chat-empty">
+              <Flower2 size={34} strokeWidth={1.4} aria-hidden="true" />
+              <h2>اینجا می‌تونی راحت حرف بزنی.</h2>
+              <p>هر وقت آماده بودی، از هر چیزی که ذهنت رو مشغول کرده شروع کن.</p>
+            </div>
           ))}
+          {messages.map((message, index) => {
+            const previous = messages[index - 1];
+            const next = messages[index + 1];
+            const showAuthor = message.role === 'assistant' && (!previous || previous.role !== message.role);
+            const lastInGroup = !next || next.role !== message.role;
+            return (
+              <div key={message.id} className={`message-block message-${message.role}`}>
+                {showAuthor && <span className="message-author"><Flower2 size={14} aria-hidden="true" /> همراه</span>}
+                <div className={`message-text ${menuFor === message.id ? 'is-highlighted' : ''}`}
+                  onContextMenu={(event) => { event.preventDefault(); if (message.role === 'assistant') setMenuFor(message.id); }}
+                  onPointerDown={() => message.role === 'assistant' && pressStart(message.id)}
+                  onPointerUp={pressEnd} onPointerCancel={pressEnd} onPointerMove={pressEnd}>
+                  {message.content.split(/\n\s*\n/).map((paragraph, pIndex) => <p key={pIndex}>{paragraph}</p>)}
+                </div>
+                <div className="message-meta">
+                  {lastInGroup && message.createdAt && <time dateTime={message.createdAt}>{formatTime(message.createdAt)}</time>}
+                  {message.role === 'assistant' && (
+                    <button type="button" className="message-more" onClick={() => setMenuFor(message.id)} aria-label="گزینه‌های پیام">
+                      <MoreHorizontal size={18} aria-hidden="true" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
           {pendingTurn && <div className="message-block message-user connected-pending">
             <div className="message-text"><p>{pendingTurn.text}</p></div>
             <small>{sending ? 'در حال ارسال…' : 'پیامت ارسال نشده.'}</small>
           </div>}
-          {sending && <div className="typing-indicator" aria-label="دارم جواب می‌دم…"><i /><i /><i /></div>}
+          {sending && <div className="message-block message-assistant">
+            <span className="message-author"><Flower2 size={14} aria-hidden="true" /> همراه</span>
+            <div className="typing-indicator" aria-label="دارم جواب می‌دم…"><i /><i /><i /></div>
+          </div>}
           {chatError && <div className="connected-notice" role="alert">
             <p>{chatError === 'TURN_ALREADY_PROCESSING' ? 'پاسخ قبلیت هنوز آماده نشده. دوباره تلاش کن.' : chatError === 'RESOURCE_NOT_FOUND' ? 'این گفت‌وگو در دسترس نیست.' : 'پاسخ نیومد. دوباره تلاش کن.'}</p>
-            {chatError === 'RESOURCE_NOT_FOUND' ? <button type="button" onClick={() => { if (onNewConversation()) setDraft(''); }}>گفت‌وگوی جدید</button> : pendingTurn ? <button type="button" disabled={sending} onClick={onRetryMessage}>تلاش دوباره</button> : <button type="button" onClick={() => navigate('history')}>گفت‌وگوهای قبلی</button>}
+            {chatError === 'RESOURCE_NOT_FOUND' ? (
+              <button type="button" onClick={() => { if (onNewConversation()) setDraft(''); }}>گفت‌وگوی جدید</button>
+            ) : pendingTurn ? (
+              <button type="button" disabled={sending} onClick={onRetryMessage}>تلاش دوباره</button>
+            ) : (
+              <button type="button" onClick={onRetryChatLoad}>تلاش دوباره</button>
+            )}
           </div>}
         </div>
       </div>
+      {showJump && <button type="button" className="jump-to-latest" onClick={() => { stickToBottom.current = true; setShowJump(false); scrollToBottom(); }}>
+        <ArrowDown size={16} aria-hidden="true" /> آخرین پیام
+      </button>}
       <form className="composer-wrap" ref={composerRef} onSubmit={(event) => { event.preventDefault(); send(draft); }}>
         <div className="composer">
-          <button type="button" className="composer-plus" onClick={() => notify('ارسال فایل هنوز فعال نیست.')} aria-label="افزودن پیوست"><Grid2X2Plus size={23} /></button>
-          <textarea ref={inputRef} rows={1} wrap="soft" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={4000} disabled={Boolean(pendingTurn) || sending || chatLoading} placeholder="پیامت رو بنویس…" aria-label="متن پیام"
+          <textarea ref={inputRef} rows={1} wrap="soft" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={4000}
+            disabled={Boolean(pendingTurn) || chatLoading}
+            placeholder={sending ? 'همراه داره جواب می‌ده…' : 'پیامت رو بنویس…'} aria-label="متن پیام"
             onKeyDown={(event) => {
               if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.nativeEvent.isComposing) {
                 event.preventDefault();
                 send(draft);
               }
             }} />
-          <button type={draft.trim() ? 'submit' : 'button'} className="voice-button send-button" disabled={Boolean(pendingTurn) || sending || chatLoading}
-            onClick={!draft.trim() ? () => notify('ارسال صوتی هنوز فعال نیست.') : undefined} aria-label={draft.trim() ? 'فرستادن پیام' : 'پیام صوتی'}>
-            {draft.trim() ? <Send size={21} /> : <AudioLines size={25} />}
+          <button type="submit" className="send-button" disabled={sendDisabled} aria-label="فرستادن پیام">
+            <Send size={20} aria-hidden="true" />
           </button>
         </div>
+        <p className="composer-hint">Enter برای خط جدید · Ctrl+Enter برای ارسال</p>
       </form>
+      <ConversationSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        conversations={conversations}
+        conversationId={conversationId}
+        historyPhase={historyPhase}
+        historyError={historyError}
+        onReloadHistory={onReloadHistory}
+        onOpenConversation={onOpenConversation}
+        onNewConversation={onNewConversation}
+        navigate={navigate}
+        sending={sending}
+      />
       {menuMessage && <MessageActions message={menuMessage} close={() => setMenuFor(null)} notify={notify}
         saved={bookmarks.some(item => item.id === menuMessage.id)}
         saving={bookmarkBusyId === menuMessage.id} bookmarkReady={bookmarkPhase === 'ready'} onToggleBookmark={onToggleBookmark} />}
-    </section>
-  );
-}
-
-function Insight({ back }) {
-  const [feedback, setFeedback] = useState(null);
-  return (
-    <section className="app-screen theme-dark insight-screen scrolling-screen">
-      <div className="insight-art-panel">
-        <StatusBar />
-        <BackButton onClick={back} />
-        <ConstellationArt />
-      </div>
-      <article className="insight-detail">
-        <h1>احساسات اون رو جلوتر می‌ذاری؟</h1>
-        <blockquote>آخرش من عذرخواهی می‌کنم تا بحث تموم بشه.</blockquote>
-        <p>ناراحت بودی که شاید براش مهم نباشی؛ ولی گفت‌وگو به موضوع دیگه‌ای رسید.</p>
-        <p>وقتی ناراحتیت رو می‌گی، آخرش خودت باید آرومش کنی.</p>
-        <p>گفتی آخرش خودت رو مقصر می‌دونی. می‌خوای بیشتر بررسیش کنیم؟</p>
-      </article>
-      <div className="feedback-panel">
-        <span>بازخورد</span>
-        <div>
-          <button type="button" aria-label="کپی" onClick={() => navigator.clipboard?.writeText('احساسات اون رو جلوتر می‌ذاری؟')}><Copy size={22} /></button>
-          <button type="button" className={feedback === 'up' ? 'is-active' : ''} aria-label="مفید بود" onClick={() => setFeedback('up')}><ThumbsUp size={22} fill={feedback === 'up' ? 'currentColor' : 'none'} /></button>
-          <button type="button" className={feedback === 'down' ? 'is-active' : ''} aria-label="مفید نبود" onClick={() => setFeedback('down')}><ThumbsDown size={22} fill={feedback === 'down' ? 'currentColor' : 'none'} /></button>
-        </div>
-      </div>
     </section>
   );
 }
@@ -506,10 +630,9 @@ export default function MainScreen(props) {
   const { route } = props;
   if (route === 'home') return <Home {...props} />;
   if (route === 'survey') return <Survey {...props} />;
-  if (route === 'day') return <DayDetail {...props} />;
+  if (['letter', 'day', 'insight'].includes(route)) return <Letters {...props} />;
   if (route === 'history') return <History {...props} />;
   if (route === 'menu') return <Drawer {...props} />;
   if (route === 'chat') return <Chat {...props} />;
-  if (route === 'insight') return <Insight {...props} />;
   return null;
 }
