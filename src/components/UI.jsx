@@ -83,17 +83,17 @@ export function ChoiceButton({ children, selected, onClick, multi = false, disab
       aria-pressed={selected}
       disabled={disabled}
     >
-      <span>{children}</span>
-      {multi && (
-        <span className="choice-icon" aria-hidden="true">
-          {selected ? <Check size={21} strokeWidth={1.8} /> : <Plus size={22} strokeWidth={1.6} />}
-        </span>
-      )}
+      <span className="choice-label">{children}</span>
+      <span className={`choice-icon ${multi ? '' : 'choice-icon--single'}`} aria-hidden="true">
+        {multi
+          ? (selected ? <Check size={19} strokeWidth={2.1} /> : <Plus size={20} strokeWidth={1.7} />)
+          : (selected ? <Check size={17} strokeWidth={2.4} /> : null)}
+      </span>
     </button>
   );
 }
 
-export function EnvelopeArt({ onClick }) {
+export function EnvelopeArt({ onClick, dateLabel = 'نامهٔ همراه', unread = false }) {
   const content = (
     <>
       <svg className="envelope-lines" viewBox="0 0 340 160" aria-hidden="true">
@@ -101,15 +101,19 @@ export function EnvelopeArt({ onClick }) {
         <path d="M8 148 L126 69" />
         <path d="M332 148 L214 69" />
       </svg>
-      <span className="envelope-date">۳۱ اکتبر</span>
-      <span className="wax-seal"><Flower2 size={34} strokeWidth={1.25} /></span>
+      <span className="envelope-date">{dateLabel}</span>
+      <span className={`wax-seal ${unread ? 'is-unread' : ''}`}><Flower2 size={32} strokeWidth={1.3} /></span>
     </>
   );
 
   if (onClick) {
-    return <button type="button" className="envelope-art" onClick={onClick} aria-label="دیدن نامه">{content}</button>;
+    return (
+      <button type="button" className={`envelope-art ${unread ? 'has-unread' : ''}`} onClick={onClick} aria-label="باز کردن نامهٔ شخصی همراه">
+        {content}
+      </button>
+    );
   }
-  return <div className="envelope-art">{content}</div>;
+  return <div className={`envelope-art ${unread ? 'has-unread' : ''}`}>{content}</div>;
 }
 
 export function ScribbleArt() {
@@ -176,11 +180,11 @@ export function MiniEnvelope() {
   );
 }
 
-export function VoiceWave({ path }) {
+export function VoiceWave({ path, resonating = false }) {
   return (
-    <div className="voice-wave" aria-hidden="true">
+    <div className={`voice-wave ${resonating ? 'is-resonating' : ''}`} aria-hidden="true">
       <svg viewBox="0 0 280 140" preserveAspectRatio="none">
-        <path d={path} fill="none" stroke="#171713" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={path} fill="none" stroke="#171713" strokeWidth="3.1" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </div>
   );

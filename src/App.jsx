@@ -14,10 +14,9 @@ import { privacyPreferencesApi, createPrivacyPreferencesStore } from './features
 import { screenSurfaceForRoute } from './features/appearance/screenSurface';
 import { conversationApi } from './features/conversation/api';
 import { createConversationStore } from './features/conversation/store';
-import { reflectionApi } from './features/reflection/api';
-import { createReflectionStore } from './features/reflection/store';
+import { createLetterStore } from './features/letter/store';
 
-const DEFAULT_BACK = { home: 'welcome', survey: 'menu', day: 'home', history: 'home', menu: 'home', chat: 'home', insight: 'chat' };
+const DEFAULT_BACK = { home: 'welcome', survey: 'menu', day: 'home', history: 'home', menu: 'home', chat: 'home', insight: 'home' };
 function routeFromHash() {
   const route = window.location.hash.replace(/^#\/?/, '').split('/')[0];
   return VALID_ROUTES.has(route) ? route : 'welcome';
@@ -45,13 +44,13 @@ export default function App() {
   const sessionStoreRef = useRef(null);
   const conversationStoreRef = useRef(null);
   const privacyStoreRef = useRef(null);
-  const reflectionStoreRef = useRef(null);
-  if (reflectionStoreRef.current === null) {
-    reflectionStoreRef.current = createReflectionStore(reflectionApi, {
+  const letterStoreRef = useRef(null);
+  if (letterStoreRef.current === null) {
+    letterStoreRef.current = createLetterStore(null, {
       onUnauthorized: () => { void sessionStoreRef.current?.bootstrap(); },
     });
   }
-  const reflectionStore = reflectionStoreRef.current;
+  const letterStore = letterStoreRef.current;
   if (privacyStoreRef.current === null) {
     privacyStoreRef.current = createPrivacyPreferencesStore(privacyPreferencesApi, {
       onUnauthorized: () => { void sessionStoreRef.current?.bootstrap(); },
@@ -79,7 +78,7 @@ export default function App() {
         setProgressPhase('loading');
         chatStore.reset();
         privacyStore.reset();
-        reflectionStore.reset();
+        letterStore.reset();
         setToast('');
         setProfileSaving(false);
         backOverrides.current = {};
@@ -90,7 +89,7 @@ export default function App() {
   const [session, setSession] = useState(store.getState);
   const [chat, setChat] = useState(chatStore.getState);
   const [privacy, setPrivacy] = useState(privacyStore.getState);
-  const [reflections, setReflections] = useState(reflectionStore.getState);
+  const [letters, setLetters] = useState(letterStore.getState);
   const [profileSaving, setProfileSaving] = useState(false);
   const active = session.phase === 'authenticated' || session.phase === 'saving-profile';
   const complete = Boolean(session.profile?.onboardingCompletedAt);
@@ -104,21 +103,26 @@ export default function App() {
   useEffect(() => {
     const unsubscribe = chatStore.subscribe(setChat);
     return () => { unsubscribe(); chatStore.cancel(); };
-  }, [chatStore, reflectionStore]);
+  }, [chatStore]);
 
   useEffect(() => {
     chatStore.activate(complete ? session.profile?.userId : null);
   }, [chatStore, complete, session.profile?.userId]);
 
-  useEffect(() => reflectionStore.subscribe(setReflections), [reflectionStore]);
+  useEffect(() => {
+    const unsubscribe = letterStore.subscribe(setLetters);
+    return () => { unsubscribe(); letterStore.cancel(); };
+  }, [letterStore]);
 
   useEffect(() => {
-    reflectionStore.activate(complete ? session.profile?.userId : null);
-  }, [reflectionStore, complete, session.profile?.userId]);
+    letterStore.activate(complete ? session.profile?.userId : null);
+  }, [letterStore, complete, session.profile?.userId]);
 
   useEffect(() => {
-    if (active && complete && route === 'day') void reflectionStore.list();
-  }, [reflectionStore, active, complete, route]);
+    if (active && complete && ['home', 'day', 'insight'].includes(route)) {
+      void letterStore.loadList();
+    }
+  }, [letterStore, active, complete, route]);
 
   useEffect(() => {
     return privacyStore.subscribe(setPrivacy);
@@ -133,8 +137,14 @@ export default function App() {
   }, [active, route, session.profile?.userId, privacyStore]);
 
   useEffect(() => {
-    if (active && complete && route === 'history') void chatStore.list();
-    if (active && complete && ['chat', 'history'].includes(route)) void chatStore.listBookmarks();
+    if (!active || !complete) return;
+    if (route === 'chat') {
+      void chatStore.enterChat();
+      void chatStore.listBookmarks();
+    } else if (route === 'history') {
+      void chatStore.list();
+      void chatStore.listBookmarks();
+    }
   }, [active, complete, route, chatStore]);
 
   // Resolve the cursor before showing incomplete onboarding. Never trust a hash URL as progress.
@@ -288,20 +298,17 @@ export default function App() {
         return;
       }
     }
-    // The original screens remain navigable, whether or not their eventual APIs exist.
-    // Only unfinished onboarding is guarded from server-backed chat/history.
-    if (target === 'chat' && route !== 'history' && route !== 'chat') chatStore.startNew();
-    if (route === 'menu' && ['name', 'approach', 'privacy', 'research'].includes(target)) {
+    // Opening Chat restores the most recent conversation via chatStore.enterChat()
+    // rather than wiping active context.
+    if (route === 'menu' && ['name', 'approach', 'privacy', 'research', 'day'].includes(target)) {
       backOverrides.current[target] = 'menu';
       if (target === 'name') setName(session.profile?.displayName || '');
       if (target === 'approach') setAnswers((previous) => ({ ...previous, approach: approachForStyle(session.profile?.conversationStyle) }));
     }
-    if (route === 'history' && target === 'day') backOverrides.current.day = 'history';
-    if (route === 'day' && target === 'insight') backOverrides.current.insight = 'day';
     if (route === 'chat' && target !== 'chat') setOnboardingGreeting('');
     if (target === route) return;
     window.location.hash = `/${target}`;
-  }, [route, active, complete, progressPhase, finishProfile, chatStore, store, session.profile?.userId, session.profile?.displayName, session.profile?.conversationStyle]);
+  }, [route, active, complete, progressPhase, finishProfile, store, session.profile?.userId, session.profile?.displayName, session.profile?.conversationStyle]);
 
   const nameWritePending = useRef(false);
   const saveOnboardingName = useCallback(async () => {
@@ -347,31 +354,41 @@ export default function App() {
   const setAnswer = useCallback((key, value) => setAnswers((current) => ({ ...current, [key]: value })), []);
   const notify = useCallback((message) => setToast(message), []);
   const reset = useCallback(() => {
-    setAnswers({}); setOnboardingGreeting(''); chatStore.reset(); reflectionStore.reset(); setName(''); backOverrides.current = {};
+    setAnswers({}); setOnboardingGreeting(''); chatStore.reset(); letterStore.reset(); setName(''); backOverrides.current = {};
     progressRequest.current?.abort();
     onboardingProgress.current = { userId: null, furthest: 0 };
     progressWritePending.current = false;
     nameWritePending.current = false;
-  }, [chatStore, reflectionStore]);
+  }, [chatStore, letterStore]);
 
   const openConversation = useCallback((id) => {
+    setOnboardingGreeting('');
     void chatStore.open(id);
-    window.location.hash = '/chat';
-  }, [chatStore, reflectionStore]);
+    if (window.location.hash !== '#/chat') window.location.hash = '/chat';
+  }, [chatStore]);
+  const startNewConversation = useCallback(() => {
+    if (chat.pending && !window.confirm('پاسخ قبلیت هنوز آماده نشده. گفت‌وگوی جدید بسازی؟')) return false;
+    setOnboardingGreeting('');
+    const started = chatStore.startNew();
+    if (started && window.location.hash !== '#/chat') window.location.hash = '/chat';
+    return started;
+  }, [chat.pending, chatStore]);
   const deleteConversation = useCallback(async (id) => {
-    if (!window.confirm('گفت‌وگو حذف بشه؟ دیگه برنمی‌گرده.')) return;
+    if (!window.confirm('گفت‌وگو حذف بشه؟ دیگه برنمی‌گرده.')) return false;
     const ok = await chatStore.remove(id);
     if (!ok) setToast('گفت‌وگو حذف نشد. دوباره تلاش کن.');
-  }, [chatStore, reflectionStore]);
+    return ok;
+  }, [chatStore]);
 
   const shared = {
     route, navigate, back, name, setName, answers, setAnswer, onboardingGreeting,
-    reflections: reflections.list, reflectionListPhase: reflections.listPhase,
-    reflectionListError: reflections.listError, reflectionDayPhase: reflections.dayPhase,
-    reflectionDayError: reflections.dayError, reflectionDate: reflections.openedDate,
-    reflectionEntry: reflections.entry, reflectionSaving: reflections.saving,
-    onOpenReflection: reflectionStore.open, onReloadReflections: reflectionStore.list,
-    onSaveReflection: reflectionStore.save, onDeleteReflection: reflectionStore.remove,
+    letters: letters.items, activeLetter: letters.activeLetter,
+    letterListPhase: letters.listPhase, letterDetailPhase: letters.detailPhase,
+    letterError: letters.error, letterBackendIntegrated: letters.backendIntegrated,
+    onOpenLetter: (id) => letterStore.openLetter(id),
+    onMarkLetterRead: (id) => letterStore.markRead(id),
+    onReloadLetters: () => letterStore.loadList(),
+    conversationId: chat.conversationId, isDraftNew: chat.isDraftNew,
     messages: chat.messages, conversations: chat.conversations,
     pendingTurn: chat.pending, sending: chat.sending, chatLoading: chat.messagesPhase === 'loading',
     chatError: chat.messageError, historyPhase: chat.historyPhase, historyError: chat.historyError,
@@ -381,11 +398,9 @@ export default function App() {
     onToggleBookmark: (message) => chatStore.toggleBookmark(message),
     onReloadBookmarks: () => chatStore.listBookmarks(),
     onSendMessage: (text) => { setOnboardingGreeting(''); return chatStore.send(text); },
-    onRetryMessage: () => chatStore.retry(), onNewConversation: () => {
-      if (chat.pending && !window.confirm('پاسخ قبلیت هنوز آماده نشده. گفت‌وگوی جدید بسازی؟')) return false;
-      setOnboardingGreeting('');
-      return chatStore.startNew();
-    },
+    onRetryMessage: () => chatStore.retry(),
+    onRestoreChat: () => chatStore.enterChat(),
+    onNewConversation: startNewConversation,
     onOpenConversation: openConversation, onDeleteConversation: deleteConversation,
     onRenameConversation: (id, title) => chatStore.rename(id, title),
     onReloadHistory: () => chatStore.list(),

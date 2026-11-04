@@ -1,15 +1,36 @@
 // Single source of truth for Hamrah onboarding v2. Legacy info screens remain
 // routable from the completed profile/menu, but are not onboarding steps.
 export const FLOW = [
-  'welcome', 'privacy', 'simple-intro', 'name', 'age', 'identity',
-  'therapist', 'deeper-intro', 'mood', 'concerns', 'focus', 'feelings',
-  'know-intro', 'faith', 'neurodivergent', 'relationships', 'interests',
-  'strengths', 'barriers', 'recharge', 'almost-intro', 'approach',
-  'voice', 'checkins', 'referral', 'ready', 'home',
+  'welcome',
+  'privacy',
+  'simple-intro',
+  'name',
+  'age',
+  'identity',
+  'therapist',
+  'deeper-intro',
+  'mood',
+  'concerns',
+  'focus',
+  'feelings',
+  'know-intro',
+  'faith',
+  'neurodivergent',
+  'relationships',
+  'interests',
+  'strengths',
+  'barriers',
+  'recharge',
+  'almost-intro',
+  'approach',
+  'voice',
+  'checkins',
+  'referral',
+  'ready',
+  'home',
 ];
 
 export const LEGACY_INFO_ROUTES = Object.freeze(['testimonials', 'research', 'experts']);
-
 
 export const QUESTIONS = {
   identity: {
@@ -176,36 +197,53 @@ export const REVIEWS = [
 ];
 
 export const VOICES = [
-  { name: 'بید', description: 'آروم و صمیمی', path: 'M0 68 C20 74 25 106 42 102 C63 96 53 82 75 83 C98 85 111 101 120 89 C130 74 116 48 132 43 C151 37 145 70 165 62 C180 57 174 26 189 25 C206 24 208 70 226 91 C244 112 261 112 280 109' },
-  { name: 'سرو', description: 'آروم و شمرده', path: 'M0 92 C30 85 36 42 60 50 C83 57 73 94 101 90 C128 86 135 37 157 44 C180 50 178 83 199 85 C226 88 240 57 280 64' },
-  { name: 'نسیم', description: 'گرم و خودمونی', path: 'M0 80 C18 54 37 52 51 74 C66 99 81 100 97 73 C113 47 127 51 143 76 C158 100 177 99 193 72 C212 40 240 55 280 82' },
-  { name: 'آواز', description: 'رسا و پرانرژی', path: 'M0 92 C24 100 31 71 51 62 C71 53 76 92 96 84 C119 74 114 26 139 30 C166 34 157 95 184 96 C214 96 228 51 280 60' },
-  { name: 'سنگ', description: 'بم و مطمئن', path: 'M0 70 C25 66 30 96 52 94 C76 91 77 67 101 69 C124 70 130 88 151 83 C178 77 174 41 199 43 C224 45 235 88 280 84' },
-  { name: 'برگ', description: 'ملایم و ساده', path: 'M0 86 C21 65 38 67 55 88 C74 110 92 87 107 64 C124 38 145 53 157 78 C172 108 193 95 210 70 C229 42 251 62 280 77' },
+  { name: 'بید', description: 'آروم و صمیمی', character: 'نرم · نزدیک و بی‌تکلف', path: 'M0 68 C20 74 25 106 42 102 C63 96 53 82 75 83 C98 85 111 101 120 89 C130 74 116 48 132 43 C151 37 145 70 165 62 C180 57 174 26 189 25 C206 24 208 70 226 91 C244 112 261 112 280 109' },
+  { name: 'سرو', description: 'آروم و شمرده', character: 'متین · مکث‌دار و مطمئن', path: 'M0 92 C30 85 36 42 60 50 C83 57 73 94 101 90 C128 86 135 37 157 44 C180 50 178 83 199 85 C226 88 240 57 280 64' },
+  { name: 'نسیم', description: 'گرم و خودمونی', character: 'روان · صمیمی و روشن', path: 'M0 80 C18 54 37 52 51 74 C66 99 81 100 97 73 C113 47 127 51 143 76 C158 100 177 99 193 72 C212 40 240 55 280 82' },
+  { name: 'آواز', description: 'رسا و پرانرژی', character: 'زنده · شفاف و امیدوار', path: 'M0 92 C24 100 31 71 51 62 C71 53 76 92 96 84 C119 74 114 26 139 30 C166 34 157 95 184 96 C214 96 228 51 280 60' },
+  { name: 'سنگ', description: 'بم و مطمئن', character: 'عمیق · استوار و آرام‌بخش', path: 'M0 70 C25 66 30 96 52 94 C76 91 77 67 101 69 C124 70 130 88 151 83 C178 77 174 41 199 43 C224 45 235 88 280 84' },
+  { name: 'برگ', description: 'ملایم و ساده', character: 'سبک · لطیف و بی‌شتاب', path: 'M0 86 C21 65 38 67 55 88 C74 110 92 87 107 64 C124 38 145 53 157 78 C172 108 193 95 210 70 C229 42 251 62 280 77' },
 ];
+
+export const APPROACH_USER_MESSAGE = 'این روزها کارهام عقب افتاده و هر چی تلاش می‌کنم تمرکز کنم، بیشتر مضطرب می‌شم.';
 
 export const APPROACHES = [
   {
     name: 'گفت‌وگوی آزاد',
-    response: 'هر چی توی ذهنته بگو. من گوش می‌دم.',
+    subtitle: 'همراهیِ منعطف با ریتم تو',
+    response: 'خسته‌کننده‌ست وقتی ذهنت پر از فشاره و کارها هم جلو نمی‌رن. می‌خوای اول کمی از این اضطراب بگی، یا ترجیح می‌دی با هم ببینیم از کجا می‌شه شروع کرد؟',
   },
   {
-    name: 'همدلی و شنیدن', label: 'همدلی و گوش دادن',
-    response: 'می‌فهمم برات سخته. می‌خوای بیشتر بگی؟',
+    name: 'همدلی و شنیدن',
+    label: 'همدلی و گوش دادن',
+    subtitle: 'فضای امن، بدون عجله برای راه‌حل',
+    response: 'حجم این فشار واقعاً سنگینه… وقتی هم نگرانی هست و هم حسِ عقب‌موندن، سخت بتونی به خودت سخت نگیری. الان بیشترِ این سنگینی کجای دلت نشسته؟',
   },
   {
-    name: 'به من یاد بده', label: 'توضیح با مثال',
-    response: 'می‌خوای با یه مثال برات توضیح بدم؟',
+    name: 'به من یاد بده',
+    label: 'توضیح با مثال',
+    subtitle: 'شناخت الگوهای ذهن با مثال ساده',
+    response: 'وقتی مضطربیم، ذهن مثل مرورگری می‌شه که ده‌ها تب باز داره؛ معلومه که تمرکز سخت می‌شه. می‌خوای ببینیم چطور این چرخهٔ فشار و حواس‌پرتی شکل می‌گیره؟',
   },
   {
-    name: 'راهنمایی آرام', label: 'قدم‌به‌قدم',
-    response: 'از یه قدم کوچیک شروع کن. الان چی از دستت برمیاد؟',
+    name: 'راهنمایی آرام',
+    label: 'قدم‌به‌قدم',
+    subtitle: 'پیشنهادهای کوچک، آرام و شدنی',
+    response: 'بیا فعلاً کل لیست کارها رو بذاریم کنار. از بین همه‌شون، کوچیک‌ترین کاری که فقط پنج دقیقه وقت می‌گیره کدومه؟ از همون یکی شروع کنیم.',
   },
   {
-    name: 'حل مسئله با هم', label: 'حل مسئله',
-    response: 'بگو چی دست خودته. کمکت می‌کنم یه راه پیدا کنی.',
+    name: 'حل مسئله با هم',
+    label: 'حل مسئله',
+    subtitle: 'بررسی گزینه‌ها و پیدا کردن مسیر',
+    response: 'بیا با هم بازش کنیم: الان کدوم بخشش دست خودته و کدومش نه؟ اگه دو تا مانع اصلی تمرکزت رو پیدا کنیم، می‌تونیم براشون یه نقشهٔ ساده بچینیم.',
   },
 ];
+
+export const CHAT_STARTER_PROMPTS = Object.freeze([
+  'ذهنم شلوغه و نمی‌دونم از کجا شروع کنم.',
+  'می‌خوام دربارهٔ حسی که این روزها تکرار می‌شه حرف بزنم.',
+  'امروز اتفاقی افتاد که فکرم رو درگیر کرده.',
+]);
 
 export const INITIAL_MESSAGES = [
   {
