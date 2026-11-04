@@ -1,3 +1,18 @@
+function pickMostRecentConversation(conversations) {
+  if (!Array.isArray(conversations) || conversations.length === 0) return null;
+  let best = conversations[0];
+  let bestTime = Date.parse(best?.updatedAt ?? '');
+  for (let i = 1; i < conversations.length; i += 1) {
+    const candidate = conversations[i];
+    const time = Date.parse(candidate?.updatedAt ?? '');
+    if (!Number.isNaN(time) && (Number.isNaN(bestTime) || time > bestTime)) {
+      best = candidate;
+      bestTime = time;
+    }
+  }
+  return best;
+}
+
 /** Backend-owned chat state. Never persist tester conversations in browser storage. */
 export function createConversationStore(api, { onUnauthorized = () => {}, newId = () => crypto.randomUUID() } = {}) {
   const initial = () => ({
@@ -5,6 +20,7 @@ export function createConversationStore(api, { onUnauthorized = () => {}, newId 
     conversationId: null, messages: [], messagesPhase: 'idle', messageError: null,
     pending: null, sending: false, deletingId: null, renamingId: null,
     bookmarks: [], bookmarkPhase: 'idle', bookmarkError: null, bookmarkBusyId: null,
+    isDraftNew: false,
   });
   let state = initial();
   let epoch = 0;
@@ -108,14 +124,14 @@ export function createConversationStore(api, { onUnauthorized = () => {}, newId 
   function startNew() {
     if (!state.userId || state.sending) return false;
     openVersion++;
-    publish({ conversationId: null, messages: [], messagesPhase: 'ready', messageError: null, pending: null });
+    publish({ conversationId: null, messages: [], messagesPhase: 'ready', messageError: null, pending: null, isDraftNew: true });
     return true;
   }
   async function open(id) {
     if (!state.userId || state.sending) return false;
     const req = scope();
     const version = ++openVersion;
-    publish({ conversationId: id, messages: [], messagesPhase: 'loading', messageError: null, pending: null });
+    publish({ conversationId: id, messages: [], messagesPhase: 'loading', messageError: null, pending: null, isDraftNew: false });
     try {
       const messages = await api.messages(id, req.signal);
       if (req.current() && version === openVersion) publish({ messages, messagesPhase: 'ready' });
@@ -124,6 +140,64 @@ export function createConversationStore(api, { onUnauthorized = () => {}, newId 
       if (version === openVersion) handleError(error, req, 'messages');
       return false;
     } finally { req.done(); }
+  }
+  /**
+   * Restores the user's most recent conversation when entering Chat unless a
+   * conversation is already active or the user explicitly started a new draft.
+   */
+  async function enterChat() {
+    if (!state.userId || state.sending || state.pending) return false;
+    if (state.conversationId || state.isDraftNew) {
+      if (state.historyPhase === 'idle' && typeof api.list === 'function') void list();
+      return true;
+    }
+    if (state.historyPhase === 'ready') {
+      const recent = pickMostRecentConversation(state.conversations);
+      if (recent) return open(recent.id);
+      publish({ conversationId: null, messages: [], messagesPhase: 'ready', messageError: null });
+      return true;
+    }
+    if (typeof api.list !== 'function') {
+      publish({ conversationId: null, messages: [], messagesPhase: 'ready', messageError: null });
+      return true;
+    }
+    const req = scope();
+    const currentOpenVersion = ++openVersion;
+    const currentHistoryVersion = ++historyVersion;
+    publish({
+      historyPhase: 'loading',
+      historyError: null,
+      messagesPhase: 'loading',
+      messageError: null,
+    });
+    try {
+      const conversations = await api.list(req.signal);
+      if (!req.current()) return false;
+      if (currentHistoryVersion === historyVersion) {
+        publish({ historyPhase: 'ready', conversations, historyError: null });
+      }
+      if (currentOpenVersion !== openVersion) return false;
+      const recent = pickMostRecentConversation(conversations);
+      if (!recent) {
+        publish({ conversationId: null, messages: [], messagesPhase: 'ready', messageError: null, isDraftNew: false });
+        return true;
+      }
+      publish({ conversationId: recent.id, messages: [], messagesPhase: 'loading', messageError: null, isDraftNew: false });
+      const messages = await api.messages(recent.id, req.signal);
+      if (!req.current() || currentOpenVersion !== openVersion) return false;
+      publish({ conversationId: recent.id, messages, messagesPhase: 'ready', messageError: null });
+      return true;
+    } catch (error) {
+      if (currentHistoryVersion === historyVersion && state.historyPhase === 'loading') {
+        handleError(error, req, 'history');
+      }
+      if (currentOpenVersion === openVersion) {
+        handleError(error, req, 'messages');
+      }
+      return false;
+    } finally {
+      req.done();
+    }
   }
   async function performTurn(turn) {
     if (!state.userId || state.sending) return false;
@@ -138,14 +212,14 @@ export function createConversationStore(api, { onUnauthorized = () => {}, newId 
         if (!current()) return false;
         conversationId = created.id;
         turn = { ...turn, conversationId };
-        publish({ conversationId, pending: turn });
+        publish({ conversationId, pending: turn, isDraftNew: false });
       }
       // Always reuse the identical clientTurnId + text, including after a lost response.
       await api.turn(conversationId, turn.clientTurnId, turn.text, req.signal);
       if (!current()) return false;
       const messages = await api.messages(conversationId, req.signal);
       if (!current()) return false;
-      publish({ messages, pending: null, messagesPhase: 'ready', messageError: null });
+      publish({ messages, pending: null, messagesPhase: 'ready', messageError: null, isDraftNew: false });
       // Refresh titles/timestamps, but never delay a successful send on list availability.
       void list();
       return true;
@@ -219,7 +293,7 @@ export function createConversationStore(api, { onUnauthorized = () => {}, newId 
   return {
     getState: () => state,
     subscribe(listener) { listeners.add(listener); return () => listeners.delete(listener); },
-    activate, reset, list, open, startNew, send, retry, remove, rename, listBookmarks, toggleBookmark,
+    activate, reset, list, open, enterChat, startNew, send, retry, remove, rename, listBookmarks, toggleBookmark,
     cancel() { epoch++; for (const controller of controllers) controller.abort(); controllers.clear(); },
   };
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Flame, Landmark } from 'lucide-react';
-import { APPROACHES, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
+import { Flame, Flower2, Landmark, Sparkles } from 'lucide-react';
+import { APPROACHES, APPROACH_USER_MESSAGE, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import {
   BackButton,
   ChoiceButton,
@@ -267,8 +267,13 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
   };
 
   return (
-    <Shell theme={theme} back={back} className={`question-screen question-${route} ${config.skip ? 'question-screen--skip' : ''}`}>
+    <Shell theme={theme} back={back} className={`question-screen question-${route} ${config.skip ? 'question-screen--skip' : ''} ${config.type === 'single' ? 'question-screen--single' : 'question-screen--multi'}`}>
       <PageHeader title={config.title} description={config.description} />
+      {config.type === 'multi' && config.limit && (
+        <div className="question-selection-meta" aria-live="polite">
+          <span>{selected.length.toLocaleString('fa-IR')} از {Number(config.limit).toLocaleString('fa-IR')} انتخاب شده</span>
+        </div>
+      )}
       <div className="choice-scroll">
         <div className={`choice-list ${config.type === 'single' ? 'choice-list--single' : ''}`}>
           {config.options.map((option) => (
@@ -333,6 +338,7 @@ function MoodScribble({ level }) {
 
 function MoodScreen({ navigate, back, answers, setAnswer }) {
   const mood = Number.isInteger(answers.mood) && answers.mood >= 0 && answers.mood <= 4 ? answers.mood : 2;
+  const maxIndex = MOODS.length - 1;
   return (
     <Shell back={back} className="mood-screen">
       <PageHeader title="این روزها چه حسی داشتی؟" description="نوار رو بکش تا به حالت نزدیک‌تر بشه." />
@@ -340,11 +346,36 @@ function MoodScreen({ navigate, back, answers, setAnswer }) {
         <div className="mood-glow" aria-hidden="true" />
         <MoodScribble level={mood} />
         <h2 aria-live="polite">{MOODS[mood].label}</h2>
-        <div className="mood-slider-wrap" dir="ltr">
-          <div className="mood-ticks" aria-hidden="true">{MOODS.map((item, index) => <i key={index} />)}</div>
-          <input className="mood-slider" type="range" min="0" max="4" step="1"
-            value={mood} onChange={event => setAnswer('mood', Number(event.target.value))}
-            aria-label="حس این روزهای من" aria-valuetext={MOODS[mood].label} />
+        <div className="mood-slider-wrap" dir="ltr" style={{ '--mood-index': mood }}>
+          <div className="mood-track" aria-hidden="true">
+            <div className="mood-track-line" />
+            <div className="mood-ticks">
+              {MOODS.map((_, index) => (
+                <i
+                  key={index}
+                  className={index === mood ? 'is-active' : ''}
+                  style={{ left: `${(index / maxIndex) * 100}%` }}
+                />
+              ))}
+            </div>
+            <span
+              className="mood-indicator"
+              style={{ left: `${(mood / maxIndex) * 100}%` }}
+            >
+              <span className="mood-indicator-core" />
+            </span>
+          </div>
+          <input
+            className="mood-slider"
+            type="range"
+            min="0"
+            max="4"
+            step="1"
+            value={mood}
+            onChange={(event) => setAnswer('mood', Number(event.target.value))}
+            aria-label="حس این روزهای من"
+            aria-valuetext={MOODS[mood].label}
+          />
         </div>
       </div>
       <p className="mood-footnote" aria-live="polite">{MOODS[mood].note}</p>
@@ -378,34 +409,160 @@ function CheckinsScreen({ navigate, back }) {
 function VoiceScreen({ navigate, back, answers, setAnswer }) {
   const initial = Math.max(0, VOICES.findIndex((voice) => voice.name === answers.voice));
   const [active, setActive] = useState(initial);
-  const touchStart = useRef(0);
+  const [direction, setDirection] = useState(1);
+  const [drag, setDrag] = useState(0);
+  const [resonating, setResonating] = useState(false);
+  const gesture = useRef(null);
+  const pulseTimer = useRef(null);
+
+  useEffect(() => () => window.clearTimeout(pulseTimer.current), []);
+
+  const prevIndex = (active - 1 + VOICES.length) % VOICES.length;
+  const nextIndex = (active + 1) % VOICES.length;
   const voice = VOICES[active];
-  const select = (index) => {
-    const next = (index + VOICES.length) % VOICES.length;
+  const prevVoice = VOICES[prevIndex];
+  const nextVoice = VOICES[nextIndex];
+
+  const select = (index, preferredDir) => {
+    const next = ((index % VOICES.length) + VOICES.length) % VOICES.length;
+    if (next === active) {
+      setResonating(true);
+      window.clearTimeout(pulseTimer.current);
+      pulseTimer.current = window.setTimeout(() => setResonating(false), 620);
+      return;
+    }
+    setDirection(preferredDir ?? (next > active ? 1 : -1));
+    setResonating(false);
     setActive(next);
     setAnswer('voice', VOICES[next].name);
   };
+
+  const finishGesture = (event, cancelled = false) => {
+    const start = gesture.current;
+    if (!start || start.id !== event.pointerId) return;
+    gesture.current = null;
+    setDrag(0);
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    if (!cancelled && Math.abs(dx) > 32 && Math.abs(dx) > Math.abs(dy) * 1.15) {
+      // In RTL, swiping right (dx > 0) reveals the next card on the left; swiping left (dx < 0) reveals previous,
+      // matching natural horizontal strip dragging where cards follow the finger.
+      const step = dx < 0 ? 1 : -1;
+      select(active + step, step);
+    }
+  };
+
   return (
     <Shell theme="dark" back={back} className="voice-screen">
-      <PageHeader title="دوست داری چه صدایی داشته باشم؟" description="بعداً هم می‌تونی صدام رو عوض کنی." />
+      <PageHeader title="دوست داری چه صدایی داشته باشم؟" description="ورق بزن یا یکی از صداها رو امتحان کن. بعداً هم قابل تغییره." />
       <div
-        className="voice-carousel"
-        onTouchStart={(event) => { touchStart.current = event.touches[0].clientX; }}
-        onTouchEnd={(event) => {
-          const distance = touchStart.current - event.changedTouches[0].clientX;
-          if (Math.abs(distance) > 35) select(active + (distance > 0 ? 1 : -1));
+        className="voice-stage"
+        role="region"
+        aria-label="انتخاب صدای همراه"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === 'ArrowLeft') { event.preventDefault(); select(active + 1, 1); }
+          else if (event.key === 'ArrowRight') { event.preventDefault(); select(active - 1, -1); }
+          else if (event.key === 'Home') { event.preventDefault(); select(0, -1); }
+          else if (event.key === 'End') { event.preventDefault(); select(VOICES.length - 1, 1); }
         }}
+        onPointerDown={(event) => {
+          if (!event.isPrimary || event.button !== 0 || event.target.closest('.voice-pill')) return;
+          gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+          event.currentTarget.setPointerCapture?.(event.pointerId);
+        }}
+        onPointerMove={(event) => {
+          const start = gesture.current;
+          if (!start || start.id !== event.pointerId) return;
+          const dx = event.clientX - start.x;
+          if (Math.abs(dx) > Math.abs(event.clientY - start.y)) {
+            setDrag(Math.max(-52, Math.min(52, dx * 0.38)));
+          }
+        }}
+        onPointerUp={finishGesture}
+        onPointerCancel={(event) => finishGesture(event, true)}
+        onLostPointerCapture={(event) => finishGesture(event, true)}
       >
-        <button type="button" className="voice-preview" onClick={() => select(active + 1)} aria-label="صدای بعدی">
-          <VoiceWave path={voice.path} />
-        </button>
-        <div className="voice-copy" key={voice.name}>
-          <h2>{voice.name}</h2>
-          <p>{voice.description}</p>
+        <div className="voice-deck">
+          <button
+            type="button"
+            className="voice-peek-card voice-peek-card--prev"
+            dir="rtl"
+            onClick={() => select(prevIndex, -1)}
+            aria-label={`صدای ${prevVoice.name}، ${prevVoice.description}`}
+          >
+            <div className="voice-peek-wave">
+              <VoiceWave path={prevVoice.path} />
+            </div>
+            <span className="voice-peek-name">{prevVoice.name}</span>
+          </button>
+
+          <article
+            className={`voice-active-card ${drag ? 'is-dragging' : ''}`}
+            dir="rtl"
+            style={{ '--voice-drag': `${drag}px`, '--voice-enter': `${direction * 18}px` }}
+            aria-live="polite"
+          >
+            <button
+              type="button"
+              className="voice-preview"
+              onClick={() => select(active)}
+              aria-label={`موج صدای ${voice.name} — ${voice.description}`}
+            >
+              <span className="voice-index-badge">
+                {(active + 1).toLocaleString('fa-IR')} از {VOICES.length.toLocaleString('fa-IR')}
+              </span>
+              <VoiceWave path={voice.path} resonating={resonating} />
+            </button>
+            <div className="voice-copy" key={voice.name}>
+              <h2>{voice.name}</h2>
+              <p>{voice.description}</p>
+              {voice.character && <small>{voice.character}</small>}
+            </div>
+          </article>
+
+          <button
+            type="button"
+            className="voice-peek-card voice-peek-card--next"
+            dir="rtl"
+            onClick={() => select(nextIndex, 1)}
+            aria-label={`صدای ${nextVoice.name}، ${nextVoice.description}`}
+          >
+            <div className="voice-peek-wave">
+              <VoiceWave path={nextVoice.path} />
+            </div>
+            <span className="voice-peek-name">{nextVoice.name}</span>
+          </button>
+        </div>
+
+        <div className="voice-pills" role="tablist" aria-label="فهرست صداها">
+          {VOICES.map((item, index) => (
+            <button
+              key={item.name}
+              type="button"
+              role="tab"
+              aria-selected={index === active}
+              className={`voice-pill ${index === active ? 'is-active' : ''}`}
+              onClick={() => select(index, index > active ? 1 : -1)}
+            >
+              {item.name}
+            </button>
+          ))}
         </div>
       </div>
-      <PagerDots count={VOICES.length} active={active} onChange={select} dark />
-      <PrimaryButton light onClick={() => nextFrom('voice', navigate)}>انتخاب این صدا</PrimaryButton>
+      <PagerDots count={VOICES.length} active={active} onChange={(index) => select(index, index > active ? 1 : -1)} dark />
+      <PrimaryButton
+        light
+        onClick={() => {
+          setAnswer('voice', voice.name);
+          nextFrom('voice', navigate);
+        }}
+      >
+        انتخاب صدای «{voice.name}»
+      </PrimaryButton>
     </Shell>
   );
 }
@@ -417,7 +574,14 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
   const [drag, setDrag] = useState(0);
   const gesture = useRef(null);
   const selectedIndex = useRef(initial);
+  const pillsRef = useRef(null);
   const approach = APPROACHES[active];
+
+  useEffect(() => {
+    const activeChip = pillsRef.current?.querySelector('.is-active');
+    activeChip?.scrollIntoView?.({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+  }, [active]);
+
   const select = (index) => {
     const next = Math.max(0, Math.min(APPROACHES.length - 1, index));
     if (next === selectedIndex.current) return;
@@ -426,6 +590,7 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
     setActive(next);
     setAnswer('approach', APPROACHES[next].name);
   };
+
   const finishGesture = (event, cancelled = false) => {
     const start = gesture.current;
     if (!start || start.id !== event.pointerId) return;
@@ -436,9 +601,24 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
     const dy = event.clientY - start.y;
     if (!cancelled && Math.abs(dx) > 35 && Math.abs(dx) > Math.abs(dy) * 1.2) select(active + (dx < 0 ? 1 : -1));
   };
+
   return (
     <Shell theme="beige" back={back} className="approach-screen">
-      <PageHeader title="دوست داری چطوری باهات حرف بزنم؟" />
+      <PageHeader title="دوست داری چطوری باهات حرف بزنم؟" description="یک پیام ثابت و پنج شیوهٔ همراهی — سبک‌ها رو جابه‌جا کن تا تفاوتشون رو ببینی." />
+      <div className="approach-pills" ref={pillsRef} role="tablist" aria-label="سبک‌های گفت‌وگو">
+        {APPROACHES.map((item, index) => (
+          <button
+            key={item.name}
+            type="button"
+            role="tab"
+            aria-selected={index === active}
+            className={`approach-pill ${index === active ? 'is-active' : ''}`}
+            onClick={() => select(index)}
+          >
+            {item.name}
+          </button>
+        ))}
+      </div>
       <div
         className="approach-stage"
         role="region"
@@ -467,8 +647,29 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
       >
         <button type="button" className="approach-peek approach-peek--before" aria-label="سبک قبلی" disabled={active === 0} onClick={() => select(active - 1)} />
         <article className={`approach-card${drag ? ' is-dragging' : ''}`} style={{ '--approach-drag': `${drag}px` }} aria-live="polite" aria-atomic="true">
-          <p className="approach-user">سلام، یه چیزی ذهنم رو درگیر کرده.</p>
-          <p className="approach-response" key={approach.name} style={{ '--approach-enter': `${direction * 18}px` }}>{approach.response}</p>
+          <div className="approach-chat-topbar">
+            <span className="approach-chat-brand">
+              <Flower2 size={15} strokeWidth={1.8} aria-hidden="true" />
+              <strong>همراه</strong>
+            </span>
+            <span className="approach-style-badge" key={`badge-${approach.name}`}>
+              <Sparkles size={12} aria-hidden="true" />
+              <span>{approach.name}</span>
+            </span>
+          </div>
+          <div className="approach-chat-body">
+            <div className="approach-user-wrap">
+              <span className="approach-sender-label">پیام تو</span>
+              <p className="approach-user">{APPROACH_USER_MESSAGE}</p>
+            </div>
+            <div className="approach-reply-wrap" key={approach.name} style={{ '--approach-enter': `${direction * 16}px` }}>
+              <div className="approach-reply-meta">
+                <span className="approach-reply-dot" aria-hidden="true" />
+                <span>پاسخ همراه · {approach.subtitle}</span>
+              </div>
+              <p className="approach-response">{approach.response}</p>
+            </div>
+          </div>
         </article>
         <button type="button" className="approach-peek approach-peek--after" aria-label="سبک بعدی" disabled={active === APPROACHES.length - 1} onClick={() => select(active + 1)} />
       </div>
@@ -476,7 +677,7 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
       <PrimaryButton className="with-skip" disabled={savingProfile} onClick={() => {
         if (profileEdit) onSaveApproach(approach.name);
         else { setAnswer('approach', approach.name); nextFrom('approach', navigate); }
-      }}>{profileEdit ? (savingProfile ? 'در حال ذخیره…' : 'ذخیره') : `امتحان «${approach.label || approach.name}»`}</PrimaryButton>
+      }}>{profileEdit ? (savingProfile ? 'در حال ذخیره…' : 'ذخیرهٔ سبک گفت‌وگو') : `انتخاب «${approach.label || approach.name}»`}</PrimaryButton>
       <button type="button" className="skip-button" onClick={() => profileEdit ? back() : nextFrom('approach', navigate)}>{profileEdit ? 'انصراف' : 'فعلاً رد کن'}</button>
     </Shell>
   );
