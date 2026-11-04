@@ -5,6 +5,7 @@ import '@fontsource-variable/vazirmatn';
 import '@fontsource-variable/noto-naskh-arabic';
 import App from './App';
 import './styles.css';
+import './ux-improvements.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

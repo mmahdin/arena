@@ -1,3 +1,8 @@
+## November 2026 UX refresh — supersedes reflection/insight rows below
+- Daily Reflections, journaling routes, the Home reflect card, and static Insight content are removed from the user-facing frontend. Reflection transport/store files and backend behavior are intentionally untouched.
+- The Home envelope now opens a structured personalized-letter reader with a truthful empty state. No letter endpoint is called and no demonstration personal insight is displayed. See `UX_REFRESH_2026-11.md` for the proposed future contract and backend requirements.
+- Chat uses existing list/create/messages/turns APIs with an integrated switcher. Ordinary entry resumes the latest conversation; explicit New remains local until the first send.
+
 ## Current implementation status — Task 03 supersedes the historical design-gap observations below
 - **Connected:** fictional phone-based Dev Session; short name/style onboarding; real Chat create/send/retry and message history; History list/open/continue/delete through Go/MSSQL.
 - **Existing UI is still source of truth:** no redesign of original brand, palette, images or hash-route navigation. The designer's demo History weekly progress and fake chat replies are not shown in connected mode.

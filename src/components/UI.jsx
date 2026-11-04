@@ -93,7 +93,7 @@ export function ChoiceButton({ children, selected, onClick, multi = false, disab
   );
 }
 
-export function EnvelopeArt({ onClick }) {
+export function EnvelopeArt({ onClick, dateLabel = '' }) {
   const content = (
     <>
       <svg className="envelope-lines" viewBox="0 0 340 160" aria-hidden="true">
@@ -101,13 +101,13 @@ export function EnvelopeArt({ onClick }) {
         <path d="M8 148 L126 69" />
         <path d="M332 148 L214 69" />
       </svg>
-      <span className="envelope-date">۳۱ اکتبر</span>
+      {dateLabel && <span className="envelope-date">{dateLabel}</span>}
       <span className="wax-seal"><Flower2 size={34} strokeWidth={1.25} /></span>
     </>
   );
 
   if (onClick) {
-    return <button type="button" className="envelope-art" onClick={onClick} aria-label="دیدن نامه">{content}</button>;
+    return <button type="button" className="envelope-art" onClick={onClick} aria-label={dateLabel ? 'خواندن نامه' : 'دیدن فضای نامه‌های شخصی'}>{content}</button>;
   }
   return <div className="envelope-art">{content}</div>;
 }
