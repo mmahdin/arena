@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Flame, Landmark } from 'lucide-react';
-import { APPROACHES, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Check, Flame, Landmark } from 'lucide-react';
+import { APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import {
   BackButton,
   ChoiceButton,
@@ -341,7 +341,9 @@ function MoodScreen({ navigate, back, answers, setAnswer }) {
         <MoodScribble level={mood} />
         <h2 aria-live="polite">{MOODS[mood].label}</h2>
         <div className="mood-slider-wrap" dir="ltr">
-          <div className="mood-ticks" aria-hidden="true">{MOODS.map((item, index) => <i key={index} />)}</div>
+          <div className="mood-ticks" aria-hidden="true">
+            {MOODS.map((item, index) => <i key={index} style={{ '--tick-index': index }} className={index === mood ? 'is-active' : ''} />)}
+          </div>
           <input className="mood-slider" type="range" min="0" max="4" step="1"
             value={mood} onChange={event => setAnswer('mood', Number(event.target.value))}
             aria-label="حس این روزهای من" aria-valuetext={MOODS[mood].label} />
@@ -378,34 +380,89 @@ function CheckinsScreen({ navigate, back }) {
 function VoiceScreen({ navigate, back, answers, setAnswer }) {
   const initial = Math.max(0, VOICES.findIndex((voice) => voice.name === answers.voice));
   const [active, setActive] = useState(initial);
-  const touchStart = useRef(0);
+  const trackRef = useRef(null);
+  const cardRefs = useRef([]);
+  const scrollFrame = useRef(null);
   const voice = VOICES[active];
-  const select = (index) => {
-    const next = (index + VOICES.length) % VOICES.length;
+  const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+  const select = (index, scroll = true) => {
+    const next = Math.max(0, Math.min(VOICES.length - 1, index));
     setActive(next);
     setAnswer('voice', VOICES[next].name);
+    if (scroll) {
+      cardRefs.current[next]?.scrollIntoView({
+        behavior: reducedMotion() ? 'auto' : 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    }
   };
+
+  useLayoutEffect(() => {
+    cardRefs.current[initial]?.scrollIntoView({ behavior: 'auto', inline: 'center', block: 'nearest' });
+    return () => window.cancelAnimationFrame(scrollFrame.current);
+  }, []);
+
+  const onScroll = () => {
+    window.cancelAnimationFrame(scrollFrame.current);
+    scrollFrame.current = window.requestAnimationFrame(() => {
+      const track = trackRef.current;
+      if (!track) return;
+      const center = track.scrollLeft + track.clientWidth / 2;
+      let nearest = 0;
+      let nearestDistance = Infinity;
+      cardRefs.current.forEach((card, index) => {
+        if (!card) return;
+        const distance = Math.abs(card.offsetLeft + card.offsetWidth / 2 - center);
+        if (distance < nearestDistance) { nearestDistance = distance; nearest = index; }
+      });
+      if (nearest !== active) select(nearest, false);
+    });
+  };
+
+  const onKeyDown = (event) => {
+    const target = { ArrowRight: active + 1, ArrowLeft: active - 1, Home: 0, End: VOICES.length - 1 }[event.key];
+    if (target === undefined) return;
+    event.preventDefault();
+    select(target);
+  };
+
   return (
     <Shell theme="dark" back={back} className="voice-screen">
-      <PageHeader title="دوست داری چه صدایی داشته باشم؟" description="بعداً هم می‌تونی صدام رو عوض کنی." />
+      <PageHeader title="دوست داری چه صدایی داشته باشم؟" description="بین صداها بکش یا روی هر کدوم بزنی، انتخاب می‌شه." />
       <div
         className="voice-carousel"
-        onTouchStart={(event) => { touchStart.current = event.touches[0].clientX; }}
-        onTouchEnd={(event) => {
-          const distance = touchStart.current - event.changedTouches[0].clientX;
-          if (Math.abs(distance) > 35) select(active + (distance > 0 ? 1 : -1));
-        }}
+        dir="ltr"
+        ref={trackRef}
+        onScroll={onScroll}
+        onKeyDown={onKeyDown}
+        tabIndex={0}
+        role="group"
+        aria-label="گزینه‌های صدا"
       >
-        <button type="button" className="voice-preview" onClick={() => select(active + 1)} aria-label="صدای بعدی">
-          <VoiceWave path={voice.path} />
-        </button>
-        <div className="voice-copy" key={voice.name}>
-          <h2>{voice.name}</h2>
-          <p>{voice.description}</p>
-        </div>
+        {VOICES.map((item, index) => (
+          <button
+            type="button"
+            key={item.name}
+            ref={(node) => { cardRefs.current[index] = node; }}
+            className={`voice-card ${index === active ? 'is-active' : ''}`}
+            onClick={() => select(index)}
+            aria-pressed={index === active}
+            aria-label={`صدای ${item.name}، ${item.description}`}
+          >
+            <VoiceWave path={item.path} />
+            <span className="voice-card-copy" dir="rtl">
+              <strong>{item.name}</strong>
+              <small>{item.description}</small>
+            </span>
+            {index === active && <span className="voice-card-check" aria-hidden="true"><Check size={16} /></span>}
+          </button>
+        ))}
       </div>
-      <PagerDots count={VOICES.length} active={active} onChange={select} dark />
-      <PrimaryButton light onClick={() => nextFrom('voice', navigate)}>انتخاب این صدا</PrimaryButton>
+      <PagerDots count={VOICES.length} active={active} onChange={select} dark label="انتخاب صدا" labels={VOICES.map((item) => item.name)} />
+      <p className="voice-note">این انتخاب فعلاً نمایشی است؛ پخش صوتی نداریم.</p>
+      <PrimaryButton light onClick={() => nextFrom('voice', navigate)}>ادامه با «{voice.name}»</PrimaryButton>
     </Shell>
   );
 }
@@ -417,6 +474,7 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
   const [drag, setDrag] = useState(0);
   const gesture = useRef(null);
   const selectedIndex = useRef(initial);
+  const tabRefs = useRef([]);
   const approach = APPROACHES[active];
   const select = (index) => {
     const next = Math.max(0, Math.min(APPROACHES.length - 1, index));
@@ -425,6 +483,21 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
     selectedIndex.current = next;
     setActive(next);
     setAnswer('approach', APPROACHES[next].name);
+  };
+  useLayoutEffect(() => {
+    tabRefs.current[active]?.scrollIntoView({
+      behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      inline: 'center',
+      block: 'nearest',
+    });
+  }, [active]);
+  const onTabKeyDown = (event, index) => {
+    const target = { ArrowLeft: index + 1, ArrowRight: index - 1, Home: 0, End: APPROACHES.length - 1 }[event.key];
+    if (target === undefined) return;
+    event.preventDefault();
+    const next = Math.max(0, Math.min(APPROACHES.length - 1, target));
+    select(next);
+    tabRefs.current[next]?.focus();
   };
   const finishGesture = (event, cancelled = false) => {
     const start = gesture.current;
@@ -439,10 +512,31 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
   return (
     <Shell theme="beige" back={back} className="approach-screen">
       <PageHeader title="دوست داری چطوری باهات حرف بزنم؟" />
+      <div className="approach-tabs" role="tablist" aria-label="سبک‌های گفت‌وگو">
+        {APPROACHES.map((item, index) => (
+          <button
+            type="button"
+            key={item.name}
+            ref={(node) => { tabRefs.current[index] = node; }}
+            role="tab"
+            id={`approach-tab-${index}`}
+            aria-selected={index === active}
+            aria-controls="approach-panel"
+            tabIndex={index === active ? 0 : -1}
+            className={`approach-tab ${index === active ? 'is-active' : ''}`}
+            onClick={() => select(index)}
+            onKeyDown={(event) => onTabKeyDown(event, index)}
+          >
+            {index === active && <Check size={15} aria-hidden="true" />}
+            {item.label || item.name}
+          </button>
+        ))}
+      </div>
       <div
         className="approach-stage"
-        role="region"
-        aria-label="نمونهٔ سبک گفت‌وگو"
+        role="tabpanel"
+        id="approach-panel"
+        aria-labelledby={`approach-tab-${active}`}
         tabIndex={0}
         onKeyDown={(event) => {
           const target = { ArrowLeft: active + 1, ArrowRight: active - 1, Home: 0, End: APPROACHES.length - 1 }[event.key];
@@ -465,18 +559,22 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
         onPointerCancel={(event) => finishGesture(event, true)}
         onLostPointerCapture={(event) => finishGesture(event, true)}
       >
-        <button type="button" className="approach-peek approach-peek--before" aria-label="سبک قبلی" disabled={active === 0} onClick={() => select(active - 1)} />
-        <article className={`approach-card${drag ? ' is-dragging' : ''}`} style={{ '--approach-drag': `${drag}px` }} aria-live="polite" aria-atomic="true">
-          <p className="approach-user">سلام، یه چیزی ذهنم رو درگیر کرده.</p>
-          <p className="approach-response" key={approach.name} style={{ '--approach-enter': `${direction * 18}px` }}>{approach.response}</p>
+        <article className={`approach-card${drag ? ' is-dragging' : ''}`} style={{ '--approach-drag': `${drag}px` }}>
+          <span className="approach-preview-badge">نمونهٔ گفت‌وگو</span>
+          <div className="approach-message approach-message--user">
+            <p>{APPROACH_EXAMPLE_USER}</p>
+          </div>
+          <div className="approach-message approach-message--assistant" key={approach.name} style={{ '--approach-enter': `${direction * 18}px` }} aria-live="polite">
+            <span className="approach-author">همراه · {approach.label || approach.name}</span>
+            <p className="approach-response">{approach.exampleResponse || approach.response}</p>
+          </div>
         </article>
-        <button type="button" className="approach-peek approach-peek--after" aria-label="سبک بعدی" disabled={active === APPROACHES.length - 1} onClick={() => select(active + 1)} />
+        <p className="approach-swipe-hint">برای تغییر سبک، کارت رو بکش</p>
       </div>
-      <PagerDots count={APPROACHES.length} active={active} onChange={select} />
       <PrimaryButton className="with-skip" disabled={savingProfile} onClick={() => {
         if (profileEdit) onSaveApproach(approach.name);
         else { setAnswer('approach', approach.name); nextFrom('approach', navigate); }
-      }}>{profileEdit ? (savingProfile ? 'در حال ذخیره…' : 'ذخیره') : `امتحان «${approach.label || approach.name}»`}</PrimaryButton>
+      }}>{profileEdit ? (savingProfile ? 'در حال ذخیره…' : 'ذخیره') : `ادامه با «${approach.label || approach.name}»`}</PrimaryButton>
       <button type="button" className="skip-button" onClick={() => profileEdit ? back() : nextFrom('approach', navigate)}>{profileEdit ? 'انصراف' : 'فعلاً رد کن'}</button>
     </Shell>
   );

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   ArrowRight,
   Check,
   Flower2,
   Plus,
   Star,
+  X,
 } from 'lucide-react';
 
 export function StatusBar() {
@@ -47,7 +48,7 @@ export function PageHeader({ title, description, className = '' }) {
   );
 }
 
-export function PagerDots({ count, active, onChange, dark = false, label = 'انتخاب صفحه' }) {
+export function PagerDots({ count, active, onChange, dark = false, label = 'انتخاب صفحه', labels = [] }) {
   return (
     <div className={`pager-dots ${dark ? 'pager-dots--dark' : ''}`} role="group" aria-label={label}>
       {Array.from({ length: count }, (_, index) => (
@@ -56,11 +57,59 @@ export function PagerDots({ count, active, onChange, dark = false, label = 'ان
           type="button"
           className={index === active ? 'is-active' : ''}
           onClick={() => onChange?.(index)}
-          aria-label={`گزینه ${index + 1}`}
+          aria-label={labels[index] || `گزینه ${index + 1}`}
           aria-current={index === active ? 'true' : undefined}
         />
       ))}
     </div>
+  );
+}
+
+/** Accessible native-dialog bottom sheet used for conversation/message actions. */
+export function BottomSheet({ open, onClose, title, children, className = '' }) {
+  const ref = useRef(null);
+  const returnFocus = useRef(null);
+  useEffect(() => {
+    const dialog = ref.current;
+    if (!dialog) return undefined;
+    if (open) {
+      returnFocus.current = document.activeElement;
+      if (!dialog.open) dialog.showModal();
+      const first = dialog.querySelector('button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])');
+      first?.focus();
+    } else if (dialog.open) {
+      dialog.close();
+    }
+    return undefined;
+  }, [open]);
+  useEffect(() => {
+    const dialog = ref.current;
+    if (!dialog) return undefined;
+    const onCloseEvent = () => onClose?.();
+    dialog.addEventListener('close', onCloseEvent);
+    return () => dialog.removeEventListener('close', onCloseEvent);
+  }, [onClose]);
+  useEffect(() => () => {
+    if (returnFocus.current instanceof HTMLElement) returnFocus.current.focus();
+  }, []);
+  return (
+    <dialog
+      ref={ref}
+      className={`bottom-sheet ${className}`}
+      aria-label={title}
+      onCancel={(event) => { event.preventDefault(); onClose?.(); }}
+      onClick={(event) => { if (event.target === event.currentTarget) onClose?.(); }}
+    >
+      <div className="bottom-sheet-panel">
+        <header className="bottom-sheet-header">
+          <h2>{title}</h2>
+          <button type="button" className="bottom-sheet-close" onClick={onClose} aria-label="بستن">
+            <X size={20} aria-hidden="true" />
+          </button>
+        </header>
+        {children}
+      </div>
+    </dialog>
   );
 }
 
@@ -93,7 +142,7 @@ export function ChoiceButton({ children, selected, onClick, multi = false, disab
   );
 }
 
-export function EnvelopeArt({ onClick }) {
+export function EnvelopeArt({ onClick, label = 'نامهٔ همراه', ariaLabel = 'باز کردن نامهٔ همراه' }) {
   const content = (
     <>
       <svg className="envelope-lines" viewBox="0 0 340 160" aria-hidden="true">
@@ -101,13 +150,13 @@ export function EnvelopeArt({ onClick }) {
         <path d="M8 148 L126 69" />
         <path d="M332 148 L214 69" />
       </svg>
-      <span className="envelope-date">۳۱ اکتبر</span>
+      <span className="envelope-date">{label}</span>
       <span className="wax-seal"><Flower2 size={34} strokeWidth={1.25} /></span>
     </>
   );
 
   if (onClick) {
-    return <button type="button" className="envelope-art" onClick={onClick} aria-label="دیدن نامه">{content}</button>;
+    return <button type="button" className="envelope-art" onClick={onClick} aria-label={ariaLabel}>{content}</button>;
   }
   return <div className="envelope-art">{content}</div>;
 }

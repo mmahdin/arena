@@ -1,5 +1,7 @@
 # Frontend design and interaction contract — همراه (current authority)
 
+> 2026-11-04 product update: the active Home no longer preserves the reflection card or diary-writing UI. The envelope opens Letters, and Chat is a separate continuous conversation experience. Older reflection-preservation notes below are historical; see `docs/integration/UX_REFINEMENT_2026_11.md` and `docs/integration/LETTERS_FRONTEND_BOUNDARY.md`.
+
 ## Authority / preservation
 **This uploaded 2026-11-02 new `ai-therapist-frontend(1).zip` is the definitive visual product reference.** It replaces the earlier Rahrah design and the older TypeScript Wellbeing prototype as a visual source. No redesign is requested. Make each new functional state feel native to this exact UI; do not migrate from another app.
 
