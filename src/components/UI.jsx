@@ -107,7 +107,7 @@ export function EnvelopeArt({ onClick }) {
   );
 
   if (onClick) {
-    return <button type="button" className="envelope-art" onClick={onClick} aria-label="بازکردن نامه">{content}</button>;
+    return <button type="button" className="envelope-art" onClick={onClick} aria-label="دیدن نامه">{content}</button>;
   }
   return <div className="envelope-art">{content}</div>;
 }

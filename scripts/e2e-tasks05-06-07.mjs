@@ -23,7 +23,7 @@ const call=(method,path,body)=>page.evaluate(async({method,path,body})=>{
 },{method,path,body});
 const enter=async phone=>{await page.locator('#dev-phone').fill(phone);await page.getByRole('button',{name:'ادامه',exact:true}).click();await page.locator('#dev-phone').waitFor({state:'hidden'});};
 const route=async target=>{await page.evaluate(target=>{location.hash=`/${target}`;},target);};
-const history=async()=>{await route('home');await page.locator('.home-menu-button').click();await page.getByRole('button',{name:'تاریخچه',exact:true}).click();await page.locator('.history-screen').waitFor();await page.getByText('در حال دریافت گفتگوها…').waitFor({state:'hidden'});};
+const history=async()=>{await route('home');await page.locator('.home-menu-button').click();await page.getByRole('button',{name:'گفت‌وگوهای قبلی',exact:true}).click();await page.locator('.history-screen').waitFor();await page.getByText('در حال بارگذاری گفت‌وگوها…').waitFor({state:'hidden'});};
 const leave=async()=>{await route('home');await page.locator('.home-menu-button').click();await page.getByRole('button',{name:'خروج',exact:true}).click();await page.locator('#dev-phone').waitFor();};
 const shots=new Set(['welcome','name','approach','ready']);
 const seen=new Set();

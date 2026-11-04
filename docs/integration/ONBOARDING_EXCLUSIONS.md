@@ -1,3 +1,5 @@
+> **Historical reference (v1).** This document describes an earlier onboarding flow. The active implementation is **v2**; see [ONBOARDING_V2.md](ONBOARDING_V2.md). Do not use the route indices below for current development.
+
 # Temporary onboarding exclusions
 
 The user requested excluding Testimonials, Research and Experts from onboarding without deleting their pages. `EXCLUDED_ONBOARDING_ROUTES` in `src/features/profile/navigation.js` holds this temporary configuration. The remaining21 screens retain their original order. Welcome → Name; Back from Name → Welcome. The three components, assets, original `FLOW`, and completed-user About entry remain present.

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Flame, Landmark } from 'lucide-react';
-import { APPROACHES, QUESTIONS, REVIEWS, VOICES } from '../data';
+import { APPROACHES, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import {
   BackButton,
   ChoiceButton,
@@ -12,32 +12,9 @@ import {
   VoiceWave,
 } from '../components/UI';
 
-const nextFrom = (route, navigate) => navigate(NEXT[route] || 'home');
-const NEXT = {
-  welcome: 'testimonials',
-  testimonials: 'research',
-  research: 'experts',
-  experts: 'name',
-  name: 'simple-intro',
-  'simple-intro': 'privacy',
-  privacy: 'deeper-intro',
-  'deeper-intro': 'therapist',
-  therapist: 'age',
-  age: 'concerns',
-  concerns: 'focus',
-  focus: 'feelings',
-  feelings: 'neurodivergent',
-  neurodivergent: 'faith',
-  faith: 'know-intro',
-  'know-intro': 'interests',
-  interests: 'relationships',
-  relationships: 'strengths',
-  strengths: 'barriers',
-  barriers: 'almost-intro',
-  'almost-intro': 'voice',
-  voice: 'approach',
-  approach: 'ready',
-  ready: 'home',
+const nextFrom = (route, navigate) => {
+  const nextIndex = FLOW.indexOf(route) + 1;
+  if (nextIndex > 0 && nextIndex < FLOW.length) navigate(FLOW[nextIndex]);
 };
 
 function Shell({ theme = 'light', back, children, className = '' }) {
@@ -55,13 +32,13 @@ function Welcome({ navigate }) {
   return (
     <Shell className="welcome-screen">
       <PageHeader
-        title="با همراه سلام کن."
-        description="همراه، هوشی مصنوعی برای سلامت روان و حمایت عاطفی است."
+        title="با همراه آشنا شو"
+        description="همراه کمک می‌کنه دربارهٔ احساساتت حرف بزنی و خودت رو بهتر بشناسی."
       />
       <div className="welcome-art artwork-wrap">
         <img src="/assets/welcome-figures.png" alt="دو شخصیت گل‌مانند دست‌در دست" />
       </div>
-      <PrimaryButton onClick={() => nextFrom('welcome', navigate)}>شروع کنیم</PrimaryButton>
+      <PrimaryButton onClick={() => nextFrom('welcome', navigate)}>شروع</PrimaryButton>
     </Shell>
   );
 }
@@ -70,8 +47,8 @@ function Testimonials({ navigate, back }) {
   return (
     <Shell theme="beige" back={back} className="testimonials-screen scrolling-screen">
       <PageHeader
-        title="فقط حرف ما را باور نکن."
-        description="تجربه‌ی دیگران؛ بیش از ۶٬۰۰۰ امتیاز و همچنان بیشتر."
+        title="بقیه دربارهٔ همراه چی می‌گن؟"
+        description="نظر کاربران همراه"
       />
       <div className="reviews-list">
         {REVIEWS.map((review) => (
@@ -94,8 +71,8 @@ function Research({ navigate, back }) {
   return (
     <Shell theme="dark" back={back} className="research-screen">
       <PageHeader
-        title="همراه بر پایه‌ی پژوهش‌های معتبر ساخته شده است."
-        description="بیش از ۱۴ مقاله‌ی پژوهشی، و ادامه‌ی مسیر."
+        title="همراه با کمک پژوهش‌های علمی طراحی شده."
+        description="پژوهش‌های مرتبط با همراه"
       />
       <div className="research-logos" aria-label="مراکز پژوهشی">
         <span className="university-wordmark">نورث‌وسترن</span>
@@ -114,7 +91,7 @@ function Research({ navigate, back }) {
 function Experts({ navigate, back }) {
   return (
     <Shell theme="dark" back={back} className="experts-screen">
-      <PageHeader title="با همراهی تیمی از متخصصان." />
+      <PageHeader title="با کمک متخصصان" />
       <div className="experts-gallery">
         <article className="expert-card">
           <img src="/assets/expert-man.jpg" alt="یکی از متخصصان تیم" />
@@ -130,29 +107,29 @@ function Experts({ navigate, back }) {
   );
 }
 
-function NameScreen({ navigate, back, name, setName, profileEdit = false, savingProfile = false, onSaveName }) {
+function NameScreen({ navigate, back, name, setName, profileEdit = false, savingProfile = false, onSaveName, onSaveOnboardingName }) {
   const submit = (event) => {
     event.preventDefault();
     if (name.trim()) {
       if (profileEdit) void onSaveName();
-      else nextFrom('name', navigate);
+      else void onSaveOnboardingName();
     }
   };
   return (
     <Shell back={back} className="name-screen">
-      <PageHeader title="اسمت چیست؟" description="همراه با همین اسم صدایت می‌کند." />
+      <PageHeader title="دوست داری چی صدات کنم؟" description="با همین اسم صدات می‌کنم." />
       <form onSubmit={submit}>
-        <label className="sr-only" htmlFor="name">نام تو</label>
+        <label className="sr-only" htmlFor="name">اسمت</label>
         <input
           id="name"
           className="name-input"
           value={name}
           onChange={(event) => setName(event.target.value)}
-          placeholder="نام تو"
+          placeholder="اسمت"
           autoComplete="given-name"
-          maxLength={30}
+          maxLength={60}
         />
-        <PrimaryButton type="submit" disabled={!name.trim() || savingProfile}>{profileEdit ? (savingProfile ? 'در حال ذخیره…' : 'ذخیره نام') : 'ادامه'}</PrimaryButton>
+        <PrimaryButton type="submit" disabled={!name.trim() || savingProfile}>{savingProfile ? 'در حال ذخیره…' : profileEdit ? 'ذخیره نام' : 'ادامه'}</PrimaryButton>
       </form>
     </Shell>
   );
@@ -160,23 +137,23 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
 
 const INTERSTITIALS = {
   'simple-intro': {
-    title: 'از ساده شروع کنیم.',
-    description: 'همراه با دانستن زمینه بهتر کار می‌کند. هرچه بیشتر بداند، گفت‌وگوی اول بهتری خواهید داشت.',
+    title: 'اول چند سؤال ساده بپرسم.',
+    description: 'جواب‌هات کمک می‌کنن بهتر بشناسمت.',
     art: 'small',
   },
   'deeper-intro': {
-    title: 'حالا کمی عمیق‌تر برویم.',
-    description: 'به چند پرسش کوتاه جواب بده تا همراه بفهمد چرا اینجایی.',
+    title: 'حالا بیشتر دربارهٔ خودت بگو.',
+    description: 'با چند سؤال کوتاه کمکم کن بفهمم چرا اینجایی و چه چیزهایی برات مهم‌ترن.',
     art: 'medium',
   },
   'know-intro': {
-    title: 'حالا کمی بهتر بشناسیمت.',
-    description: 'به همراه کمک کن تصویر بزرگ‌تری ببیند. هرچه بیشتر بگویی، بینش بهتری می‌گیری.',
+    title: 'بذار بیشتر بشناسمت.',
+    description: '',
     art: 'large',
   },
   'almost-intro': {
-    title: 'تقریباً رسیدی.',
-    description: 'ممنون که این‌قدر باز بودی. حالا همراه را مطابق ترجیحاتت تنظیم کنیم.',
+    title: 'دیگه چیزی نمونده!',
+    description: 'حالا صدا و سبک حرف زدنم رو انتخاب کن.',
     art: 'tall',
   },
 };
@@ -189,7 +166,7 @@ function Interstitial({ route, navigate, back }) {
       <div className="interstitial-art artwork-wrap">
         <img src={`/assets/flower-person-${item.art}.png`} alt="شخصیت گل‌مانند همراه" />
       </div>
-      <PrimaryButton light onClick={() => nextFrom(route, navigate)}>آماده‌ام</PrimaryButton>
+      <PrimaryButton light onClick={() => nextFrom(route, navigate)}>ادامه</PrimaryButton>
     </Shell>
   );
 }
@@ -200,8 +177,8 @@ function Privacy({ navigate, back, privacySharing = true, privacyLoading = false
   return (
     <Shell back={back} className="privacy-screen">
       <PageHeader
-        title="تعهد ما به تو."
-        description="سلامت روان موضوعی خصوصی است. گفت‌وگوهای تو برای ادامهٔ گفتگو در حساب همراه نگهداری می‌شوند."
+        title="حریم خصوصی تو مهمه."
+        description="گفت‌وگوهات ذخیره می‌شن تا بعداً ادامه‌شون بدی."
       />
       <img className="privacy-art" src="/assets/privacy-flower.png" alt="گل با نشان قفل" />
       <button
@@ -214,10 +191,10 @@ function Privacy({ navigate, back, privacySharing = true, privacyLoading = false
         onClick={onTogglePrivacy}
       >
         <span className={`toggle ${sharing ? 'is-on' : ''}`} aria-hidden="true"><span /></span>
-        <span>اشتراک‌گذاری اختیاری گفتگوها</span>
+        <span>اجازهٔ استفاده از گفت‌وگوها</span>
       </button>
       {privacyError && <div className="connected-notice" role="alert">
-        <p>ذخیره یا دریافت تنظیمات انجام نشد.</p>
+        <p>تنظیمات حریم خصوصی در دسترس نیست. دوباره تلاش کن.</p>
         <button type="button" onClick={onRetryPrivacy}>تلاش دوباره</button>
       </div>}
       <PrimaryButton onClick={() => nextFrom('privacy', navigate)}>ادامه</PrimaryButton>
@@ -236,7 +213,7 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
   };
   return (
     <Shell back={back} className="age-screen">
-      <PageHeader title="چند سالته؟" description="برای انتخاب، بالا و پایین برو." />
+      <PageHeader title="چند سالته؟" description="بازهٔ سنیت رو انتخاب کن." />
       <div
         className="age-picker"
         onWheel={(event) => move(event.deltaY > 0 ? 1 : -1)}
@@ -283,7 +260,7 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
     }
     const exists = selected.includes(option);
     if (!exists && config.limit && selected.length >= config.limit) {
-      notify(`می‌توانی حداکثر ${Number(config.limit).toLocaleString('fa-IR')} مورد را انتخاب کنی.`);
+      notify(`می‌تونی حداکثر ${Number(config.limit).toLocaleString('fa-IR')} مورد را انتخاب کنی.`);
       return;
     }
     setAnswer(route, exists ? selected.filter((item) => item !== option) : [...selected, option]);
@@ -307,13 +284,93 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
       {config.type === 'multi' && (
         <PrimaryButton
           className={config.skip ? 'with-skip' : ''}
-          disabled={!hasSelection}
+          disabled={!hasSelection && !config.allowEmpty}
           onClick={() => nextFrom(route, navigate)}
         >{config.confirmLabel || 'ادامه'}</PrimaryButton>
       )}
       {config.skip && (
         <button type="button" className="skip-button" onClick={() => nextFrom(route, navigate)}>فعلاً رد کن</button>
       )}
+    </Shell>
+  );
+}
+
+// Deliberately drawn as native SVG, not screenshots, so it stays sharp and
+// changes smoothly at all five mood positions. Direction follows the reference:
+// left is struggling and right is generally good, regardless of page RTL.
+const MOODS = [
+  { label: 'این روزها سخت می‌گذره', note: 'آروم و قدم‌به‌قدم پیش می‌ریم.' },
+  { label: 'انرژی زیادی ندارم', note: 'فعلاً از چیزهای ساده شروع می‌کنیم.' },
+  { label: 'یه روز خوب، یه روز سخت', note: 'روزبه‌روز جلو می‌ریم.' },
+  { label: 'دارم می‌گذرونم', note: 'با هم بهترش می‌کنیم.' },
+  { label: 'در کل حالم خوبه', note: 'چه خوب! بیا بیشتر ازش بگیم.' },
+];
+
+function MoodScribble({ level }) {
+  // A continuous hand-drawn contour evolves from angular and tangled to round.
+  const path = React.useMemo(() => {
+    const points = [];
+    const turns = [9.5, 7.4, 5.0, 3.0, 2.2][level];
+    const count = 430;
+    for (let i = 0; i <= count; i++) {
+      const progress = i / count;
+      const theta = progress * turns * Math.PI * 2;
+      const rough = level <= 1 ? (1 + 0.24 * Math.sin(theta * 2.7) + 0.12 * Math.cos(theta * 4.3)) : 1;
+      const radius = (0.45 + progress * 0.50) * rough;
+      const tilt = level === 4 ? 0.15 : 0.38;
+      const x = 170 + 113 * radius * Math.cos(theta + tilt) + (level === 2 ? 13 * Math.sin(theta * 0.4) : 0);
+      const y = 150 + 105 * radius * Math.sin(theta) + (level === 0 ? 12 * Math.sin(theta * 1.5) : 0);
+      points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`);
+    }
+    return points.join(' ');
+  }, [level]);
+  return (
+    <svg className="mood-scribble" viewBox="0 0 340 300" aria-hidden="true" focusable="false">
+      <path d={path} fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function MoodScreen({ navigate, back, answers, setAnswer }) {
+  const mood = Number.isInteger(answers.mood) && answers.mood >= 0 && answers.mood <= 4 ? answers.mood : 2;
+  return (
+    <Shell back={back} className="mood-screen">
+      <PageHeader title="این روزها چه حسی داشتی؟" description="نوار رو بکش تا به حالت نزدیک‌تر بشه." />
+      <div className="mood-stage">
+        <div className="mood-glow" aria-hidden="true" />
+        <MoodScribble level={mood} />
+        <h2 aria-live="polite">{MOODS[mood].label}</h2>
+        <div className="mood-slider-wrap" dir="ltr">
+          <div className="mood-ticks" aria-hidden="true">{MOODS.map((item, index) => <i key={index} />)}</div>
+          <input className="mood-slider" type="range" min="0" max="4" step="1"
+            value={mood} onChange={event => setAnswer('mood', Number(event.target.value))}
+            aria-label="حس این روزهای من" aria-valuetext={MOODS[mood].label} />
+        </div>
+      </div>
+      <p className="mood-footnote" aria-live="polite">{MOODS[mood].note}</p>
+      <PrimaryButton onClick={() => nextFrom('mood', navigate)}>ادامه</PrimaryButton>
+    </Shell>
+  );
+}
+
+function CheckinsScreen({ navigate, back }) {
+  return (
+    <Shell back={back} className="checkins-screen">
+      <PageHeader title="یه یادآوری، درست وقتی لازمه." description="همراه می‌تونه گاهی حالت رو بپرسه. هر وقت بخوای می‌تونی یادآوری‌ها رو خاموش کنی." />
+      <div className="checkins-art" aria-hidden="true">
+        <svg viewBox="0 0 300 265" focusable="false">
+          <rect width="300" height="265" rx="18" fill="var(--beige)" />
+          <path d="M119 189 L106 110 Q107 59 151 55 Q194 49 207 108 L213 189Z" fill="#fff" />
+          <g fill="none" stroke="#211f1c" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M126 57 Q122 35 139 34 Q153 35 151 55" />
+            <path d="M102 192 Q152 177 238 160" />
+            <path d="M151 184 Q156 211 174 207 Q184 204 186 183" />
+            <path d="M212 68 Q220 53 234 59 Q250 55 258 70 Q274 80 260 91 Q267 105 251 108 Q241 123 225 111 Q207 118 202 103 Q187 92 201 82 Q198 72 212 68Z" />
+            <path d="M230 80 Q241 71 245 83 Q251 95 237 96 Q225 94 230 80Z" />
+          </g>
+        </svg>
+      </div>
+      <PrimaryButton onClick={() => nextFrom('checkins', navigate)}>ادامه</PrimaryButton>
     </Shell>
   );
 }
@@ -330,7 +387,7 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
   };
   return (
     <Shell theme="dark" back={back} className="voice-screen">
-      <PageHeader title="کدام صدا را بیشتر می‌پسندی؟" description="هر وقت بخواهی می‌توانی صدای همراه را عوض کنی." />
+      <PageHeader title="دوست داری چه صدایی داشته باشم؟" description="بعداً هم می‌تونی صدام رو عوض کنی." />
       <div
         className="voice-carousel"
         onTouchStart={(event) => { touchStart.current = event.touches[0].clientX; }}
@@ -339,7 +396,7 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
           if (Math.abs(distance) > 35) select(active + (distance > 0 ? 1 : -1));
         }}
       >
-        <button type="button" className="voice-preview" onClick={() => select(active + 1)} aria-label="شنیدن نمونه و رفتن به صدای بعد">
+        <button type="button" className="voice-preview" onClick={() => select(active + 1)} aria-label="صدای بعدی">
           <VoiceWave path={voice.path} />
         </button>
         <div className="voice-copy" key={voice.name}>
@@ -348,8 +405,7 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
         </div>
       </div>
       <PagerDots count={VOICES.length} active={active} onChange={select} dark />
-      <p className="voice-note">اگر گوشی در حالت بی‌صداست، نمونه‌ی صداها را نخواهی شنید.</p>
-      <PrimaryButton light onClick={() => nextFrom('voice', navigate)}>همین صدا</PrimaryButton>
+      <PrimaryButton light onClick={() => nextFrom('voice', navigate)}>انتخاب این صدا</PrimaryButton>
     </Shell>
   );
 }
@@ -382,7 +438,7 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
   };
   return (
     <Shell theme="beige" back={back} className="approach-screen">
-      <PageHeader title="کدام سبک گفت‌وگو را ترجیح می‌دهی؟" />
+      <PageHeader title="دوست داری چطوری باهات حرف بزنم؟" />
       <div
         className="approach-stage"
         role="region"
@@ -411,7 +467,7 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
       >
         <button type="button" className="approach-peek approach-peek--before" aria-label="سبک قبلی" disabled={active === 0} onClick={() => select(active - 1)} />
         <article className={`approach-card${drag ? ' is-dragging' : ''}`} style={{ '--approach-drag': `${drag}px` }} aria-live="polite" aria-atomic="true">
-          <p className="approach-user">سلام همراه، کمی گیر کرده‌ام.</p>
+          <p className="approach-user">سلام، یه چیزی ذهنم رو درگیر کرده.</p>
           <p className="approach-response" key={approach.name} style={{ '--approach-enter': `${direction * 18}px` }}>{approach.response}</p>
         </article>
         <button type="button" className="approach-peek approach-peek--after" aria-label="سبک بعدی" disabled={active === APPROACHES.length - 1} onClick={() => select(active + 1)} />
@@ -420,7 +476,7 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
       <PrimaryButton className="with-skip" disabled={savingProfile} onClick={() => {
         if (profileEdit) onSaveApproach(approach.name);
         else { setAnswer('approach', approach.name); nextFrom('approach', navigate); }
-      }}>{profileEdit ? (savingProfile ? 'در حال ذخیره…' : 'ذخیرهٔ سبک گفت‌وگو') : `امتحان «${approach.name}»`}</PrimaryButton>
+      }}>{profileEdit ? (savingProfile ? 'در حال ذخیره…' : 'ذخیره') : `امتحان «${approach.label || approach.name}»`}</PrimaryButton>
       <button type="button" className="skip-button" onClick={() => profileEdit ? back() : nextFrom('approach', navigate)}>{profileEdit ? 'انصراف' : 'فعلاً رد کن'}</button>
     </Shell>
   );
@@ -430,11 +486,11 @@ function Ready({ navigate, savingProfile = false }) {
   return (
     <Shell className="ready-screen">
       <PageHeader
-        title="همراهِ تو بالاخره آماده است."
-        description="نام و سبک گفت‌وگویت ثبت می‌شود. هر زمان آماده بودی می‌توانی شروع کنی."
+        title="من آماده‌ام!"
+        description=""
       />
       <div className="ready-art artwork-wrap"><img src="/assets/ready-daisy.png" alt="گل همراه در حال قدم‌زدن" /></div>
-      <PrimaryButton disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>{savingProfile ? 'در حال ذخیره…' : 'آماده‌ام'}</PrimaryButton>
+      <PrimaryButton disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>{savingProfile ? 'در حال ذخیره…' : 'شروع گفت‌وگو'}</PrimaryButton>
     </Shell>
   );
 }
@@ -449,6 +505,8 @@ export default function OnboardingScreen(props) {
   if (INTERSTITIALS[route]) return <Interstitial {...props} />;
   if (route === 'privacy') return <Privacy {...props} />;
   if (route === 'age') return <AgeScreen {...props} />;
+  if (route === 'mood') return <MoodScreen {...props} />;
+  if (route === 'checkins') return <CheckinsScreen {...props} />;
   if (QUESTIONS[route]) return <QuestionScreen {...props} />;
   if (route === 'voice') return <VoiceScreen {...props} />;
   if (route === 'approach') return <ApproachScreen {...props} />;

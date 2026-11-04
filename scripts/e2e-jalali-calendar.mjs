@@ -19,7 +19,7 @@ try {
     await page.getByRole('button', { name: 'ادامه' }).last().click();
     await page.locator('.home-screen').waitFor();
     await page.locator('.reflection-card').click();
-    const trigger = page.getByRole('button', { name: 'انتخاب تاریخ تأمل از تقویم' });
+    const trigger = page.getByRole('button', { name: 'انتخاب تاریخ یادداشت از تقویم' });
     await trigger.click();
     const dialog = page.getByRole('dialog');
     await dialog.waitFor();

@@ -27,7 +27,7 @@ try {
     await page.getByRole('button', {name:'بازکردن منو'}).click();
     await page.getByRole('button', {name:'تاریخچه',exact:true}).click();
     await page.locator('.history-screen').waitFor();
-    await page.getByText('در حال دریافت گفتگوها…').waitFor({state:'hidden'});
+    await page.getByText('در حال بارگذاری گفت‌وگوها…').waitFor({state:'hidden'});
   };
   const leave = async label => {
     await navigate('home');
@@ -82,7 +82,7 @@ try {
   await page.reload(); await page.locator('.home-screen').waitFor();
   assert.equal((await call('GET','/me')).body.displayName,a.displayName);
   await history();
-  await page.getByText('هنوز گفتگویی ثبت نکرده‌ای.',{exact:false}).waitFor();
+  await page.getByText('هنوز گفت‌وگویی نداری.',{exact:false}).waitFor();
   await navigate('home'); await page.locator('.chat-fab').click();
   const first = await send('پیام ساختگی اول برای آزمون یکپارچه',1);
   const id = first.path.split('/')[2];
@@ -106,7 +106,7 @@ try {
   await screenshot('chat-compact-height');
   await page.setViewportSize({width:390,height:844});
   // Second thread with the same real UI; opening an older one must restore its pairs.
-  await page.getByRole('button',{name:'گفتگوی جدید',exact:true}).click();
+  await page.getByRole('button',{name:'گفت‌وگوی جدید',exact:true}).click();
   const second = await send('گفتگوی ساختگی دوم برای تاریخچه',1);
   const id2 = second.path.split('/')[2]; assert.notEqual(id,id2);
   await history(); assert.equal(await page.locator('.history-row').count(),2);
@@ -149,8 +149,8 @@ try {
   // Delete the other thread while UI still has its cached history entry: real 404 UI.
   assert.equal((await call('DELETE',`/conversations/${id2}`)).status,204);
   await page.locator('.history-row').click();
-  await page.getByText('این گفتگو پیدا نشد یا دسترسی به آن ممکن نیست.').waitFor();
-  await page.getByRole('button',{name:'گفتگوی جدید',exact:true}).first().click();
+  await page.getByText('این گفت‌وگو در دسترس نیست.').waitFor();
+  await page.getByRole('button',{name:'گفت‌وگوی جدید',exact:true}).first().click();
   assert.equal(await page.locator('.message-user').count(),0);
   assert.equal((await call('GET','/conversations')).body.items.length,0);
   assert.equal(await page.evaluate(() => localStorage.length+sessionStorage.length),0);

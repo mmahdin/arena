@@ -36,14 +36,14 @@ try{
  await page.goto(host);await page.locator('#dev-phone').waitFor();
  await login('09000000881');await visitDay();
  await page.locator('#daily-reflection-text').fill(text);
- await page.getByRole('button',{name:'ذخیرهٔ تأمل'}).click();
- await page.getByText('تأمل روزانه ذخیره شد.').waitFor();
+ await page.getByRole('button',{name:'ذخیره'}).click();
+ await page.getByText('یادداشتت ذخیره شد.').waitFor();
  assert.equal((await api(`/api/v1/me/daily-reflections/${day}`)).body.text,text);
  await page.reload();await page.locator('.home-screen').waitFor();await visitDay();
  await waitForText(text);
  await page.locator('#daily-reflection-text').fill(updated);
- await page.getByRole('button',{name:'ذخیرهٔ تأمل'}).click();
- await page.getByText('تأمل روزانه ذخیره شد.').waitFor();
+ await page.getByRole('button',{name:'ذخیره'}).click();
+ await page.getByText('یادداشتت ذخیره شد.').waitFor();
  assert.equal((await api(`/api/v1/me/daily-reflections`)).body.items.filter(x=>x.date===day).length,1);
  await page.locator('.day-art-panel .back-button').click();
  await page.locator('.home-menu-button').click();await page.getByRole('button',{name:'تعویض کاربر آزمایشی'}).click();
@@ -53,7 +53,7 @@ try{
  await page.locator('.home-menu-button').click();await page.getByRole('button',{name:'تعویض کاربر آزمایشی'}).click();
  await page.locator('#dev-phone').waitFor();await login('09000000881');await visitDay();
  await waitForText(updated);
- page.once('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:'حذف تأمل'}).click();
+ page.once('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:'حذف'}).click();
  assert.equal((await api(`/api/v1/me/daily-reflections/${day}`)).status,404);
  console.log('PASS: Daily Reflection save/edit/refresh/relogin/A-B isolation/delete over real MSSQL.');
  await context.close();

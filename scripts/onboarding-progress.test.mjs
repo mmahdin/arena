@@ -5,15 +5,15 @@ import { FLOW_VERSION, validateProgress, onboardingProgressApi } from '../src/fe
 
 const ok = (n) => ({ furthestStep: n, flowVersion: FLOW_VERSION });
 
-test('progress cursor aligns exactly to preserved designer flow, with no Home index', () => {
-  assert.equal(FLOW.length, 25);
-  assert.equal(FLOW[23], 'ready');
-  assert.equal(FLOW[24], 'home');
-  for (let i = 0; i < 24; i++) assert.equal(validateProgress(ok(i)), i);
+test('progress cursor aligns exactly to new 26-screen designer flow, with no Home index', () => {
+  assert.equal(FLOW.length, 27);
+  assert.equal(FLOW[25], 'ready');
+  assert.equal(FLOW[26], 'home');
+  for (let i = 0; i < 26; i++) assert.equal(validateProgress(ok(i)), i);
 });
 
 test('invalid / changed flow version cannot misroute a returning user', () => {
-  for (const value of [null, {}, { furthestStep: 23 }, ok(24), ok(-1), ok(1.5), ok('9'), { ...ok(2), flowVersion: 'unexpected-v2' }]) {
+  for (const value of [null, {}, { furthestStep: 23 }, ok(26), ok(-1), ok(1.5), ok('9'), { ...ok(2), flowVersion: 'unexpected-v2' }]) {
     assert.throws(() => validateProgress(value));
   }
 });
@@ -32,7 +32,7 @@ test('progress API uses cookies and only an integer index, never questionnaire a
     assert.deepEqual(calls.map(c => c.options.method), ['GET', 'PUT']);
     assert.ok(calls.every(c => c.options.credentials === 'include'));
     assert.deepEqual(JSON.parse(calls[1].options.body), { furthestStep: 2 });
-    await assert.rejects(onboardingProgressApi.advance(24));
+    await assert.rejects(onboardingProgressApi.advance(26));
     assert.equal(calls.length, 2);
   } finally { globalThis.fetch = original; }
 });
@@ -47,7 +47,7 @@ test('UI fetches the session-owned cursor and retains all original screens', asy
 });
 
 
-test('excluded ordinals use sequential PUTs, preserve acknowledged progress and are safely retryable', async () => {
+test('sequential PUTs, preserve acknowledged progress and are safely retryable', async () => {
   const original = globalThis.fetch; const calls = []; const acknowledged = [];
   let fail = true;
   globalThis.fetch = async (_, options) => {

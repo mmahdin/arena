@@ -54,10 +54,10 @@ try {
   assert.equal((await call('DELETE',`/conversations/${id}`)).status,204);
   await page.getByRole('textbox',{name:'متن پیام'}).fill('پیام ساختگی پس از حذف گفتگو');
   await page.getByRole('button',{name:'فرستادن پیام'}).click();
-  await page.getByText('این گفتگو پیدا نشد یا دسترسی به آن ممکن نیست.').waitFor();
+  await page.getByText('این گفت‌وگو در دسترس نیست.').waitFor();
   assert.equal(await page.getByRole('button',{name:'تلاش دوباره با همان پیام'}).count(),0);
   page.once('dialog',dialog=>dialog.accept());
-  await page.getByRole('button',{name:'گفتگوی جدید',exact:true}).first().click();
+  await page.getByRole('button',{name:'گفت‌وگوی جدید',exact:true}).first().click();
   await page.locator('.connected-pending').waitFor({state:'hidden'});
   // Real revoked session: the next private request must return to login.
   await call('DELETE','/dev/session');

@@ -17,6 +17,16 @@ export const devSessionApi = {
     }
     return result;
   },
+  async saveOnboardingName(displayName, signal) {
+    const result = await request('/api/v1/me/onboarding-name', {
+      method: 'PATCH', body: { displayName }, signal,
+    });
+    if (!result || typeof result.userId !== 'string' || result.displayName !== displayName ||
+        result.onboardingCompletedAt !== null) {
+      throw new Error('Invalid onboarding name response');
+    }
+    return result;
+  },
   async profile(displayName, conversationStyle, signal) {
     const result = await request('/api/v1/me/profile', {
       method: 'PATCH', body: { displayName, conversationStyle }, signal,

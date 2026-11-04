@@ -156,7 +156,7 @@ function JalaliDateField({
           className="jdf-trigger"
         >
           <CalendarDays className="jdf-icon-small" aria-hidden="true" />
-          انتخاب از تقویم
+          انتخاب تاریخ از تقویم
         </button>
       </div>
       <div
@@ -496,7 +496,7 @@ function JalaliCalendarDialog({
             </div>
             <div
               role="group"
-              aria-label="انتخاب سال شمسی"
+              aria-label="انتخاب سال"
               className="jdf-years"
             >
               {years.map((year) => {
@@ -545,7 +545,7 @@ function JalaliCalendarDialog({
                 if (view === "years") returnToDays()
               }}
             >
-              برو به ماه جاری
+              رفتن به ماه جاری
             </button>
           )}
           {todayAllowed && (
@@ -554,7 +554,7 @@ function JalaliCalendarDialog({
               className="jdf-footer-button"
               onClick={() => onSelect(today)}
             >
-              انتخاب امروز
+              امروز
             </button>
           )}
         </div>

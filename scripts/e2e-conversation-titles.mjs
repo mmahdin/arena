@@ -48,7 +48,7 @@ try {
   await page.locator('.chat-header .back-button').click();
   await history();
   await page.getByRole('button',{name:`تغییر نام ${conversation.title}`}).click();
-  const input = page.getByLabel('تغییر نام گفتگو');
+  const input = page.getByLabel('تغییر نام گفت‌وگو');
   await input.fill('عنوان دلخواه من');
   await page.getByRole('button',{name:'ذخیره نام'}).click();
   await page.getByText('عنوان دلخواه من').waitFor();

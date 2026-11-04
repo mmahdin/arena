@@ -19,20 +19,20 @@ export default function DevLogin({ session, login, retry }) {
   return (
     <section className="app-screen theme-light dev-login-screen" aria-busy={loading}>
       <StatusBar />
-      <PageHeader title="به همراه خوش اومدی." />
+      <PageHeader title="به همراه خوش اومدی!" />
       <div className="dev-login-art" aria-hidden="true"><img src="/assets/ready-daisy.png" alt="" /></div>
       <div className="dev-login-panel">
-        <div className="dev-login-heading"><Flower2 size={20} /><strong>ورود به همراه</strong></div>
-        {loading && <p role="status">در حال بررسی نشست…</p>}
+        <div className="dev-login-heading"><Flower2 size={20} /><strong>ورود به حساب</strong></div>
+        {loading && <p role="status">در حال ورود…</p>}
         {offline && <div className="dev-login-error" role="alert">
-          <p>{session.error?.action === 'logout' ? 'خروج از حساب انجام نشد.' : 'ارتباط با همراه برقرار نشد.'}</p>
+          <p>{session.error?.action === 'logout' ? 'خروج انجام نشد. دوباره تلاش کن.' : 'ارتباط برقرار نشد. دوباره تلاش کن.'}</p>
           <button className="dev-login-retry" type="button" onClick={retry}><RefreshCw size={18} aria-hidden="true" />تلاش دوباره</button>
         </div>}
         <form className="dev-phone-form" onSubmit={submit}>
-          <label htmlFor="dev-phone">شماره همراه</label>
+          <label htmlFor="dev-phone">شماره موبایل</label>
           <input id="dev-phone" dir="ltr" type="text" inputMode="numeric" autoComplete="off" spellCheck="false" maxLength={11} placeholder="09xxxxxxxxx" value={phone}
             onChange={(event) => { setPhone(event.target.value); setAttempted(false); }} disabled={loading || offline} aria-invalid={invalid} />
-          {(attempted || invalid) && !normalized && <div className="dev-login-error" role="alert">شماره همراه را به‌صورت ۱۱ رقم و با ۰۹ وارد کن.</div>}
+          {(attempted || invalid) && !normalized && <div className="dev-login-error" role="alert">شماره باید ۱۱ رقم باشه و با ۰۹ شروع بشه.</div>}
           {session.error?.action === 'login' && !offline && <div className="dev-login-error" role="alert">ورود انجام نشد. دوباره تلاش کن.</div>}
           {!offline && <PrimaryButton type="submit" disabled={loading || !normalized}>ادامه</PrimaryButton>}
         </form>

@@ -35,7 +35,7 @@ svg { flex-shrink: 0; }
   width: 100%;
   max-width: 430px;
   height: 100dvh;
-  min-height: 600px;
+  min-height: 0;
   margin: 0 auto;
   overflow: hidden;
   /* The outgoing page never reveals a bright surface behind a dark route. */
@@ -55,7 +55,7 @@ svg { flex-shrink: 0; }
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 600px;
+  min-height: 0;
   overflow: hidden;
   background: var(--light);
   color: var(--ink);
@@ -779,3 +779,125 @@ svg { flex-shrink: 0; }
 .jdf-footer { flex-wrap: wrap; margin-top: 16px; padding-top: 12px; border-top: 1px solid #d3cabc; }
 .jdf-footer-button { padding-inline: 8px; font-size: 12px; font-weight: 600; }
 @media (max-width: 374px) { .jdf-dialog { padding: 14px; } }
+
+/* ---------- Onboarding v2: Ash-inspired moments in the existing Hamrah system ---------- */
+/* Keep the same spacing, typefaces, --ink, --light, --beige and primary CTA. */
+.mood-screen .page-header,
+.checkins-screen .page-header { padding-top: clamp(112px, 17vh, 162px); }
+.mood-screen .page-header h1,
+.checkins-screen .page-header h1 { font-size: clamp(26px, 7vw, 30px); }
+.mood-stage {
+  position: absolute;
+  inset-inline: 24px;
+  top: clamp(250px, 35vh, 330px);
+  bottom: clamp(156px, 23vh, 210px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 2vh, 18px);
+  min-height: 0;
+}
+.mood-glow {
+  position: absolute;
+  inset: -11% -12% 12%;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgb(213 217 247 / 58%), transparent 68%);
+}
+.mood-scribble {
+  position: relative;
+  display: block;
+  width: min(100%, 330px);
+  min-height: 0;
+  flex: 1 1 auto;
+  color: var(--ink);
+  overflow: visible;
+}
+.mood-stage h2 {
+  position: relative;
+  flex: 0 0 auto;
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.65;
+  text-align: center;
+}
+.mood-slider-wrap {
+  position: relative;
+  width: min(82%, 245px);
+  height: 57px;
+  flex: 0 0 57px;
+  display: flex;
+  align-items: center;
+  touch-action: pan-y;
+}
+.mood-ticks {
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 2px;
+  background: var(--ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+}
+.mood-ticks i { height: 15px; width: 2px; background: var(--ink); }
+.mood-slider {
+  position: relative;
+  z-index: 1;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  width: 100%;
+  height: 57px;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--lavender);
+}
+.mood-slider::-webkit-slider-runnable-track { height: 2px; background: transparent; }
+.mood-slider::-moz-range-track { height: 2px; background: transparent; }
+.mood-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 42px;
+  height: 42px;
+  margin-top: -20px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(213 217 247 / 74%);
+}
+.mood-slider::-moz-range-thumb {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(213 217 247 / 74%);
+}
+.mood-footnote {
+  position: absolute;
+  inset-inline: 25px;
+  bottom: max(94px, calc(env(safe-area-inset-bottom, 0px) + 88px));
+  font-size: 15px;
+  line-height: 1.7;
+  text-align: center;
+}
+.checkins-art {
+  position: absolute;
+  inset-inline: 24px;
+  top: clamp(285px, 42vh, 370px);
+  height: min(35vh, 310px);
+  max-height: calc(100% - 390px);
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--beige);
+}
+.checkins-art svg { display: block; width: 100%; height: 100%; }
+.onboarding-welcome .message-text { white-space: normal; }
+@media (max-height: 700px) {
+  .mood-screen .page-header, .checkins-screen .page-header { padding-top: 99px; }
+  .mood-screen .page-header p, .checkins-screen .page-header p { margin-top: 9px; }
+  .mood-stage { top: 215px; bottom: 152px; gap: 5px; }
+  .mood-stage h2 { font-size: 17px; }
+  .mood-slider-wrap { height: 43px; flex-basis: 43px; }
+  .mood-footnote { bottom: 88px; font-size: 13px; }
+  .checkins-art { top: 265px; height: min(31vh, 220px); max-height: calc(100% - 340px); }
+}

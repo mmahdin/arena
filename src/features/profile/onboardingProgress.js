@@ -2,7 +2,7 @@ import { request } from '../../core/api/http.js';
 import { ONBOARDING_ROUTES } from './navigation.js';
 
 /** Only a route index is sent. Sensitive questionnaire answers stay in React memory. */
-export const FLOW_VERSION = 'hamrah-v1';
+export const FLOW_VERSION = 'hamrah-v2';
 export function validateProgress(data) {
   if (!data || data.flowVersion !== FLOW_VERSION ||
       !Number.isInteger(data.furthestStep) || data.furthestStep < 0 ||
@@ -12,7 +12,7 @@ export function validateProgress(data) {
   return data.furthestStep;
 }
 export const onboardingProgressApi = {
-  // Advance through excluded ordinals using the existing one-step server contract.
+  // Persist sequential server ordinals. Data remains client-only; no answers are sent.
   async advanceTo(step, fromStep, signal, onProgress = () => {}) {
     validateProgress({ furthestStep: step, flowVersion: FLOW_VERSION });
     validateProgress({ furthestStep: fromStep, flowVersion: FLOW_VERSION });

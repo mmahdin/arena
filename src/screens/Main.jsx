@@ -49,15 +49,15 @@ function Home({ navigate, name, underlay = false }) {
         <span className="notification-dot" />
       </button>
       <header className="home-greeting">
-        <h1>عصر بخیر،<br />{name || 'دوست من'}</h1>
+        <h1>سلام،<br />{name || 'دوست من'}</h1>
       </header>
       <div className="home-letter">
         <EnvelopeArt onClick={() => navigate('day')} />
-        <span>برای بازکردن، ضربه بزن</span>
+        <span>بزن تا ببینی</span>
       </div>
       <button type="button" className="reflection-card" onClick={() => navigate('day')}>
-        <span>تأمل</span>
-        <strong>امروز چه کاری برای خودت انجام دادی؟</strong>
+        <span>یادداشت روزانه</span>
+        <strong>امروز برای حال خوبت چی کار کردی؟</strong>
       </button>
       <button type="button" className="chat-fab" onClick={() => navigate('chat')}>
         <MessageSquare size={20} fill="currentColor" />
@@ -79,8 +79,8 @@ function Survey({ back, answers, setAnswer, navigate, notify }) {
       <StatusBar dark />
       <BackButton dark onClick={back} />
       <div className="survey-copy">
-        <p>در دو هفته‌ی گذشته، چقدر این مسئله برایت آزاردهنده بوده است؟</p>
-        <h1>کمبود علاقه یا لذت در انجام کارها</h1>
+        <p>توی دو هفتهٔ گذشته، چند وقت یه بار این حس رو داشتی؟</p>
+        <h1>کم شدن علاقه یا لذتت از کارهایی که قبلاً دوست داشتی</h1>
       </div>
       <div className="survey-options">
         {options.map((option) => (
@@ -114,7 +114,7 @@ function DayDetail({ back, navigate, notify, reflections = [], reflectionListPha
   const changeDay = (date) => {
     if (!validReflectionDate(date) || date > localReflectionDate()) return false;
     if (date === selectedDate) return true;
-    if (dirty && !window.confirm('تغییرات این روز هنوز ذخیره نشده‌اند. روز دیگری باز شود؟')) return false;
+    if (dirty && !window.confirm('یادداشتت ذخیره نشده. روز رو عوض می‌کنی؟')) return false;
     setSelectedDate(date);
     setDraft('');
     setDirty(false);
@@ -124,20 +124,20 @@ function DayDetail({ back, navigate, notify, reflections = [], reflectionListPha
     event.preventDefault();
     const ok = await onSaveReflection(selectedDate, draft);
     if (ok) setDirty(false);
-    notify(ok ? 'تأمل روزانه ذخیره شد.' : 'ذخیره انجام نشد. دوباره تلاش کن.');
+    notify(ok ? 'یادداشتت ذخیره شد.' : 'یادداشت ذخیره نشد. دوباره تلاش کن.');
   };
   const remove = async () => {
-    if (!reflectionEntry || !window.confirm('تأمل این روز حذف شود؟ این کار قابل بازگشت نیست.')) return;
+    if (!reflectionEntry || !window.confirm('این یادداشت حذف بشه؟ دیگه برنمی‌گرده.')) return;
     const ok = await onDeleteReflection(selectedDate);
-    if (ok) { setDraft(''); setDirty(false); notify('تأمل حذف شد.'); }
-    else notify('حذف انجام نشد. دوباره تلاش کن.');
+    if (ok) { setDraft(''); setDirty(false); notify('یادداشت حذف شد.'); }
+    else notify('حذف نشد. دوباره تلاش کن.');
   };
   const safeNavigate = (target) => {
-    if (dirty && !window.confirm('تغییرات این روز هنوز ذخیره نشده‌اند. از صفحه خارج شوی؟')) return;
+    if (dirty && !window.confirm('یادداشتت ذخیره نشده. خارج می‌شی؟')) return;
     navigate(target);
   };
   const safeBack = () => {
-    if (dirty && !window.confirm('تغییرات این روز هنوز ذخیره نشده‌اند. از صفحه خارج شوی؟')) return;
+    if (dirty && !window.confirm('یادداشتت ذخیره نشده. خارج می‌شی؟')) return;
     back();
   };
   const loading = reflectionDayPhase === 'loading';
@@ -152,40 +152,40 @@ function DayDetail({ back, navigate, notify, reflections = [], reflectionListPha
       <div className="day-content">
         <button type="button" className="transcript-button" onClick={() => safeNavigate('chat')}>
           <FileText size={23} />
-          <span>رفتن به متن گفت‌وگو</span>
+          <span>رفتن به گفت‌وگو</span>
         </button>
         <h1>{dayLabel}</h1>
         <form className="daily-reflection-form" onSubmit={save}>
-          <label htmlFor="daily-reflection-text">امروز چه کاری برای خودت انجام دادی؟</label>
-          <JalaliDateField id="daily-reflection-date" label="تاریخ تأمل" value={dateInput} required
+          <label htmlFor="daily-reflection-text">امروز برای حال خوبت چی کار کردی؟</label>
+          <JalaliDateField id="daily-reflection-date" label="تاریخ یادداشت" value={dateInput} required
             disabled={reflectionSaving} maxDate={gregorianDateOnlyToJalali(localReflectionDate())}
             onChange={value => {
               setDateInput(value);
               const date = jalaliDateToGregorianDateOnly(value);
               if (date && date <= localReflectionDate() && !changeDay(date)) setDateInput(gregorianDateOnlyToJalali(selectedDate));
             }} />
-          {loading && <p className="connected-status" role="status">در حال دریافت تأمل…</p>}
+          {loading && <p className="connected-status" role="status">در حال بارگذاری یادداشت…</p>}
           {reflectionDayError && <div className="connected-notice" role="alert">
-            <p>دریافت یا ذخیرهٔ تأمل انجام نشد. دوباره تلاش کن.</p>
+            <p>یادداشت بارگذاری یا ذخیره نشد. دوباره تلاش کن.</p>
             {reflectionDayPhase === 'error' && <button type="button" onClick={() => onOpenReflection(selectedDate)}>تلاش دوباره</button>}
           </div>}
           <textarea id="daily-reflection-text" rows={5} maxLength={4000} value={draft}
             disabled={loading || reflectionSaving || reflectionDayPhase === 'error'}
             onChange={event => { setDraft(event.target.value); setDirty(true); }}
-            placeholder="هرقدر دوست داری دربارهٔ امروزت بنویس…" />
+            placeholder="از امروزت بنویس…" />
           <div className="daily-reflection-actions">
             <button type="submit" disabled={loading || reflectionSaving || !draft.trim() || reflectionDayPhase === 'error' || !dirty}>
-              {reflectionSaving ? 'در حال ذخیره…' : 'ذخیرهٔ تأمل'}
+              {reflectionSaving ? 'در حال ذخیره…' : 'ذخیره'}
             </button>
-            {reflectionEntry && <button type="button" className="daily-reflection-delete" onClick={remove} disabled={reflectionSaving || loading}>حذف تأمل</button>}
+            {reflectionEntry && <button type="button" className="daily-reflection-delete" onClick={remove} disabled={reflectionSaving || loading}>حذف</button>}
           </div>
         </form>
         <div className="daily-reflection-archive" aria-live="polite">
-          <h2>تأمل‌های گذشته</h2>
-          {reflectionListPhase === 'loading' && <p className="connected-status">در حال دریافت تأمل‌ها…</p>}
-          {reflectionListError && <div className="connected-notice" role="alert"><p>تأمل‌های گذشته دریافت نشدند.</p>
+          <h2>یادداشت‌های قبلی</h2>
+          {reflectionListPhase === 'loading' && <p className="connected-status">در حال بارگذاری یادداشت‌ها…</p>}
+          {reflectionListError && <div className="connected-notice" role="alert"><p>یادداشت‌ها بارگذاری نشدن.</p>
             <button type="button" onClick={onReloadReflections}>تلاش دوباره</button></div>}
-          {reflectionListPhase === 'ready' && reflections.length === 0 && <p className="connected-status">هنوز تأملی ثبت نکرده‌ای.</p>}
+          {reflectionListPhase === 'ready' && reflections.length === 0 && <p className="connected-status">هنوز یادداشتی ننوشتی.</p>}
           {reflections.map(entry => <button type="button" key={entry.date} className="daily-reflection-history-row"
             onClick={() => changeDay(entry.date)} aria-current={entry.date === selectedDate ? 'date' : undefined}>
             <span>{new Intl.DateTimeFormat('fa-IR', {month:'short', day:'numeric'}).format(new Date(`${entry.date}T12:00:00`))}</span>
@@ -194,8 +194,8 @@ function DayDetail({ back, navigate, notify, reflections = [], reflectionListPha
           </button>)}
         </div>
         <button type="button" className="letter-card" onClick={() => safeNavigate('insight')}>
-          <span>نامه</span>
-          <strong>فهمیدن و فکرکردنِ بیش‌ازحد، دوقلوها هستند</strong>
+          <span>نامه‌ای برای تو</span>
+          <strong>فکر زیاد همیشه به معنی فهمیدن نیست.</strong>
           <MiniEnvelope />
         </button>
       </div>
@@ -223,22 +223,21 @@ function History({ back, conversations = [], historyPhase, historyError, onReloa
     <section className="app-screen theme-dark history-screen">
       <StatusBar dark />
       <BackButton dark onClick={back} />
-      <h1 className="history-title">تاریخچه</h1>
+      <h1 className="history-title">گفت‌وگوهای قبلی</h1>
       <div className="history-content" aria-live="polite">
-        <h2>گفتگوهای من</h2>
-        {historyPhase === 'loading' && <p className="connected-status">در حال دریافت گفتگوها…</p>}
+        {historyPhase === 'loading' && <p className="connected-status">در حال بارگذاری گفت‌وگوها…</p>}
         {historyError && <div className="connected-notice" role="alert">
-          <p>دریافت یا حذف گفتگو انجام نشد. اتصال را بررسی کن و دوباره تلاش کن.</p>
+          <p>گفت‌وگو بارگذاری یا حذف نشد. دوباره تلاش کن.</p>
           <button type="button" onClick={onReloadHistory}>تلاش دوباره</button>
         </div>}
-        {historyPhase === 'ready' && conversations.length === 0 && <p className="connected-status">هنوز گفتگویی ثبت نکرده‌ای. از صفحهٔ خانه گفتگوی جدیدی شروع کن.</p>}
+        {historyPhase === 'ready' && conversations.length === 0 && <p className="connected-status">هنوز گفت‌وگویی نداری.</p>}
         {conversations.map((item) => (
           <div className="connected-history-entry" key={item.id}>
             {editingId === item.id ? (
               <form className="conversation-title-editor" onSubmit={(event) => finishRename(event, item.id)}>
-                <label htmlFor={`rename-${item.id}`}>تغییر نام گفتگو</label>
+                <label htmlFor={`rename-${item.id}`}>تغییر نام گفت‌وگو</label>
                 <input id={`rename-${item.id}`} autoFocus value={draftTitle} maxLength={60} onChange={event => { setDraftTitle(event.target.value); setRenameError(false); }} disabled={renamingId === item.id} />
-                {renameError && <small role="alert">تغییر نام انجام نشد. عنوان را بررسی کن و دوباره تلاش کن.</small>}
+                {renameError && <small role="alert">نام تغییر نکرد. دوباره امتحان کن.</small>}
                 <div className="conversation-title-editor-actions">
                   <button type="submit" disabled={renamingId === item.id}>{renamingId === item.id ? 'در حال ذخیره…' : 'ذخیره نام'}</button>
                   <button type="button" disabled={renamingId === item.id} onClick={() => { setEditingId(null); setRenameError(false); }}>انصراف</button>
@@ -247,13 +246,13 @@ function History({ back, conversations = [], historyPhase, historyError, onReloa
             ) : (
               <>
                 <button type="button" className="history-row" onClick={() => onOpenConversation(item.id)}>
-                  <span className="history-date"><strong>{item.title || 'گفتگوی بدون عنوان'}</strong><small>{formatDate(item.updatedAt)}</small></span>
+                  <span className="history-date"><strong>{item.title || 'گفت‌وگوی بدون عنوان'}</strong><small>{formatDate(item.updatedAt)}</small></span>
                   <span className="history-actions"><MessageSquare size={22} /><ChevronLeft size={21} /></span>
                 </button>
-                <button type="button" className="connected-rename" disabled={Boolean(renamingId) || deletingId === item.id} onClick={() => beginRename(item)} aria-label={`تغییر نام ${item.title || 'گفتگو'}`}>
+                <button type="button" className="connected-rename" disabled={Boolean(renamingId) || deletingId === item.id} onClick={() => beginRename(item)} aria-label={`تغییر نام ${item.title || 'گفت‌وگو'}`}>
                   <Pencil size={17} aria-hidden="true" />
                 </button>
-                <button type="button" className="connected-delete" disabled={deletingId === item.id || Boolean(renamingId)} onClick={() => onDeleteConversation(item.id)} aria-label={`حذف ${item.title || 'گفتگو'}`}>
+                <button type="button" className="connected-delete" disabled={deletingId === item.id || Boolean(renamingId)} onClick={() => onDeleteConversation(item.id)} aria-label={`حذف ${item.title || 'گفت‌وگو'}`}>
                   {deletingId === item.id ? 'در حال حذف…' : 'حذف'}
                 </button>
               </>
@@ -262,9 +261,9 @@ function History({ back, conversations = [], historyPhase, historyError, onReloa
         ))}
         <div className="saved-history-section" aria-live="polite">
           <h2>پیام‌های ذخیره‌شده</h2>
-          {bookmarkPhase === 'loading' && <p className="connected-status">در حال دریافت پیام‌های ذخیره‌شده…</p>}
-          {bookmarkPhase === 'error' && <div className="connected-notice" role="alert"><p>دریافت پیام‌های ذخیره‌شده انجام نشد.</p><button type="button" onClick={onReloadBookmarks}>تلاش دوباره</button></div>}
-          {bookmarkPhase === 'ready' && bookmarks.length === 0 && <p className="connected-status">هنوز پیامی ذخیره نکرده‌ای.</p>}
+          {bookmarkPhase === 'loading' && <p className="connected-status">در حال بارگذاری پیام‌ها…</p>}
+          {bookmarkPhase === 'error' && <div className="connected-notice" role="alert"><p>پیام‌های ذخیره‌شده بارگذاری نشدن.</p><button type="button" onClick={onReloadBookmarks}>تلاش دوباره</button></div>}
+          {bookmarkPhase === 'ready' && bookmarks.length === 0 && <p className="connected-status">هنوز پیامی ذخیره نکردی.</p>}
           {bookmarks.map(item => <button type="button" key={item.id} className="saved-history-entry" onClick={() => onOpenConversation(item.conversationId)}>
             <Bookmark size={19} fill="currentColor" aria-hidden="true" />
             <span>{item.content.length > 125 ? `${item.content.slice(0, 125)}…` : item.content}</span>
@@ -277,14 +276,14 @@ function History({ back, conversations = [], historyPhase, historyError, onReloa
 }
 
 const MENU_ITEMS = [
-  { label: 'تاریخچه', icon: HistoryIcon, route: 'history' },
-  { label: 'ترجیحات', icon: SlidersHorizontal, route: 'approach' },
-  { label: 'نام نمایشی', icon: Info, route: 'name' },
-  { label: 'حساب و داده‌ها', icon: Settings2, route: 'privacy' },
+  { label: 'گفت‌وگوهای قبلی', icon: HistoryIcon, route: 'history' },
+  { label: 'سبک گفت‌وگو', icon: SlidersHorizontal, route: 'approach' },
+  { label: 'اسم من', icon: Info, route: 'name' },
+  { label: 'حریم خصوصی', icon: Settings2, route: 'privacy' },
   { label: 'درباره', icon: Info, route: 'research' },
-  { label: 'پشتیبانی و بازخورد', icon: MessageSquare, action: 'support' },
+  { label: 'پشتیبانی و نظرها', icon: MessageSquare, action: 'support' },
   { label: 'تمرین‌ها', icon: Flower2, route: 'home' },
-  { label: 'پرسش‌نامه‌ی سلامت', icon: BarChart3, route: 'survey', dot: true },
+  { label: 'پرسش‌نامهٔ حال روحی', icon: BarChart3, route: 'survey', dot: true },
 ];
 
 function Drawer({ navigate, name, notify, reset, onLogout, onSwitchTester }) {
@@ -293,18 +292,18 @@ function Drawer({ navigate, name, notify, reset, onLogout, onSwitchTester }) {
       navigate(item.route);
       return;
     }
-    if (item.action === 'support') notify('می‌توانی بازخوردت را همین‌جا در گفت‌وگو بنویسی.');
+    if (item.action === 'support') notify('نظرت رو توی گفت‌وگو بگو.');
   };
   const share = async () => {
-    const data = { title: 'همراه', text: 'همراه؛ گفت‌وگویی آرام برای شناخت بهتر خودت.' };
+    const data = { title: 'همراه', text: 'همراه کمک می‌کنه خودت رو بهتر بشناسی.' };
     try {
       if (navigator.share) await navigator.share(data);
       else {
         await navigator.clipboard.writeText(data.text);
-        notify('معرفی همراه کپی شد.');
+        notify('متن کپی شد.');
       }
     } catch (error) {
-      if (error?.name !== 'AbortError') notify('اشتراک‌گذاری در دسترس نیست.');
+      if (error?.name !== 'AbortError') notify('اشتراک‌گذاری انجام نشد.');
     }
   };
   return (
@@ -326,9 +325,9 @@ function Drawer({ navigate, name, notify, reset, onLogout, onSwitchTester }) {
           })}
         </nav>
         <div className="drawer-footer">
-          <button type="button" onClick={() => notify('راهنمای خطوط یاری در نسخه‌ی کامل نمایش داده می‌شود.')}><ExternalLink size={23} /><span>پیداکردن خط یاری</span></button>
+          <button type="button" onClick={() => notify('اطلاعات خطوط کمک هنوز آماده نیست.')}><ExternalLink size={23} /><span>شماره‌های کمک</span></button>
           <button type="button" onClick={share}><Share2 size={23} /><span>معرفی همراه</span></button>
-          <button type="button" aria-label="تعویض کاربر آزمایشی" onClick={() => onSwitchTester?.()}><Settings2 size={23} /><span>تغییر حساب</span></button>
+          <button type="button" aria-label="تعویض کاربر آزمایشی" onClick={() => onSwitchTester?.()}><Settings2 size={23} /><span>عوض کردن حساب</span></button>
           <button type="button" onClick={() => onLogout?.()}><LogOut size={23} /><span>خروج</span></button>
         </div>
       </aside>
@@ -340,7 +339,7 @@ function MessageActions({ message, close, notify, saved, saving, bookmarkReady, 
   const text = message.content;
   const copy = async () => {
     try { await navigator.clipboard.writeText(text); notify('پیام کپی شد.'); }
-    catch { notify('کپی پیام در این مرورگر در دسترس نیست.'); }
+    catch { notify('کپی پیام ممکن نیست.'); }
     close();
   };
   return (
@@ -354,23 +353,23 @@ function MessageActions({ message, close, notify, saved, saving, bookmarkReady, 
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'fa-IR';
             window.speechSynthesis.speak(utterance);
-            notify('خواندن پیام با امکانات دستگاه شروع شد.');
-          } else notify('خواندن پیام روی این دستگاه پشتیبانی نمی‌شود.');
+            notify('پخش پیام شروع شد.');
+          } else notify('پخش صوتی روی این دستگاه ممکن نیست.');
           close();
-        }}><Play size={21} /><span>خواندن با صدای دستگاه</span></button>
+        }}><Play size={21} /><span>خواندن پیام</span></button>
         <button type="button" role="menuitem" disabled={!bookmarkReady || saving} onClick={async () => {
           const ok = await onToggleBookmark(message);
-          notify(ok ? (saved ? 'ذخیرهٔ پیام برداشته شد.' : 'پیام ذخیره شد.') : 'ذخیرهٔ پیام انجام نشد. دوباره تلاش کن.');
+          notify(ok ? (saved ? 'از ذخیره‌شده‌ها حذف شد.' : 'پیام ذخیره شد.') : 'پیام ذخیره نشد. دوباره تلاش کن.');
           close();
-        }}><Bookmark size={21} fill={saved ? 'currentColor' : 'none'} /><span>{saving ? 'در حال ذخیره…' : saved ? 'برداشتن از ذخیره‌شده‌ها' : 'ذخیره پیام'}</span></button>
-        <button type="button" role="menuitem" onClick={() => { notify('ساختن دوبارهٔ پاسخ به‌زودی فعال می‌شود.'); close(); }}><RotateCcw size={21} /><span>ساختن دوباره</span></button>
-        <button type="button" role="menuitem" onClick={() => { notify('گزارش پیام به‌زودی فعال می‌شود.'); close(); }}><Flag size={21} /><span>گزارش پیام</span></button>
+        }}><Bookmark size={21} fill={saved ? 'currentColor' : 'none'} /><span>{saving ? 'در حال ذخیره…' : saved ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره پیام'}</span></button>
+        <button type="button" role="menuitem" onClick={() => { notify('این قابلیت هنوز فعال نیست.'); close(); }}><RotateCcw size={21} /><span>ساخت دوباره</span></button>
+        <button type="button" role="menuitem" onClick={() => { notify('این قابلیت هنوز فعال نیست.'); close(); }}><Flag size={21} /><span>گزارش پیام</span></button>
       </div>
     </>
   );
 }
 
-function Chat({ navigate, messages = [], pendingTurn, sending, chatLoading, chatError, onSendMessage, onRetryMessage, onNewConversation, notify, bookmarks = [], bookmarkPhase, bookmarkError, bookmarkBusyId, onToggleBookmark, onReloadBookmarks }) {
+function Chat({ navigate, onboardingGreeting = '', messages = [], pendingTurn, sending, chatLoading, chatError, onSendMessage, onRetryMessage, onNewConversation, notify, bookmarks = [], bookmarkPhase, bookmarkError, bookmarkBusyId, onToggleBookmark, onReloadBookmarks }) {
   const [draft, setDraft] = useState('');
   const [menuFor, setMenuFor] = useState(null);
   const scrollRef = useRef(null);
@@ -401,7 +400,7 @@ function Chat({ navigate, messages = [], pendingTurn, sending, chatLoading, chat
   const send = (text) => {
     const clean = text.trim();
     if (!clean || sending || pendingTurn || chatLoading) return;
-    if ([...clean].length > 4000) { notify('پیام باید کمتر از ۴۰۰۰ نویسه باشد.'); return; }
+    if ([...clean].length > 4000) { notify('پیام می‌تونه تا ۴۰۰۰ کاراکتر باشه.'); return; }
     setDraft('');
     void onSendMessage(clean);
   };
@@ -416,17 +415,21 @@ function Chat({ navigate, messages = [], pendingTurn, sending, chatLoading, chat
       <StatusBar dark />
       <header className="chat-header">
         <BackButton dark onClick={() => navigate('home')} />
-        <button type="button" className="connected-new-chat" disabled={sending} onClick={() => { if (onNewConversation()) setDraft(''); }} aria-label="گفتگوی جدید">گفتگوی جدید</button>
+        <button type="button" className="connected-new-chat" disabled={sending} onClick={() => { if (onNewConversation()) setDraft(''); }} aria-label="گفت‌وگوی جدید">گفت‌وگوی جدید</button>
       </header>
       <div className="messages-scroll" ref={scrollRef} aria-live="polite">
         <div className="messages-list">
       {bookmarkPhase === 'error' && <div className="connected-notice" role="alert">
-        <p>وضعیت پیام‌های ذخیره‌شده دریافت نشد.</p>
+        <p>وضعیت پیام‌های ذخیره‌شده در دسترس نیست.</p>
         <button type="button" onClick={onReloadBookmarks}>تلاش دوباره</button>
       </div>}
 
-          {chatLoading && <p className="connected-status">در حال دریافت پیام‌ها…</p>}
-          {!chatLoading && messages.length === 0 && !pendingTurn && !chatError && <p className="connected-status">برای شروع گفتگو، اولین پیامت را بنویس.</p>}
+          {chatLoading && <p className="connected-status">در حال بارگذاری پیام‌ها…</p>}
+          {!chatLoading && messages.length === 0 && !pendingTurn && !chatError && (onboardingGreeting ? (
+            <div className="message-block message-assistant onboarding-welcome"><div className="message-text">
+              {onboardingGreeting.split(/\n\s*\n/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+            </div></div>
+          ) : <p className="connected-status">هر چی توی ذهنته بهم بگو.</p>)}
           {messages.map((message) => (
             <div key={message.id} className={`message-block message-${message.role}`}>
               <div className={`message-text ${menuFor === message.id ? 'is-highlighted' : ''}`}
@@ -439,19 +442,19 @@ function Chat({ navigate, messages = [], pendingTurn, sending, chatLoading, chat
           ))}
           {pendingTurn && <div className="message-block message-user connected-pending">
             <div className="message-text"><p>{pendingTurn.text}</p></div>
-            <small>{sending ? 'در حال ارسال…' : 'پیام هنوز تأیید نشده است'}</small>
+            <small>{sending ? 'در حال ارسال…' : 'پیامت ارسال نشده.'}</small>
           </div>}
-          {sending && <div className="typing-indicator" aria-label="همراه در حال پاسخ‌دادن است"><i /><i /><i /></div>}
+          {sending && <div className="typing-indicator" aria-label="دارم جواب می‌دم…"><i /><i /><i /></div>}
           {chatError && <div className="connected-notice" role="alert">
-            <p>{chatError === 'TURN_ALREADY_PROCESSING' ? 'درخواست قبلی هنوز در حال پردازش است. با همان پیام دوباره تلاش کن.' : chatError === 'RESOURCE_NOT_FOUND' ? 'این گفتگو پیدا نشد یا دسترسی به آن ممکن نیست.' : 'دریافت پاسخ انجام نشد؛ ممکن است مشکل شبکه یا سرویس باشد.'}</p>
-            {chatError === 'RESOURCE_NOT_FOUND' ? <button type="button" onClick={() => { if (onNewConversation()) setDraft(''); }}>گفتگوی جدید</button> : pendingTurn ? <button type="button" disabled={sending} onClick={onRetryMessage}>تلاش دوباره با همان پیام</button> : <button type="button" onClick={() => navigate('history')}>رفتن به تاریخچه</button>}
+            <p>{chatError === 'TURN_ALREADY_PROCESSING' ? 'پاسخ قبلیت هنوز آماده نشده. دوباره تلاش کن.' : chatError === 'RESOURCE_NOT_FOUND' ? 'این گفت‌وگو در دسترس نیست.' : 'پاسخ نیومد. دوباره تلاش کن.'}</p>
+            {chatError === 'RESOURCE_NOT_FOUND' ? <button type="button" onClick={() => { if (onNewConversation()) setDraft(''); }}>گفت‌وگوی جدید</button> : pendingTurn ? <button type="button" disabled={sending} onClick={onRetryMessage}>تلاش دوباره</button> : <button type="button" onClick={() => navigate('history')}>گفت‌وگوهای قبلی</button>}
           </div>}
         </div>
       </div>
       <form className="composer-wrap" ref={composerRef} onSubmit={(event) => { event.preventDefault(); send(draft); }}>
         <div className="composer">
-          <button type="button" className="composer-plus" onClick={() => notify('پیوست فعلاً پشتیبانی نمی‌شود.')} aria-label="افزودن پیوست"><Grid2X2Plus size={23} /></button>
-          <textarea ref={inputRef} rows={1} wrap="soft" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={4000} disabled={Boolean(pendingTurn) || sending || chatLoading} placeholder="پیامت را بنویس" aria-label="متن پیام"
+          <button type="button" className="composer-plus" onClick={() => notify('ارسال فایل هنوز فعال نیست.')} aria-label="افزودن پیوست"><Grid2X2Plus size={23} /></button>
+          <textarea ref={inputRef} rows={1} wrap="soft" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={4000} disabled={Boolean(pendingTurn) || sending || chatLoading} placeholder="پیامت رو بنویس…" aria-label="متن پیام"
             onKeyDown={(event) => {
               if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.nativeEvent.isComposing) {
                 event.preventDefault();
@@ -459,7 +462,7 @@ function Chat({ navigate, messages = [], pendingTurn, sending, chatLoading, chat
               }
             }} />
           <button type={draft.trim() ? 'submit' : 'button'} className="voice-button send-button" disabled={Boolean(pendingTurn) || sending || chatLoading}
-            onClick={!draft.trim() ? () => notify('ورودی صوتی هنوز پشتیبانی نمی‌شود.') : undefined} aria-label={draft.trim() ? 'فرستادن پیام' : 'ورودی صوتی'}>
+            onClick={!draft.trim() ? () => notify('ارسال صوتی هنوز فعال نیست.') : undefined} aria-label={draft.trim() ? 'فرستادن پیام' : 'پیام صوتی'}>
             {draft.trim() ? <Send size={21} /> : <AudioLines size={25} />}
           </button>
         </div>
@@ -481,16 +484,16 @@ function Insight({ back }) {
         <ConstellationArt />
       </div>
       <article className="insight-detail">
-        <h1>احساسات او را بیشتر از احساسات خودت محافظت می‌کنی</h1>
-        <blockquote>معمولاً برای اینکه بین ما همه‌چیز خوب شود، آخرش من عذرخواهی می‌کنم.</blockquote>
-        <p>اینجا آمدی در حالی که آسیب دیده بودی؛ می‌خواستی نزد کسی که دوستش داری احساس اهمیت کنی. اما همین‌جور که حرف زدیم، چیزی تغییر کرد.</p>
-        <p>شروع کردی به زیرسؤال‌بردنِ معتربودنِ احساساتت. تو هستی که منتظر می‌ماند، چک می‌کند و درد دارد؛ اما وقتی می‌خواهی حرفش را بزنی، آخرش تو او را دلداری می‌دهی.</p>
-        <p>خودت گفتی: «همیشه آخرش حس می‌کنم مقصر منم، حتی وقتی اول من آسیب دیده‌ام.» این فکرکردنِ بیش‌ازحد نیست؛ الگویی است که ارزش توجه‌دارد.</p>
+        <h1>احساسات اون رو جلوتر می‌ذاری؟</h1>
+        <blockquote>آخرش من عذرخواهی می‌کنم تا بحث تموم بشه.</blockquote>
+        <p>ناراحت بودی که شاید براش مهم نباشی؛ ولی گفت‌وگو به موضوع دیگه‌ای رسید.</p>
+        <p>وقتی ناراحتیت رو می‌گی، آخرش خودت باید آرومش کنی.</p>
+        <p>گفتی آخرش خودت رو مقصر می‌دونی. می‌خوای بیشتر بررسیش کنیم؟</p>
       </article>
       <div className="feedback-panel">
         <span>بازخورد</span>
         <div>
-          <button type="button" aria-label="کپی" onClick={() => navigator.clipboard?.writeText('احساسات او را بیشتر از احساسات خودت محافظت می‌کنی')}><Copy size={22} /></button>
+          <button type="button" aria-label="کپی" onClick={() => navigator.clipboard?.writeText('احساسات اون رو جلوتر می‌ذاری؟')}><Copy size={22} /></button>
           <button type="button" className={feedback === 'up' ? 'is-active' : ''} aria-label="مفید بود" onClick={() => setFeedback('up')}><ThumbsUp size={22} fill={feedback === 'up' ? 'currentColor' : 'none'} /></button>
           <button type="button" className={feedback === 'down' ? 'is-active' : ''} aria-label="مفید نبود" onClick={() => setFeedback('down')}><ThumbsDown size={22} fill={feedback === 'down' ? 'currentColor' : 'none'} /></button>
         </div>

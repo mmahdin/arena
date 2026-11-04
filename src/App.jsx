@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
-import { FLOW } from './data';
+import { FLOW, LEGACY_INFO_ROUTES } from './data';
+import { createOnboardingGreeting } from './features/profile/onboardingGreeting';
 import { VALID_ROUTES, ONBOARDING_ROUTES, canOpenRoute, canVisitOnboarding, onboardingMove, visibleOnboardingRoute, previousOnboardingRoute } from './features/profile/navigation';
 import { approachForStyle, styleForApproach, validateDisplayName } from './features/profile/preferences';
 import OnboardingScreen from './screens/Onboarding';
@@ -29,6 +30,8 @@ export default function App() {
   const [route, setRoute] = useState(routeFromHash);
   const [name, setName] = useState('');
   const [answers, setAnswers] = useState({});
+  const [onboardingGreeting, setOnboardingGreeting] = useState('');
+  const enteringChatAfterOnboarding = useRef(false);
   const [toast, setToast] = useState('');
   const backOverrides = useRef({});
   const identityVersion = useRef(0);
@@ -36,7 +39,6 @@ export default function App() {
   const onboardingProgress = useRef({ userId: null, furthest: 0 });
   const progressRequest = useRef(null);
   const progressWritePending = useRef(false);
-  const recoveringAtReady = useRef(false);
   const [progressPhase, setProgressPhase] = useState('loading');
   const [progressRetry, setProgressRetry] = useState(0);
   const [progressSaving, setProgressSaving] = useState(false);
@@ -66,10 +68,13 @@ export default function App() {
         identityVersion.current += 1;
         setName('');
         setAnswers({});
+        setOnboardingGreeting('');
+        enteringChatAfterOnboarding.current = false;
         progressRequest.current?.abort();
         onboardingProgress.current = { userId: null, furthest: 0 };
         progressWritePending.current = false;
-        recoveringAtReady.current = false;
+        // Invalidating the session fences any pending name save.
+        nameWritePending.current = false;
         setProgressSaving(false);
         setProgressPhase('loading');
         chatStore.reset();
@@ -139,8 +144,11 @@ export default function App() {
     if (complete) {
       progressRequest.current?.abort();
       setProgressPhase('ready');
-      replaceRoute('home');
-      setRoute('home');
+      const afterFinish = enteringChatAfterOnboarding.current;
+      enteringChatAfterOnboarding.current = false;
+      if (afterFinish) chatStore.startNew();
+      replaceRoute(afterFinish ? 'chat' : 'home');
+      setRoute(afterFinish ? 'chat' : 'home');
       return undefined;
     }
     const controller = new AbortController();
@@ -194,43 +202,51 @@ export default function App() {
 
   const finishProfile = useCallback(async () => {
     if (profileSaving) return;
-    const displayName = validateDisplayName(name);
-    if (!displayName) {
-      setToast('نام باید بین ۱ تا ۶۰ نویسه باشد.');
-      recoveringAtReady.current = true;
-      replaceRoute('name');
-      setRoute('name');
-      return;
-    }
+    // Name is saved at step four; use the persisted value when resuming an older
+    // in-progress session. For users affected by the earlier bug who already
+    // passed that step with no saved name, finish without an extra name prompt.
+    const displayName = validateDisplayName(name)
+      || validateDisplayName(session.profile?.displayName)
+      || 'دوست من';
     const version = identityVersion.current;
+    // The session store publishes the completed profile *before* its promise
+    // resolves. Set this intent before saving, so the profile-gate effect can
+    // reliably open Chat even if React commits the subscription update first.
+    enteringChatAfterOnboarding.current = true;
+    setOnboardingGreeting(createOnboardingGreeting(displayName, answers));
     setProfileSaving(true);
     try {
       const success = await store.saveProfile(displayName, styleForApproach(answers.approach));
       if (version === identityVersion.current) {
-        if (success) setAnswers({}); // Discard sensitive onboarding choices after the final step.
-        else setToast('ذخیرهٔ پروفایل انجام نشد. دوباره تلاش کن.');
+        if (success) {
+          setAnswers({}); // The entire intake stays ephemeral, never sent to the API.
+        } else {
+          enteringChatAfterOnboarding.current = false;
+          setOnboardingGreeting('');
+          setToast('ذخیره نشد. دوباره تلاش کن.');
+        }
       }
-      // Successful save updates /me and the profile gate redirects to home.
+      // Successful save updates /me and the profile gate opens a new chat.
     } finally { if (version === identityVersion.current) setProfileSaving(false); }
-  }, [name, answers.approach, profileSaving, store]);
+  }, [name, answers, profileSaving, store, session.profile?.displayName]);
 
   // Reuse the original Name and Approach screens as profile editors from the menu.
   // No additional stored fields or backend endpoints are introduced.
   const saveExistingProfile = useCallback(async (displayName, conversationStyle) => {
     const clean = validateDisplayName(displayName);
-    if (!clean) { setToast('نام باید بین ۱ تا ۶۰ نویسه باشد.'); return false; }
+    if (!clean) { setToast('اسمت باید بین ۱ تا ۶۰ کاراکتر باشه.'); return false; }
     if (profileSaving) return false;
     const version = identityVersion.current;
     setProfileSaving(true);
     try {
       const success = await store.saveProfile(clean, conversationStyle);
       if (version !== identityVersion.current) return false;
-      if (!success) { setToast('ذخیرهٔ تغییرات انجام نشد. دوباره تلاش کن.'); return false; }
+      if (!success) { setToast('ذخیره نشد. دوباره تلاش کن.'); return false; }
       setName(clean);
       backOverrides.current = {};
       replaceRoute('menu');
       setRoute('menu');
-      setToast('تغییرات ذخیره شد.');
+      setToast('تغییراتت ذخیره شد.');
       return true;
     } finally {
       if (version === identityVersion.current) setProfileSaving(false);
@@ -243,10 +259,8 @@ export default function App() {
 
   const navigate = useCallback((requestedTarget) => {
     if (!VALID_ROUTES.has(requestedTarget) || !active || (!complete && progressPhase !== 'ready')) return;
-    // After resuming a late screen, recover the unsaved name/style via existing designer screens.
-    const target = recoveringAtReady.current && route === 'name' && requestedTarget === 'simple-intro'
-      ? 'approach' : complete && route === 'menu' ? requestedTarget : visibleOnboardingRoute(requestedTarget);
-    if (recoveringAtReady.current && route === 'approach' && target === 'ready') recoveringAtReady.current = false;
+    const target = complete && route === 'menu'
+      ? requestedTarget : visibleOnboardingRoute(requestedTarget) || requestedTarget;
     if (!complete) {
       if (route === 'ready' && target === 'home') { void finishProfile(); return; }
       const nextFurthest = onboardingMove(route, target, onboardingProgress.current.furthest);
@@ -267,7 +281,7 @@ export default function App() {
         }).catch((error) => {
           if (controller.signal.aborted || identityVersion.current !== version) return;
           if (error?.status === 401) { void store.bootstrap(); return; }
-          setToast('ثبت مرحله انجام نشد؛ دوباره ادامه را انتخاب کن.');
+          setToast('پیشرفت آنبوردینگ در سرور ذخیره نشد. اگر مشکل ادامه داشت، به پشتیبانی اطلاع بده.');
         }).finally(() => {
           if (identityVersion.current === version) { progressWritePending.current = false; setProgressSaving(false); }
         });
@@ -284,9 +298,35 @@ export default function App() {
     }
     if (route === 'history' && target === 'day') backOverrides.current.day = 'history';
     if (route === 'day' && target === 'insight') backOverrides.current.insight = 'day';
+    if (route === 'chat' && target !== 'chat') setOnboardingGreeting('');
     if (target === route) return;
     window.location.hash = `/${target}`;
   }, [route, active, complete, progressPhase, finishProfile, chatStore, store, session.profile?.userId, session.profile?.displayName, session.profile?.conversationStyle]);
+
+  const nameWritePending = useRef(false);
+  const saveOnboardingName = useCallback(async () => {
+    if (nameWritePending.current || progressWritePending.current || complete || route !== 'name') return;
+    const displayName = validateDisplayName(name);
+    if (!displayName) { setToast('اسمت باید بین ۱ تا ۶۰ کاراکتر باشه.'); return; }
+    nameWritePending.current = true;
+    setProfileSaving(true);
+    const version = identityVersion.current;
+    try {
+      const updated = await devSessionApi.saveOnboardingName(displayName);
+      if (identityVersion.current !== version || updated.userId !== session.profile?.userId) return;
+      setName(updated.displayName);
+      navigate('age');
+    } catch (error) {
+      if (identityVersion.current !== version) return;
+      if (error?.status === 401) { void store.bootstrap(); return; }
+      setToast('اسمت ذخیره نشد. اتصال رو بررسی کن و دوباره امتحان کن.');
+    } finally {
+      if (identityVersion.current === version) {
+        nameWritePending.current = false;
+        setProfileSaving(false);
+      }
+    }
+  }, [complete, route, name, navigate, session.profile?.userId, store]);
 
   const back = useCallback(() => {
     const override = backOverrides.current[route];
@@ -307,11 +347,11 @@ export default function App() {
   const setAnswer = useCallback((key, value) => setAnswers((current) => ({ ...current, [key]: value })), []);
   const notify = useCallback((message) => setToast(message), []);
   const reset = useCallback(() => {
-    setAnswers({}); chatStore.reset(); reflectionStore.reset(); setName(''); backOverrides.current = {};
+    setAnswers({}); setOnboardingGreeting(''); chatStore.reset(); reflectionStore.reset(); setName(''); backOverrides.current = {};
     progressRequest.current?.abort();
     onboardingProgress.current = { userId: null, furthest: 0 };
     progressWritePending.current = false;
-    recoveringAtReady.current = false;
+    nameWritePending.current = false;
   }, [chatStore, reflectionStore]);
 
   const openConversation = useCallback((id) => {
@@ -319,13 +359,13 @@ export default function App() {
     window.location.hash = '/chat';
   }, [chatStore, reflectionStore]);
   const deleteConversation = useCallback(async (id) => {
-    if (!window.confirm('این گفتگو حذف شود؟ این کار قابل بازگشت نیست.')) return;
+    if (!window.confirm('گفت‌وگو حذف بشه؟ دیگه برنمی‌گرده.')) return;
     const ok = await chatStore.remove(id);
-    if (!ok) setToast('حذف گفتگو انجام نشد؛ دوباره تلاش کن.');
+    if (!ok) setToast('گفت‌وگو حذف نشد. دوباره تلاش کن.');
   }, [chatStore, reflectionStore]);
 
   const shared = {
-    route, navigate, back, name, setName, answers, setAnswer,
+    route, navigate, back, name, setName, answers, setAnswer, onboardingGreeting,
     reflections: reflections.list, reflectionListPhase: reflections.listPhase,
     reflectionListError: reflections.listError, reflectionDayPhase: reflections.dayPhase,
     reflectionDayError: reflections.dayError, reflectionDate: reflections.openedDate,
@@ -340,9 +380,10 @@ export default function App() {
     bookmarkBusyId: chat.bookmarkBusyId,
     onToggleBookmark: (message) => chatStore.toggleBookmark(message),
     onReloadBookmarks: () => chatStore.listBookmarks(),
-    onSendMessage: (text) => chatStore.send(text),
+    onSendMessage: (text) => { setOnboardingGreeting(''); return chatStore.send(text); },
     onRetryMessage: () => chatStore.retry(), onNewConversation: () => {
-      if (chat.pending && !window.confirm('پیام قبلی هنوز قطعی نشده است. گفتگوی جدید شروع شود؟')) return false;
+      if (chat.pending && !window.confirm('پاسخ قبلیت هنوز آماده نشده. گفت‌وگوی جدید بسازی؟')) return false;
+      setOnboardingGreeting('');
       return chatStore.startNew();
     },
     onOpenConversation: openConversation, onDeleteConversation: deleteConversation,
@@ -353,7 +394,7 @@ export default function App() {
     privacyLoaded: privacy.loaded, privacyError: privacy.error,
     onTogglePrivacy: () => privacyStore.toggle(), onRetryPrivacy: () => privacyStore.load(),
     profileEdit: complete && ['name', 'approach'].includes(route) && backOverrides.current[route] === 'menu',
-    onSaveName: saveName, onSaveApproach: saveApproach,
+    onSaveName: saveName, onSaveOnboardingName: saveOnboardingName, onSaveApproach: saveApproach,
     onLogout: () => store.leave(),
     onSwitchTester: () => store.leave(),
   };
@@ -362,11 +403,11 @@ export default function App() {
     <div className="app-shell" data-screen-surface={active ? screenSurfaceForRoute(route) : 'light'} dir="rtl">
       {active && !complete && progressPhase !== 'ready' ? (
         <section className="connected-status" role="status">
-          {progressPhase === 'error' ? <><p>ادامهٔ مسیر بارگذاری نشد.</p><button type="button" onClick={() => setProgressRetry(n => n + 1)}>تلاش دوباره</button></> : <p>در حال آماده‌سازی مسیر…</p>}
+          {progressPhase === 'error' ? <><p>مرحلهٔ قبلیت پیدا نشد.</p><button type="button" onClick={() => setProgressRetry(n => n + 1)}>تلاش دوباره</button></> : <p>در حال آماده‌سازی…</p>}
         </section>
       ) : active ? (
         <main className="screen-transition" key={`${session.profile?.userId}:${route}`} aria-busy={progressSaving && !complete}>
-          {FLOW.includes(route) && route !== 'home' ? <OnboardingScreen {...shared} /> : <MainScreen {...shared} />}
+          {(FLOW.includes(route) && route !== 'home') || LEGACY_INFO_ROUTES.includes(route) ? <OnboardingScreen {...shared} /> : <MainScreen {...shared} />}
         </main>
       ) : (
         <DevLogin session={session} login={(phone) => store.login(phone)} retry={() => session.error?.action === 'logout' ? store.leave() : store.bootstrap()} />

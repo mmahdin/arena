@@ -1,3 +1,5 @@
+> **Historical reference (v1).** This document describes an earlier onboarding flow. The active implementation is **v2**; see [ONBOARDING_V2.md](ONBOARDING_V2.md). Do not use the route indices below for current development.
+
 # HAMRAH-INTEGRATION-05 — Restore the original complete onboarding
 
 **Design rule:** The newer Hamrah designer UI remains the source of truth. Task05 restores **all 24 illustrated onboarding screens before Home** without removing Main screens, illustrations, chat actions, history, menu or profile editors. Existing completed accounts still open Home; fresh accounts start at `welcome` and proceed in the original `FLOW` order.

@@ -20,20 +20,20 @@ try {
   await page.locator('#dev-phone').fill(phone);
   await page.getByRole('button', { name: 'ادامه' }).last().click();
   await page.locator('.welcome-screen').waitFor();
-  for (const step of ['welcome']) {
+  for (const step of ['welcome', 'privacy', 'simple-intro']) {
     await page.waitForFunction(expected => location.hash === `#/${expected}`, step);
     await page.locator('main .app-screen .primary-button').click();
   }
   await page.waitForFunction(() => location.hash === '#/name');
   let data = await page.evaluate(async () => (await fetch('/api/v1/me/onboarding-progress',{credentials:'include'})).json());
-  assert.equal(data.furthestStep, 4);
+  assert.equal(data.furthestStep, 3);
   await page.reload();
   await page.locator('.name-screen').waitFor();
   assert.equal(await page.evaluate(() => location.hash), '#/name');
   await page.evaluate(() => { location.hash = '/ready'; });
   await page.waitForFunction(() => location.hash === '#/name');
   data = await page.evaluate(async () => (await fetch('/api/v1/me/onboarding-progress',{credentials:'include'})).json());
-  assert.equal(data.furthestStep, 4);
+  assert.equal(data.furthestStep, 3);
   // Re-entry under the same identifier must restore the same server-owned cursor.
   await page.evaluate(async () => { await fetch('/api/v1/dev/session', {method:'DELETE',credentials:'include'}); });
   await page.reload();
@@ -42,7 +42,7 @@ try {
   await page.locator('.name-screen').waitFor();
   assert.equal(await page.evaluate(() => location.hash), '#/name');
   // The request never transmits questionnaire answers. This test uses only a synthetic account.
-  assert.equal(FLOW[4],'name');
+  assert.equal(FLOW[3],'name');
   await context.close();
   console.log('PASS: persisted cursor resumes after refresh and re-entry; deep-link bypass denied.');
 } finally { await browser.close(); }

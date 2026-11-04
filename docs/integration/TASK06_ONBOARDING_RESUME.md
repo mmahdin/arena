@@ -1,3 +1,5 @@
+> **Historical reference (v1).** This document describes an earlier onboarding flow. The active implementation is **v2**; see [ONBOARDING_V2.md](ONBOARDING_V2.md). Do not use the route indices below for current development.
+
 # HAMRAH-INTEGRATION-06 — Resume onboarding without changing the designer UI
 
 **Build on Task05 + Tasks02 v2/03/04 and QA fixes.** The full 24 illustrated pre-Home screens, all assets and all Main screens stay in place. This patch changes only the route cursor, API snapshot and repeatable tests.

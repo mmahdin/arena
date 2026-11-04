@@ -17,9 +17,9 @@ export async function finishFullOnboarding(page, displayName = 'کاربر سا�
     return false;
   }
   await page.waitForFunction(() => document.querySelector('main .app-screen') && location.hash.startsWith('#/'));
-  // Account must remain incomplete while traversing all 24 original pages.
+  // Account must remain incomplete while traversing 26 v2 pages.
   const steps = ACTIVE_ONBOARDING_ROUTES;
-  assert.equal(steps.length, 21);
+  assert.equal(steps.length, 26);
   const resumed = await page.evaluate(() => location.hash.slice(2));
   const first = steps.indexOf(resumed);
   assert.ok(first >= 0, 'resume at a designer onboarding screen');
@@ -60,6 +60,9 @@ export async function finishFullOnboarding(page, displayName = 'کاربر سا�
     await page.locator('.approach-screen .primary-button').click();
     await page.locator('.ready-screen .primary-button').click();
   }
+  await page.locator('.chat-screen').waitFor();
+  // Product opens straight into chat; helper returns to Home for other regression suites.
+  await page.locator('.chat-screen .back-button').click();
   await page.locator('.home-screen').waitFor();
   const after = await page.evaluate(async () => (await fetch('/api/v1/me', { credentials: 'include' })).json());
   assert.equal(after.userId, identity.userId);

@@ -30,14 +30,14 @@ try {
   await page.evaluate(() => { window.location.hash = '/chat'; });
   await page.waitForFunction(() => window.location.hash === '#/welcome');
   await page.locator('.welcome-screen .primary-button').click();
-  await page.locator('.name-screen').waitFor();
-  await page.locator('.name-screen .back-button').click();
+  await page.locator('.privacy-screen').waitFor();
+  await page.locator('.privacy-screen .back-button').click();
   await page.locator('.welcome-screen').waitFor();
   await page.reload();
-  await page.locator('.name-screen').waitFor(); // resume highest server-saved step after refresh
+  await page.locator('.privacy-screen').waitFor(); // resume highest server-saved step after refresh
   const restoredCursor = await page.evaluate(async () => (await fetch('/api/v1/me/onboarding-progress', { credentials: 'include' })).json());
-  assert.equal(restoredCursor.furthestStep, 4);
-  await page.locator('.name-screen .back-button').click();
+  assert.equal(restoredCursor.furthestStep, 1);
+  await page.locator('.privacy-screen .back-button').click();
   await page.locator('.welcome-screen').waitFor();
   const profilePayloadShapes = [];
   page.on('request', request => {
@@ -53,5 +53,5 @@ try {
   await page.reload();
   await page.locator('.home-screen').waitFor();
   await context.close();
-  console.log('PASS: 21 enabled steps, original screens retained + server cursor resume + final completion → Home.');
+  console.log('PASS: 26 enabled steps, original screens retained + server cursor resume + final completion → Chat.');
 } finally { await browser.close(); }

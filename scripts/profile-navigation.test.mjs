@@ -15,12 +15,12 @@ test('all original designed routes remain reachable for completed profiles', () 
   assert.equal(canOpenRoute('nonexistent', true), false);
 });
 
-test('unfinished profiles visit enabled steps while original server ordinals remain intact', () => {
+test('unfinished profiles visit the exact 26 v2 steps and exclude legacy info pages', () => {
   assert.deepEqual(ONBOARDING_ROUTES, FLOW.slice(0, -1));
-  assert.equal(ONBOARDING_ROUTES.length, 24);
+  assert.equal(ONBOARDING_ROUTES.length, 26);
   for (const route of ACTIVE_ONBOARDING_ROUTES) assert.equal(canOpenRoute(route, false), true, route);
   for (const route of EXCLUDED_ONBOARDING_ROUTES) assert.equal(canOpenRoute(route, false), false, route);
-  assert.equal(ACTIVE_ONBOARDING_ROUTES.length, 21);
+  assert.equal(ACTIVE_ONBOARDING_ROUTES.length, 26);
   for (const route of ['home', 'chat', 'history', 'survey', 'day', 'insight', 'menu']) {
     assert.equal(canOpenRoute(route, false), false, route);
   }
@@ -34,8 +34,8 @@ test('every step advances in the designer order; back/revisit works but deep-lin
   assert.equal(onboardingMove('welcome', 'ready', furthest), null);
   assert.equal(onboardingMove('welcome', 'home', furthest), null);
   assert.equal(onboardingMove('welcome', 'testimonials', furthest), null);
-  furthest = onboardingMove('welcome', 'name', furthest);
-  assert.equal(furthest, 4);
+  furthest = onboardingMove('welcome', 'privacy', furthest);
+  assert.equal(furthest, 1);
   for (let i = 1; i < ACTIVE_ONBOARDING_ROUTES.length - 1; i++) {
     furthest = onboardingMove(ACTIVE_ONBOARDING_ROUTES[i], ACTIVE_ONBOARDING_ROUTES[i + 1], furthest);
     assert.equal(furthest, ONBOARDING_ROUTES.indexOf(ACTIVE_ONBOARDING_ROUTES[i + 1]));
@@ -52,7 +52,7 @@ test('all original onboarding questions and visual route entrypoints remain wire
   const { readFile } = await import('node:fs/promises');
   const source = await readFile(new URL('../src/screens/Onboarding.jsx', import.meta.url), 'utf8');
   for (const key of Object.keys(QUESTIONS)) assert.ok(source.includes('QUESTIONS[route]'), `Missing question engine: ${key}`);
-  for (const section of ['function Welcome(', 'function Testimonials(', 'function Research(', 'function Experts(', 'function NameScreen(', 'function Interstitial(', 'function Privacy(', 'function AgeScreen(', 'function QuestionScreen(', 'function VoiceScreen(', 'function ApproachScreen(', 'function Ready(']) {
+  for (const section of ['function Welcome(', 'function Testimonials(', 'function Research(', 'function Experts(', 'function NameScreen(', 'function Interstitial(', 'function Privacy(', 'function AgeScreen(', 'function QuestionScreen(', 'function MoodScreen(', 'function CheckinsScreen(', 'function VoiceScreen(', 'function ApproachScreen(', 'function Ready(']) {
     assert.ok(source.includes(section), section);
   }
   const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8');
@@ -117,7 +117,7 @@ test('failed preference save restores previously persisted profile', async () =>
 test('original action controls remain in the main designer screen', async () => {
   const { readFile } = await import('node:fs/promises');
   const screen = await readFile(new URL('../src/screens/Main.jsx', import.meta.url), 'utf8');
-  for (const control of ['ذخیره پیام', 'ساختن دوباره', 'گزارش پیام', 'ورودی صوتی', 'function Insight(', 'function Survey(', 'function DayDetail(']) {
+  for (const control of ['ذخیره پیام', 'ساخت دوباره', 'گزارش پیام', 'پیام صوتی', 'function Insight(', 'function Survey(', 'function DayDetail(']) {
     assert.ok(screen.includes(control), `Missing designed control: ${control}`);
   }
 });
@@ -131,12 +131,12 @@ test('confirming the default visible approach records that choice before advanci
 
 test('excluded screens resolve forward on resume and Name returns directly to Welcome', () => {
   for (const route of EXCLUDED_ONBOARDING_ROUTES) {
-    assert.equal(visibleOnboardingRoute(route), 'name');
-    assert.equal(canVisitOnboarding(route, 23), false);
+    assert.equal(visibleOnboardingRoute(route), null);
+    assert.equal(canVisitOnboarding(route, 25), false);
     assert.ok(VALID_ROUTES.has(route), 'original page remains available outside onboarding');
   }
-  assert.equal(previousOnboardingRoute('name'), 'welcome');
-  assert.equal(previousOnboardingRoute('simple-intro'), 'name');
-  assert.equal(ONBOARDING_ROUTES.indexOf('name'), 4);
-  assert.equal(ONBOARDING_ROUTES.indexOf('ready'), 23);
+  assert.equal(previousOnboardingRoute('name'), 'simple-intro');
+  assert.equal(previousOnboardingRoute('simple-intro'), 'privacy');
+  assert.equal(ONBOARDING_ROUTES.indexOf('name'), 3);
+  assert.equal(ONBOARDING_ROUTES.indexOf('ready'), 25);
 });
