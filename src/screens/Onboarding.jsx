@@ -59,7 +59,7 @@ function Welcome({ navigate }) {
         description="همراه، هوشی مصنوعی برای سلامت روان و حمایت عاطفی است."
       />
       <div className="welcome-art artwork-wrap">
-        <img src="/assets/welcome-figures.png" alt="دو شخصیت گل‌مانند دست‌در دست" />
+        <img src="/assets/hamrah-onboarding-welcome.png" alt="دو نماد امضای همراه دست‌در دست" />
       </div>
       <PrimaryButton onClick={() => nextFrom('welcome', navigate)}>شروع کنیم</PrimaryButton>
     </Shell>
@@ -187,7 +187,7 @@ function Interstitial({ route, navigate, back }) {
     <Shell theme="dark" back={back} className={`interstitial-screen art-${item.art}`}>
       <PageHeader title={item.title} description={item.description} />
       <div className="interstitial-art artwork-wrap">
-        <img src={`/assets/flower-person-${item.art}.png`} alt="شخصیت گل‌مانند همراه" />
+        <img src={`/assets/hamrah-interstitial-${item.art}.png`} alt="نماد امضای همراه" />
       </div>
       <PrimaryButton light onClick={() => nextFrom(route, navigate)}>آماده‌ام</PrimaryButton>
     </Shell>
@@ -203,7 +203,7 @@ function Privacy({ navigate, back, privacySharing = true, privacyLoading = false
         title="تعهد ما به تو."
         description="سلامت روان موضوعی خصوصی است. گفت‌وگوهای تو برای ادامهٔ گفتگو در حساب همراه نگهداری می‌شوند."
       />
-      <img className="privacy-art" src="/assets/privacy-flower.png" alt="گل با نشان قفل" />
+      <img className="privacy-art" src="/assets/hamrah-privacy-symbol.png" alt="نماد امضای همراه با محافظت" />
       <button
         type="button"
         className="privacy-card"
@@ -433,7 +433,7 @@ function Ready({ navigate, savingProfile = false }) {
         title="همراهِ تو بالاخره آماده است."
         description="نام و سبک گفت‌وگویت ثبت می‌شود. هر زمان آماده بودی می‌توانی شروع کنی."
       />
-      <div className="ready-art artwork-wrap"><img src="/assets/ready-daisy.png" alt="گل همراه در حال قدم‌زدن" /></div>
+      <div className="ready-art artwork-wrap"><img src="/assets/hamrah-ready-symbol.png" alt="نماد امضای همراه آماده" /></div>
       <PrimaryButton disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>{savingProfile ? 'در حال ذخیره…' : 'آماده‌ام'}</PrimaryButton>
     </Shell>
   );
