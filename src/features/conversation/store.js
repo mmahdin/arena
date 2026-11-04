@@ -111,6 +111,25 @@ export function createConversationStore(api, { onUnauthorized = () => {}, newId 
     publish({ conversationId: null, messages: [], messagesPhase: 'ready', messageError: null, pending: null });
     return true;
   }
+  async function resume() {
+    if (!state.userId || state.sending) return false;
+    if (state.conversationId) return true;
+    const req = scope();
+    const version = ++historyVersion;
+    publish({ historyPhase: 'loading', historyError: null });
+    try {
+      const conversations = await api.list(req.signal);
+      if (!req.current()) return false;
+      if (version === historyVersion) publish({ conversations, historyPhase: 'ready', historyError: null });
+      if (conversations[0]) return open(conversations[0].id);
+      return startNew();
+    } catch (error) {
+      if (version === historyVersion) handleError(error, req, 'history');
+      // A history outage must not prevent starting a local, unsaved conversation.
+      if (req.current()) startNew();
+      return false;
+    } finally { req.done(); }
+  }
   async function open(id) {
     if (!state.userId || state.sending) return false;
     const req = scope();
@@ -219,7 +238,7 @@ export function createConversationStore(api, { onUnauthorized = () => {}, newId 
   return {
     getState: () => state,
     subscribe(listener) { listeners.add(listener); return () => listeners.delete(listener); },
-    activate, reset, list, open, startNew, send, retry, remove, rename, listBookmarks, toggleBookmark,
+    activate, reset, list, open, resume, startNew, send, retry, remove, rename, listBookmarks, toggleBookmark,
     cancel() { epoch++; for (const controller of controllers) controller.abort(); controllers.clear(); },
   };
 }

@@ -168,3 +168,27 @@ test('real backend 404 is terminal for turn retry and normalized for the UI', as
   assert.equal(store.startNew(), true);
   assert.equal(store.getState().pending, null);
 });
+
+test('opening an empty chat never creates a server conversation', async () => {
+  const api = fixture();
+  const store = createConversationStore(api);
+  store.activate(A);
+  assert.equal(await store.resume(), true);
+  assert.equal(store.getState().conversationId, null);
+  assert.equal(store.getState().messagesPhase, 'ready');
+  assert.deepEqual(api.calls, ['list']);
+  assert.equal(store.startNew(), true);
+  assert.deepEqual(api.calls, ['list']);
+});
+
+test('chat entry resumes the newest existing conversation and keeps it on later entry', async () => {
+  const api = fixture({ async list() { return [entry]; }, async messages() { return pair; } });
+  const store = createConversationStore(api);
+  store.activate(A);
+  assert.equal(await store.resume(), true);
+  assert.equal(store.getState().conversationId, C);
+  assert.deepEqual(store.getState().messages, pair);
+  const calls = api.calls.length;
+  assert.equal(await store.resume(), true);
+  assert.equal(api.calls.length, calls, 'active conversation must not be reloaded on every chat entry');
+});
