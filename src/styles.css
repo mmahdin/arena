@@ -414,38 +414,6 @@ svg { flex-shrink: 0; }
 .voice-copy p { margin-top: 8px; white-space: pre-line; font-size: 14px; line-height: 1.75; color: #e0ded9; }
 .voice-screen > .pager-dots { position: absolute; bottom: 137px; inset-inline: 0; }
 .voice-note { position: absolute; bottom: 95px; inset-inline: 28px; text-align: center; color: #a6a49f; font-size: 11px; line-height: 1.75; }
-.approach-screen .page-header { padding-top: 88px; }
-.approach-screen .page-header h1 { font-size: 29px; }
-.approach-stage { position: absolute; top: 216px; inset-inline: 0; height: min(455px, 52vh); touch-action: pan-y; }
-.approach-stage:focus-visible { outline: 2px solid var(--ink); outline-offset: -4px; border-radius: 20px; }
-.approach-card {
-  position: absolute;
-  left: 50%;
-  width: 282px;
-  height: 100%;
-  padding: 25px 17px;
-  transform: translateX(calc(-50% + var(--approach-drag, 0px)));
-  overflow: hidden;
-  border: 2px solid var(--ink);
-  border-radius: 20px;
-  transition: transform 260ms cubic-bezier(.2, .7, .2, 1);
-  user-select: none;
-  cursor: grab;
-}
-.approach-card.is-dragging { transition: none; cursor: grabbing; }
-.approach-user { padding: 14px 13px; border-radius: 17px; background: var(--light); font-size: 15px; line-height: 1.75; }
-.approach-response { margin-top: 27px; font-size: 15px; line-height: 1.9; animation: approach-response-in 260ms cubic-bezier(.2, .7, .2, 1); }
-@keyframes approach-response-in {
-  from { opacity: 0; transform: translateX(var(--approach-enter, 18px)); }
-  to { opacity: 1; transform: translateX(0); }
-}
-.approach-peek { position: absolute; top: 24px; bottom: 24px; width: 34px; padding: 0; background: transparent; border: 1.5px solid #756f66; border-radius: 16px; opacity: .75; cursor: pointer; }
-.approach-peek:disabled { cursor: default; }
-.approach-peek::after { content: ''; position: absolute; top: 24px; inset-inline-start: 0; width: 48px; height: 70px; border-radius: 14px; background: var(--light); }
-.approach-peek--before { inset-inline-start: -13px; }
-.approach-peek--after { inset-inline-end: -13px; }
-.approach-screen > .pager-dots { position: absolute; bottom: 151px; inset-inline: 0; }
-.approach-screen > .skip-button { bottom: 24px; }
 .ready-art { position: absolute; top: 36%; bottom: 96px; inset-inline: 28px; }
 
 /* ---------- Home ---------- */
@@ -680,7 +648,6 @@ svg { flex-shrink: 0; }
   .home-greeting { padding-top: 104px; }
   .home-letter { top: 305px; gap: 25px; }
   .survey-copy { top: 230px; }
-  .approach-stage { top: 195px; }
   .voice-carousel { top: 40%; }
 }
 
@@ -1111,43 +1078,130 @@ svg { flex-shrink: 0; }
 .voice-screen > .pager-dots { bottom: 168px; }
 .voice-note { bottom: 112px; color: #a6a49f; }
 
-/* Conversation style: realistic chat preview with visible style tabs. */
-.approach-screen .page-header { padding-top: 84px; }
-.approach-tabs {
-  display: flex; gap: 8px; margin-top: 18px; padding: 0 24px 6px;
-  overflow-x: auto; scrollbar-width: none;
+/* Conversation style: one deck of styles on a single track. The chosen card
+   owns the screen, neighbours peek in at the edges, and everything that changes
+   during a swipe is painted from the track position by the screen's loop. */
+.approach-screen {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(132px + env(safe-area-inset-bottom, 0px));
 }
-.approach-tabs::-webkit-scrollbar { display: none; }
-.approach-tab {
-  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px;
-  min-height: 40px; padding: 8px 15px; border-radius: 999px;
-  background: rgb(35 32 27 / 9%); color: #4a443c;
-  font-size: 13px; font-weight: 570; white-space: nowrap;
-  transition: background 150ms ease, color 150ms ease;
-}
-.approach-tab.is-active { background: var(--ink); color: var(--light); }
+.approach-screen .page-header { flex: 0 0 auto; padding-top: 92px; }
+.approach-screen .page-header h1 { font-size: 29px; }
+.approach-screen .page-header p { margin-top: 14px; max-width: 330px; color: #5e584e; font-size: 15px; }
 .approach-stage {
-  position: absolute; top: clamp(235px, 33vh, 285px); bottom: 150px; inset-inline: 20px;
-  height: auto; display: flex; flex-direction: column; gap: 10px; touch-action: pan-y;
+  --approach-card-w: min(calc(100% - 84px), 300px);
+  --approach-gap: 14px;
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: 14px;
+  overflow: hidden;
+  touch-action: pan-y;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
 }
-.approach-stage:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; border-radius: 24px; }
+.approach-stage.is-dragging { cursor: grabbing; }
+/* The five styles answer the same prompt, so it is shown once above the deck
+   instead of being repeated inside all five cards. */
+.approach-context {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 16px 24px 0;
+  color: #6a6357;
+  font-size: 11.5px;
+  line-height: 1.75;
+}
+.approach-context-label {
+  flex: 0 0 auto;
+  padding: 1px 7px 2px;
+  border-radius: 999px;
+  background: rgb(35 32 27 / 8%);
+  color: #5b554b;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.6;
+}
+.approach-context-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+.approach-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--approach-gap);
+  height: 100%;
+  transform: translate3d(var(--approach-x, 0px), 0, 0);
+  will-change: transform;
+}
 .approach-card {
-  position: relative; left: auto; width: 100%; max-width: 340px; height: auto;
-  flex: 1; min-height: 0; margin: 0 auto; padding: 16px;
-  display: flex; flex-direction: column; gap: 14px;
-  overflow-y: auto; overscroll-behavior: contain;
-  border: 1.5px solid rgb(35 32 27 / 55%); border-radius: 24px;
-  background: rgb(243 242 238 / 45%);
-  transform: translateX(var(--approach-drag, 0px));
+  flex: 0 0 var(--approach-card-w);
+  width: var(--approach-card-w);
+  height: min(100%, 392px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid rgb(35 32 27 / 9%);
+  border-radius: 26px;
+  background: rgb(247 245 240 / 46%);
+  color: #38332c;
+  text-align: start;
+  opacity: var(--approach-opacity, .5);
+  transform: translateY(var(--approach-lift, 10px)) scale(var(--approach-scale, .92));
+  transition: background 240ms ease, border-color 240ms ease, box-shadow 240ms ease;
+  will-change: transform, opacity;
 }
-.approach-preview-badge { align-self: center; padding: 4px 12px; border-radius: 999px; background: rgb(35 32 27 / 10%); color: #5c554b; font-size: 11px; font-weight: 650; }
-.approach-message { max-width: 92%; padding: 13px 15px; border-radius: 18px; font-size: 14px; line-height: 1.85; }
-.approach-message--user { align-self: flex-end; background: #e3ddd3; border-end-end-radius: 6px; }
-.approach-message--assistant { align-self: flex-start; background: #f7f5f0; border: 1px solid rgb(35 32 27 / 12%); border-end-start-radius: 6px; animation: approach-response-in 240ms cubic-bezier(.2, .7, .2, 1); }
-.approach-author { display: block; margin-bottom: 7px; color: #7a7266; font-size: 11px; font-weight: 650; }
-.approach-response { margin: 0; font-size: 14px; line-height: 1.9; }
-.approach-swipe-hint { text-align: center; color: #6c6459; font-size: 12px; }
-.approach-screen > .pager-dots { display: none; }
+.approach-card.is-active {
+  background: #f8f6f1;
+  border-color: rgb(35 32 27 / 13%);
+  box-shadow: 0 22px 44px -34px rgb(35 32 27 / 75%);
+}
+.approach-card-count { font-size: 11px; font-weight: 620; color: #8b8377; }
+.approach-card-name { font-size: 22px; font-weight: 700; line-height: 1.35; letter-spacing: -.5px; }
+.approach-card-line { font-size: 14px; font-weight: 480; line-height: 1.75; color: #575046; }
+.approach-card-sample {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  padding: 11px 13px 12px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: rgb(35 32 27 / 5%);
+  opacity: clamp(0, calc((var(--approach-focus, 1) - .55) * 2.6), 1);
+  transform: translateY(calc((1 - var(--approach-focus, 1)) * 8px));
+}
+.approach-card.is-active .approach-card-sample { animation: approach-sample-in 300ms cubic-bezier(.2, .7, .2, 1); }
+@keyframes approach-sample-in {
+  from { opacity: 0; transform: translateY(10px); }
+}
+.approach-card-sample-label { font-size: 10.5px; font-weight: 680; color: #8b8377; }
+.approach-card-sample-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--approach-lines, 6);
+  line-clamp: var(--approach-lines, 6);
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.85;
+  color: #4d4841;
+}
+.approach-dots { flex: 0 0 auto; display: flex; justify-content: center; padding: 8px 0 4px; }
+.approach-screen .pager-dots { gap: 10px; }
+.approach-screen .pager-dots button { position: relative; }
+.approach-screen .pager-dots button::after { content: ''; position: absolute; inset: -12px -4px; }
+.approach-screen > .skip-button { bottom: 24px; }
 
 /* Mood/reminder: consistent heading rhythm and mathematically aligned slider. */
 .mood-screen .page-header,
@@ -1292,22 +1346,37 @@ svg { flex-shrink: 0; }
   .voice-carousel { top: 245px; height: 205px; }
   .voice-screen > .pager-dots { bottom: 132px; }
   .voice-note { bottom: 86px; }
-  .approach-screen .page-header { padding-top: 76px; }
-  .approach-stage { top: 268px; bottom: 142px; }
+  .approach-screen .page-header { padding-top: 78px; }
+  .approach-screen .page-header h1 { font-size: 26px; }
+  .approach-screen .page-header p { margin-top: 10px; font-size: 13.5px; }
+  .approach-context { margin-top: 12px; }
+  .approach-stage { margin-top: 10px; }
+  .approach-card { --approach-lines: 3; gap: 8px; padding: 15px; border-radius: 22px; }
+  .approach-card-name { font-size: 20px; }
+  .approach-card-line { font-size: 13px; }
+  .approach-card-sample { padding: 9px 11px 10px; }
+  .approach-card-sample-text { font-size: 12.5px; line-height: 1.8; }
   .mood-screen .page-header, .checkins-screen .page-header { padding-top: 88px; }
   .mood-stage { top: 205px; bottom: 148px; }
   .checkins-art { top: 245px; }
   .composer-hint { display: none; }
 }
+@media (max-height: 660px) {
+  .approach-card-sample { display: none; }
+  .approach-screen .page-header { padding-top: 68px; }
+}
 @media (max-width: 374px) {
   .voice-carousel { padding-inline: calc(50% - 94px); }
   .voice-card { flex-basis: 188px; width: 188px; }
-  .approach-message { max-width: 96%; font-size: 13.5px; }
+  .approach-stage { --approach-card-w: min(calc(100% - 64px), 288px); --approach-gap: 12px; }
+  .approach-card { padding: 14px; }
+  .approach-card-name { font-size: 19px; }
+  .approach-card-sample-text { font-size: 12.5px; }
   .message-text { max-width: 92%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .letter-spinner, .chat-skeleton i { animation: none; }
-  .voice-card, .envelope-art, .survey-option, .approach-message--assistant { transition: none; animation: none; }
+  .voice-card, .envelope-art, .survey-option, .approach-card, .approach-card-sample { transition: none; animation: none; }
   /* The wheel still snaps, but ranges no longer tilt or scale in motion. */
   .age-option { transform: none; }
   .age-marker { animation: none; }

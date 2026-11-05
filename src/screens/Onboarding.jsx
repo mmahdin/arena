@@ -666,115 +666,338 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
   );
 }
 
+// The conversation-style step is a deck, not a swapped-out card. All five
+// styles sit side by side on one track that follows the finger, so choosing one
+// reads as travelling between neighbours. Scale, lift, opacity and the sample
+// reveal are painted from the live track position, and every gesture ends in a
+// velocity-aware settle instead of a jump.
+const APPROACH_HINT_ID = 'approach-swipe-hint';
+const faCount = (value) => Number(value).toLocaleString('fa-IR');
+
 function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = false, savingProfile = false, onSaveApproach }) {
   const initial = answers.approach ? Math.max(0, APPROACHES.findIndex((item) => item.name === answers.approach)) : 2;
   const [active, setActive] = useState(initial);
-  const [direction, setDirection] = useState(1);
-  const [drag, setDrag] = useState(0);
-  const gesture = useRef(null);
-  const selectedIndex = useRef(initial);
-  const tabRefs = useRef([]);
+  const [dragging, setDragging] = useState(false);
+  const stageRef = useRef(null);
+  const trackRef = useRef(null);
+  const cardRefs = useRef([]);
+  const metricsRef = useRef({ step: 0, origin: 0 });
+  const positionRef = useRef(0);
+  const targetRef = useRef(0);
+  const frameRef = useRef(0);
+  const clockRef = useRef(0);
+  const activeRef = useRef(initial);
+  const interactedRef = useRef(false);
+  const gestureRef = useRef(null);
+  const movedRef = useRef(false);
+  const wheelRef = useRef(0);
+  const count = APPROACHES.length;
   const approach = APPROACHES[active];
-  const select = (index) => {
-    const next = Math.max(0, Math.min(APPROACHES.length - 1, index));
-    if (next === selectedIndex.current) return;
-    setDirection(next > selectedIndex.current ? 1 : -1);
-    selectedIndex.current = next;
-    setActive(next);
-    setAnswer('approach', APPROACHES[next].name);
-  };
-  useLayoutEffect(() => {
-    tabRefs.current[active]?.scrollIntoView({
-      behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-      inline: 'center',
-      block: 'nearest',
+  const title = approach.label || approach.name;
+
+  // The deck is silent without a small physical beat as each style lands.
+  const tickFeedback = useCallback(() => {
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      try { navigator.vibrate(8); } catch { /* haptics are best effort */ }
+    }
+  }, []);
+
+  const positionFor = (index) => metricsRef.current.origin + index * metricsRef.current.step;
+
+  // One source of truth: the track position. Depth, lift, opacity and the
+  // sample reveal are re-derived from it, so nothing can drift out of sync.
+  const paint = (x) => {
+    const { step, origin } = metricsRef.current;
+    if (!step) return;
+    let nearest = activeRef.current;
+    let best = Infinity;
+    cardRefs.current.forEach((card, index) => {
+      if (!card) return;
+      const distance = (origin + index * step - x) / step;
+      const focus = Math.max(0, 1 - Math.min(1, Math.abs(distance)));
+      card.style.setProperty('--approach-focus', focus.toFixed(3));
+      card.style.setProperty('--approach-scale', (0.9 + 0.1 * focus).toFixed(3));
+      card.style.setProperty('--approach-opacity', (0.42 + 0.58 * focus).toFixed(3));
+      card.style.setProperty('--approach-lift', `${((1 - focus) * 10).toFixed(1)}px`);
+      if (Math.abs(distance) < best) { best = Math.abs(distance); nearest = index; }
     });
-  }, [active]);
-  const onTabKeyDown = (event, index) => {
-    const target = { ArrowLeft: index + 1, ArrowRight: index - 1, Home: 0, End: APPROACHES.length - 1 }[event.key];
+    // Only a live drag moves the selection while the deck is in motion; a
+    // deliberate jump animates straight to its target without flickering
+    // through the styles it passes.
+    if (gestureRef.current?.axis === 'x' && nearest !== activeRef.current) {
+      activeRef.current = nearest;
+      setActive(nearest);
+      if (interactedRef.current) {
+        setAnswer('approach', APPROACHES[nearest].name);
+        tickFeedback();
+      }
+    }
+  };
+
+  const place = (x) => {
+    positionRef.current = x;
+    trackRef.current?.style.setProperty('--approach-x', `${x.toFixed(2)}px`);
+    paint(x);
+  };
+
+  // Frame-rate aware easing: the deck settles in about a quarter of a second
+  // whatever the refresh rate, with no overshoot past the chosen style.
+  const advance = (now) => {
+    frameRef.current = 0;
+    const elapsed = clockRef.current ? Math.min(64, now - clockRef.current) : 16.7;
+    clockRef.current = now;
+    const remaining = targetRef.current - positionRef.current;
+    if (Math.abs(remaining) < 0.5) {
+      clockRef.current = 0;
+      place(targetRef.current);
+      return;
+    }
+    place(positionRef.current + remaining * (1 - Math.pow(0.8, elapsed / 16.7)));
+    frameRef.current = window.requestAnimationFrame(advance);
+  };
+
+  const animateTo = (x) => {
+    targetRef.current = x;
+    if (reducedMotion()) {
+      if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
+      frameRef.current = 0;
+      place(x);
+      return;
+    }
+    clockRef.current = 0;
+    if (!frameRef.current) frameRef.current = window.requestAnimationFrame(advance);
+  };
+
+  const select = (index, { focus = false } = {}) => {
+    if (!metricsRef.current.step) return;
+    const next = Math.max(0, Math.min(count - 1, index));
+    interactedRef.current = true;
+    activeRef.current = next;
+    setActive(next);
+    if (answers.approach !== APPROACHES[next].name) setAnswer('approach', APPROACHES[next].name);
+    tickFeedback();
+    animateTo(positionFor(next));
+    if (focus) cardRefs.current[next]?.focus({ preventScroll: true });
+  };
+
+  const onKeyDown = (event) => {
+    // RTL: the next style lives to the left, so ArrowLeft advances.
+    const delta = { ArrowLeft: 1, ArrowRight: -1 }[event.key];
+    const target = delta === undefined ? { Home: 0, End: count - 1 }[event.key] : activeRef.current + delta;
     if (target === undefined) return;
     event.preventDefault();
-    const next = Math.max(0, Math.min(APPROACHES.length - 1, target));
-    select(next);
-    tabRefs.current[next]?.focus();
+    select(target, { focus: true });
   };
-  const finishGesture = (event, cancelled = false) => {
-    const start = gesture.current;
-    if (!start || start.id !== event.pointerId) return;
-    gesture.current = null;
-    setDrag(0);
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-    const dx = event.clientX - start.x;
-    const dy = event.clientY - start.y;
-    if (!cancelled && Math.abs(dx) > 35 && Math.abs(dx) > Math.abs(dy) * 1.2) select(active + (dx < 0 ? 1 : -1));
+
+  // A trackpad or wheel steps one style at a time, never a burst. A negative
+  // deltaX moves the content right, which is where the next style waits in RTL.
+  const onWheel = (event) => {
+    const now = Date.now();
+    if (now - wheelRef.current < 240) return;
+    const horizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
+    const delta = horizontal ? event.deltaX : event.deltaY;
+    if (Math.abs(delta) < 8) return;
+    wheelRef.current = now;
+    const forwards = horizontal ? delta < 0 : delta > 0;
+    select(activeRef.current + (forwards ? 1 : -1));
   };
+
+  const resistance = (overflow) => (1 - 1 / (Math.abs(overflow) / 46 + 1)) * 56;
+
+  const rubber = (x) => {
+    const { origin, step } = metricsRef.current;
+    const min = origin;
+    const max = origin + (count - 1) * step;
+    if (x < min) return min - resistance(min - x);
+    if (x > max) return max + resistance(x - max);
+    return x;
+  };
+
+  const velocityOf = (gesture) => {
+    const { samples } = gesture;
+    if (samples.length < 2) return 0;
+    const last = samples[samples.length - 1];
+    const first = samples[0];
+    const elapsed = last.t - first.t;
+    return elapsed > 0 ? (last.x - first.x) / elapsed : 0;
+  };
+
+  const finish = (cancelled) => {
+    const gesture = gestureRef.current;
+    if (!gesture) return;
+    gestureRef.current = null;
+    setDragging(false);
+    if (gesture.axis !== 'x') { animateTo(positionFor(activeRef.current)); return; }
+    const released = cancelled ? positionFor(activeRef.current) : positionRef.current;
+    const { origin, step } = metricsRef.current;
+    const raw = (released - origin) / step;
+    const velocity = cancelled ? 0 : velocityOf(gesture);
+    const started = Math.round((gesture.start - origin) / step);
+    // A flick carries exactly one style past the one it started from, and never
+    // rolls back a longer drag; a slower release settles on the nearest card.
+    let index = Math.round(raw);
+    if (velocity < -0.35) index = Math.min(started - 1, Math.floor(raw));
+    else if (velocity > 0.35) index = Math.max(started + 1, Math.ceil(raw));
+    select(index);
+  };
+
+  const onPointerDown = (event) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    if (!metricsRef.current.step) return;
+    interactedRef.current = true;
+    movedRef.current = false;
+    if (frameRef.current) { window.cancelAnimationFrame(frameRef.current); frameRef.current = 0; }
+    clockRef.current = 0;
+    gestureRef.current = {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      start: positionRef.current,
+      axis: null,
+      samples: [{ t: event.timeStamp, x: event.clientX }],
+    };
+  };
+
+  const onPointerMove = (event) => {
+    const gesture = gestureRef.current;
+    if (!gesture || event.pointerId !== gesture.id) return;
+    const dx = event.clientX - gesture.x;
+    const dy = event.clientY - gesture.y;
+    if (!gesture.axis) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      gesture.axis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
+      movedRef.current = true;
+      if (gesture.axis !== 'x') return;
+      // Start the velocity window when the drag actually becomes horizontal.
+      gesture.samples = [{ t: event.timeStamp, x: event.clientX }];
+      setDragging(true);
+      // Capture only once this is clearly a horizontal drag, so a plain tap
+      // still reaches the card and selects it.
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+    }
+    if (gesture.axis !== 'x') return;
+    gesture.samples.push({ t: event.timeStamp, x: event.clientX });
+    if (gesture.samples.length > 6) gesture.samples.shift();
+    place(rubber(gesture.start + dx));
+  };
+
+  const onPointerUp = (event) => {
+    const gesture = gestureRef.current;
+    if (!gesture || event.pointerId !== gesture.id) return;
+    finish(false);
+  };
+
+  useLayoutEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return undefined;
+    const measure = () => {
+      const cards = cardRefs.current;
+      if (!cards[0] || !cards[1]) return false;
+      metricsRef.current = {
+        step: Math.abs(cards[1].offsetLeft - cards[0].offsetLeft) || cards[0].offsetWidth,
+        origin: stage.clientWidth / 2 - (cards[0].offsetLeft + cards[0].offsetWidth / 2),
+      };
+      return true;
+    };
+    if (measure()) {
+      positionRef.current = targetRef.current = positionFor(activeRef.current);
+      place(positionRef.current);
+    }
+    // Recentre the chosen card when the viewport, keyboard or orientation
+    // changes the width of the deck.
+    const observer = typeof ResizeObserver === 'function'
+      ? new ResizeObserver(() => {
+        if (!measure()) return;
+        positionRef.current = targetRef.current = positionFor(activeRef.current);
+        place(positionRef.current);
+      })
+      : null;
+    observer?.observe(stage);
+    return () => {
+      observer?.disconnect();
+      if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
+    };
+  }, []);
+
   return (
     <Shell theme="beige" back={back} className="approach-screen">
-      <PageHeader title="دوست داری چطوری باهات حرف بزنم؟" />
-      <div className="approach-tabs" role="tablist" aria-label="سبک‌های گفت‌وگو">
-        {APPROACHES.map((item, index) => (
-          <button
-            type="button"
-            key={item.name}
-            ref={(node) => { tabRefs.current[index] = node; }}
-            role="tab"
-            id={`approach-tab-${index}`}
-            aria-selected={index === active}
-            aria-controls="approach-panel"
-            tabIndex={index === active ? 0 : -1}
-            className={`approach-tab ${index === active ? 'is-active' : ''}`}
-            onClick={() => select(index)}
-            onKeyDown={(event) => onTabKeyDown(event, index)}
-          >
-            {index === active && <Check size={15} aria-hidden="true" />}
-            {item.label || item.name}
-          </button>
-        ))}
-      </div>
+      <PageHeader
+        title="دوست داری چطوری باهات حرف بزنم؟"
+        description={profileEdit ? 'هر وقت خواستی می‌تونی دوباره عوضش کنی.' : 'یه سبک انتخاب کن؛ بعداً هم می‌تونی از منو عوضش کنی.'}
+      />
+      <p className="approach-context">
+        <span className="approach-context-label">پیام نمونه</span>
+        <span className="approach-context-text">{APPROACH_EXAMPLE_USER}</span>
+      </p>
       <div
-        className="approach-stage"
-        role="tabpanel"
-        id="approach-panel"
-        aria-labelledby={`approach-tab-${active}`}
-        tabIndex={0}
-        onKeyDown={(event) => {
-          const target = { ArrowLeft: active + 1, ArrowRight: active - 1, Home: 0, End: APPROACHES.length - 1 }[event.key];
-          if (target === undefined) return;
-          event.preventDefault();
-          select(target);
-        }}
-        onPointerDown={(event) => {
-          if (!event.isPrimary || event.button !== 0 || event.target.closest('button')) return;
-          gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
-          event.currentTarget.setPointerCapture(event.pointerId);
-        }}
-        onPointerMove={(event) => {
-          const start = gesture.current;
-          if (!start || start.id !== event.pointerId) return;
-          const dx = event.clientX - start.x;
-          if (Math.abs(dx) > Math.abs(event.clientY - start.y)) setDrag(Math.max(-48, Math.min(48, dx * 0.35)));
-        }}
-        onPointerUp={finishGesture}
-        onPointerCancel={(event) => finishGesture(event, true)}
-        onLostPointerCapture={(event) => finishGesture(event, true)}
+        className={`approach-stage${dragging ? ' is-dragging' : ''}`}
+        ref={stageRef}
+        role="radiogroup"
+        aria-label="سبک گفت‌وگو"
+        aria-orientation="horizontal"
+        aria-describedby={APPROACH_HINT_ID}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={() => finish(true)}
+        onLostPointerCapture={() => finish(true)}
+        onKeyDown={onKeyDown}
+        onWheel={onWheel}
       >
-        <article className={`approach-card${drag ? ' is-dragging' : ''}`} style={{ '--approach-drag': `${drag}px` }}>
-          <span className="approach-preview-badge">نمونهٔ گفت‌وگو</span>
-          <div className="approach-message approach-message--user">
-            <p>{APPROACH_EXAMPLE_USER}</p>
-          </div>
-          <div className="approach-message approach-message--assistant" key={approach.name} style={{ '--approach-enter': `${direction * 18}px` }} aria-live="polite">
-            <span className="approach-author">همراه · {approach.label || approach.name}</span>
-            <p className="approach-response">{approach.exampleResponse || approach.response}</p>
-          </div>
-        </article>
-        <p className="approach-swipe-hint">برای تغییر سبک، کارت رو بکش</p>
+        <div className="approach-track" ref={trackRef}>
+          {APPROACHES.map((item, index) => {
+            const isActive = index === active;
+            return (
+              <button
+                type="button"
+                key={item.name}
+                ref={(node) => { cardRefs.current[index] = node; }}
+                role="radio"
+                aria-checked={isActive}
+                aria-labelledby={`approach-name-${index}`}
+                tabIndex={isActive ? 0 : -1}
+                className={`approach-card${isActive ? ' is-active' : ''}`}
+                onClick={() => { if (!movedRef.current) select(index); }}
+              >
+                <span className="approach-card-count">{`${faCount(index + 1)} از ${faCount(count)}`}</span>
+                <span className="approach-card-name" id={`approach-name-${index}`}>{item.label || item.name}</span>
+                <span className="approach-card-line">{item.response}</span>
+                <span
+                  className="approach-card-sample"
+                  key={isActive ? `sample-${active}` : `idle-${index}`}
+                >
+                  <span className="approach-card-sample-label">پاسخ</span>
+                  <span className="approach-card-sample-text">{item.exampleResponse}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
-      <PrimaryButton className="with-skip" disabled={savingProfile} onClick={() => {
-        if (profileEdit) onSaveApproach(approach.name);
-        else { setAnswer('approach', approach.name); nextFrom('approach', navigate); }
-      }}>{profileEdit ? (savingProfile ? 'در حال ذخیره…' : 'ذخیره') : `ادامه با «${approach.label || approach.name}»`}</PrimaryButton>
-      <button type="button" className="skip-button" onClick={() => profileEdit ? back() : nextFrom('approach', navigate)}>{profileEdit ? 'انصراف' : 'فعلاً رد کن'}</button>
+      <div className="approach-dots">
+        <PagerDots
+          count={count}
+          active={active}
+          onChange={(index) => select(index)}
+          label="انتخاب سبک گفت‌وگو"
+          labels={APPROACHES.map((item) => item.label || item.name)}
+        />
+      </div>
+      <p className="sr-only" id={APPROACH_HINT_ID}>با کشیدن کارت‌ها یا کلیدهای جهت‌دار، سبک گفت‌وگو را عوض کن.</p>
+      <p className="sr-only" aria-live="polite">{`سبک انتخاب‌شده: ${title}`}</p>
+      <PrimaryButton
+        className="with-skip"
+        disabled={savingProfile}
+        onClick={() => {
+          if (profileEdit) onSaveApproach(approach.name);
+          else { setAnswer('approach', approach.name); nextFrom('approach', navigate); }
+        }}
+      >{profileEdit ? (savingProfile ? 'در حال ذخیره…' : 'ذخیره') : `ادامه با «${title}»`}</PrimaryButton>
+      <button
+        type="button"
+        className="skip-button"
+        onClick={() => (profileEdit ? back() : nextFrom('approach', navigate))}
+      >{profileEdit ? 'انصراف' : 'فعلاً رد کن'}</button>
     </Shell>
   );
 }
