@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Check, Flame, Landmark } from 'lucide-react';
 import { APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import {
@@ -202,41 +202,240 @@ function Privacy({ navigate, back, privacySharing = true, privacyLoading = false
   );
 }
 
+// The age step is a physical wheel, not a list that re-stacks itself. One native
+// scroll container holds all ranges with snap points, so touch momentum,
+// trackpad and wheel input behave exactly like the platform. Every range is
+// scaled, tilted and faded from its live distance to the centre instead of
+// being placed with precomputed pixel offsets, so the selection glides.
+const AGE_RANGES = ['۵۵–۶۴', '۴۵–۵۴', '۳۵–۴۴', '۳۰–۳۴', '۲۵–۲۹', '۱۸–۲۴', 'کمتر از ۱۸'];
+const AGE_FALLBACK = '۲۵–۲۹';
+
+const reducedMotion = () => (typeof window === 'undefined'
+  ? false
+  : Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches));
+
 function AgeScreen({ navigate, back, answers, setAnswer }) {
-  const values = ['۵۵–۶۴', '۴۵–۵۴', '۳۵–۴۴', '۳۰–۳۴', '۲۵–۲۹', '۱۸–۲۴', 'کمتر از ۱۸'];
-  const selected = answers.age || '۲۵–۲۹';
-  const index = values.indexOf(selected);
-  const touchStart = useRef(0);
-  const move = (direction) => {
-    const next = Math.max(0, Math.min(values.length - 1, index + direction));
-    setAnswer('age', values[next]);
+  const startValue = AGE_RANGES.includes(answers.age) ? answers.age : AGE_FALLBACK;
+  const startIndex = Math.max(0, AGE_RANGES.indexOf(startValue));
+  const [active, setActive] = useState(startIndex);
+  const [tick, setTick] = useState(0);
+  const wheelRef = useRef(null);
+  const optionRefs = useRef([]);
+  const startIndexRef = useRef(startIndex);
+  const activeRef = useRef(startIndex);
+  // -1 means "nothing chosen yet": the visual default stays a preview and no
+  // answer is written until the user actually touches the wheel.
+  const chosenRef = useRef(AGE_RANGES.includes(answers.age) ? startIndex : -1);
+  const frameRef = useRef(0);
+  const settleRef = useRef(0);
+  const interactedRef = useRef(false);
+  const dragRef = useRef(null);
+  const draggedRef = useRef(false);
+
+  // A short tick is the physical feedback of passing a detent: the marker
+  // pulse and, where the platform allows it, a brief haptic tap.
+  const tickFeedback = useCallback(() => {
+    setTick((value) => value + 1);
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      try { navigator.vibrate(8); } catch { /* haptics are best effort */ }
+    }
+  }, []);
+
+  const centeredOffset = useCallback((node) => {
+    const wheel = wheelRef.current;
+    if (!wheel || !node) return 0;
+    return node.offsetTop + node.offsetHeight / 2 - wheel.clientHeight / 2;
+  }, []);
+
+  const scrollToIndex = useCallback((index) => {
+    const wheel = wheelRef.current;
+    const node = optionRefs.current[index];
+    if (!wheel || !node) return;
+    wheel.scrollTo({
+      top: centeredOffset(node),
+      behavior: reducedMotion() ? 'auto' : 'smooth',
+    });
+  }, [centeredOffset]);
+
+  // Paint each range from its scroll distance. Only custom properties change,
+  // so the browser never re-lays-out the list mid-gesture.
+  const paint = useCallback(() => {
+    frameRef.current = 0;
+    const wheel = wheelRef.current;
+    if (!wheel) return;
+    const radius = Math.max(1, wheel.clientHeight / 2);
+    const center = wheel.scrollTop + radius;
+    let nearest = activeRef.current;
+    let nearestDistance = Infinity;
+    optionRefs.current.forEach((node, index) => {
+      if (!node) return;
+      const distance = node.offsetTop + node.offsetHeight / 2 - center;
+      const progress = Math.min(1, Math.abs(distance) / radius);
+      node.style.setProperty('--age-scale', (1 - 0.42 * progress ** 1.12).toFixed(3));
+      node.style.setProperty('--age-fade', (1 - 0.5 * progress).toFixed(3));
+      const tilt = Math.sign(distance) * progress * 12;
+      node.style.setProperty('--age-tilt', `${(-tilt).toFixed(2)}deg`);
+      if (Math.abs(distance) < nearestDistance) {
+        nearestDistance = Math.abs(distance);
+        nearest = index;
+      }
+    });
+    if (nearest !== activeRef.current) {
+      activeRef.current = nearest;
+      setActive(nearest);
+      if (interactedRef.current) tickFeedback();
+    }
+  }, [tickFeedback]);
+
+  // Answer is committed once the wheel settles, not on every pixel of movement.
+  const commit = useCallback(() => {
+    const index = activeRef.current;
+    if (!interactedRef.current || chosenRef.current === index) return;
+    chosenRef.current = index;
+    setAnswer('age', AGE_RANGES[index]);
+  }, [setAnswer]);
+
+  const handleScroll = () => {
+    if (!frameRef.current) frameRef.current = window.requestAnimationFrame(paint);
+    window.clearTimeout(settleRef.current);
+    settleRef.current = window.setTimeout(commit, 130);
   };
+
+  const choose = (index) => {
+    const next = Math.max(0, Math.min(AGE_RANGES.length - 1, index));
+    interactedRef.current = true;
+    activeRef.current = next;
+    chosenRef.current = next;
+    setActive(next);
+    setAnswer('age', AGE_RANGES[next]);
+    tickFeedback();
+    scrollToIndex(next);
+    optionRefs.current[next]?.focus({ preventScroll: true });
+  };
+
+  const handleKeyDown = (event) => {
+    const last = AGE_RANGES.length - 1;
+    const step = { ArrowDown: 1, ArrowUp: -1, PageDown: 2, PageUp: -2 }[event.key];
+    const target = step === undefined ? { Home: 0, End: last }[event.key] : activeRef.current + step;
+    if (target === undefined) return;
+    event.preventDefault();
+    choose(target);
+  };
+
+  // A scroll container does not drag with a mouse, so the same gesture is added
+  // for pointers. Touch keeps the platform's own momentum scrolling.
+  const handlePointerDown = (event) => {
+    interactedRef.current = true;
+    // A press always clears the "just dragged" guard, so the tap that follows
+    // is a real selection again on every input type.
+    draggedRef.current = false;
+    const wheel = wheelRef.current;
+    if (!wheel || dragRef.current || event.pointerType !== 'mouse' || event.button !== 0) return;
+    const startTop = wheel.scrollTop;
+    const startY = event.clientY;
+    const snap = wheel.style.scrollSnapType;
+    const behavior = wheel.style.scrollBehavior;
+    // Snap and smooth scrolling are paused mid-drag so the wheel tracks the
+    // pointer one-to-one, then everything settles on release.
+    wheel.style.scrollSnapType = 'none';
+    wheel.style.scrollBehavior = 'auto';
+    const move = (moveEvent) => {
+      const delta = moveEvent.clientY - startY;
+      if (Math.abs(delta) > 4) draggedRef.current = true;
+      wheel.scrollTo({ top: startTop - delta });
+    };
+    const finish = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', finish);
+      window.removeEventListener('pointercancel', finish);
+      dragRef.current = null;
+      wheel.style.scrollSnapType = snap;
+      wheel.style.scrollBehavior = behavior;
+      if (!draggedRef.current) return;
+      paint();
+      scrollToIndex(activeRef.current);
+    };
+    dragRef.current = { finish };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', finish);
+    window.addEventListener('pointercancel', finish);
+  };
+
+  useLayoutEffect(() => {
+    const wheel = wheelRef.current;
+    if (!wheel) return undefined;
+    // Half a viewport above the first range and below the last one, so both
+    // ends can reach the marker. Measured instead of a percentage height, which
+    // scroll containers do not resolve consistently.
+    const sizeAndCenter = (index) => {
+      const node = optionRefs.current[index];
+      if (!node) return;
+      wheel.style.setProperty('--age-pad', `${Math.max(0, (wheel.clientHeight - node.offsetHeight) / 2)}px`);
+      wheel.scrollTop = centeredOffset(node);
+    };
+    sizeAndCenter(startIndexRef.current);
+    paint();
+    // Keep the chosen range under the marker when the viewport, keyboard or
+    // orientation changes the wheel height.
+    const observer = typeof ResizeObserver === 'function'
+      ? new ResizeObserver(() => {
+        sizeAndCenter(activeRef.current);
+        paint();
+      })
+      : null;
+    observer?.observe(wheel);
+    return () => {
+      observer?.disconnect();
+      if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
+      window.clearTimeout(settleRef.current);
+      dragRef.current?.finish();
+    };
+  }, [centeredOffset, paint]);
+
+  // Answers can change from outside this screen (back/forward through the flow).
+  useEffect(() => {
+    const index = AGE_RANGES.indexOf(answers.age);
+    if (index < 0 || index === activeRef.current) return;
+    activeRef.current = index;
+    chosenRef.current = index;
+    setActive(index);
+    scrollToIndex(index);
+  }, [answers.age, scrollToIndex]);
+
   return (
     <Shell back={back} className="age-screen">
-      <PageHeader title="چند سالته؟" description="بازهٔ سنیت رو انتخاب کن." />
-      <div
-        className="age-picker"
-        onWheel={(event) => move(event.deltaY > 0 ? 1 : -1)}
-        onTouchStart={(event) => { touchStart.current = event.touches[0].clientY; }}
-        onTouchEnd={(event) => {
-          const distance = touchStart.current - event.changedTouches[0].clientY;
-          if (Math.abs(distance) > 25) move(distance > 0 ? 1 : -1);
-        }}
-      >
-        {values.map((value, itemIndex) => (
-          <button
-            type="button"
-            key={value}
-            className={`${value === selected ? 'is-selected' : ''} age-distance-${Math.min(3, Math.abs(itemIndex - index))}`}
-            style={{
-              '--age-shift': `${itemIndex === index ? 0 : itemIndex < index
-                ? -[0, 58, 96, 126, 146, 166, 186][index - itemIndex]
-                : [0, 42, 86, 118, 148, 178, 208][itemIndex - index]}px`,
-            }}
-            onClick={() => setAnswer('age', value)}
-          >{value}</button>
-        ))}
+      <PageHeader title="چند سالته؟" description="بکش یا اسکرول کن تا بازهٔ سنیت رو انتخاب کنی." />
+      <div className="age-stage">
+        <span key={`age-marker-${tick}`} className="age-marker" aria-hidden="true" />
+        <div
+          className="age-wheel"
+          ref={wheelRef}
+          role="radiogroup"
+          aria-label="بازهٔ سنی"
+          aria-orientation="vertical"
+          onScroll={handleScroll}
+          onPointerDown={handlePointerDown}
+          onWheel={() => { interactedRef.current = true; }}
+          onKeyDown={handleKeyDown}
+        >
+          <span className="age-wheel__pad" aria-hidden="true" />
+          {AGE_RANGES.map((range, index) => (
+            <button
+              type="button"
+              key={range}
+              ref={(node) => { optionRefs.current[index] = node; }}
+              role="radio"
+              aria-checked={index === active}
+              tabIndex={index === active ? 0 : -1}
+              className={`age-option${index === active ? ' is-active' : ''}`}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => { if (!draggedRef.current) choose(index); }}
+            >{range}</button>
+          ))}
+          <span className="age-wheel__pad" aria-hidden="true" />
+        </div>
       </div>
+      <p className="sr-only" aria-live="polite">{`بازهٔ انتخاب‌شده: ${AGE_RANGES[active]}`}</p>
       <PrimaryButton onClick={() => nextFrom('age', navigate)}>ادامه</PrimaryButton>
     </Shell>
   );

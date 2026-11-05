@@ -310,19 +310,91 @@ svg { flex-shrink: 0; }
 .theme-beige .choice-button { background: #baaea0; }
 .theme-beige .choice-button.is-selected { background: var(--ink); color: #fff; }
 .theme-beige .primary-button:disabled { background: #baaea0; color: #9e9487; }
-.age-picker {
-  position: absolute;
-  top: calc(50% + 28px);
-  inset-inline: 24px;
-  height: 0;
-  display: block;
-  touch-action: pan-y;
+/* Age: a native scroll wheel. Touch momentum, trackpad and wheel input are the
+   platform's own, snap points keep one range under the marker, and every range
+   is scaled/faded from its distance to the centre so movement stays continuous.
+   Geometry is fixed per row, so nothing re-stacks mid-gesture. */
+.age-screen { display: flex; flex-direction: column; padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+.age-screen .page-header { flex: 0 0 auto; }
+.age-stage {
+  --age-item-height: 58px;
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 8px 24px 0;
 }
-.age-picker button { position: absolute; top: 0; inset-inline: 0; height: 36px; min-height: 36px; transform: translateY(calc(-50% + var(--age-shift))); padding: 2px 12px; background: transparent; color: #88877f; font-size: 14px; font-weight: 650; }
-.age-picker button.is-selected { height: 58px; min-height: 58px; margin: 0; border-radius: 17px; background: var(--beige); color: var(--ink); font-size: 19px; font-weight: 520; }
-.age-picker .age-distance-1 { font-size: 15px; opacity: .9; }
-.age-picker .age-distance-2 { font-size: 13px; opacity: .68; }
-.age-picker .age-distance-3 { font-size: 11px; opacity: .35; }
+.age-wheel {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  max-height: min(320px, 42dvh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 27%, #000 73%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 27%, #000 73%, transparent);
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: grab;
+}
+.age-wheel:active { cursor: grabbing; }
+.age-wheel::-webkit-scrollbar { display: none; }
+.age-wheel:focus-visible { outline: 2px solid #858dc5; outline-offset: -4px; border-radius: 20px; }
+.age-wheel__pad { display: block; height: var(--age-pad, calc((100% - var(--age-item-height, 58px)) / 2)); }
+.age-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: var(--age-item-height);
+  padding: 0 12px;
+  border-radius: 17px;
+  background: transparent;
+  color: #8a877f;
+  font-size: 19px;
+  font-weight: 540;
+  line-height: 1;
+  scroll-snap-align: center;
+  transform-origin: center;
+  transform: perspective(680px) rotateX(var(--age-tilt, 0deg)) scale(var(--age-scale, 1));
+  opacity: var(--age-fade, 1);
+  transition: color 220ms ease;
+  will-change: transform, opacity;
+}
+@media (hover: hover) {
+  .age-option:hover { color: #55504a; }
+  .age-option.is-active:hover { color: var(--ink); }
+}
+.age-option.is-active { color: var(--ink); }
+.age-marker {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  inset-inline: 0;
+  height: var(--age-item-height);
+  margin-top: calc(var(--age-item-height) / -2);
+  border-radius: 17px;
+  background: var(--beige);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 38%), 0 14px 30px -26px rgb(35 32 27 / 62%);
+  pointer-events: none;
+  animation: age-marker-tick 320ms cubic-bezier(.22, .72, .24, 1);
+}
+@keyframes age-marker-tick {
+  0% { transform: scale(1); }
+  34% { transform: scale(1.026); }
+  100% { transform: scale(1); }
+}
 
 /* ---------- Voice & approach ---------- */
 .voice-carousel {
@@ -1206,6 +1278,11 @@ svg { flex-shrink: 0; }
 
 @keyframes skeleton-pulse { 50% { opacity: .45; } }
 
+@media (max-height: 640px) {
+  .age-stage { --age-item-height: 52px; }
+  .age-wheel { max-height: min(280px, 44dvh); }
+  .age-option { font-size: 18px; }
+}
 @media (max-height: 740px) {
   .home-greeting { padding-top: 96px; }
   .home-letter { top: 268px; gap: 16px; }
@@ -1231,6 +1308,9 @@ svg { flex-shrink: 0; }
 @media (prefers-reduced-motion: reduce) {
   .letter-spinner, .chat-skeleton i { animation: none; }
   .voice-card, .envelope-art, .survey-option, .approach-message--assistant { transition: none; animation: none; }
+  /* The wheel still snaps, but ranges no longer tilt or scale in motion. */
+  .age-option { transform: none; }
+  .age-marker { animation: none; }
 }
 
 /* Personalized letters: explicit consent without competing with the letter itself. */
