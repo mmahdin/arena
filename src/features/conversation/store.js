@@ -5,6 +5,8 @@ export function createConversationStore(api, { onUnauthorized = () => {}, newId 
     conversationId: null, messages: [], messagesPhase: 'idle', messageError: null,
     pending: null, sending: false, deletingId: null, renamingId: null,
     bookmarks: [], bookmarkPhase: 'idle', bookmarkError: null, bookmarkBusyId: null,
+    // Drafts are ephemeral React/store memory only, never browser persistence.
+    drafts: {}, draft: '', selectionInitialized: false,
   });
   let state = initial();
   let epoch = 0;
@@ -17,6 +19,12 @@ export function createConversationStore(api, { onUnauthorized = () => {}, newId 
     state = { ...state, ...patch };
     for (const listener of listeners) listener(state);
   };
+  const draftKey = (id = state.conversationId) => id || 'new';
+  function setDraft(text) {
+    if (typeof text !== 'string' || !state.userId) return;
+    const key = draftKey();
+    publish({ draft: text, drafts: { ...state.drafts, [key]: text } });
+  }
   const scope = () => {
     const ticket = epoch;
     const controller = new AbortController();
@@ -108,14 +116,20 @@ export function createConversationStore(api, { onUnauthorized = () => {}, newId 
   function startNew() {
     if (!state.userId || state.sending) return false;
     openVersion++;
-    publish({ conversationId: null, messages: [], messagesPhase: 'ready', messageError: null, pending: null });
+    publish({
+      conversationId: null, messages: [], messagesPhase: 'ready', messageError: null, pending: null,
+      selectionInitialized: true, draft: state.drafts.new || '',
+    });
     return true;
   }
   async function open(id) {
     if (!state.userId || state.sending) return false;
     const req = scope();
     const version = ++openVersion;
-    publish({ conversationId: id, messages: [], messagesPhase: 'loading', messageError: null, pending: null });
+    publish({
+      conversationId: id, messages: [], messagesPhase: 'loading', messageError: null, pending: null,
+      selectionInitialized: true, draft: state.drafts[id] || '',
+    });
     try {
       const messages = await api.messages(id, req.signal);
       if (req.current() && version === openVersion) publish({ messages, messagesPhase: 'ready' });
@@ -129,7 +143,7 @@ export function createConversationStore(api, { onUnauthorized = () => {}, newId 
     if (!state.userId || state.sending) return false;
     const req = scope();
     const version = openVersion;
-    publish({ sending: true, messagesPhase: 'ready', messageError: null, pending: turn });
+    publish({ sending: true, messagesPhase: 'ready', messageError: null, pending: turn, selectionInitialized: true });
     const current = () => req.current() && version === openVersion;
     try {
       let conversationId = turn.conversationId;
@@ -160,7 +174,45 @@ export function createConversationStore(api, { onUnauthorized = () => {}, newId 
   async function send(text) {
     const clean = text.trim();
     if (!clean || [...clean].length > 4000 || state.sending || state.pending || state.messagesPhase === 'loading' || !state.userId) return false;
+    setDraft('');
     return performTurn({ clientTurnId: newId(), text: clean, conversationId: state.conversationId });
+  }
+  /**
+   * Restore the most recent server-owned conversation after a reload, without
+   * creating anything. An explicit New Conversation or opened thread is never
+   * overwritten by this path.
+   */
+  async function resumeLatest(force = false) {
+    if (!state.userId || state.sending || state.pending || state.conversationId) return false;
+    if (state.selectionInitialized && !force) return false;
+    const req = scope();
+    const version = ++openVersion;
+    const listVersion = ++historyVersion;
+    publish({ selectionInitialized: true, messagesPhase: 'loading', messageError: null, historyPhase: 'loading', historyError: null });
+    try {
+      const conversations = await api.list(req.signal);
+      if (!req.current() || version !== openVersion || listVersion !== historyVersion) return false;
+      publish({ conversations, historyPhase: 'ready', historyError: null });
+      if (conversations.length === 0) {
+        publish({ messagesPhase: 'ready', draft: state.drafts.new || '' });
+        return true;
+      }
+      const latest = conversations.reduce((best, item) => (
+        !best || new Date(item.updatedAt).getTime() > new Date(best.updatedAt).getTime() ? item : best
+      ), null);
+      return await open(latest.id);
+    } catch (error) {
+      if (req.current() && version === openVersion) {
+        if (error?.status === 401) handleError(error, req, 'history');
+        else {
+          publish({
+            historyPhase: 'error', historyError: error?.code ?? 'NETWORK_ERROR',
+            messagesPhase: 'error', messageError: error?.code ?? 'NETWORK_ERROR',
+          });
+        }
+      }
+      return false;
+    } finally { req.done(); }
   }
   async function retry() {
     if (!state.pending || state.sending || state.messageError === 'RESOURCE_NOT_FOUND') return false;
@@ -219,7 +271,7 @@ export function createConversationStore(api, { onUnauthorized = () => {}, newId 
   return {
     getState: () => state,
     subscribe(listener) { listeners.add(listener); return () => listeners.delete(listener); },
-    activate, reset, list, open, startNew, send, retry, remove, rename, listBookmarks, toggleBookmark,
+    activate, reset, list, open, startNew, resumeLatest, setDraft, send, retry, remove, rename, listBookmarks, toggleBookmark,
     cancel() { epoch++; for (const controller of controllers) controller.abort(); controllers.clear(); },
   };
 }

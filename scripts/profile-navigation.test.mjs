@@ -8,7 +8,7 @@ import { createSessionStore } from '../src/features/devsession/sessionStore.js';
 const CURRENT = { userId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', displayName: 'کاربر', conversationStyle: 'balanced', onboardingCompletedAt: '2026-11-02T09:30:00Z' };
 
 test('all original designed routes remain reachable for completed profiles', () => {
-  for (const route of ['welcome', 'testimonials', 'research', 'experts', 'privacy', 'therapist', 'age', 'concerns', 'voice', 'approach', 'survey', 'day', 'insight', 'chat', 'history', 'menu', 'home']) {
+  for (const route of ['welcome', 'testimonials', 'research', 'experts', 'privacy', 'therapist', 'age', 'concerns', 'voice', 'approach', 'survey', 'day', 'letter', 'insight', 'chat', 'history', 'menu', 'home']) {
     assert.ok(VALID_ROUTES.has(route));
     assert.equal(canOpenRoute(route, true), true, route);
   }
@@ -21,7 +21,7 @@ test('unfinished profiles visit the exact 26 v2 steps and exclude legacy info pa
   for (const route of ACTIVE_ONBOARDING_ROUTES) assert.equal(canOpenRoute(route, false), true, route);
   for (const route of EXCLUDED_ONBOARDING_ROUTES) assert.equal(canOpenRoute(route, false), false, route);
   assert.equal(ACTIVE_ONBOARDING_ROUTES.length, 26);
-  for (const route of ['home', 'chat', 'history', 'survey', 'day', 'insight', 'menu']) {
+  for (const route of ['home', 'chat', 'history', 'survey', 'day', 'letter', 'insight', 'menu']) {
     assert.equal(canOpenRoute(route, false), false, route);
   }
   assert.equal(initialRoute(false), 'welcome');
@@ -114,12 +114,18 @@ test('failed preference save restores previously persisted profile', async () =>
   assert.deepEqual(store.getState().profile, CURRENT);
 });
 
-test('original action controls remain in the main designer screen', async () => {
+test('active product controls are functional; diary and fake message actions are removed', async () => {
   const { readFile } = await import('node:fs/promises');
   const screen = await readFile(new URL('../src/screens/Main.jsx', import.meta.url), 'utf8');
-  for (const control of ['ذخیره پیام', 'ساخت دوباره', 'گزارش پیام', 'پیام صوتی', 'function Insight(', 'function Survey(', 'function DayDetail(']) {
-    assert.ok(screen.includes(control), `Missing designed control: ${control}`);
+  const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8');
+  for (const control of ['ذخیره پیام', 'گفت‌وگوی جدید', 'function Survey(', 'function Letters(', 'function Chat(']) {
+    assert.ok(screen.includes(control), `Missing active control: ${control}`);
   }
+  for (const removed of ['daily-reflection-form', 'onSaveReflection', 'ساخت دوباره', 'گزارش پیام', 'پیام صوتی', 'reflection-card']) {
+    assert.ok(!screen.includes(removed), `Removed feature still active: ${removed}`);
+  }
+  assert.ok(!app.includes('reflectionStore'), 'Reflection store must not be wired into the active app');
+  assert.ok(/createLetterStore\(letterApi/.test(app), 'Letters should use the now-approved owner-scoped backend');
 });
 
 test('confirming the default visible approach records that choice before advancing', async () => {

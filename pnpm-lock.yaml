@@ -17,6 +17,9 @@ importers:
       '@fontsource-variable/vazirmatn':
         specifier: ^5.3.0
         version: 5.3.0
+      jalaali-js:
+        specifier: ^1.2.8
+        version: 1.2.8
       lucide-react:
         specifier: ^0.468.0
         version: 0.468.0(react@19.3.1)
@@ -531,6 +534,9 @@ packages:
   gensync@1.0.0-beta.2:
     resolution: {integrity: sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==}
     engines: {node: '>=6.9.0'}
+
+  jalaali-js@1.2.8:
+    resolution: {integrity: sha512-Jl/EwY84JwjW2wsWqeU4pNd22VNQ7EkjI36bDuLw31wH98WQW4fPjD0+mG7cdCK+Y8D6s9R3zLiQ3LaKu6bD8A==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -1062,6 +1068,8 @@ snapshots:
     optional: true
 
   gensync@1.0.0-beta.2: {}
+
+  jalaali-js@1.2.8: {}
 
   js-tokens@4.0.0: {}
 

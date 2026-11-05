@@ -14,10 +14,10 @@ import { privacyPreferencesApi, createPrivacyPreferencesStore } from './features
 import { screenSurfaceForRoute } from './features/appearance/screenSurface';
 import { conversationApi } from './features/conversation/api';
 import { createConversationStore } from './features/conversation/store';
-import { reflectionApi } from './features/reflection/api';
-import { createReflectionStore } from './features/reflection/store';
+import { createLetterStore } from './features/letters/store';
+import { letterApi } from './features/letters/api';
 
-const DEFAULT_BACK = { home: 'welcome', survey: 'menu', day: 'home', history: 'home', menu: 'home', chat: 'home', insight: 'chat' };
+const DEFAULT_BACK = { home: 'welcome', survey: 'menu', day: 'home', letter: 'home', history: 'home', menu: 'home', chat: 'home', insight: 'home' };
 function routeFromHash() {
   const route = window.location.hash.replace(/^#\/?/, '').split('/')[0];
   return VALID_ROUTES.has(route) ? route : 'welcome';
@@ -45,13 +45,13 @@ export default function App() {
   const sessionStoreRef = useRef(null);
   const conversationStoreRef = useRef(null);
   const privacyStoreRef = useRef(null);
-  const reflectionStoreRef = useRef(null);
-  if (reflectionStoreRef.current === null) {
-    reflectionStoreRef.current = createReflectionStore(reflectionApi, {
+  const letterStoreRef = useRef(null);
+  if (letterStoreRef.current === null) {
+    letterStoreRef.current = createLetterStore(letterApi, {
       onUnauthorized: () => { void sessionStoreRef.current?.bootstrap(); },
     });
   }
-  const reflectionStore = reflectionStoreRef.current;
+  const letterStore = letterStoreRef.current;
   if (privacyStoreRef.current === null) {
     privacyStoreRef.current = createPrivacyPreferencesStore(privacyPreferencesApi, {
       onUnauthorized: () => { void sessionStoreRef.current?.bootstrap(); },
@@ -73,13 +73,12 @@ export default function App() {
         progressRequest.current?.abort();
         onboardingProgress.current = { userId: null, furthest: 0 };
         progressWritePending.current = false;
-        // Invalidating the session fences any pending name save.
         nameWritePending.current = false;
         setProgressSaving(false);
         setProgressPhase('loading');
         chatStore.reset();
         privacyStore.reset();
-        reflectionStore.reset();
+        letterStore.reset();
         setToast('');
         setProfileSaving(false);
         backOverrides.current = {};
@@ -90,7 +89,7 @@ export default function App() {
   const [session, setSession] = useState(store.getState);
   const [chat, setChat] = useState(chatStore.getState);
   const [privacy, setPrivacy] = useState(privacyStore.getState);
-  const [reflections, setReflections] = useState(reflectionStore.getState);
+  const [letters, setLetters] = useState(letterStore.getState);
   const [profileSaving, setProfileSaving] = useState(false);
   const active = session.phase === 'authenticated' || session.phase === 'saving-profile';
   const complete = Boolean(session.profile?.onboardingCompletedAt);
@@ -104,21 +103,21 @@ export default function App() {
   useEffect(() => {
     const unsubscribe = chatStore.subscribe(setChat);
     return () => { unsubscribe(); chatStore.cancel(); };
-  }, [chatStore, reflectionStore]);
+  }, [chatStore]);
 
   useEffect(() => {
     chatStore.activate(complete ? session.profile?.userId : null);
   }, [chatStore, complete, session.profile?.userId]);
 
-  useEffect(() => reflectionStore.subscribe(setReflections), [reflectionStore]);
+  useEffect(() => letterStore.subscribe(setLetters), [letterStore]);
 
   useEffect(() => {
-    reflectionStore.activate(complete ? session.profile?.userId : null);
-  }, [reflectionStore, complete, session.profile?.userId]);
+    letterStore.activate(complete ? session.profile?.userId : null);
+  }, [letterStore, complete, session.profile?.userId]);
 
   useEffect(() => {
-    if (active && complete && route === 'day') void reflectionStore.list();
-  }, [reflectionStore, active, complete, route]);
+    if (active && complete && ['letter', 'day', 'insight'].includes(route)) void letterStore.load();
+  }, [letterStore, active, complete, route]);
 
   useEffect(() => {
     return privacyStore.subscribe(setPrivacy);
@@ -133,8 +132,17 @@ export default function App() {
   }, [active, route, session.profile?.userId, privacyStore]);
 
   useEffect(() => {
-    if (active && complete && route === 'history') void chatStore.list();
-    if (active && complete && ['chat', 'history'].includes(route)) void chatStore.listBookmarks();
+    if (!active || !complete) return;
+    if (route === 'history') {
+      void chatStore.list();
+      void chatStore.listBookmarks();
+    }
+    if (route === 'chat') {
+      // Opening Chat resumes the current in-memory conversation, or restores the
+      // latest server-owned conversation after reload. It never auto-creates one.
+      void chatStore.resumeLatest();
+      void chatStore.listBookmarks();
+    }
   }, [active, complete, route, chatStore]);
 
   // Resolve the cursor before showing incomplete onboarding. Never trust a hash URL as progress.
@@ -191,8 +199,28 @@ export default function App() {
   useEffect(() => {
     if (!active) return;
     window.scrollTo(0, 0);
-    document.documentElement.style.colorScheme = ['home', 'survey', 'day', 'history', 'menu', 'chat', 'insight', 'research', 'experts', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro', 'voice'].includes(route) ? 'dark' : 'light';
+    document.documentElement.style.colorScheme = ['home', 'survey', 'day', 'letter', 'history', 'menu', 'chat', 'insight', 'research', 'experts', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro', 'voice'].includes(route) ? 'dark' : 'light';
   }, [active, route]);
+
+  // Keep the mobile composer above the visual viewport when the keyboard opens.
+  useEffect(() => {
+    const root = document.documentElement;
+    const update = () => {
+      const viewport = window.visualViewport;
+      const height = viewport?.height ?? window.innerHeight;
+      root.style.setProperty('--app-height', `${Math.round(height)}px`);
+    };
+    update();
+    window.addEventListener('resize', update);
+    window.visualViewport?.addEventListener('resize', update);
+    window.visualViewport?.addEventListener('scroll', update);
+    return () => {
+      window.removeEventListener('resize', update);
+      window.visualViewport?.removeEventListener('resize', update);
+      window.visualViewport?.removeEventListener('scroll', update);
+      root.style.removeProperty('--app-height');
+    };
+  }, []);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -202,16 +230,10 @@ export default function App() {
 
   const finishProfile = useCallback(async () => {
     if (profileSaving) return;
-    // Name is saved at step four; use the persisted value when resuming an older
-    // in-progress session. For users affected by the earlier bug who already
-    // passed that step with no saved name, finish without an extra name prompt.
     const displayName = validateDisplayName(name)
       || validateDisplayName(session.profile?.displayName)
       || 'دوست من';
     const version = identityVersion.current;
-    // The session store publishes the completed profile *before* its promise
-    // resolves. Set this intent before saving, so the profile-gate effect can
-    // reliably open Chat even if React commits the subscription update first.
     enteringChatAfterOnboarding.current = true;
     setOnboardingGreeting(createOnboardingGreeting(displayName, answers));
     setProfileSaving(true);
@@ -219,19 +241,16 @@ export default function App() {
       const success = await store.saveProfile(displayName, styleForApproach(answers.approach));
       if (version === identityVersion.current) {
         if (success) {
-          setAnswers({}); // The entire intake stays ephemeral, never sent to the API.
+          setAnswers({});
         } else {
           enteringChatAfterOnboarding.current = false;
           setOnboardingGreeting('');
           setToast('ذخیره نشد. دوباره تلاش کن.');
         }
       }
-      // Successful save updates /me and the profile gate opens a new chat.
     } finally { if (version === identityVersion.current) setProfileSaving(false); }
   }, [name, answers, profileSaving, store, session.profile?.displayName]);
 
-  // Reuse the original Name and Approach screens as profile editors from the menu.
-  // No additional stored fields or backend endpoints are introduced.
   const saveExistingProfile = useCallback(async (displayName, conversationStyle) => {
     const clean = validateDisplayName(displayName);
     if (!clean) { setToast('اسمت باید بین ۱ تا ۶۰ کاراکتر باشه.'); return false; }
@@ -259,8 +278,10 @@ export default function App() {
 
   const navigate = useCallback((requestedTarget) => {
     if (!VALID_ROUTES.has(requestedTarget) || !active || (!complete && progressPhase !== 'ready')) return;
+    // Legacy diary/insight hashes resolve to the letter experience, never diary UI.
+    const requested = ['day', 'insight'].includes(requestedTarget) ? 'letter' : requestedTarget;
     const target = complete && route === 'menu'
-      ? requestedTarget : visibleOnboardingRoute(requestedTarget) || requestedTarget;
+      ? requested : visibleOnboardingRoute(requested) || requested;
     if (!complete) {
       if (route === 'ready' && target === 'home') { void finishProfile(); return; }
       const nextFurthest = onboardingMove(route, target, onboardingProgress.current.furthest);
@@ -288,20 +309,15 @@ export default function App() {
         return;
       }
     }
-    // The original screens remain navigable, whether or not their eventual APIs exist.
-    // Only unfinished onboarding is guarded from server-backed chat/history.
-    if (target === 'chat' && route !== 'history' && route !== 'chat') chatStore.startNew();
-    if (route === 'menu' && ['name', 'approach', 'privacy', 'research'].includes(target)) {
+    if (route === 'menu' && ['name', 'approach', 'privacy', 'research', 'letter'].includes(target)) {
       backOverrides.current[target] = 'menu';
       if (target === 'name') setName(session.profile?.displayName || '');
       if (target === 'approach') setAnswers((previous) => ({ ...previous, approach: approachForStyle(session.profile?.conversationStyle) }));
     }
-    if (route === 'history' && target === 'day') backOverrides.current.day = 'history';
-    if (route === 'day' && target === 'insight') backOverrides.current.insight = 'day';
     if (route === 'chat' && target !== 'chat') setOnboardingGreeting('');
     if (target === route) return;
     window.location.hash = `/${target}`;
-  }, [route, active, complete, progressPhase, finishProfile, chatStore, store, session.profile?.userId, session.profile?.displayName, session.profile?.conversationStyle]);
+  }, [route, active, complete, progressPhase, finishProfile, store, session.profile?.userId, session.profile?.displayName, session.profile?.conversationStyle]);
 
   const nameWritePending = useRef(false);
   const saveOnboardingName = useCallback(async () => {
@@ -347,48 +363,67 @@ export default function App() {
   const setAnswer = useCallback((key, value) => setAnswers((current) => ({ ...current, [key]: value })), []);
   const notify = useCallback((message) => setToast(message), []);
   const reset = useCallback(() => {
-    setAnswers({}); setOnboardingGreeting(''); chatStore.reset(); reflectionStore.reset(); setName(''); backOverrides.current = {};
+    setAnswers({}); setOnboardingGreeting(''); chatStore.reset(); letterStore.reset(); setName(''); backOverrides.current = {};
     progressRequest.current?.abort();
     onboardingProgress.current = { userId: null, furthest: 0 };
     progressWritePending.current = false;
     nameWritePending.current = false;
-  }, [chatStore, reflectionStore]);
+  }, [chatStore, letterStore]);
+
+  const confirmLeavePendingTurn = useCallback(() => {
+    if (chat.sending) {
+      setToast('صبر کن پاسخ قبلی آماده بشه.');
+      return false;
+    }
+    if (chat.pending && !window.confirm('ارسال پیام قبلی کامل نشده. اگر گفت‌وگو رو عوض کنی، فعلاً نمی‌تونی همون پیام رو دوباره تلاش کنی. ادامه می‌دی؟')) return false;
+    return true;
+  }, [chat.sending, chat.pending]);
 
   const openConversation = useCallback((id) => {
+    if (!confirmLeavePendingTurn()) return false;
     void chatStore.open(id);
     window.location.hash = '/chat';
-  }, [chatStore, reflectionStore]);
+    return true;
+  }, [chatStore, confirmLeavePendingTurn]);
   const deleteConversation = useCallback(async (id) => {
     if (!window.confirm('گفت‌وگو حذف بشه؟ دیگه برنمی‌گرده.')) return;
     const ok = await chatStore.remove(id);
     if (!ok) setToast('گفت‌وگو حذف نشد. دوباره تلاش کن.');
-  }, [chatStore, reflectionStore]);
+  }, [chatStore]);
+  const retryChatLoad = useCallback(() => {
+    if (chat.conversationId) return chatStore.open(chat.conversationId);
+    return chatStore.resumeLatest(true);
+  }, [chatStore, chat.conversationId]);
 
+  const activeConversation = chat.conversations.find((item) => item.id === chat.conversationId) || null;
   const shared = {
     route, navigate, back, name, setName, answers, setAnswer, onboardingGreeting,
-    reflections: reflections.list, reflectionListPhase: reflections.listPhase,
-    reflectionListError: reflections.listError, reflectionDayPhase: reflections.dayPhase,
-    reflectionDayError: reflections.dayError, reflectionDate: reflections.openedDate,
-    reflectionEntry: reflections.entry, reflectionSaving: reflections.saving,
-    onOpenReflection: reflectionStore.open, onReloadReflections: reflectionStore.list,
-    onSaveReflection: reflectionStore.save, onDeleteReflection: reflectionStore.remove,
     messages: chat.messages, conversations: chat.conversations,
+    conversationId: chat.conversationId, activeConversation,
     pendingTurn: chat.pending, sending: chat.sending, chatLoading: chat.messagesPhase === 'loading',
     chatError: chat.messageError, historyPhase: chat.historyPhase, historyError: chat.historyError,
     deletingId: chat.deletingId, renamingId: chat.renamingId,
+    chatDraft: chat.draft, onDraftChange: chatStore.setDraft,
     bookmarks: chat.bookmarks, bookmarkPhase: chat.bookmarkPhase, bookmarkError: chat.bookmarkError,
     bookmarkBusyId: chat.bookmarkBusyId,
     onToggleBookmark: (message) => chatStore.toggleBookmark(message),
     onReloadBookmarks: () => chatStore.listBookmarks(),
     onSendMessage: (text) => { setOnboardingGreeting(''); return chatStore.send(text); },
-    onRetryMessage: () => chatStore.retry(), onNewConversation: () => {
-      if (chat.pending && !window.confirm('پاسخ قبلیت هنوز آماده نشده. گفت‌وگوی جدید بسازی؟')) return false;
+    onRetryMessage: () => chatStore.retry(), onRetryChatLoad: retryChatLoad,
+    onNewConversation: () => {
+      if (!confirmLeavePendingTurn()) return false;
       setOnboardingGreeting('');
       return chatStore.startNew();
     },
     onOpenConversation: openConversation, onDeleteConversation: deleteConversation,
     onRenameConversation: (id, title) => chatStore.rename(id, title),
     onReloadHistory: () => chatStore.list(),
+    letterPhase: letters.phase, letters: letters.letters, letterError: letters.error,
+    letterGenerating: letters.generating, letterGenerationError: letters.generationError,
+    letterDeletingId: letters.deletingId, letterDeletionError: letters.deletionError,
+    onReloadLetters: () => letterStore.load(),
+    onCreateLetter: () => letterStore.generate(),
+    onDeleteLetter: (id) => letterStore.remove(id),
     notify, reset, savingProfile: profileSaving,
     privacySharing: privacy.enabled, privacyLoading: privacy.loading, privacySaving: privacy.saving,
     privacyLoaded: privacy.loaded, privacyError: privacy.error,
