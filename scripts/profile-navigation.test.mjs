@@ -118,7 +118,7 @@ test('active product controls are functional; diary and fake message actions are
   const { readFile } = await import('node:fs/promises');
   const screen = await readFile(new URL('../src/screens/Main.jsx', import.meta.url), 'utf8');
   const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8');
-  for (const control of ['ذخیره پیام', 'گفت‌وگوی جدید', 'function Survey(', 'function Letters(', 'function Chat(']) {
+  for (const control of ['ذخیره پیام', 'گفت‌وگوی جدید', 'function Survey(', "import Letters from './Letters'", 'function Chat(']) {
     assert.ok(screen.includes(control), `Missing active control: ${control}`);
   }
   for (const removed of ['daily-reflection-form', 'onSaveReflection', 'ساخت دوباره', 'گزارش پیام', 'پیام صوتی', 'reflection-card']) {

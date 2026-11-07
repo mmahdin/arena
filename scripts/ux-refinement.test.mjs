@@ -144,7 +144,7 @@ test('frontend refinement removes diary/fake controls and keeps backend boundari
   assert.ok(!main.includes('ساخت دوباره'));
   assert.ok(!main.includes('گزارش پیام'));
   assert.ok(!main.includes('پیام صوتی'));
-  assert.ok(main.includes('نمونهٔ نمایشی'));
+  assert.ok(!main.includes('نمونهٔ نمایشی'), 'sample letters are no longer shown in the product UI');
   assert.ok(onboarding.includes('پخش صوتی نداریم'));
   assert.ok(onboarding.includes('APPROACH_EXAMPLE_USER'));
   assert.ok(onboarding.includes("'--tick-index'"));

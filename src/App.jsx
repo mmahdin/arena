@@ -17,6 +17,7 @@ import { createConversationStore } from './features/conversation/store';
 import { createLetterStore } from './features/letters/store';
 import { letterApi } from './features/letters/api';
 import { loadReadLetterIds, markReadLetter } from './features/letters/readingState';
+import { buildLetterReplyMessage, isLetterReference } from './features/letters/discuss';
 
 const DEFAULT_BACK = { home: 'welcome', settings: 'menu', survey: 'menu', day: 'home', letter: 'home', history: 'home', saved: 'menu', menu: 'home', chat: 'home', insight: 'home' };
 function routeFromHash() {
@@ -30,6 +31,7 @@ function replaceRoute(route) {
 export default function App() {
   const [route, setRoute] = useState(routeFromHash);
   const [savedMessageTarget, setSavedMessageTarget] = useState(null);
+  const [letterReply, setLetterReply] = useState(null);
   const [name, setName] = useState('');
   const [answers, setAnswers] = useState({});
   const [onboardingGreeting, setOnboardingGreeting] = useState('');
@@ -71,6 +73,7 @@ export default function App() {
         setName('');
         setAnswers({});
         setOnboardingGreeting('');
+        setLetterReply(null);
         enteringChatAfterOnboarding.current = false;
         progressRequest.current?.abort();
         onboardingProgress.current = { userId: null, furthest: 0 };
@@ -100,6 +103,8 @@ export default function App() {
   useEffect(() => {
     setLetterReads({ userId: letterUserId, ids: loadReadLetterIds(letterUserId) });
   }, [letterUserId]);
+  // Also clear the pending letter reference on browser Back / direct hash navigation.
+  useEffect(() => { if (route !== 'chat') setLetterReply(null); }, [route]);
   const onReadLetter = useCallback((letterId) => {
     if (!letterUserId || !letterId) return;
     const ids = markReadLetter(letterUserId, letterId);
@@ -361,7 +366,7 @@ export default function App() {
       backOverrides.current.approach = 'settings';
       setAnswers((previous) => ({ ...previous, approach: approachForStyle(session.profile?.conversationStyle) }));
     }
-    if (route === 'chat' && target !== 'chat') setOnboardingGreeting('');
+    if (route === 'chat' && target !== 'chat') { setOnboardingGreeting(''); setLetterReply(null); }
     if (target === route) return;
     if (target !== 'chat') setSavedMessageTarget(null);
     window.location.hash = `/${target}`;
@@ -411,7 +416,7 @@ export default function App() {
   const setAnswer = useCallback((key, value) => setAnswers((current) => ({ ...current, [key]: value })), []);
   const notify = useCallback((message) => setToast(message), []);
   const reset = useCallback(() => {
-    setAnswers({}); setOnboardingGreeting(''); setSavedMessageTarget(null); chatStore.reset(); letterStore.reset(); setName(''); backOverrides.current = {};
+    setAnswers({}); setOnboardingGreeting(''); setSavedMessageTarget(null); setLetterReply(null); chatStore.reset(); letterStore.reset(); setName(''); backOverrides.current = {};
     progressRequest.current?.abort();
     onboardingProgress.current = { userId: null, furthest: 0 };
     progressWritePending.current = false;
@@ -429,6 +434,7 @@ export default function App() {
 
   const openConversation = useCallback((id) => {
     if (!confirmLeavePendingTurn()) return false;
+    setLetterReply(null);
     setSavedMessageTarget(null);
     void chatStore.open(id);
     window.location.hash = '/chat';
@@ -436,8 +442,21 @@ export default function App() {
   }, [chatStore, confirmLeavePendingTurn]);
   const openSavedMessage = useCallback((item) => {
     if (!item?.conversationId || !item?.id || !confirmLeavePendingTurn()) return false;
+    setLetterReply(null);
     setSavedMessageTarget({ conversationId: item.conversationId, messageId: item.id });
     void chatStore.open(item.conversationId);
+    window.location.hash = '/chat';
+    return true;
+  }, [chatStore, confirmLeavePendingTurn]);
+  // Start a new, empty chat with a letter reference in the composer. No text is
+  // sent until the person writes and sends their own first message.
+  const discussLetter = useCallback((letter) => {
+    if (!isLetterReference(letter) || !confirmLeavePendingTurn()) return false;
+    if (!chatStore.startNew()) return false;
+    chatStore.setDraft('');
+    setLetterReply(letter);
+    setSavedMessageTarget(null);
+    setOnboardingGreeting('');
     window.location.hash = '/chat';
     return true;
   }, [chatStore, confirmLeavePendingTurn]);
@@ -465,15 +484,26 @@ export default function App() {
     chatError: chat.messageError, historyPhase: chat.historyPhase, historyError: chat.historyError,
     deletingId: chat.deletingId, renamingId: chat.renamingId,
     chatDraft: chat.draft, onDraftChange: chatStore.setDraft,
+    letterReply, onDismissLetterReply: () => setLetterReply(null),
     bookmarks: chat.bookmarks, bookmarkPhase: chat.bookmarkPhase, bookmarkError: chat.bookmarkError,
     bookmarkBusyId: chat.bookmarkBusyId,
     onToggleBookmark: (message) => chatStore.toggleBookmark(message),
     onReloadBookmarks: () => chatStore.listBookmarks(),
-    onSendMessage: (text) => { setOnboardingGreeting(''); return chatStore.send(text); },
+    onSendMessage: (text) => {
+      const message = letterReply ? buildLetterReplyMessage(text, letterReply) : text;
+      if (!message) { setToast('پیامت رو کمی کوتاه‌تر بنویس تا متن نامه هم همراهش فرستاده بشه.'); return false; }
+      setOnboardingGreeting('');
+      const queued = chatStore.send(message);
+      // The store synchronously creates a pending turn when it accepts a send.
+      // Retries use that exact context-bearing turn; don't attach it twice.
+      if (letterReply && chatStore.getState().pending) setLetterReply(null);
+      return queued;
+    },
     onRetryMessage: () => chatStore.retry(), onRetryChatLoad: retryChatLoad,
     onNewConversation: () => {
       if (!confirmLeavePendingTurn()) return false;
       setSavedMessageTarget(null);
+      setLetterReply(null);
       setOnboardingGreeting('');
       return chatStore.startNew();
     },
@@ -484,11 +514,8 @@ export default function App() {
     letterPhase: letters.phase, letters: letters.letters, letterError: letters.error,
     readLetterIds: letterReads.userId === letterUserId ? letterReads.ids : loadReadLetterIds(letterUserId),
     onReadLetter,
-    letterGenerating: letters.generating, letterGenerationError: letters.generationError,
-    letterDeletingId: letters.deletingId, letterDeletionError: letters.deletionError,
     onReloadLetters: () => letterStore.load(),
-    onCreateLetter: () => letterStore.generate(),
-    onDeleteLetter: (id) => letterStore.remove(id),
+    onDiscussLetter: discussLetter,
     notify, reset, savingProfile: profileSaving,
     profileName: session.profile?.displayName || '', conversationStyle: session.profile?.conversationStyle || 'balanced',
     onSaveSettings: saveSettings, onOpenStyle: () => navigate('approach'),

@@ -63,9 +63,12 @@ test('generate never creates a fake letter on provider failure', async () => {
   assert.equal(store.getState().generationError, 'LETTER_GENERATION_UNAVAILABLE');
 });
 
-test('backend integration remains separate from removed diary UI', () => {
-  const screen = readFileSync(new URL('../src/screens/Main.jsx', import.meta.url), 'utf8');
-  assert.match(screen, /با رضایت من، نامه‌ای بنویس/);
-  assert.match(screen, /حذف این نامه/);
-  assert.doesNotMatch(screen, /daily-reflection-form/);
+test('letters UI is a read-only inbox: no writing, sample tab or generation control', () => {
+  const screen = readFileSync(new URL('../src/screens/Letters.jsx', import.meta.url), 'utf8');
+  const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(screen, /با رضایت من|onCreateLetter|SAMPLE_LETTER|role="tablist"|<textarea/);
+  assert.doesNotMatch(app, /onCreateLetter/);
+  assert.match(screen, /onDiscussLetter/);
+  assert.doesNotMatch(screen, /onDeleteLetter/);
+  assert.doesNotMatch(readFileSync(new URL('../src/screens/Main.jsx', import.meta.url), 'utf8'), /daily-reflection-form/);
 });

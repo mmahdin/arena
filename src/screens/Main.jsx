@@ -13,11 +13,11 @@ import {
   LogOut,
   Mail,
   Menu as MenuIcon,
-  MessageSquare,
   Pencil,
   Plus,
   Settings2,
   Volume2,
+  X,
 } from 'lucide-react';
 import {
   BackButton,
@@ -25,7 +25,8 @@ import {
   MiniEnvelope,
   StatusBar,
 } from '../components/UI';
-import { LETTER_KIND, SAMPLE_LETTER } from '../features/letters/model';
+import Letters from './Letters';
+import { parseLetterReplyMessage } from '../features/letters/discuss';
 import { validateDisplayName } from '../features/profile/preferences';
 
 const formatDate = (value) => {
@@ -132,138 +133,6 @@ function Survey({ back, answers, setAnswer, navigate, notify }) {
           );
         })}
       </fieldset>
-    </section>
-  );
-}
-
-function LetterPaper({ letter }) {
-  const sample = letter.kind === LETTER_KIND.SAMPLE;
-  return (
-    <article className={`letter-paper ${sample ? 'letter-paper--sample' : ''}`}>
-      <div className="letter-paper-meta">
-        <span className="letter-badge">{sample ? 'نمونهٔ نمایشی' : 'نامهٔ شخصی'}</span>
-        <time dateTime={letter.createdAt}>{new Intl.DateTimeFormat('fa-IR', { dateStyle: 'long' }).format(new Date(letter.createdAt))}</time>
-      </div>
-      <h2>{letter.title}</h2>
-      <p className="letter-salutation">{letter.salutation || 'دوست من،'}</p>
-      {letter.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
-      {letter.question && <p className="letter-question">{letter.question}</p>}
-      <p className="letter-signature">همراه</p>
-    </article>
-  );
-}
-
-function Letters({ back, navigate, letterPhase = 'unavailable', letters = [], letterError,
-  onReloadLetters, onOpenConversation, letterGenerating = false, letterGenerationError,
-  letterDeletingId, letterDeletionError, onCreateLetter, onDeleteLetter,
-  readLetterIds = [], onReadLetter }) {
-  const personalLetters = letterPhase === 'ready' ? letters : [];
-  const [view, setView] = useState(personalLetters.length ? 'personal' : 'sample');
-  const [selectedId, setSelectedId] = useState(null);
-  useEffect(() => {
-    if (letterPhase === 'ready' && letters.length > 0) setView('personal');
-  }, [letterPhase, letters.length]);
-  const personalLetter = personalLetters.find(item => item.id === selectedId)
-    || personalLetters.find(item => !readLetterIds.includes(item.id))
-    || personalLetters[0] || null;
-  // Keep the first visible personal letter selected: acknowledging it must not
-  // switch the screen to the next unread letter on the following render.
-  useEffect(() => {
-    if (view === 'personal' && personalLetter && selectedId !== personalLetter.id) setSelectedId(personalLetter.id);
-  }, [view, personalLetter?.id, selectedId]);
-  useEffect(() => {
-    if (view === 'personal' && personalLetter) onReadLetter?.(personalLetter.id);
-  }, [view, personalLetter?.id, onReadLetter]);
-  const letter = view === 'sample' ? SAMPLE_LETTER : personalLetter;
-  const sample = view === 'sample';
-
-  const personalState = () => {
-    if (letterPhase === 'loading') {
-      return <div className="letter-state" role="status"><span className="letter-spinner" aria-hidden="true" /><p>در حال بارگذاری نامه‌ها…</p></div>;
-    }
-    if (letterPhase === 'error') {
-      return <div className="letter-state connected-notice" role="alert">
-        <p>نامه‌ها بارگذاری نشدن. دوباره تلاش کن.</p>
-        <button type="button" onClick={onReloadLetters}>تلاش دوباره</button>
-      </div>;
-    }
-    if (letterPhase === 'unavailable' || letterPhase === 'idle') {
-      return <div className="letter-state">
-        <Mail size={30} aria-hidden="true" />
-        <h2>نامه‌های شخصی هنوز فعال نشده‌اند.</h2>
-        <p>این بخش آمادهٔ دریافت نامه‌های واقعی است. فعلاً می‌تونی نمونه رو ببینی یا گفت‌وگو رو ادامه بدی.</p>
-      </div>;
-    }
-    if (!personalLetter) {
-      return <div className="letter-state">
-        <Mail size={30} aria-hidden="true" />
-        <h2>هنوز نامه‌ای برای تو نداریم.</h2>
-        <p>می‌تونی بعد از یک گفت‌وگوی معنادار، خودت درخواست یک نامه بدی.</p>
-      </div>;
-    }
-    return <>
-      {personalLetters.length > 1 && <div className="letter-archive" aria-label="نامه‌های قبلی">
-        {personalLetters.map(item => <button type="button" key={item.id}
-          aria-pressed={personalLetter.id === item.id}
-          className={personalLetter.id === item.id ? 'is-active' : ''}
-          onClick={() => setSelectedId(item.id)}>{item.title}</button>)}
-      </div>}
-      <LetterPaper letter={personalLetter} />
-      {onDeleteLetter && <div className="letter-manage">
-        <button type="button" disabled={Boolean(letterDeletingId)} onClick={() => {
-          if (window.confirm('این نامه حذف شود؟ این کار گفت‌وگوی اصلی را حذف نمی‌کند.')) void onDeleteLetter(personalLetter.id);
-        }}>{letterDeletingId === personalLetter.id ? 'در حال حذف…' : 'حذف این نامه'}</button>
-      </div>}
-    </>;
-  };
-
-  return (
-    <section className="app-screen theme-dark letter-screen scrolling-screen">
-      <div className="letter-art-panel">
-        <StatusBar />
-        <BackButton onClick={back} />
-        <div className="letter-hero-art" aria-hidden="true"><MiniEnvelope /></div>
-      </div>
-      <div className="letter-content">
-        <header className="letter-heading">
-          <p className="letter-eyebrow">نامه‌ای از همراه</p>
-          <h1>{sample ? 'نمونهٔ نامه' : 'نامه‌ای برای تو'}</h1>
-        </header>
-        <div className="letter-tabs" role="tablist" aria-label="بخش نامه‌ها">
-          <button type="button" role="tab" id="letter-tab-personal" aria-selected={view === 'personal'} aria-controls="letter-panel" className={view === 'personal' ? 'is-active' : ''} onClick={() => setView('personal')}>نامه‌های من</button>
-          <button type="button" role="tab" id="letter-tab-sample" aria-selected={view === 'sample'} aria-controls="letter-panel" className={view === 'sample' ? 'is-active' : ''} onClick={() => setView('sample')}>نمونه</button>
-        </div>
-        <div id="letter-panel" role="tabpanel" aria-labelledby={view === 'personal' ? 'letter-tab-personal' : 'letter-tab-sample'}>
-          {sample ? <LetterPaper letter={SAMPLE_LETTER} /> : personalState()}
-        </div>
-        {!sample && letterPhase === 'ready' && <div className="letter-create">
-          <p>اگر بخوای، همراه از آخرین گفت‌وگوی واجد شرایطت برای نوشتن یک نامه استفاده می‌کنه. متن نامه ذخیره می‌شه و هر زمان خواستی می‌تونی حذفش کنی.</p>
-          <button type="button" onClick={onCreateLetter} disabled={!onCreateLetter || letterGenerating || Boolean(letterDeletingId)}>
-            {letterGenerating ? 'در حال نوشتن نامه…' : 'با رضایت من، نامه‌ای بنویس'}
-          </button>
-          {letterGenerationError && <p role="alert" className="letter-action-error">{
-            letterGenerationError === 'INSUFFICIENT_CONVERSATION_CONTEXT'
-              ? 'برای نوشتن نامه، حداقل سه پیام از تو در یک گفت‌وگو لازم است.'
-              : letterGenerationError === 'LETTER_GENERATION_UNAVAILABLE'
-                ? 'نوشتن نامه فعلاً در دسترس نیست. بعداً دوباره امتحان کن.'
-                : 'نامه ساخته نشد. دوباره تلاش کن.'
-          }</p>}
-          {letterDeletionError && <p role="alert" className="letter-action-error">حذف نامه انجام نشد. دوباره تلاش کن.</p>}
-        </div>}
-        {sample && <p className="letter-demo-note">این متن فقط برای نمایش شکل نامه‌هاست و از گفت‌وگوهای تو ساخته نشده.</p>}
-        {!sample && personalLetter && personalLetter.sourceConversationIds.length > 0 && (
-          <div className="letter-provenance">
-            <span>بر پایهٔ گفت‌وگوهای تو نوشته شده.</span>
-            {onOpenConversation && <button type="button" onClick={() => onOpenConversation(personalLetter.sourceConversationIds[0])}>دیدن گفت‌وگوی مرتبط</button>}
-          </div>
-        )}
-        <div className="letter-footer">
-          <p>نامه‌ها برای خواندن و درنگ‌اند؛ برای حرف زدن، گفت‌وگو همیشه در دسترسه.</p>
-          <button type="button" className="letter-chat-button" onClick={() => navigate('chat')}>
-            <MessageSquare size={19} aria-hidden="true" /> گفت‌وگو با همراه
-          </button>
-        </div>
-      </div>
     </section>
   );
 }
@@ -578,12 +447,25 @@ function ChatSkeleton() {
   );
 }
 
+function LetterReference({ title, dismiss }) {
+  return (
+    <div className={`chat-letter-reference ${dismiss ? 'is-composer-reference' : 'is-message-reference'}`} role="note" aria-label={`ارجاع به نامهٔ ${title}`}>
+      <Mail size={15} strokeWidth={1.7} aria-hidden="true" />
+      <span className="chat-letter-reference-title" dir="auto">{title}</span>
+      {dismiss && <button type="button" className="chat-letter-reference-close" onClick={dismiss} aria-label="حذف ارجاع به نامه">
+        <X size={15} strokeWidth={1.7} aria-hidden="true" />
+      </button>}
+    </div>
+  );
+}
+
 function Chat({
   navigate, onboardingGreeting = '', messages = [], pendingTurn, sending, chatLoading, chatError,
   onSendMessage, onRetryMessage, onRetryChatLoad, onNewConversation, notify,
   bookmarks = [], bookmarkPhase, bookmarkError, bookmarkBusyId, onToggleBookmark, onReloadBookmarks,
   conversations = [], conversationId, activeConversation, historyPhase, historyError, onReloadHistory,
   onOpenConversation, savedMessageTarget, onSavedMessageTargetDone, chatDraft = '', onDraftChange,
+  letterReply, onDismissLetterReply,
 }) {
   // undefined → tools follow the latest assistant message; null → all closed; id → that message.
   const [toolsFor, setToolsFor] = useState(undefined);
@@ -674,7 +556,7 @@ function Chat({
     const clean = text.trim();
     if (!clean || sending || pendingTurn || chatLoading) return;
     if ([...clean].length > 4000) { notify('پیام می‌تونه تا ۴۰۰۰ کاراکتر باشه.'); return; }
-    setDraft('');
+    // Chat store clears the draft only after accepting the turn; retain it on validation errors.
     void onSendMessage(clean);
   };
   const onComposerKeyDown = (event) => {
@@ -724,6 +606,7 @@ function Chat({
           ))}
           {messages.map((message) => {
             const assistant = message.role === 'assistant';
+            const shown = assistant ? { text: message.content, reference: null } : parseLetterReplyMessage(message.content);
             if (assistant && knownIds.current && !knownIds.current.has(message.id)) freshIds.current.add(message.id);
             const open = openToolsId === message.id;
             const saved = bookmarks.some((item) => item.id === message.id);
@@ -733,7 +616,8 @@ function Chat({
                 className={`message-block message-${message.role} ${assistant && freshIds.current.has(message.id) ? 'is-fresh' : ''} ${open ? 'is-open' : ''} ${savedMessageTarget?.conversationId === conversationId && savedMessageTarget?.messageId === message.id ? 'is-targeted' : ''}`}>
                 <div className="message-text"
                   onClick={assistant ? () => toggleTools(message.id) : undefined}>
-                  {message.content.split(/\n\s*\n/).map((paragraph, pIndex) => <p key={pIndex}>{paragraph}</p>)}
+                  {shown.reference && <LetterReference title={shown.reference.title} />}
+                  {shown.text.split(/\n\s*\n/).map((paragraph, pIndex) => <p key={pIndex}>{paragraph}</p>)}
                 </div>
                 {assistant && <MessageTools message={message} open={open} saved={saved}
                   saving={bookmarkBusyId === message.id} bookmarkReady={bookmarkPhase === 'ready'} onToggleBookmark={onToggleBookmark} />}
@@ -741,7 +625,10 @@ function Chat({
             );
           })}
           {pendingTurn && <div className={`message-block message-user connected-pending ${sending ? 'is-sending' : ''}`}>
-            <div className="message-text"><p>{pendingTurn.text}</p></div>
+            <div className="message-text">
+              {parseLetterReplyMessage(pendingTurn.text).reference && <LetterReference title={parseLetterReplyMessage(pendingTurn.text).reference.title} />}
+              <p>{parseLetterReplyMessage(pendingTurn.text).text}</p>
+            </div>
             {!sending && <small>پیامت ارسال نشده.</small>}
           </div>}
           {sending && <div className="message-block message-assistant">
@@ -764,6 +651,7 @@ function Chat({
         <ArrowDown size={18} aria-hidden="true" />
       </button>
       <form className="composer-wrap" ref={composerRef} onSubmit={(event) => { event.preventDefault(); send(draft); }}>
+        {letterReply && <LetterReference title={letterReply.title} dismiss={onDismissLetterReply} />}
         <div className="composer">
           <textarea ref={inputRef} rows={1} wrap="soft" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={4000}
             disabled={Boolean(pendingTurn) || chatLoading} enterKeyHint="send"
