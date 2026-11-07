@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 136" role="img" aria-labelledby="t-privacy-title">
+  <title id="t-privacy-title">نقطه‌ای از نور در پناه دو قابِ درهم‌رفته آرام گرفته است</title>
+  <defs>
+    <radialGradient id="tp-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#f4e3bd" stop-opacity=".9"/>
+      <stop offset="1" stop-color="#f4e3bd" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="tp-inner" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3f2ee" stop-opacity=".9"/>
+      <stop offset="1" stop-color="#e4ddd0" stop-opacity=".5"/>
+    </linearGradient>
+  </defs>
+  <path d="M38 118V62a22 22 0 0 1 44 0v56Z" fill="url(#tp-inner)"/>
+  <path d="M24 118V58a36 36 0 0 1 72 0v60" fill="none" stroke="#23201b" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M38 118V62a22 22 0 0 1 44 0v56" fill="none" stroke="#b7ab9b" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="60" cy="78" r="26" fill="url(#tp-glow)"/>
+  <circle cx="60" cy="78" r="6.5" fill="#d7b98a"/>
+  <circle cx="58" cy="76" r="2" fill="#f7ecd4" opacity=".85"/>
+  <path d="M18 118h84" fill="none" stroke="#23201b" stroke-width="2.2" stroke-linecap="round"/>
+</svg>

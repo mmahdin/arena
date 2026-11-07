@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 380" role="img" aria-labelledby="t-know-title">
+  <title id="t-know-title">دو آینهٔ خمیده نور را میان خود نگه می‌دارند؛ روزنه‌ای برای شناختن</title>
+  <defs>
+    <radialGradient id="tk-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#f4e3bd" stop-opacity=".8"/>
+      <stop offset="1" stop-color="#f4e3bd" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="tk-lens" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f3f2ee" stop-opacity=".02"/>
+      <stop offset=".5" stop-color="#f3f2ee" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#f3f2ee" stop-opacity=".02"/>
+    </linearGradient>
+  </defs>
+  <path d="M104 84c-42 54-42 158 0 212M256 84c42 54 42 158 0 212" fill="none" stroke="#f3f2ee" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M112 96c-34 50-34 138 0 188M248 96c34 50 34 138 0 188" fill="none" stroke="#cec4b8" stroke-width="1" stroke-linecap="round" opacity=".4"/>
+  <path d="M122 112c36 26 80 26 116 0v156c-36-26-80-26-116 0Z" fill="url(#tk-lens)"/>
+  <path d="M122 138 238 190 122 242" fill="none" stroke="#d7b98a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
+  <circle cx="180" cy="190" r="58" fill="url(#tk-glow)"/>
+  <circle cx="180" cy="190" r="8.5" fill="#d7b98a"/>
+  <circle cx="177" cy="187" r="2.5" fill="#f7ecd4" opacity=".85"/>
+  <path d="M164 190h32" fill="none" stroke="#f3f2ee" stroke-width="1.1" stroke-linecap="round" opacity=".5"/>
+</svg>

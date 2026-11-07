@@ -48,7 +48,7 @@ function LetterReader({ letter, onClose, onDiscuss }) {
             <p className="letter-read-body letter-reveal" style={reveal()} key={index}>{paragraph}</p>
           ))}
           {letter.question && <p className="letter-read-question letter-reveal" style={reveal()}>{letter.question}</p>}
-          <p className="letter-read-signature letter-reveal" style={reveal()}>همراه</p>
+          <p className="letter-read-signature letter-reveal" style={reveal()}>تیا</p>
 
           <footer className="letter-end letter-reveal" style={reveal()}>
             {onDiscuss && (
@@ -127,7 +127,7 @@ function Inbox({ back, phase, letters, readIds, onOpen, onReload, focusId }) {
     <section className="app-screen theme-dark letters-screen">
       <BackButton dark onClick={back} />
       <div className="letters-scroll">
-        <header className="letters-head"><h1>نامه‌های همراه</h1></header>
+        <header className="letters-head"><h1>نامه‌های تیا</h1></header>
         {body}
       </div>
     </section>

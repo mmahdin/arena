@@ -11,7 +11,9 @@ test('designer routes and visual assets remain present', () => {
   for (const r of ['welcome','privacy','age','therapist','voice','approach','ready','home']) assert.match(data,new RegExp(`'${r}'`));
   assert.match(app,/routeFromHash/);
   assert.match(app,/dir="rtl"/);
-  assert.equal(readdirSync(new URL('public/assets/',root)).length,9);
+  // Original artwork remains archived for the source manifest; Theia assets live alongside it.
+  for (const file of Object.keys(JSON.parse(read('docs/design/original-source-sha256.json')))) assert.ok(existsSync(new URL(file,root)), file);
+  assert.ok(existsSync(new URL('public/assets/theia/welcome.svg',root)));
 });
 
 test('handoff defines synthetic-only release scope and future API integration', () => {

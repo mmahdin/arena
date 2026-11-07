@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 460" role="img" aria-labelledby="t-ready-title">
+  <title id="t-ready-title">نور به نشان تیا می‌رسد؛ دو نیمهٔ بازتابی با رشته‌ای روشن کنار هم قرار می‌گیرند</title>
+  <defs>
+    <radialGradient id="tr-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#f4e3bd" stop-opacity=".7"/>
+      <stop offset="1" stop-color="#f4e3bd" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="tr-path" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#d7b98a" stop-opacity="0"/>
+      <stop offset="1" stop-color="#d7b98a" stop-opacity=".75"/>
+    </linearGradient>
+  </defs>
+  <path d="M180 420V304" fill="none" stroke="url(#tr-path)" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="180" cy="420" r="3.2" fill="#d7b98a" opacity=".55"/>
+  <circle cx="180" cy="194" r="126" fill="url(#tr-glow)"/>
+  <g transform="translate(70 84) scale(3.4375)">
+    <g fill="#23201b">
+      <path d="M31 56a22 22 0 0 1-15.6-37.6l31.2 31.2A21.9 21.9 0 0 1 31 56Z"/>
+      <path d="M37 8a22 22 0 0 1 15.6 37.6L21.4 14.4A21.9 21.9 0 0 1 37 8Z"/>
+    </g>
+    <path d="M21.8 19.8 44.2 42.2" fill="none" stroke="#d7b98a" stroke-width="1.7" stroke-linecap="round"/>
+  </g>
+</svg>

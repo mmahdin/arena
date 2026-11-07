@@ -16,6 +16,10 @@
   --lavender: #d5d9f7;
   --yellow: #f6cf98;
   --green: #9eda9e;
+  /* Theia brand accents: warm light against the existing neutral surfaces. */
+  --theia-gold: #d7b98a;
+  --theia-glow: #f4e3bd;
+  --theia-ink: #23201b;
 }
 
 * { box-sizing: border-box; }
@@ -28,6 +32,7 @@ button:disabled { cursor: default; }
 img { display: block; max-width: 100%; }
 h1, h2, h3, p { margin: 0; }
 svg { flex-shrink: 0; }
+.theia-mark { display: block; flex-shrink: 0; }
 ::selection { background: #c5c9ed; color: #171713; }
 
 .app-shell {
@@ -449,7 +454,7 @@ svg { flex-shrink: 0; }
 .envelope-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
 .envelope-lines path { fill: none; stroke: #3d3b38; stroke-width: 1.2; }
 .envelope-date { position: absolute; top: 24px; inset-inline: 0; font-family: 'Noto Naskh Arabic Variable', serif; font-size: 23px; transform: rotate(-2deg); }
-.wax-seal { position: absolute; top: 79px; inset-inline-start: 50%; width: 52px; height: 52px; display: grid; place-items: center; transform: translateX(50%); border-radius: 50%; background: #b95f4f; color: #814137; box-shadow: inset 0 0 0 4px #ca7260, inset 0 0 0 6px #9d4e42, 0 3px 5px rgb(0 0 0 / 28%); }
+.wax-seal { position: absolute; top: 79px; inset-inline-start: 50%; width: 52px; height: 52px; display: grid; place-items: center; transform: translateX(50%); border-radius: 50%; background: var(--theia-gold); color: var(--theia-ink); box-shadow: inset 0 0 0 4px #e2cba4, inset 0 0 0 6px #b99a6b, 0 3px 5px rgb(0 0 0 / 28%); }
 .reflection-card {
   position: absolute;
   bottom: -25px;
@@ -537,7 +542,8 @@ svg { flex-shrink: 0; }
   color: #e8e6e1;
   animation: drawer-in 220ms ease-out;
 }
-.drawer-brand { margin: 73px 24px 0; font-family: 'Noto Naskh Arabic Variable', serif; font-size: 48px; font-weight: 500; line-height: 1.2; }
+.drawer-brand { margin: 73px 24px 0; display: flex; align-items: center; gap: 12px; font-family: 'Noto Naskh Arabic Variable', serif; font-size: 48px; font-weight: 500; line-height: 1.2; }
+.drawer-brand .theia-mark { color: #efe6d4; }
 .drawer-nav { padding: 0 24px; display: grid; gap: 0; }
 .drawer-nav button, .drawer-footer button { position: relative; display: flex; align-items: center; gap: 17px; min-height: 48px; padding: 0; background: transparent; color: inherit; text-align: start; font-size: 16px; font-weight: 400; }
 .drawer-nav .notification-dot { position: static; flex: 0 0 11px; margin-inline-start: auto; }
@@ -678,7 +684,7 @@ svg { flex-shrink: 0; }
 .question-neurodivergent .choice-scroll,
 .question-faith .choice-scroll { mask-image: none; }
 
-/* ---------- Internal-only tester selection (follows the Hamrah visual tokens) ---------- */
+/* ---------- Internal-only tester selection (follows the existing Theia visual tokens) ---------- */
 .app-shell:has(> .dev-login-screen) { min-height: 0; }
 .dev-login-screen { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
 .dev-login-screen .page-header { flex-shrink: 0; padding-top: clamp(20px, 5dvh, 44px); }
@@ -699,7 +705,7 @@ svg { flex-shrink: 0; }
 .dev-login-retry:focus-visible { outline: 2px solid #712a20; outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { .screen-transition { animation: none; } }
 
-/* Local-only synthetic mobile-shaped identity form; preserves Hamrah design tokens. */
+/* Local-only synthetic mobile-shaped identity form; preserves Theia design tokens. */
 .dev-phone-form { display: grid; gap: 12px; margin-top: 18px; }
 .dev-phone-form label { font-size: 14px; font-weight: 650; }
 .dev-phone-form input { width: 100%; min-height: 54px; border: 1px solid #c6c0bc; border-radius: 15px; padding: 12px 16px; font-family: inherit; font-variant-numeric: tabular-nums; letter-spacing: 1px; background: #fff; color: #292726; text-align: left; }
@@ -771,7 +777,7 @@ svg { flex-shrink: 0; }
 .daily-reflection-history-row span:nth-child(2) { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .daily-reflection-history-row[aria-current="date"] { color: var(--yellow); }
 
-/* Persian date field ported from the Family design system, styled for Hamrah. */
+/* Persian date field ported from the Family design system, styled for Theia. */
 .jalali-date-field { min-width: 0; }
 .jdf-field-heading, .jdf-dialog-heading, .jdf-navigation, .jdf-month-heading, .jdf-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .jdf-field-heading { flex-wrap: wrap; margin-bottom: 10px; }
@@ -812,7 +818,7 @@ svg { flex-shrink: 0; }
 .jdf-footer-button { padding-inline: 8px; font-size: 12px; font-weight: 600; }
 @media (max-width: 374px) { .jdf-dialog { padding: 14px; } }
 
-/* ---------- Onboarding v2: Ash-inspired moments in the existing Hamrah system ---------- */
+/* ---------- Onboarding v2: Theia light studies in the existing neutral system ---------- */
 /* Keep the same spacing, typefaces, --ink, --light, --beige and primary CTA. */
 .mood-screen .page-header,
 .checkins-screen .page-header { padding-top: clamp(112px, 17vh, 162px); }
@@ -834,7 +840,7 @@ svg { flex-shrink: 0; }
   position: absolute;
   inset: -11% -12% 12%;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, rgb(213 217 247 / 58%), transparent 68%);
+  background: radial-gradient(ellipse at center, rgb(244 227 189 / 52%), transparent 68%);
 }
 .mood-scribble {
   position: relative;
@@ -1473,18 +1479,18 @@ svg { flex-shrink: 0; }
   transform-origin: 50% 50%;
 }
 .home-orbit-trace--second { stroke: #b0aaa0; stroke-width: 1.45; }
-.home-orbit-accent { stroke: #d5d9f7; stroke-width: 1.75; stroke-linecap: round; opacity: .8; }
-.home-orbit-point { fill: #d5d9f7; }
+.home-orbit-accent { stroke: var(--theia-gold); stroke-width: 1.75; stroke-linecap: round; opacity: .8; }
+.home-orbit-point { fill: var(--theia-gold); }
 .home-conversation-mark {
   position: relative;
-  color: #e2deed;
-  filter: drop-shadow(0 0 12px rgb(213 217 247 / 11%));
+  color: #efe6d4;
+  filter: drop-shadow(0 0 12px rgb(215 185 138 / 14%));
   animation: home-mark-breathe 5s ease-in-out infinite;
 }
 .home-start-label { font-size: 20px; font-weight: 590; letter-spacing: -.2px; }
 @media (hover: hover) {
   .home-start-conversation:hover .home-orbit-trace--first { transform: rotate(-6deg); stroke: #adaba4; }
-  .home-start-conversation:hover .home-orbit-trace--second { transform: rotate(7deg); stroke: #d5d9f7; }
+  .home-start-conversation:hover .home-orbit-trace--second { transform: rotate(7deg); stroke: var(--theia-gold); }
   .home-start-conversation:hover .home-conversation-art::before { opacity: 1; transform: scale(1.12); }
 }
 .home-start-conversation:active .home-conversation-art { transform: scale(.97); }
@@ -1576,7 +1582,7 @@ svg { flex-shrink: 0; }
 }
 .home-orbit-trace--first { stroke: #a49e95; }
 .home-orbit-trace--second { stroke: #c0baaf; }
-.home-orbit-accent { stroke: #e0dcff; animation: home-accent-shimmer 6s ease-in-out infinite; }
+.home-orbit-accent { stroke: #e6cfa6; animation: home-accent-shimmer 6s ease-in-out infinite; }
 .home-conversation-art::before { animation: home-halo-breathe 6s ease-in-out infinite; }
 .home-start-conversation:focus-visible, .home-letter-link:focus-visible, .home-history-link:focus-visible {
   outline: 2px solid #d5d9f7;
@@ -1621,8 +1627,8 @@ svg { flex-shrink: 0; }
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #c77669;
-  color: #32201e;
+  background: var(--theia-gold);
+  color: var(--theia-ink);
   box-shadow: 0 0 0 2px #12110d;
 }
 @keyframes home-orbit-drift {
@@ -1733,7 +1739,7 @@ svg { flex-shrink: 0; }
 .letter-row.is-unread { color: #f6eee0; }
 .letter-row.is-unread .letter-row-title { font-weight: 620; }
 .letter-row.is-unread time { color: #b8a78d; }
-.letter-row.is-unread .letter-mark { background: var(--yellow); box-shadow: 0 0 0 6px rgb(246 207 152 / 9%), 0 0 24px 3px rgb(246 207 152 / 30%); animation: letter-breathe 4.2s ease-in-out infinite; }
+.letter-row.is-unread .letter-mark { background: var(--theia-gold); box-shadow: 0 0 0 6px rgb(246 207 152 / 9%), 0 0 24px 3px rgb(246 207 152 / 30%); animation: letter-breathe 4.2s ease-in-out infinite; }
 .letter-row.is-unread .letter-mark::after { opacity: 0; }
 
 .letters-empty { min-height: 46dvh; display: grid; place-content: center; justify-items: center; gap: 16px; padding: 0 40px; color: #4e4b44; text-align: center; animation: letter-rise 700ms ease both; }
@@ -1787,11 +1793,11 @@ svg { flex-shrink: 0; }
 .letters-list .letter-row.is-unread .letter-row-title { font-weight: 620; }
 .letters-list .letter-row.is-unread time { color: #c2a994; }
 .letters-list .letter-row.is-unread .letter-mark {
-  background: #c89b80;
-  box-shadow: 0 0 0 5px rgb(200 155 128 / 9%);
+  background: var(--theia-gold);
+  box-shadow: 0 0 0 5px rgb(215 185 138 / 9%);
   animation: none;
 }
-.letters-list .letter-row:focus-visible { outline: 1px solid #c89b80; outline-offset: -3px; }
+.letters-list .letter-row:focus-visible { outline: 1px solid var(--theia-gold); outline-offset: -3px; }
 
 /* Reply-style letter reference: no inner scrolling, compact on mobile. */
 .chat-letter-reference {

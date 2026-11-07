@@ -22,11 +22,12 @@ check('loopback proxy', read('vite.config.js').includes('127.0.0.1:8080') && !re
 for (const file of ['AGENTS.md','MVP_SCOPE.md','PRODUCT_CONSTITUTION.md','TECHNICAL_CONSTITUTION.md','FRONTEND_DESIGN_SPEC.md','REPO_MAP.md','NEXT_AGENT_TASKS.md','README_FA.md','VALIDATION_REPORT.md','docs/integration/UI_BACKEND_GAP_MATRIX.md','docs/roadmap/BACKEND_FRONTEND_INTEGRATION_PLAN.md']) {
   check(`agent doc ${file}`, existsSync(join(root,file)));
 }
-const skills = readdirSync(join(root, '.agents/skills'), { withFileTypes: true }).filter(d=>d.isDirectory());
+const skillsDir = join(root, '.agents/skills');
+const skills = existsSync(skillsDir) ? readdirSync(skillsDir, { withFileTypes: true }).filter(d=>d.isDirectory()) : [];
 check('exactly 7 specialist skills',skills.length===7);
 for (const d of skills) {
   check(`skill ${d.name}`, existsSync(join(root,'.agents/skills',d.name,'SKILL.md')) && existsSync(join(root,'.agents/skills',d.name,'agents/openai.yaml')));
 }
 const failed=checks.filter(([,ok])=>!ok);
-console.log(`Hamrah foundation checks: ${checks.length-failed.length}/${checks.length} passed`);
+console.log(`Theia foundation checks: ${checks.length-failed.length}/${checks.length} passed`);
 for (const [label] of failed) console.error('FAIL:',label);

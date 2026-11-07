@@ -1,3 +1,5 @@
+> **2026-11-07 update:** the user-approved Theia rebrand intentionally changes active brand copy/artwork and small brand styling. The original SHA-256 manifest remains historical; `check:source-baseline` is expected to differ for the rebranded files. Screen geometry and route flow are still preserved. See `THEIA_IDENTITY_2026_11.md`.
+
 # Source preservation and design authority
 
 - Source of truth: user-uploaded `ai-therapist-frontend(1).zip` (a new **همراه** UI, not the earlier رهراه gallery or TypeScript foundation).
