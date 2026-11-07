@@ -7,17 +7,19 @@ const styles = readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8
 const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
 
 test('chat, home, history and all main dark screens use a dark underlying surface', () => {
-  for (const route of ['home', 'chat', 'history', 'survey', 'day', 'letter', 'insight']) {
+  for (const route of ['home', 'chat', 'history', 'saved', 'survey', 'day', 'letter', 'insight', 'voice', 'mood']) {
     assert.equal(screenSurfaceForRoute(route), 'dark', route);
   }
-  for (const route of ['menu', 'research', 'experts', 'voice', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro']) {
+  for (const route of ['welcome', 'menu', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro']) {
     assert.equal(screenSurfaceForRoute(route), 'black', route);
   }
 });
 
 test('designer beige and light onboarding pages retain their surfaces', () => {
-  for (const route of ['testimonials', 'interests', 'approach']) assert.equal(screenSurfaceForRoute(route), 'beige');
-  for (const route of ['welcome', 'name', 'privacy', 'ready', 'therapist', 'age', 'concerns']) assert.equal(screenSurfaceForRoute(route), 'light');
+  for (const route of ['approach', 'interests']) assert.equal(screenSurfaceForRoute(route), 'beige');
+  for (const route of ['name', 'privacy', 'ready', 'therapist', 'age', 'concerns', 'research']) {
+    assert.equal(screenSurfaceForRoute(route), 'light', route);
+  }
 });
 
 test('the route-controlled shell and transition never fade dark screens from transparent white', () => {

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Mail } from 'lucide-react';
 import { BackButton } from '../components/UI';
+import { QuietVignette, TheiaMark } from '../components/Brand';
 
 const dateFormat = new Intl.DateTimeFormat('fa-IR', { dateStyle: 'long' });
 const dayFormat = new Intl.DateTimeFormat('fa-IR', { day: 'numeric', month: 'long' });
@@ -14,7 +15,7 @@ const formatShort = (value) => {
   return date.getFullYear() === new Date().getFullYear() ? dayFormat.format(date) : dateFormat.format(date);
 };
 
-/** One letter, alone on the page. Nothing else competes with the words. */
+/** One letter, alone on the page, on paper that seems lit from within. */
 function LetterReader({ letter, onClose, onDiscuss }) {
   const articleRef = useRef(null);
   const progressRef = useRef(null);
@@ -36,11 +37,14 @@ function LetterReader({ letter, onClose, onDiscuss }) {
   const reveal = () => ({ '--i': step++ });
 
   return (
-    <section className="app-screen theme-dark letters-screen letters-screen--reading">
-      <BackButton dark onClick={onClose} label="بازگشت به نامه‌ها" />
+    <section className="app-screen theme-light letters-screen letters-screen--reading">
+      <BackButton onClick={onClose} label="بازگشت به نامه‌ها" />
       <div className="letter-progress" aria-hidden="true"><i ref={progressRef} /></div>
       <div className="letters-scroll" onScroll={onScroll}>
         <article className="letter-read" ref={articleRef} tabIndex={-1} aria-label={letter.title}>
+          <span className="letter-seal" aria-hidden="true">
+            <TheiaMark size={26} color="var(--ember-deep)" />
+          </span>
           <time className="letter-reveal" style={reveal()} dateTime={letter.createdAt}>{formatLong(letter.createdAt)}</time>
           <h1 className="letter-read-title letter-reveal" style={reveal()}>{letter.title}</h1>
           <p className="letter-read-salutation letter-reveal" style={reveal()}>{letter.salutation || 'دوست من،'}</p>
@@ -48,16 +52,18 @@ function LetterReader({ letter, onClose, onDiscuss }) {
             <p className="letter-read-body letter-reveal" style={reveal()} key={index}>{paragraph}</p>
           ))}
           {letter.question && <p className="letter-read-question letter-reveal" style={reveal()}>{letter.question}</p>}
-          <p className="letter-read-signature letter-reveal" style={reveal()}>همراه</p>
+          <p className="letter-read-signature letter-reveal" style={reveal()}>
+            <span>تیا</span>
+            <TheiaMark size={17} color="var(--ember-deep)" />
+          </p>
 
           <footer className="letter-end letter-reveal" style={reveal()}>
             {onDiscuss && (
               <button type="button" className="letter-discuss" onClick={() => onDiscuss(letter)}>
                 <span>دربارهٔ این نامه حرف بزنیم</span>
-                <ArrowLeft size={17} strokeWidth={1.6} aria-hidden="true" />
+                <ArrowLeft size={16} strokeWidth={1.6} aria-hidden="true" />
               </button>
             )}
-
           </footer>
         </article>
       </div>
@@ -65,7 +71,7 @@ function LetterReader({ letter, onClose, onDiscuss }) {
   );
 }
 
-/** A quiet inbox: unread letters glow softly, read ones fade back. */
+/** A quiet inbox: unread letters hold a small light, read ones rest. */
 function Inbox({ back, phase, letters, readIds, onOpen, onReload, focusId }) {
   const listRef = useRef(null);
   useEffect(() => {
@@ -91,8 +97,9 @@ function Inbox({ back, phase, letters, readIds, onOpen, onReload, focusId }) {
   } else if (letters.length === 0) {
     body = (
       <div className="letters-empty">
-        <Mail size={34} strokeWidth={1.1} aria-hidden="true" />
+        <QuietVignette size={92} />
         <p>هنوز نامه‌ای نرسیده.</p>
+        <span>نامه‌ها آرام می‌آن؛ وقتی چیزی برای گفتن باشه.</span>
       </div>
     );
   } else {
@@ -127,7 +134,10 @@ function Inbox({ back, phase, letters, readIds, onOpen, onReload, focusId }) {
     <section className="app-screen theme-dark letters-screen">
       <BackButton dark onClick={back} />
       <div className="letters-scroll">
-        <header className="letters-head"><h1>نامه‌های همراه</h1></header>
+        <header className="letters-head">
+          <h1>نامه‌های تیا</h1>
+          <p>نامه‌ها را وقتی وقت داری بخون؛ عجله‌ای نیست.</p>
+        </header>
         {body}
       </div>
     </section>

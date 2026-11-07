@@ -1,4 +1,7 @@
-# Frontend design and interaction contract — همراه (current authority)
+# Frontend design and interaction contract — تیا (Theia)
+
+> **2026-11-07 brand authority:** the product is **Theia / تیا**. Every screen now belongs to one visual system — ink, parchment, sand and ember; a drawn brush ring with a single spark; Naskh for the brand voice, Estedad for the interface; a small faceless presence walking toward light. The former floral (Ash-inspired) illustrations, symbols, testimonial imagery and lavender/yellow/green accents are removed and must not be reintroduced. Tokens, motifs, motion and component vocabulary live in `docs/design/THEIA_IDENTITY.md`; `src/styles.css` and `src/components/Brand.jsx` are the implementation. Behaviour, routes, onboarding questions, backend calls and honest-copy rules below are unchanged and remain binding.
+
 
 > 2026-11-06 approach design: use the `ui-ux-pro-max` Minimalism & Swiss Style direction with low density. Show one heading, the current style name between two subtle, unboxed chevrons, one shared example prompt and one authored reply. The style name is plain text; swipe the example left/right, tap a chevron or use the arrow keys to change it. There is no dropdown. Back, Continue and quiet Skip/Cancel remain. The chevrons have 44px hit areas with no visible container; style lists, dropdowns, written gesture instructions, subtitles, counters, descriptions and footer notes are removed. Five small, noninteractive position dots sit below the style name, ordered to match the physical slide positions (LTR), with one elongated active mark synchronized to swipe, arrows and keyboard. Preserve the five original style keys, mapping, default, swipe/keyboard behavior, stable reply slot, reduced motion, beige palette and local typography. See `docs/design/APPROACH_REDESIGN_2026_11.md`.
 
@@ -7,21 +10,22 @@
 ## Authority / preservation
 **This uploaded 2026-11-02 new `ai-therapist-frontend(1).zip` is the definitive visual product reference.** It replaces the earlier Rahrah design and the older TypeScript Wellbeing prototype as a visual source. No broad redesign is requested; the 2026-11-06 approach-screen update above is the scoped exception. Make each new functional state feel native to this exact UI; do not migrate from another app.
 
-## Visual language observed in source
-- Persian friendly, soft organic floral figures; deliberate contrast between light neutral onboarding and almost-black home/chat screens.
+## Visual language (Theia, current)
+- Persian-first, RTL-native minimalism: deliberate rhythm between almost-black story beats (welcome, interstitials, voice, home, chat, letters), parchment question screens, and a sand approach screen. No floral figures, no sun/moon/star/eye icons, no statues or temple references.
+- Every illustration is drawn from the same vocabulary: a light source with an edge, hand-drawn horizon lines, dust, and a small faceless presence. Art carries emotion; copy stays short. Not every screen gets a large illustration — chat is typography-led.
 - Max-width **430px** centered mobile viewport; page transitions ~180ms in CSS; RTL throughout. Keep mobile portrait hierarchy intact when adding loader/errors.
 - Fonts: Estedad for primary, Vazirmatn and Noto Naskh Arabic installed locally.
-- Main CSS tokens: `--light:#f3f2ee`, `--ink:#23201b`, `--beige:#cec4b8`, `--dark:#12110d`, `--lavender:#d5d9f7`, `--yellow:#f6cf98`, `--green:#9eda9e`.
-- Components `StatusBar`, `BackButton`, `PrimaryButton`, `ChoiceButton`, `PageHeader`, `PagerDots`, `VoiceWave` etc. are already implemented; reuse rather than replacing them.
+- Main CSS tokens: `--ink:#100f0c`, `--paper:#f2ede3`, `--sand:#e6dac6`, `--ember:#de9558`, `--ember-deep:#a0532c`, `--ember-soft:#f0c8a2`, `--verdigris:#7e9a8c`, `--glow:#ffe9cc` (legacy `--light/--dark/--beige` remain as surface aliases for the shell transition).
+- Components `StatusBar`, `BackButton`, `PrimaryButton`, `ChoiceButton`, `PageHeader`, `PagerDots`, `VoiceWave`, `BottomSheet` and the brand primitives in `src/components/Brand.jsx` (`TheiaMark`, `TheiaWordmark`, `Aperture`, `LightStudy`, `MoodLight`, `LetterSymbol`, `QuietVignette`, `TheiaLoader`) are the system; extend them rather than inventing parallel styles.
 
 ## Screen behavior map (design preserved, functionality gated by current scope)
-1. **Welcome:** continue to designed onboarding. Add a Dev Tester picker in the same visual vocabulary, before connected user data. No email/signup façade.
+1. **Welcome:** a dark room with one light, the mark and the wordmark, one primary action. A Dev Tester picker stays in the same visual vocabulary before any connected user data. No email/signup façade.
 2. **Testimonials / Research / Experts:** preserve cards, typography and imagery; do not claim 6,000 reviews, 14 papers, affiliations, clinicians, publications or outcomes without verification. Prefer disabled gallery preview or truthful copy of identical length.
 3. **Name:** save displayName when connected; avoid hard-coded default `محمدمهدی` before loading `/me`; validate required and backend length constraints.
 4. **Privacy:** keep illustration and toggle geometry, but do not state chats live on phone or account deletion works. Sharing control must be disabled/off until an actual audited service and consent model exists.
 5. **Intake questions:** routes `therapist`, `age`, `concerns`, `focus`, `feelings`, `neurodivergent`, `faith`, `interests`, `relationships`, `strengths`, `barriers` currently store choices in component state only; these are *sensitive* design-only fields. Do not use them as backend profile fields or LLM prompt. For core MVP choose a safe short path or explicit design-gallery mode; document owner decision before changing navigation.
 6. **Voice and Approach:** preserve Voice swipeable cards and wave art; Voice remains visual only, **not actual TTS/model voice**. Approach uses the 2026-11-06 minimal chat preview: one shared prompt, five concise authored replies, RTL swipe/keyboard selection with a plain style name and subtle unboxed directional controls, and reduced-motion support. Approach names (`گفت‌وگوی آزاد`, `همدلی و شنیدن`, `به من یاد بده`, `راهنمایی آرام`, `حل مسئله با هم`) still map explicitly to the five persistent `conversationStyle` values in `preferences.js`; legacy `guidance` remains readable. Do not conflate voice with style.
-7. **Home:** preserve greeting, animated envelope and reflection card. The letter/day reflections currently static; either clearly label demo or plan new domain endpoints after approval.
+7. **Home:** greeting, a single interaction symbol (`Aperture`) that starts a conversation, a quiet route to earlier conversations, and an unread-letter seal. The letter/day reflections are still static content; label as demo or plan domain endpoints after approval.
 8. **History:** replace one hard-coded row and weekly score with `GET /conversations`, display stable list. Don't imply weekly progress insights from conversation counts alone.
 9. **Chat:** preserve dark bubbles, paragraph spacing, suggestions, action menu and composer. Replace the `setTimeout(...850ms)` mock response with a single JSON `/turns` request in connected mode; use loading state, exact `clientTurnId` replay and guard duplicate send.
 10. **Message actions:** copy is local; browser speech synthesis may read locally, but label honestly. Bookmark, regenerate and report currently fake; disable or add *approved* API work, never show a fake success toast.

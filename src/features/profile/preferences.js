@@ -1,4 +1,4 @@
-/** Five original Hamrah UI approaches map one-to-one to persistent backend values. */
+/** The five conversation approaches map one-to-one to persistent backend values. */
 export const APPROACH_TO_STYLE = Object.freeze({
   'گفت‌وگوی آزاد': 'balanced',
   'همدلی و شنیدن': 'listening',

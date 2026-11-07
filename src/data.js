@@ -1,5 +1,5 @@
-// Single source of truth for Hamrah onboarding v2. Legacy info screens remain
-// routable from the completed profile/menu, but are not onboarding steps.
+// Single source of truth for the Theia onboarding flow. Legacy info screens
+// remain routable from the completed profile/menu, but are not onboarding steps.
 export const FLOW = [
   'welcome', 'privacy', 'simple-intro', 'name', 'age', 'identity',
   'therapist', 'deeper-intro', 'mood', 'concerns', 'focus', 'feelings',
@@ -29,7 +29,7 @@ export const QUESTIONS = {
     ],
   },
   referral: {
-    title: 'چطور با همراه آشنا شدی؟',
+    title: 'چطور با تیا آشنا شدی؟',
     description: '',
     type: 'single',
     options: ['اینستاگرام', 'چت‌بات هوش مصنوعی', 'تلگرام', 'بله'],
@@ -156,24 +156,6 @@ export const QUESTIONS = {
     ],
   },
 };
-
-export const REVIEWS = [
-  {
-    initial: 'س',
-    name: 'سارا',
-    text: 'بعد از گفت‌وگو آروم‌تر بودم.',
-  },
-  {
-    initial: 'ر',
-    name: 'راحله',
-    text: 'کمکم کرد جور دیگه‌ای نگاه کنم.',
-  },
-  {
-    initial: 'ت',
-    name: 'ترانه',
-    text: 'کمکم می‌کنه احساساتم رو بیان کنم.',
-  },
-];
 
 export const VOICES = [
   { name: 'بید', description: 'آروم و صمیمی', path: 'M0 68 C20 74 25 106 42 102 C63 96 53 82 75 83 C98 85 111 101 120 89 C130 74 116 48 132 43 C151 37 145 70 165 62 C180 57 174 26 189 25 C206 24 208 70 226 91 C244 112 261 112 280 109' },

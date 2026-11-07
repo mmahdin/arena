@@ -25,7 +25,7 @@ export function buildLetterReplyMessage(userText, letter, maxLength = DISCUSSION
   const title = clip(letter.title.replace(/[\r\n\u0000-\u001f]/g, ' ').trim(), 100);
   const paragraphs = letter.paragraphs.filter((p) => typeof p === 'string' && p.trim());
   const body = [...paragraphs, ...(typeof letter.question === 'string' && letter.question.trim() ? [letter.question] : [])].join('\n\n');
-  const contextStart = `این نوشته نامه‌ای است که همراه برای من فرستاده. پاسخ خودت را با توجه به محتوای آن و پیام من بده.\nعنوان: ${title}\nمتن نامه:\n`;
+  const contextStart = `این نوشته نامه‌ای است که تیا برای من فرستاده. پاسخ خودت را با توجه به محتوای آن و پیام من بده.\nعنوان: ${title}\nمتن نامه:\n`;
   const capacity = maxLength - length(user + MARKER + END + contextStart);
   // Leave enough of the letter to be useful; never silently send an ungrounded reference.
   if (capacity < 120) return null;

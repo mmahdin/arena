@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Flower2, RefreshCw } from 'lucide-react';
-import { PageHeader, PrimaryButton, StatusBar } from '../../components/UI';
+import { RefreshCw } from 'lucide-react';
+import { PrimaryButton, StatusBar } from '../../components/UI';
+import { LightStudy, TheiaMark, TheiaWordmark } from '../../components/Brand';
 import { normalizeTestPhone } from './phone';
 
-/** Simple phone-shaped entry; backend runs only in private dev environments. */
+/** Phone-shaped entry for private test environments, dressed as Theia's front door. */
 export default function DevLogin({ session, login, retry }) {
   const [phone, setPhone] = useState('');
   const [attempted, setAttempted] = useState(false);
@@ -19,14 +20,25 @@ export default function DevLogin({ session, login, retry }) {
   return (
     <section className="app-screen theme-light dev-login-screen" aria-busy={loading}>
       <StatusBar />
-      <PageHeader title="به همراه خوش اومدی!" />
-      <div className="dev-login-art" aria-hidden="true"><img src="/assets/ready-daisy.png" alt="" /></div>
+      <div className="dev-login-brand">
+        <span className="welcome-brand__mark">
+          <TheiaMark size={30} color="var(--text-ink)" />
+          <TheiaWordmark size={27} tone="ink" />
+        </span>
+        <span className="welcome-brand__tag">همراهی برای دیدنِ روشن‌تر</span>
+      </div>
+      <div className="dev-login-art" aria-hidden="true">
+        <LightStudy scene="horizon" />
+      </div>
       <div className="dev-login-panel">
-        <div className="dev-login-heading"><Flower2 size={20} /><strong>ورود به حساب</strong></div>
+        <div className="dev-login-heading">
+          <span className="eyebrow">ورود</span>
+        </div>
+        <p>برای ادامه، شمارهٔ موبایلت رو وارد کن.</p>
         {loading && <p role="status">در حال ورود…</p>}
         {offline && <div className="dev-login-error" role="alert">
           <p>{session.error?.action === 'logout' ? 'خروج انجام نشد. دوباره تلاش کن.' : 'ارتباط برقرار نشد. دوباره تلاش کن.'}</p>
-          <button className="dev-login-retry" type="button" onClick={retry}><RefreshCw size={18} aria-hidden="true" />تلاش دوباره</button>
+          <button className="dev-login-retry" type="button" onClick={retry}><RefreshCw size={15} aria-hidden="true" />تلاش دوباره</button>
         </div>}
         <form className="dev-phone-form" onSubmit={submit}>
           <label htmlFor="dev-phone">شماره موبایل</label>
@@ -34,7 +46,7 @@ export default function DevLogin({ session, login, retry }) {
             onChange={(event) => { setPhone(event.target.value); setAttempted(false); }} disabled={loading || offline} aria-invalid={invalid} />
           {(attempted || invalid) && !normalized && <div className="dev-login-error" role="alert">شماره باید ۱۱ رقم باشه و با ۰۹ شروع بشه.</div>}
           {session.error?.action === 'login' && !offline && <div className="dev-login-error" role="alert">ورود انجام نشد. دوباره تلاش کن.</div>}
-          {!offline && <PrimaryButton type="submit" disabled={loading || !normalized}>ادامه</PrimaryButton>}
+          {!offline && <PrimaryButton type="submit" disabled={loading || !normalized}>{loading ? 'کمی صبر کن…' : 'ادامه'}</PrimaryButton>}
         </form>
       </div>
     </section>

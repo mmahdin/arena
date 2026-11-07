@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Check, ChevronLeft, ChevronRight, Flame, Flower2, Landmark } from 'lucide-react';
-import { APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
+import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, VOICES } from '../data';
 import { resistVoiceDrag, voiceSwipeTarget } from '../features/onboarding/voiceCarousel';
 import {
   BackButton,
@@ -8,105 +8,130 @@ import {
   PageHeader,
   PagerDots,
   PrimaryButton,
-  RatingStars,
   StatusBar,
   VoiceWave,
 } from '../components/UI';
+import { LightStudy, MoodLight, TheiaMark, TheiaWordmark } from '../components/Brand';
 
 const nextFrom = (route, navigate) => {
   const nextIndex = FLOW.indexOf(route) + 1;
   if (nextIndex > 0 && nextIndex < FLOW.length) navigate(FLOW[nextIndex]);
 };
 
+const ONBOARDING_LENGTH = FLOW.filter((item) => item !== 'home').length;
+const ProgressContext = createContext(0);
+
 function Shell({ theme = 'light', back, children, className = '' }) {
-  const dark = theme === 'dark';
+  const progress = useContext(ProgressContext);
   return (
     <section className={`app-screen theme-${theme} ${className}`}>
-      <StatusBar dark={dark} />
-      {back && <BackButton onClick={back} dark={dark} />}
+      <span className="screen-progress" aria-hidden="true"><i style={{ '--progress': progress }} /></span>
+      <StatusBar />
+      {back && <BackButton onClick={back} dark={theme === 'dark'} />}
       {children}
     </section>
   );
 }
 
+/* ---------- Welcome: a light in a dark room ---------- */
+
 function Welcome({ navigate }) {
   return (
-    <Shell className="welcome-screen">
-      <PageHeader
-        title="با همراه آشنا شو"
-        description="همراه کمک می‌کنه دربارهٔ احساساتت حرف بزنی و خودت رو بهتر بشناسی."
-      />
-      <div className="welcome-art artwork-wrap">
-        <img src="/assets/welcome-figures.png" alt="دو شخصیت گل‌مانند دست‌در دست" />
+    <Shell theme="dark" className="welcome-screen">
+      <div className="welcome-brand">
+        <span className="welcome-brand__mark">
+          <TheiaMark size={30} color="var(--text-paper)" />
+          <TheiaWordmark size={27} />
+        </span>
+        <span className="welcome-brand__tag">همراهی برای دیدنِ روشن‌تر</span>
       </div>
-      <PrimaryButton onClick={() => nextFrom('welcome', navigate)}>شروع</PrimaryButton>
+      <div className="welcome-copy">
+        <h1>یه جای آرام برای حرف زدن.</h1>
+        <p>تیا کنارته تا احساساتت رو ببینی و خودت رو بهتر بشناسی.</p>
+      </div>
+      <div className="screen-art screen-art--wide">
+        <LightStudy scene="welcome" />
+      </div>
+      <PrimaryButton onClick={() => nextFrom('welcome', navigate)}>شروع کنیم</PrimaryButton>
+      <p className="welcome-footnote">اول چند سؤال کوتاه ازت می‌پرسم.</p>
     </Shell>
   );
 }
 
-function Testimonials({ navigate, back }) {
+/* ---------- Privacy ---------- */
+
+function Privacy({ navigate, back, privacySharing = true, privacyLoading = false, privacySaving = false,
+  privacyLoaded = false, privacyError = false, onTogglePrivacy, onRetryPrivacy }) {
+  const sharing = privacySharing;
   return (
-    <Shell theme="beige" back={back} className="testimonials-screen scrolling-screen">
+    <Shell back={back} className="privacy-screen">
       <PageHeader
-        title="بقیه دربارهٔ همراه چی می‌گن؟"
-        description="نظر کاربران همراه"
+        title="حرف‌های تو، پیش خودت می‌مونه."
+        description="گفت‌وگوهات ذخیره می‌شن تا هر وقت برگشتی ادامه بدی. همیشه می‌تونی این اجازه رو عوض کنی."
       />
-      <div className="reviews-list">
-        {REVIEWS.map((review) => (
-          <article className="review-card" key={review.name}>
-            <div className="review-meta">
-              <span className="review-avatar">{review.initial}</span>
-              <strong>{review.name}</strong>
-              <RatingStars />
-            </div>
-            <p>{review.text}</p>
-          </article>
-        ))}
+      <div className="screen-art">
+        <LightStudy scene="privacy" />
       </div>
-      <PrimaryButton onClick={() => nextFrom('testimonials', navigate)}>ادامه</PrimaryButton>
+      <button
+        type="button"
+        className="privacy-card"
+        role="switch"
+        aria-checked={sharing}
+        aria-disabled={!privacyLoaded || privacyLoading || privacySaving}
+        disabled={!privacyLoaded || privacyLoading || privacySaving}
+        onClick={onTogglePrivacy}
+      >
+        <span className={`toggle ${sharing ? 'is-on' : ''}`} aria-hidden="true"><span /></span>
+        <span>استفاده از حرف‌هام برای پاسخ‌های بهتر</span>
+      </button>
+      {privacyError && <div className="connected-notice" role="alert">
+        <p>تنظیمات حریم خصوصی در دسترس نیست. دوباره تلاش کن.</p>
+        <button type="button" onClick={onRetryPrivacy}>تلاش دوباره</button>
+      </div>}
+      <PrimaryButton onClick={() => nextFrom('privacy', navigate)}>ادامه</PrimaryButton>
     </Shell>
   );
 }
 
-function Research({ navigate, back }) {
+/* ---------- The story between questions ---------- */
+
+const INTERSTITIALS = {
+  'simple-intro': {
+    scene: 'simple',
+    title: 'اول چند سؤال ساده.',
+    description: 'جواب‌هات کمک می‌کنن بهتر بشناسمت.',
+  },
+  'deeper-intro': {
+    scene: 'deeper',
+    title: 'حالا یه‌کم عمیق‌تر.',
+    description: 'چند سؤال کوتاه، تا بفهمم این روزها چی برات مهم‌تره.',
+  },
+  'know-intro': {
+    scene: 'know',
+    title: 'خودت رو بهتر ببین.',
+    description: 'هر جواب، یه تکه از تصویری که از خودت داری.',
+  },
+  'almost-intro': {
+    scene: 'almost',
+    title: 'نزدیک آخر راهیم.',
+    description: 'حالا صدای تیا و شکل حرف زدنش رو انتخاب کن.',
+  },
+};
+
+function Interstitial({ route, navigate, back }) {
+  const item = INTERSTITIALS[route];
   return (
-    <Shell theme="dark" back={back} className="research-screen">
-      <PageHeader
-        title="همراه با کمک پژوهش‌های علمی طراحی شده."
-        description="پژوهش‌های مرتبط با همراه"
-      />
-      <div className="research-logos" aria-label="مراکز پژوهشی">
-        <span className="university-wordmark">نورث‌وسترن</span>
-        <span className="university-lockup"><Flame size={34} /><b>دانشگاه نیویورک</b></span>
-        <span className="university-wordmark stanford">استنفورد</span>
-        <span className="university-lockup virginia"><Landmark size={34} /><b>دانشگاه ویرجینیا</b></span>
+    <Shell theme="dark" back={back} className="interstitial-screen">
+      <PageHeader title={item.title} description={item.description} />
+      <div className="screen-art screen-art--tall">
+        <LightStudy scene={item.scene} />
       </div>
-      <div className="press-strip" aria-label="رسانه‌ها">
-        <span>تایمز</span><span>فوربس</span><span>وال‌استریت ژورنال</span>
-      </div>
-      <PrimaryButton light onClick={() => nextFrom('research', navigate)}>ادامه</PrimaryButton>
+      <PrimaryButton onClick={() => nextFrom(route, navigate)}>ادامه</PrimaryButton>
     </Shell>
   );
 }
 
-function Experts({ navigate, back }) {
-  return (
-    <Shell theme="dark" back={back} className="experts-screen">
-      <PageHeader title="با کمک متخصصان" />
-      <div className="experts-gallery">
-        <article className="expert-card">
-          <img src="/assets/expert-man.jpg" alt="یکی از متخصصان تیم" />
-          <div><strong>دکتر آرش نادری</strong><span>متخصص سلامت روان</span></div>
-        </article>
-        <article className="expert-card">
-          <img src="/assets/expert-woman.jpg" alt="مدیر پژوهش بالینی" />
-          <div><strong>دکتر سارا احمدی</strong><span>مدیر پژوهش بالینی</span></div>
-        </article>
-      </div>
-      <PrimaryButton light onClick={() => nextFrom('experts', navigate)}>ادامه</PrimaryButton>
-    </Shell>
-  );
-}
+/* ---------- Name ---------- */
 
 function NameScreen({ navigate, back, name, setName, profileEdit = false, savingProfile = false, onSaveName, onSaveOnboardingName }) {
   const submit = (event) => {
@@ -118,7 +143,7 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
   };
   return (
     <Shell back={back} className="name-screen">
-      <PageHeader title="دوست داری چی صدات کنم؟" description="با همین اسم صدات می‌کنم." />
+      <PageHeader title="چی صدات کنم؟" description="با همین اسم صدات می‌کنم." />
       <form onSubmit={submit}>
         <label className="sr-only" htmlFor="name">اسمت</label>
         <input
@@ -136,78 +161,8 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
   );
 }
 
-const INTERSTITIALS = {
-  'simple-intro': {
-    title: 'اول چند سؤال ساده بپرسم.',
-    description: 'جواب‌هات کمک می‌کنن بهتر بشناسمت.',
-    art: 'small',
-  },
-  'deeper-intro': {
-    title: 'حالا بیشتر دربارهٔ خودت بگو.',
-    description: 'با چند سؤال کوتاه کمکم کن بفهمم چرا اینجایی و چه چیزهایی برات مهم‌ترن.',
-    art: 'medium',
-  },
-  'know-intro': {
-    title: 'بذار بیشتر بشناسمت.',
-    description: '',
-    art: 'large',
-  },
-  'almost-intro': {
-    title: 'دیگه چیزی نمونده!',
-    description: 'حالا صدا و سبک حرف زدنم رو انتخاب کن.',
-    art: 'tall',
-  },
-};
+/* ---------- Age: a physical wheel ---------- */
 
-function Interstitial({ route, navigate, back }) {
-  const item = INTERSTITIALS[route];
-  return (
-    <Shell theme="dark" back={back} className={`interstitial-screen art-${item.art}`}>
-      <PageHeader title={item.title} description={item.description} />
-      <div className="interstitial-art artwork-wrap">
-        <img src={`/assets/flower-person-${item.art}.png`} alt="شخصیت گل‌مانند همراه" />
-      </div>
-      <PrimaryButton light onClick={() => nextFrom(route, navigate)}>ادامه</PrimaryButton>
-    </Shell>
-  );
-}
-
-function Privacy({ navigate, back, privacySharing = true, privacyLoading = false, privacySaving = false,
-  privacyLoaded = false, privacyError = false, onTogglePrivacy, onRetryPrivacy }) {
-  const sharing = privacySharing;
-  return (
-    <Shell back={back} className="privacy-screen">
-      <PageHeader
-        title="حریم خصوصی تو مهمه."
-        description="گفت‌وگوهات ذخیره می‌شن تا بعداً ادامه‌شون بدی."
-      />
-      <img className="privacy-art" src="/assets/privacy-flower.png" alt="گل با نشان قفل" />
-      <button
-        type="button"
-        className="privacy-card"
-        role="switch"
-        aria-checked={sharing}
-        aria-disabled={!privacyLoaded || privacyLoading || privacySaving}
-        disabled={!privacyLoaded || privacyLoading || privacySaving}
-        onClick={onTogglePrivacy}
-      >
-        <span className={`toggle ${sharing ? 'is-on' : ''}`} aria-hidden="true"><span /></span>
-        <span>اجازهٔ استفاده از گفت‌وگوها</span>
-      </button>
-      {privacyError && <div className="connected-notice" role="alert">
-        <p>تنظیمات حریم خصوصی در دسترس نیست. دوباره تلاش کن.</p>
-        <button type="button" onClick={onRetryPrivacy}>تلاش دوباره</button>
-      </div>}
-      <PrimaryButton onClick={() => nextFrom('privacy', navigate)}>ادامه</PrimaryButton>
-    </Shell>
-  );
-}
-
-// The age step is a physical wheel, not a list that re-stacks itself. One native
-// scroll container holds all ranges with snap points, so touch momentum,
-// trackpad and wheel input behave exactly like the platform. Every range is
-// scaled, tilted and faded from its live distance to the centre instead of
-// being placed with precomputed pixel offsets, so the selection glides.
 const AGE_RANGES = ['۵۵–۶۴', '۴۵–۵۴', '۳۵–۴۴', '۳۰–۳۴', '۲۵–۲۹', '۱۸–۲۴', 'کمتر از ۱۸'];
 const AGE_FALLBACK = '۲۵–۲۹';
 
@@ -225,7 +180,7 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
   const startIndexRef = useRef(startIndex);
   const activeRef = useRef(startIndex);
   // -1 means "nothing chosen yet": the visual default stays a preview and no
-  // answer is written until the user actually touches the wheel.
+  // answer is written until the person actually touches the wheel.
   const chosenRef = useRef(AGE_RANGES.includes(answers.age) ? startIndex : -1);
   const frameRef = useRef(0);
   const settleRef = useRef(0);
@@ -233,8 +188,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
   const dragRef = useRef(null);
   const draggedRef = useRef(false);
 
-  // A short tick is the physical feedback of passing a detent: the marker
-  // pulse and, where the platform allows it, a brief haptic tap.
   const tickFeedback = useCallback(() => {
     setTick((value) => value + 1);
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
@@ -272,9 +225,9 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
       if (!node) return;
       const distance = node.offsetTop + node.offsetHeight / 2 - center;
       const progress = Math.min(1, Math.abs(distance) / radius);
-      node.style.setProperty('--age-scale', (1 - 0.42 * progress ** 1.12).toFixed(3));
-      node.style.setProperty('--age-fade', (1 - 0.5 * progress).toFixed(3));
-      const tilt = Math.sign(distance) * progress * 12;
+      node.style.setProperty('--age-scale', (1 - 0.34 * progress ** 1.14).toFixed(3));
+      node.style.setProperty('--age-fade', (1 - 0.55 * progress).toFixed(3));
+      const tilt = Math.sign(distance) * progress * 9;
       node.style.setProperty('--age-tilt', `${(-tilt).toFixed(2)}deg`);
       if (Math.abs(distance) < nearestDistance) {
         nearestDistance = Math.abs(distance);
@@ -288,7 +241,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
     }
   }, [tickFeedback]);
 
-  // Answer is committed once the wheel settles, not on every pixel of movement.
   const commit = useCallback(() => {
     const index = activeRef.current;
     if (!interactedRef.current || chosenRef.current === index) return;
@@ -327,8 +279,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
   // for pointers. Touch keeps the platform's own momentum scrolling.
   const handlePointerDown = (event) => {
     interactedRef.current = true;
-    // A press always clears the "just dragged" guard, so the tap that follows
-    // is a real selection again on every input type.
     draggedRef.current = false;
     const wheel = wheelRef.current;
     if (!wheel || dragRef.current || event.pointerType !== 'mouse' || event.button !== 0) return;
@@ -336,8 +286,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
     const startY = event.clientY;
     const snap = wheel.style.scrollSnapType;
     const behavior = wheel.style.scrollBehavior;
-    // Snap and smooth scrolling are paused mid-drag so the wheel tracks the
-    // pointer one-to-one, then everything settles on release.
     wheel.style.scrollSnapType = 'none';
     wheel.style.scrollBehavior = 'auto';
     const move = (moveEvent) => {
@@ -365,9 +313,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
   useLayoutEffect(() => {
     const wheel = wheelRef.current;
     if (!wheel) return undefined;
-    // Half a viewport above the first range and below the last one, so both
-    // ends can reach the marker. Measured instead of a percentage height, which
-    // scroll containers do not resolve consistently.
     const sizeAndCenter = (index) => {
       const node = optionRefs.current[index];
       if (!node) return;
@@ -376,8 +321,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
     };
     sizeAndCenter(startIndexRef.current);
     paint();
-    // Keep the chosen range under the marker when the viewport, keyboard or
-    // orientation changes the wheel height.
     const observer = typeof ResizeObserver === 'function'
       ? new ResizeObserver(() => {
         sizeAndCenter(activeRef.current);
@@ -393,7 +336,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
     };
   }, [centeredOffset, paint]);
 
-  // Answers can change from outside this screen (back/forward through the flow).
   useEffect(() => {
     const index = AGE_RANGES.indexOf(answers.age);
     if (index < 0 || index === activeRef.current) return;
@@ -407,7 +349,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
     <Shell back={back} className="age-screen">
       <PageHeader title="چند سالته؟" description="بکش یا اسکرول کن تا بازهٔ سنیت رو انتخاب کنی." />
       <div className="age-stage">
-        <span key={`age-marker-${tick}`} className="age-marker" aria-hidden="true" />
         <div
           className="age-wheel"
           ref={wheelRef}
@@ -435,12 +376,15 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
           ))}
           <span className="age-wheel__pad" aria-hidden="true" />
         </div>
+        <span key={`age-marker-${tick}`} className="age-marker" aria-hidden="true" />
       </div>
       <p className="sr-only" aria-live="polite">{`بازهٔ انتخاب‌شده: ${AGE_RANGES[active]}`}</p>
       <PrimaryButton onClick={() => nextFrom('age', navigate)}>ادامه</PrimaryButton>
     </Shell>
   );
 }
+
+/* ---------- Questions ---------- */
 
 function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
   const advanceTimer = useRef(null);
@@ -483,7 +427,6 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
       </div>
       {config.type === 'multi' && (
         <PrimaryButton
-          className={config.skip ? 'with-skip' : ''}
           disabled={!hasSelection && !config.allowEmpty}
           onClick={() => nextFrom(route, navigate)}
         >{config.confirmLabel || 'ادامه'}</PrimaryButton>
@@ -495,9 +438,8 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
   );
 }
 
-// Deliberately drawn as native SVG, not screenshots, so it stays sharp and
-// changes smoothly at all five mood positions. Direction follows the reference:
-// left is struggling and right is generally good, regardless of page RTL.
+/* ---------- Mood: one line that loosens ---------- */
+
 const MOODS = [
   { label: 'این روزها سخت می‌گذره', note: 'آروم و قدم‌به‌قدم پیش می‌ریم.' },
   { label: 'انرژی زیادی ندارم', note: 'فعلاً از چیزهای ساده شروع می‌کنیم.' },
@@ -506,39 +448,13 @@ const MOODS = [
   { label: 'در کل حالم خوبه', note: 'چه خوب! بیا بیشتر ازش بگیم.' },
 ];
 
-function MoodScribble({ level }) {
-  // A continuous hand-drawn contour evolves from angular and tangled to round.
-  const path = React.useMemo(() => {
-    const points = [];
-    const turns = [9.5, 7.4, 5.0, 3.0, 2.2][level];
-    const count = 430;
-    for (let i = 0; i <= count; i++) {
-      const progress = i / count;
-      const theta = progress * turns * Math.PI * 2;
-      const rough = level <= 1 ? (1 + 0.24 * Math.sin(theta * 2.7) + 0.12 * Math.cos(theta * 4.3)) : 1;
-      const radius = (0.45 + progress * 0.50) * rough;
-      const tilt = level === 4 ? 0.15 : 0.38;
-      const x = 170 + 113 * radius * Math.cos(theta + tilt) + (level === 2 ? 13 * Math.sin(theta * 0.4) : 0);
-      const y = 150 + 105 * radius * Math.sin(theta) + (level === 0 ? 12 * Math.sin(theta * 1.5) : 0);
-      points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`);
-    }
-    return points.join(' ');
-  }, [level]);
-  return (
-    <svg className="mood-scribble" viewBox="0 0 340 300" aria-hidden="true" focusable="false">
-      <path d={path} fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 function MoodScreen({ navigate, back, answers, setAnswer }) {
   const mood = Number.isInteger(answers.mood) && answers.mood >= 0 && answers.mood <= 4 ? answers.mood : 2;
   return (
-    <Shell back={back} className="mood-screen">
-      <PageHeader title="این روزها چه حسی داشتی؟" description="نوار رو بکش تا به حالت نزدیک‌تر بشه." />
+    <Shell theme="dark" back={back} className="mood-screen">
+      <PageHeader title="این روزها چه حسی داری؟" />
       <div className="mood-stage">
-        <div className="mood-glow" aria-hidden="true" />
-        <MoodScribble level={mood} />
+        <MoodLight level={mood} />
         <h2 aria-live="polite">{MOODS[mood].label}</h2>
         <div className="mood-slider-wrap" dir="ltr">
           <div className="mood-ticks" aria-hidden="true">
@@ -555,24 +471,30 @@ function MoodScreen({ navigate, back, answers, setAnswer }) {
   );
 }
 
+/* ---------- Check-ins ---------- */
+
 function CheckinsScreen({ navigate, back }) {
   return (
     <Shell back={back} className="checkins-screen">
-      <PageHeader title="یه یادآوری، درست وقتی لازمه." description="همراه می‌تونه گاهی حالت رو بپرسه. هر وقت بخوای می‌تونی یادآوری‌ها رو خاموش کنی." />
-      <div className="checkins-art" aria-hidden="true">
-        <img src="/assets/checkins-handdrawn.svg" alt="" />
+      <PageHeader title="یه یادآوری، درست وقتی لازمه." description="تیا می‌تونه گاهی حالت رو بپرسه. هر وقت بخوای می‌تونی یادآوری‌ها رو خاموش کنی." />
+      <div className="screen-art">
+        <LightStudy scene="checkins" />
       </div>
       <PrimaryButton onClick={() => nextFrom('checkins', navigate)}>ادامه</PrimaryButton>
     </Shell>
   );
 }
 
+/* ---------- Voice ---------- */
+
 function VoiceScreen({ navigate, back, answers, setAnswer }) {
   const initial = Math.max(0, VOICES.findIndex((item) => item.name === answers.voice));
   const [active, setActive] = useState(initial);
   const [drag, setDrag] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const [cardMetrics, setCardMetrics] = useState({ width: 210, step: 224 });
+  const [base, setBase] = useState(0);
+  const [cardMetrics, setCardMetrics] = useState({ width: 188, step: 202 });
+  const carouselRef = useRef(null);
   const trackRef = useRef(null);
   const cardRefs = useRef([]);
   const activeRef = useRef(initial);
@@ -581,15 +503,15 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
   const lastWheelRef = useRef(-Infinity);
   const voice = VOICES[active];
 
-  // Offset measurements use layout sizes, not transformed bounding boxes.
-  // Recalculate at responsive breakpoints so the centered card never drifts.
+  // Offsets are measured from layout, never from transforms, so interrupting a
+  // snap or resizing never shifts the centred card.
   useLayoutEffect(() => {
     const measure = () => {
       const first = cardRefs.current[0];
       const second = cardRefs.current[1];
       if (!first) return;
       const width = first.offsetWidth;
-      const step = second ? second.offsetLeft - first.offsetLeft : width + 14;
+      const step = second ? Math.abs(second.offsetLeft - first.offsetLeft) : width + 14;
       setCardMetrics((previous) => previous.width === width && previous.step === step
         ? previous : { width, step });
     };
@@ -603,10 +525,16 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
     };
   }, []);
 
+  useLayoutEffect(() => {
+    const card = cardRefs.current[active];
+    const carousel = carouselRef.current;
+    if (!card || !carousel) return;
+    setBase(carousel.clientWidth / 2 - (card.offsetLeft + card.offsetWidth / 2));
+  }, [active, cardMetrics]);
+
   const select = (index) => {
     const next = Math.max(0, Math.min(VOICES.length - 1, index));
     if (next === activeRef.current) {
-      // Tapping the already-centered default voice must still save that choice.
       if (answers.voice !== VOICES[next].name) setAnswer('voice', VOICES[next].name);
       return;
     }
@@ -618,15 +546,8 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
   const onPointerDown = (event) => {
     if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
     suppressClickRef.current = false;
-    // If a second gesture interrupts an in-flight snap, begin from the
-    // visible position rather than jumping to the pending destination.
-    const transform = trackRef.current ? window.getComputedStyle(trackRef.current).transform : 'none';
-    const visualX = transform === 'none' || typeof DOMMatrixReadOnly === 'undefined'
-      ? null : new DOMMatrixReadOnly(transform).m41;
-    const targetX = -activeRef.current * cardMetrics.step - cardMetrics.width / 2;
     gestureRef.current = {
       id: event.pointerId, x: event.clientX, y: event.clientY,
-      residual: visualX === null ? 0 : visualX - targetX,
       startTime: event.timeStamp, axis: null,
       samples: [{ x: event.clientX, time: event.timeStamp }],
     };
@@ -647,7 +568,7 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
     if (gesture.axis !== 'x') return;
     // The browser handles vertical page gestures; horizontal movement is ours.
     // At either end, add gentle resistance instead of revealing empty space.
-    setDrag(gesture.residual + resistVoiceDrag(dx, activeRef.current, VOICES.length));
+    setDrag(resistVoiceDrag(dx, activeRef.current, VOICES.length));
     gesture.samples.push({ x: event.clientX, time: event.timeStamp });
     gesture.samples = gesture.samples.filter((sample) => event.timeStamp - sample.time <= 100);
   };
@@ -693,24 +614,21 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
   };
 
   const focusIndex = active - drag / Math.max(1, cardMetrics.step);
-  const offset = drag - active * cardMetrics.step - cardMetrics.width / 2;
+  const offset = base + drag;
 
   return (
     <Shell theme="dark" back={back} className="voice-screen">
-      <PageHeader title="دوست داری چه صدایی داشته باشم؟" />
+      <PageHeader title="تیا با چه صدایی حرف بزنه؟" description="این صداها فعلاً فقط برای حس‌وحال انتخابن، پخش صوتی نداریم." />
       <div
         className={`voice-carousel ${dragging ? 'is-dragging' : ''}`}
-        dir="ltr"
+        ref={carouselRef}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={finishGesture}
         onPointerCancel={(event) => finishGesture(event, true)}
         onLostPointerCapture={(event) => finishGesture(event, true)}
         onClickCapture={(event) => {
-          if (!suppressClickRef.current) return;
-          event.preventDefault();
-          event.stopPropagation();
-          suppressClickRef.current = false;
+          if (suppressClickRef.current) { event.preventDefault(); event.stopPropagation(); suppressClickRef.current = false; }
         }}
         onWheel={onWheel}
         onKeyDown={onKeyDown}
@@ -729,8 +647,8 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
                 className={`voice-card ${index === active ? 'is-active' : ''}`}
                 tabIndex={index === active ? 0 : -1}
                 style={dragging ? {
-                  opacity: 0.55 + 0.45 * proximity,
-                  transform: `scale(${0.92 + 0.08 * proximity})`,
+                  opacity: 0.5 + 0.5 * proximity,
+                  transform: `scale(${0.93 + 0.07 * proximity})`,
                 } : undefined}
                 onClick={() => select(index)}
                 aria-pressed={index === active}
@@ -741,7 +659,7 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
                   <strong>{item.name}</strong>
                   <small>{item.description}</small>
                 </span>
-                {index === active && <span className="voice-card-check" aria-hidden="true"><Check size={16} /></span>}
+                {index === active && <span className="voice-card-check" aria-hidden="true"><Check size={13} strokeWidth={2.4} /></span>}
               </button>
             );
           })}
@@ -752,6 +670,8 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
     </Shell>
   );
 }
+
+/* ---------- Approach: one shared prompt, five ways of listening ---------- */
 
 function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = false, savingProfile = false, onSaveApproach }) {
   const initial = answers.approach ? Math.max(0, APPROACHES.findIndex((item) => item.name === answers.approach)) : 2;
@@ -788,8 +708,6 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
     const dx = event.clientX - start.x;
     const velocity = Math.abs(dx) / Math.max(1, event.timeStamp - start.time);
     const distance = Math.max(1, event.currentTarget.querySelector('.approach-replies')?.clientWidth || 320);
-    // Only commit on release. During the gesture both the active reply and the
-    // incoming neighboring reply follow the finger at the same pixel offset.
     if (Math.abs(dx) > distance * 0.24 || (Math.abs(dx) > 24 && velocity > 0.5)) {
       select(selectedIndex.current + (dx < 0 ? 1 : -1));
     }
@@ -823,8 +741,6 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
           const atEdge = (dx < 0 && selectedIndex.current === APPROACHES.length - 1) || (dx > 0 && selectedIndex.current === 0);
           const distance = Math.max(1, event.currentTarget.querySelector('.approach-replies')?.clientWidth || 320);
           setDragging(true);
-          // Full 1:1 tracking reveals the next reply progressively. Apply
-          // resistance only at the first/last style where no neighbor exists.
           const offset = atEdge ? Math.max(-42, Math.min(42, dx * 0.16)) : Math.max(-distance, Math.min(distance, dx));
           setDrag(offset);
         }}
@@ -834,11 +750,11 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
       >
         <div className="approach-picker">
           <button type="button" className="approach-direction" aria-label="سبک قبلی" disabled={active === 0 || savingProfile} onClick={() => select(active - 1)}>
-            <ChevronRight size={18} strokeWidth={1.5} aria-hidden="true" />
+            <ChevronRight size={17} strokeWidth={1.5} aria-hidden="true" />
           </button>
           <h2 id="approach-style">{approach.label || approach.name}</h2>
           <button type="button" className="approach-direction" aria-label="سبک بعدی" disabled={active === APPROACHES.length - 1 || savingProfile} onClick={() => select(active + 1)}>
-            <ChevronLeft size={18} strokeWidth={1.5} aria-hidden="true" />
+            <ChevronLeft size={17} strokeWidth={1.5} aria-hidden="true" />
           </button>
           <span id="approach-keyboard-hint" className="sr-only">با کلیدهای جهت چپ و راست هم می‌تونی سبک رو تغییر بدی.</span>
         </div>
@@ -854,7 +770,7 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
               aria-hidden={index !== active}
               inert={index !== active}
             >
-              <span className="approach-mark" aria-hidden="true"><Flower2 size={18} strokeWidth={1.4} /></span>
+              <span className="approach-mark" aria-hidden="true"><TheiaMark size={19} color="var(--ember-deep)" /></span>
               <p className="approach-response">{item.exampleResponse || item.response}</p>
             </article>
           ))}
@@ -883,34 +799,110 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
   );
 }
 
+/* ---------- Ready ---------- */
+
 function Ready({ navigate, savingProfile = false }) {
   return (
     <Shell className="ready-screen">
-      <PageHeader
-        title="من آماده‌ام!"
-        description=""
-      />
-      <div className="ready-art artwork-wrap"><img src="/assets/ready-daisy.png" alt="گل همراه در حال قدم‌زدن" /></div>
+      <PageHeader title="از اینجا شروع می‌شه." description="من همین‌جام؛ هر وقت خواستی حرف بزنیم." />
+      <div className="screen-art screen-art--wide">
+        <LightStudy scene="ready" />
+      </div>
       <PrimaryButton disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>{savingProfile ? 'در حال ذخیره…' : 'شروع گفت‌وگو'}</PrimaryButton>
     </Shell>
   );
 }
 
+/* ---------- Legacy info routes, rewritten honestly for the new brand ---------- */
+
+function About({ navigate, back }) {
+  return (
+    <Shell back={back} className="about-screen">
+      <PageHeader title="دربارهٔ تیا" description="یک همراه آرام برای حرف زدن؛ بدون قضاوت و بدون قولِ معجزه." />
+      <div className="screen-art">
+        <LightStudy scene="horizon" />
+      </div>
+      <div className="about-body">
+        <p>تیا درمانگر نیست و تشخیص نمی‌دهد. اگر حالت خوب نیست، حرف زدن با یک متخصص یا یک آدم قابل‌اعتماد همیشه گزینهٔ درستی است.</p>
+        <ul className="about-list">
+          <li>تو را به خوشحالی مجبور نمی‌کند؛ فقط کمک می‌کند ببینی.</li>
+          <li>در موقعیت بحرانی: اورژانس اجتماعی ۱۲۳ یا یک آدم قابل‌اعتماد.</li>
+        </ul>
+      </div>
+      <PrimaryButton onClick={() => navigate('home')}>برگشت</PrimaryButton>
+    </Shell>
+  );
+}
+
+function Voices({ back, title, description, paragraphs, action, onAction }) {
+  return (
+    <Shell theme="dark" back={back} className="about-screen">
+      <PageHeader title={title} description={description} />
+      <div className="screen-art">
+        <LightStudy scene="almost" />
+      </div>
+      <div className="about-body">
+        {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+      </div>
+      {action && <PrimaryButton light onClick={onAction}>{action}</PrimaryButton>}
+    </Shell>
+  );
+}
+
+function Testimonials({ navigate, back }) {
+  return (
+    <Voices
+      back={back}
+      title="حرفِ آدم‌ها"
+      description="اینجا هنوز حرفی از کسی نیست."
+      paragraphs={[
+        'تیا تازه شروع کرده و ترجیح می‌دهد به‌جای ساختنِ تعریف‌های تازه، اول کارش را درست انجام بدهد.',
+        'اگر روزی کسی بخواهد تجربه‌اش را به اشتراک بگذارد، فقط با اجازهٔ خودش اینجا می‌آید.',
+      ]}
+      action="ادامه"
+      onAction={() => navigate('home')}
+    />
+  );
+}
+
+function Research({ navigate, back }) {
+  return <About navigate={navigate} back={back} />;
+}
+
+function Experts({ navigate, back }) {
+  return (
+    <Voices
+      back={back}
+      title="پشتِ تیا"
+      description="یک تیم کوچک، بی‌عجله."
+      paragraphs={[
+        'تیا با یک تیم کوچک طراحی و ساخته می‌شود. اسم‌ها و همکاری‌ها وقتی نهایی شوند، همین‌جا با جزئیات می‌آیند.',
+        'تا آن روز، هیچ مدرک، تأییدیه یا همکاری‌ای را ادعا نمی‌کنیم.',
+      ]}
+      action="ادامه"
+      onAction={() => navigate('home')}
+    />
+  );
+}
+
 export default function OnboardingScreen(props) {
   const { route } = props;
-  if (route === 'welcome') return <Welcome {...props} />;
-  if (route === 'testimonials') return <Testimonials {...props} />;
-  if (route === 'research') return <Research {...props} />;
-  if (route === 'experts') return <Experts {...props} />;
-  if (route === 'name') return <NameScreen {...props} />;
-  if (INTERSTITIALS[route]) return <Interstitial {...props} />;
-  if (route === 'privacy') return <Privacy {...props} />;
-  if (route === 'age') return <AgeScreen {...props} />;
-  if (route === 'mood') return <MoodScreen {...props} />;
-  if (route === 'checkins') return <CheckinsScreen {...props} />;
-  if (QUESTIONS[route]) return <QuestionScreen {...props} />;
-  if (route === 'voice') return <VoiceScreen {...props} />;
-  if (route === 'approach') return <ApproachScreen {...props} />;
-  if (route === 'ready') return <Ready {...props} />;
-  return null;
+  const index = FLOW.filter((item) => item !== 'home').indexOf(route);
+  const progress = index >= 0 ? Math.min(0.99, (index + 1) / ONBOARDING_LENGTH) : 0;
+  let screen = null;
+  if (route === 'welcome') screen = <Welcome {...props} />;
+  else if (route === 'testimonials') screen = <Testimonials {...props} />;
+  else if (route === 'research') screen = <Research {...props} />;
+  else if (route === 'experts') screen = <Experts {...props} />;
+  else if (route === 'name') screen = <NameScreen {...props} />;
+  else if (INTERSTITIALS[route]) screen = <Interstitial {...props} />;
+  else if (route === 'privacy') screen = <Privacy {...props} />;
+  else if (route === 'age') screen = <AgeScreen {...props} />;
+  else if (route === 'mood') screen = <MoodScreen {...props} />;
+  else if (route === 'checkins') screen = <CheckinsScreen {...props} />;
+  else if (QUESTIONS[route]) screen = <QuestionScreen {...props} />;
+  else if (route === 'voice') screen = <VoiceScreen {...props} />;
+  else if (route === 'approach') screen = <ApproachScreen {...props} />;
+  else if (route === 'ready') screen = <Ready {...props} />;
+  return <ProgressContext.Provider value={progress}>{screen}</ProgressContext.Provider>;
 }
