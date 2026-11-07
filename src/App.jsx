@@ -16,8 +16,9 @@ import { conversationApi } from './features/conversation/api';
 import { createConversationStore } from './features/conversation/store';
 import { createLetterStore } from './features/letters/store';
 import { letterApi } from './features/letters/api';
+import { loadReadLetterIds, markReadLetter } from './features/letters/readingState';
 
-const DEFAULT_BACK = { home: 'welcome', survey: 'menu', day: 'home', letter: 'home', history: 'home', menu: 'home', chat: 'home', insight: 'home' };
+const DEFAULT_BACK = { home: 'welcome', settings: 'menu', survey: 'menu', day: 'home', letter: 'home', history: 'home', saved: 'menu', menu: 'home', chat: 'home', insight: 'home' };
 function routeFromHash() {
   const route = window.location.hash.replace(/^#\/?/, '').split('/')[0];
   return VALID_ROUTES.has(route) ? route : 'welcome';
@@ -28,6 +29,7 @@ function replaceRoute(route) {
 
 export default function App() {
   const [route, setRoute] = useState(routeFromHash);
+  const [savedMessageTarget, setSavedMessageTarget] = useState(null);
   const [name, setName] = useState('');
   const [answers, setAnswers] = useState({});
   const [onboardingGreeting, setOnboardingGreeting] = useState('');
@@ -90,9 +92,20 @@ export default function App() {
   const [chat, setChat] = useState(chatStore.getState);
   const [privacy, setPrivacy] = useState(privacyStore.getState);
   const [letters, setLetters] = useState(letterStore.getState);
+  const [letterReads, setLetterReads] = useState({ userId: null, ids: [] });
   const [profileSaving, setProfileSaving] = useState(false);
   const active = session.phase === 'authenticated' || session.phase === 'saving-profile';
   const complete = Boolean(session.profile?.onboardingCompletedAt);
+  const letterUserId = complete ? session.profile?.userId : null;
+  useEffect(() => {
+    setLetterReads({ userId: letterUserId, ids: loadReadLetterIds(letterUserId) });
+  }, [letterUserId]);
+  const onReadLetter = useCallback((letterId) => {
+    if (!letterUserId || !letterId) return;
+    const ids = markReadLetter(letterUserId, letterId);
+    setLetterReads(prev => prev.userId === letterUserId && prev.ids.includes(letterId)
+      ? prev : { userId: letterUserId, ids });
+  }, [letterUserId]);
 
   useEffect(() => {
     const unsubscribe = store.subscribe(setSession);
@@ -128,15 +141,13 @@ export default function App() {
   }, [privacyStore, active, session.profile?.userId]);
 
   useEffect(() => {
-    if (active && route === 'privacy') void privacyStore.load();
+    if (active && ['privacy', 'settings'].includes(route)) void privacyStore.load();
   }, [active, route, session.profile?.userId, privacyStore]);
 
   useEffect(() => {
     if (!active || !complete) return;
-    if (route === 'history') {
-      void chatStore.list();
-      void chatStore.listBookmarks();
-    }
+    if (route === 'history') void chatStore.list();
+    if (route === 'saved') void chatStore.listBookmarks();
     if (route === 'chat') {
       // Opening Chat resumes the current in-memory conversation, or restores the
       // latest server-owned conversation after reload. It never auto-creates one.
@@ -181,6 +192,12 @@ export default function App() {
     return () => controller.abort();
   }, [active, complete, session.profile?.userId, progressRetry]);
 
+  // A saved-message jump is ephemeral navigation state, not a URL or persisted record.
+  useEffect(() => {
+    if (route !== 'chat') setSavedMessageTarget(null);
+  }, [route]);
+  useEffect(() => { setSavedMessageTarget(null); }, [session.profile?.userId]);
+
   useEffect(() => {
     const onHashChange = () => setRoute(routeFromHash());
     window.addEventListener('hashchange', onHashChange);
@@ -199,7 +216,7 @@ export default function App() {
   useEffect(() => {
     if (!active) return;
     window.scrollTo(0, 0);
-    document.documentElement.style.colorScheme = ['home', 'survey', 'day', 'letter', 'history', 'menu', 'chat', 'insight', 'research', 'experts', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro', 'voice'].includes(route) ? 'dark' : 'light';
+    document.documentElement.style.colorScheme = ['home', 'survey', 'day', 'letter', 'history', 'saved', 'settings', 'menu', 'chat', 'insight', 'research', 'experts', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro', 'voice'].includes(route) ? 'dark' : 'light';
   }, [active, route]);
 
   // Keep the mobile composer above the visual viewport when the keyboard opens.
@@ -273,8 +290,34 @@ export default function App() {
   }, [profileSaving, store]);
   const saveName = useCallback(() => saveExistingProfile(name, session.profile?.conversationStyle || 'balanced'),
     [saveExistingProfile, name, session.profile?.conversationStyle]);
-  const saveApproach = useCallback((approach) => saveExistingProfile(session.profile?.displayName || name, styleForApproach(approach)),
-    [saveExistingProfile, name, session.profile?.displayName]);
+  const saveSettings = useCallback(async (displayName, conversationStyle) => {
+    const clean = validateDisplayName(displayName);
+    if (!clean || profileSaving) return false;
+    const version = identityVersion.current;
+    setProfileSaving(true);
+    try {
+      const success = await store.saveProfile(clean, conversationStyle);
+      if (identityVersion.current !== version || !success) return false;
+      setName(clean);
+      // Stay in Settings; changes are persisted in the existing profile API.
+      return true;
+    } finally {
+      if (identityVersion.current === version) setProfileSaving(false);
+    }
+  }, [profileSaving, store]);
+
+  // Reuse the original example-rich onboarding screen when changing the style
+  // from Settings. Save the selected style, then return to Settings directly.
+  const saveApproach = useCallback(async (approach) => {
+    if (backOverrides.current.approach !== 'settings') {
+      return saveExistingProfile(session.profile?.displayName || name, styleForApproach(approach));
+    }
+    const saved = await saveSettings(session.profile?.displayName || name, styleForApproach(approach));
+    if (!saved) { setToast('سبک گفت‌وگو ذخیره نشد. دوباره تلاش کن.'); return false; }
+    delete backOverrides.current.approach;
+    window.location.hash = '/settings';
+    return true;
+  }, [saveExistingProfile, saveSettings, session.profile?.displayName, name]);
 
   const navigate = useCallback((requestedTarget) => {
     if (!VALID_ROUTES.has(requestedTarget) || !active || (!complete && progressPhase !== 'ready')) return;
@@ -309,13 +352,18 @@ export default function App() {
         return;
       }
     }
-    if (route === 'menu' && ['name', 'approach', 'privacy', 'research', 'letter'].includes(target)) {
+    if (route === 'menu' && ['name', 'approach', 'privacy', 'research', 'letter', 'settings'].includes(target)) {
       backOverrides.current[target] = 'menu';
       if (target === 'name') setName(session.profile?.displayName || '');
       if (target === 'approach') setAnswers((previous) => ({ ...previous, approach: approachForStyle(session.profile?.conversationStyle) }));
     }
+    if (route === 'settings' && target === 'approach') {
+      backOverrides.current.approach = 'settings';
+      setAnswers((previous) => ({ ...previous, approach: approachForStyle(session.profile?.conversationStyle) }));
+    }
     if (route === 'chat' && target !== 'chat') setOnboardingGreeting('');
     if (target === route) return;
+    if (target !== 'chat') setSavedMessageTarget(null);
     window.location.hash = `/${target}`;
   }, [route, active, complete, progressPhase, finishProfile, store, session.profile?.userId, session.profile?.displayName, session.profile?.conversationStyle]);
 
@@ -363,7 +411,7 @@ export default function App() {
   const setAnswer = useCallback((key, value) => setAnswers((current) => ({ ...current, [key]: value })), []);
   const notify = useCallback((message) => setToast(message), []);
   const reset = useCallback(() => {
-    setAnswers({}); setOnboardingGreeting(''); chatStore.reset(); letterStore.reset(); setName(''); backOverrides.current = {};
+    setAnswers({}); setOnboardingGreeting(''); setSavedMessageTarget(null); chatStore.reset(); letterStore.reset(); setName(''); backOverrides.current = {};
     progressRequest.current?.abort();
     onboardingProgress.current = { userId: null, furthest: 0 };
     progressWritePending.current = false;
@@ -381,10 +429,23 @@ export default function App() {
 
   const openConversation = useCallback((id) => {
     if (!confirmLeavePendingTurn()) return false;
+    setSavedMessageTarget(null);
     void chatStore.open(id);
     window.location.hash = '/chat';
     return true;
   }, [chatStore, confirmLeavePendingTurn]);
+  const openSavedMessage = useCallback((item) => {
+    if (!item?.conversationId || !item?.id || !confirmLeavePendingTurn()) return false;
+    setSavedMessageTarget({ conversationId: item.conversationId, messageId: item.id });
+    void chatStore.open(item.conversationId);
+    window.location.hash = '/chat';
+    return true;
+  }, [chatStore, confirmLeavePendingTurn]);
+  const clearSavedMessageTarget = useCallback((handled) => {
+    setSavedMessageTarget((current) => current?.conversationId === handled.conversationId &&
+      current?.messageId === handled.messageId ? null : current);
+  }, []);
+
   const deleteConversation = useCallback(async (id) => {
     if (!window.confirm('گفت‌وگو حذف بشه؟ دیگه برنمی‌گرده.')) return;
     const ok = await chatStore.remove(id);
@@ -412,23 +473,29 @@ export default function App() {
     onRetryMessage: () => chatStore.retry(), onRetryChatLoad: retryChatLoad,
     onNewConversation: () => {
       if (!confirmLeavePendingTurn()) return false;
+      setSavedMessageTarget(null);
       setOnboardingGreeting('');
       return chatStore.startNew();
     },
-    onOpenConversation: openConversation, onDeleteConversation: deleteConversation,
+    onOpenConversation: openConversation, onOpenSavedMessage: openSavedMessage,
+    savedMessageTarget, onSavedMessageTargetDone: clearSavedMessageTarget, onDeleteConversation: deleteConversation,
     onRenameConversation: (id, title) => chatStore.rename(id, title),
     onReloadHistory: () => chatStore.list(),
     letterPhase: letters.phase, letters: letters.letters, letterError: letters.error,
+    readLetterIds: letterReads.userId === letterUserId ? letterReads.ids : loadReadLetterIds(letterUserId),
+    onReadLetter,
     letterGenerating: letters.generating, letterGenerationError: letters.generationError,
     letterDeletingId: letters.deletingId, letterDeletionError: letters.deletionError,
     onReloadLetters: () => letterStore.load(),
     onCreateLetter: () => letterStore.generate(),
     onDeleteLetter: (id) => letterStore.remove(id),
     notify, reset, savingProfile: profileSaving,
+    profileName: session.profile?.displayName || '', conversationStyle: session.profile?.conversationStyle || 'balanced',
+    onSaveSettings: saveSettings, onOpenStyle: () => navigate('approach'),
     privacySharing: privacy.enabled, privacyLoading: privacy.loading, privacySaving: privacy.saving,
     privacyLoaded: privacy.loaded, privacyError: privacy.error,
     onTogglePrivacy: () => privacyStore.toggle(), onRetryPrivacy: () => privacyStore.load(),
-    profileEdit: complete && ['name', 'approach'].includes(route) && backOverrides.current[route] === 'menu',
+    profileEdit: complete && ['name', 'approach'].includes(route) && ['menu', 'settings'].includes(backOverrides.current[route]),
     onSaveName: saveName, onSaveOnboardingName: saveOnboardingName, onSaveApproach: saveApproach,
     onLogout: () => store.leave(),
     onSwitchTester: () => store.leave(),

@@ -1,6 +1,6 @@
 import { FLOW, LEGACY_INFO_ROUTES } from '../../data.js';
 
-export const MAIN_ROUTES = Object.freeze(['home', 'survey', 'day', 'letter', 'history', 'menu', 'chat', 'insight']);
+export const MAIN_ROUTES = Object.freeze(['home', 'survey', 'day', 'letter', 'history', 'saved', 'settings', 'menu', 'chat', 'insight']);
 export const VALID_ROUTES = new Set([...FLOW, ...LEGACY_INFO_ROUTES, ...MAIN_ROUTES]);
 export const ONBOARDING_ROUTES = Object.freeze(FLOW.filter((route) => route !== 'home'));
 export const ACTIVE_ONBOARDING_ROUTES = ONBOARDING_ROUTES;
