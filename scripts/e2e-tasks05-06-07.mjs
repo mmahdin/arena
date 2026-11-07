@@ -81,15 +81,15 @@ try{
  const id=(await call('GET','/conversations')).body.items[0].id;
  const messages=(await call('GET',`/conversations/${id}/messages`)).body.items;assert.equal(messages.length,4);
  const mid=messages[1].id;
- async function toggle(label){await page.locator('.message-assistant .message-text').first().click({button:'right'});await page.getByRole('menuitem',{name:label,exact:true}).click();await page.locator('.message-actions').waitFor({state:'hidden'});}
- await page.locator('.message-assistant .message-text').first().click({button:'right'});
+ async function toggle(label){await page.locator('.message-assistant').first().hover();await page.getByRole('button',{name:label,exact:true}).first().click();await page.getByRole('button',{name:label==='ذخیره پیام'?'حذف از ذخیره‌شده‌ها':'ذخیره پیام',exact:true}).first().waitFor();}
+ await page.locator('.message-assistant').first().hover();
  await page.screenshot({path:`${directory}/chat-actions-390.png`});
- await page.getByRole('menuitem',{name:'ذخیره پیام',exact:true}).click();await page.locator('.message-actions').waitFor({state:'hidden'});
+ await page.getByRole('button',{name:'ذخیره پیام',exact:true}).first().click();await page.getByRole('button',{name:'حذف از ذخیره‌شده‌ها'}).first().waitFor();
  await history();await page.locator('.saved-history-entry').waitFor();
  await page.screenshot({path:`${directory}/history-saved-390.png`});
  await page.locator('.saved-history-entry').click();await page.locator('.message-assistant').nth(1).waitFor();
  await page.reload();await page.locator('.home-screen').waitFor();await history();await page.locator('.saved-history-entry').click();await page.locator('.message-assistant').nth(1).waitFor();
- await toggle('برداشتن از ذخیره‌شده‌ها');await history();await page.getByText('هنوز پیامی ذخیره نکرده‌ای.').waitFor();
+ await toggle('حذف از ذخیره‌شده‌ها');await history();await page.getByText('هنوز پیامی ذخیره نکرده‌ای.').waitFor();
  await page.locator('.history-row').click();await page.locator('.message-assistant').first().waitFor();await toggle('ذخیره پیام');
  await leave();await enter(a);await page.locator('.home-screen').waitFor();await history();await page.locator('.saved-history-entry').waitFor();
  await leave();await enter(b);await page.locator('.welcome-screen').waitFor();

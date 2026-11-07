@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ArrowDown,
+  ArrowUp,
   BarChart3,
   Bookmark,
   Check,
@@ -15,14 +16,12 @@ import {
   Mail,
   Menu as MenuIcon,
   MessageSquare,
-  MoreHorizontal,
   Pencil,
-  Play,
   Plus,
-  Send,
   Settings2,
   Share2,
   SlidersHorizontal,
+  Volume2,
 } from 'lucide-react';
 import {
   BackButton,
@@ -36,10 +35,6 @@ import { LETTER_KIND, SAMPLE_LETTER } from '../features/letters/model';
 const formatDate = (value) => {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? 'تاریخ نامشخص' : new Intl.DateTimeFormat('fa-IR', { month: 'short', day: 'numeric' }).format(date);
-};
-const formatTime = (value) => {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat('fa-IR', { hour: '2-digit', minute: '2-digit' }).format(date);
 };
 
 function Home({ navigate, name, underlay = false, activeConversation, letterPhase, letters = [] }) {
@@ -378,35 +373,74 @@ function Drawer({ navigate, name, notify, reset, onLogout, onSwitchTester }) {
   );
 }
 
-function MessageActions({ message, close, notify, saved, saving, bookmarkReady, onToggleBookmark }) {
-  const text = message.content;
+function MessageTools({ message, open, saved, saving, bookmarkReady, onToggleBookmark }) {
+  const assistant = message.role === 'assistant';
+  const [copied, setCopied] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const [flash, setFlash] = useState('');
+  const copyTimer = useRef(0);
+  const flashTimer = useRef(0);
+  const utterance = useRef(null);
+
+  const say = (text) => {
+    window.clearTimeout(flashTimer.current);
+    setFlash(text);
+    flashTimer.current = window.setTimeout(() => setFlash(''), 2200);
+  };
+  useEffect(() => () => {
+    window.clearTimeout(copyTimer.current);
+    window.clearTimeout(flashTimer.current);
+    if (utterance.current) window.speechSynthesis?.cancel();
+  }, []);
+
   const copy = async () => {
-    try { await navigator.clipboard.writeText(text); notify('پیام کپی شد.'); }
-    catch { notify('کپی پیام ممکن نیست.'); }
-    close();
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopied(true);
+      window.clearTimeout(copyTimer.current);
+      copyTimer.current = window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      say('کپی نشد');
+    }
   };
-  const readAloud = () => {
-    if ('speechSynthesis' in window && 'SpeechSynthesisUtterance' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'fa-IR';
-      window.speechSynthesis.speak(utterance);
-      notify('خواندن با صدای دستگاه شروع شد.');
-    } else notify('پخش صوتی روی این دستگاه ممکن نیست.');
-    close();
+  const speak = () => {
+    const synth = window.speechSynthesis;
+    if (!synth || !('SpeechSynthesisUtterance' in window)) { say('پخش صدا ممکن نیست'); return; }
+    if (speaking) { utterance.current = null; setSpeaking(false); synth.cancel(); return; }
+    synth.cancel();
+    const next = new SpeechSynthesisUtterance(message.content);
+    next.lang = 'fa-IR';
+    const finish = () => { if (utterance.current === next) { utterance.current = null; setSpeaking(false); } };
+    next.onend = finish;
+    next.onerror = finish;
+    utterance.current = next;
+    setSpeaking(true);
+    synth.speak(next);
   };
+  const toggleSave = async () => {
+    const wasSaved = saved;
+    const ok = await onToggleBookmark(message);
+    if (!ok) say(wasSaved ? 'حذف نشد' : 'ذخیره نشد');
+  };
+
   return (
-    <BottomSheet open onClose={close} title="گزینه‌های پیام" className="message-actions-sheet">
-      <div className="message-actions">
-        <button type="button" onClick={copy}><Copy size={21} /><span>کپی پیام</span></button>
-        <button type="button" onClick={readAloud}><Play size={21} /><span>خواندن با صدای دستگاه</span></button>
-        <button type="button" disabled={!bookmarkReady || saving} onClick={async () => {
-          const ok = await onToggleBookmark(message);
-          notify(ok ? (saved ? 'از ذخیره‌شده‌ها حذف شد.' : 'پیام ذخیره شد.') : 'پیام ذخیره نشد. دوباره تلاش کن.');
-          close();
-        }}><Bookmark size={21} fill={saved ? 'currentColor' : 'none'} /><span>{saving ? 'در حال ذخیره…' : saved ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره پیام'}</span></button>
+    <div className={`message-tools ${open ? 'is-open' : ''}`}>
+      <div className="message-tools-inner" role="group" aria-label="گزینه‌های پیام">
+        <button type="button" className={`message-tool ${copied ? 'is-done' : ''}`} onClick={copy} aria-label="کپی پیام" title="کپی پیام">
+          {copied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}
+        </button>
+        <button type="button" className={`message-tool message-tool--save ${saved ? 'is-saved' : ''} ${saving ? 'is-busy' : ''}`}
+          onClick={toggleSave} disabled={!bookmarkReady || saving}
+          aria-label={saved ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره پیام'} title={saved ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره پیام'}>
+          <Bookmark size={17} fill={saved ? 'currentColor' : 'none'} aria-hidden="true" />
+        </button>
+        <button type="button" className={`message-tool ${speaking ? 'is-speaking' : ''}`} onClick={speak}
+          aria-label={speaking ? 'توقف خواندن' : 'خواندن با صدای دستگاه'} title={speaking ? 'توقف خواندن' : 'خواندن با صدای دستگاه'}>
+          <Volume2 size={17} aria-hidden="true" />
+        </button>
+        {flash && <span className="message-flash" role="status">{flash}</span>}
       </div>
-    </BottomSheet>
+    </div>
   );
 }
 
@@ -423,8 +457,8 @@ function ConversationSheet({ open, onClose, conversations = [], conversationId, 
   return (
     <BottomSheet open={open} onClose={onClose} title="گفت‌وگوها" className="conversation-sheet">
       <button type="button" className="conversation-new" onClick={startNew} disabled={sending}>
-        <span className="conversation-new-icon"><Plus size={20} aria-hidden="true" /></span>
-        <span><strong>گفت‌وگوی جدید</strong><small>یک فضای جدا برای حرف‌های تازه</small></span>
+        <span className="conversation-new-icon"><Plus size={18} aria-hidden="true" /></span>
+        <strong>گفت‌وگوی جدید</strong>
       </button>
       <div className="conversation-list" aria-live="polite">
         {historyPhase === 'loading' && <p className="connected-status">در حال بارگذاری گفت‌وگوها…</p>}
@@ -435,12 +469,11 @@ function ConversationSheet({ open, onClose, conversations = [], conversationId, 
         {historyPhase === 'ready' && conversations.length === 0 && <p className="connected-status">هنوز گفت‌وگویی نداری.</p>}
         {conversations.map((item) => (
           <button type="button" key={item.id} className={`conversation-item ${item.id === conversationId ? 'is-active' : ''}`} onClick={() => openItem(item.id)} aria-current={item.id === conversationId ? 'true' : undefined}>
-            <span className="conversation-item-icon">{item.id === conversationId ? <Check size={18} aria-hidden="true" /> : <MessageSquare size={18} aria-hidden="true" />}</span>
             <span className="conversation-item-copy">
               <strong>{item.title || 'گفت‌وگوی بدون عنوان'}</strong>
               <small>{formatDate(item.updatedAt)}</small>
             </span>
-            <ChevronLeft size={18} aria-hidden="true" />
+            {item.id === conversationId && <i className="conversation-item-dot" aria-hidden="true" />}
           </button>
         ))}
       </div>
@@ -455,8 +488,8 @@ function ChatSkeleton() {
   return (
     <div className="chat-loading" role="status" aria-label="در حال بارگذاری پیام‌ها">
       <span className="sr-only">در حال بارگذاری پیام‌ها…</span>
-      <div className="chat-skeleton chat-skeleton--assistant" aria-hidden="true"><i /><i /><i /></div>
       <div className="chat-skeleton chat-skeleton--user" aria-hidden="true"><i /><i /></div>
+      <div className="chat-skeleton chat-skeleton--assistant" aria-hidden="true"><i /><i /><i /></div>
       <div className="chat-skeleton chat-skeleton--assistant" aria-hidden="true"><i /><i /><i /><i /></div>
     </div>
   );
@@ -469,14 +502,16 @@ function Chat({
   conversations = [], conversationId, activeConversation, historyPhase, historyError, onReloadHistory,
   onOpenConversation, chatDraft = '', onDraftChange,
 }) {
-  const [menuFor, setMenuFor] = useState(null);
+  // undefined → tools follow the latest assistant message; null → all closed; id → that message.
+  const [toolsFor, setToolsFor] = useState(undefined);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [showJump, setShowJump] = useState(false);
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
   const composerRef = useRef(null);
-  const pressTimer = useRef(null);
   const stickToBottom = useRef(true);
+  const knownIds = useRef(null);
+  const freshIds = useRef(new Set());
   const draft = chatDraft;
   const setDraft = (value) => onDraftChange?.(value);
 
@@ -507,11 +542,18 @@ function Chat({
   useEffect(() => {
     stickToBottom.current = true;
     setShowJump(false);
+    setToolsFor(undefined);
+    knownIds.current = null;
+    freshIds.current = new Set();
   }, [conversationId]);
   useEffect(() => {
     if (!chatLoading && stickToBottom.current) scrollToBottom(messages.length ? 'smooth' : 'auto');
   }, [messages, pendingTurn, sending, chatLoading]);
-  useEffect(() => () => window.clearTimeout(pressTimer.current), []);
+  useEffect(() => { setToolsFor(undefined); }, [messages.length]);
+  // Only messages that arrive after the thread is on screen get the entrance motion.
+  useEffect(() => {
+    knownIds.current = chatLoading ? null : new Set(messages.map((message) => message.id));
+  }, [messages, chatLoading]);
 
   const onScroll = () => {
     const node = scrollRef.current;
@@ -527,12 +569,19 @@ function Chat({
     setDraft('');
     void onSendMessage(clean);
   };
-  const pressStart = (id) => {
-    window.clearTimeout(pressTimer.current);
-    pressTimer.current = window.setTimeout(() => setMenuFor(id), 520);
+  const onComposerKeyDown = (event) => {
+    // Enter sends; Shift+Enter keeps the native new line. Never intercept IME composition.
+    if (event.key !== 'Enter' || event.shiftKey || event.altKey || event.nativeEvent.isComposing) return;
+    event.preventDefault();
+    send(draft);
   };
-  const pressEnd = () => window.clearTimeout(pressTimer.current);
-  const menuMessage = messages.find((message) => message.id === menuFor);
+
+  const lastAssistantId = [...messages].reverse().find((message) => message.role === 'assistant')?.id ?? null;
+  const openToolsId = toolsFor === undefined ? lastAssistantId : toolsFor;
+  const toggleTools = (id) => {
+    if (window.getSelection?.()?.toString()) return; // selecting text must not toggle anything
+    setToolsFor(openToolsId === id ? null : id);
+  };
   const title = activeConversation?.title || (conversationId ? 'گفت‌وگو' : 'گفت‌وگوی تازه');
   const sendDisabled = !draft.trim() || sending || Boolean(pendingTurn) || chatLoading;
 
@@ -541,13 +590,9 @@ function Chat({
       <StatusBar dark />
       <header className="chat-header">
         <BackButton dark onClick={() => navigate('home')} />
-        <button type="button" className="chat-title-button" onClick={() => setSheetOpen(true)} aria-haspopup="dialog" aria-expanded={sheetOpen}>
+        <button type="button" className="chat-title-button" onClick={() => setSheetOpen(true)} aria-haspopup="dialog" aria-expanded={sheetOpen} aria-label={`${title}، گفت‌وگوها`}>
           <span className="chat-title">{title}</span>
-          <small className="chat-subtitle">{conversationId ? 'برای ادامهٔ همین گفت‌وگو' : 'یک فضای تازه برای حرف‌ها'}</small>
           <ChevronDown size={16} aria-hidden="true" />
-        </button>
-        <button type="button" className="chat-history-button" onClick={() => setSheetOpen(true)} aria-label="گفت‌وگوها و گفت‌وگوی جدید">
-          <HistoryIcon size={21} aria-hidden="true" />
         </button>
       </header>
       <div className="messages-scroll" ref={scrollRef} onScroll={onScroll} role="log" aria-live="polite" aria-busy={chatLoading}>
@@ -559,50 +604,38 @@ function Chat({
           {chatLoading && <ChatSkeleton />}
           {!chatLoading && messages.length === 0 && !pendingTurn && !chatError && (onboardingGreeting ? (
             <div className="message-block message-assistant onboarding-welcome">
-              <span className="message-author"><Flower2 size={14} aria-hidden="true" /> همراه</span>
               <div className="message-text">
                 {onboardingGreeting.split(/\n\s*\n/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}
               </div>
             </div>
           ) : (
             <div className="chat-empty">
-              <Flower2 size={34} strokeWidth={1.4} aria-hidden="true" />
+              <Flower2 size={30} strokeWidth={1.3} aria-hidden="true" />
               <h2>اینجا می‌تونی راحت حرف بزنی.</h2>
-              <p>هر وقت آماده بودی، از هر چیزی که ذهنت رو مشغول کرده شروع کن.</p>
             </div>
           ))}
-          {messages.map((message, index) => {
-            const previous = messages[index - 1];
-            const next = messages[index + 1];
-            const showAuthor = message.role === 'assistant' && (!previous || previous.role !== message.role);
-            const lastInGroup = !next || next.role !== message.role;
+          {messages.map((message) => {
+            const assistant = message.role === 'assistant';
+            if (assistant && knownIds.current && !knownIds.current.has(message.id)) freshIds.current.add(message.id);
+            const open = openToolsId === message.id;
+            const saved = bookmarks.some((item) => item.id === message.id);
             return (
-              <div key={message.id} className={`message-block message-${message.role}`}>
-                {showAuthor && <span className="message-author"><Flower2 size={14} aria-hidden="true" /> همراه</span>}
-                <div className={`message-text ${menuFor === message.id ? 'is-highlighted' : ''}`}
-                  onContextMenu={(event) => { event.preventDefault(); if (message.role === 'assistant') setMenuFor(message.id); }}
-                  onPointerDown={() => message.role === 'assistant' && pressStart(message.id)}
-                  onPointerUp={pressEnd} onPointerCancel={pressEnd} onPointerMove={pressEnd}>
+              <div key={message.id} className={`message-block message-${message.role} ${assistant && freshIds.current.has(message.id) ? 'is-fresh' : ''} ${open ? 'is-open' : ''}`}>
+                <div className="message-text"
+                  onClick={assistant ? () => toggleTools(message.id) : undefined}>
                   {message.content.split(/\n\s*\n/).map((paragraph, pIndex) => <p key={pIndex}>{paragraph}</p>)}
                 </div>
-                <div className="message-meta">
-                  {lastInGroup && message.createdAt && <time dateTime={message.createdAt}>{formatTime(message.createdAt)}</time>}
-                  {message.role === 'assistant' && (
-                    <button type="button" className="message-more" onClick={() => setMenuFor(message.id)} aria-label="گزینه‌های پیام">
-                      <MoreHorizontal size={18} aria-hidden="true" />
-                    </button>
-                  )}
-                </div>
+                {assistant && <MessageTools message={message} open={open} saved={saved}
+                  saving={bookmarkBusyId === message.id} bookmarkReady={bookmarkPhase === 'ready'} onToggleBookmark={onToggleBookmark} />}
               </div>
             );
           })}
-          {pendingTurn && <div className="message-block message-user connected-pending">
+          {pendingTurn && <div className={`message-block message-user connected-pending ${sending ? 'is-sending' : ''}`}>
             <div className="message-text"><p>{pendingTurn.text}</p></div>
-            <small>{sending ? 'در حال ارسال…' : 'پیامت ارسال نشده.'}</small>
+            {!sending && <small>پیامت ارسال نشده.</small>}
           </div>}
           {sending && <div className="message-block message-assistant">
-            <span className="message-author"><Flower2 size={14} aria-hidden="true" /> همراه</span>
-            <div className="typing-indicator" aria-label="دارم جواب می‌دم…"><i /><i /><i /></div>
+            <div className="typing-indicator" role="status" aria-label="دارم جواب می‌دم…"><i /><i /><i /></div>
           </div>}
           {chatError && <div className="connected-notice" role="alert">
             <p>{chatError === 'TURN_ALREADY_PROCESSING' ? 'پاسخ قبلیت هنوز آماده نشده. دوباره تلاش کن.' : chatError === 'RESOURCE_NOT_FOUND' ? 'این گفت‌وگو در دسترس نیست.' : 'پاسخ نیومد. دوباره تلاش کن.'}</p>
@@ -616,25 +649,20 @@ function Chat({
           </div>}
         </div>
       </div>
-      {showJump && <button type="button" className="jump-to-latest" onClick={() => { stickToBottom.current = true; setShowJump(false); scrollToBottom(); }}>
-        <ArrowDown size={16} aria-hidden="true" /> آخرین پیام
-      </button>}
+      <button type="button" className={`jump-to-latest ${showJump ? 'is-visible' : ''}`} tabIndex={showJump ? 0 : -1} aria-hidden={!showJump} aria-label="آخرین پیام"
+        onClick={() => { stickToBottom.current = true; setShowJump(false); scrollToBottom(); }}>
+        <ArrowDown size={18} aria-hidden="true" />
+      </button>
       <form className="composer-wrap" ref={composerRef} onSubmit={(event) => { event.preventDefault(); send(draft); }}>
         <div className="composer">
           <textarea ref={inputRef} rows={1} wrap="soft" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={4000}
-            disabled={Boolean(pendingTurn) || chatLoading}
-            placeholder={sending ? 'همراه داره جواب می‌ده…' : 'پیامت رو بنویس…'} aria-label="متن پیام"
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.nativeEvent.isComposing) {
-                event.preventDefault();
-                send(draft);
-              }
-            }} />
-          <button type="submit" className="send-button" disabled={sendDisabled} aria-label="فرستادن پیام">
-            <Send size={20} aria-hidden="true" />
+            disabled={Boolean(pendingTurn) || chatLoading} enterKeyHint="send"
+            placeholder="پیامت رو بنویس…" aria-label="متن پیام"
+            onKeyDown={onComposerKeyDown} />
+          <button type="submit" className={`send-button ${sendDisabled ? '' : 'is-ready'}`} disabled={sendDisabled} aria-label="فرستادن پیام">
+            <ArrowUp size={20} strokeWidth={2.2} aria-hidden="true" />
           </button>
         </div>
-        <p className="composer-hint">Enter برای خط جدید · Ctrl+Enter برای ارسال</p>
       </form>
       <ConversationSheet
         open={sheetOpen}
@@ -649,9 +677,6 @@ function Chat({
         navigate={navigate}
         sending={sending}
       />
-      {menuMessage && <MessageActions message={menuMessage} close={() => setMenuFor(null)} notify={notify}
-        saved={bookmarks.some(item => item.id === menuMessage.id)}
-        saving={bookmarkBusyId === menuMessage.id} bookmarkReady={bookmarkPhase === 'ready'} onToggleBookmark={onToggleBookmark} />}
     </section>
   );
 }

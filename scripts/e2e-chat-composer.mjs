@@ -1,4 +1,4 @@
-/** Composer regression in the real local UI; no message or model requests. */
+/** Composer regression in the real local UI. The single send check aborts the turn request, so no model is called. */
 import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
@@ -11,7 +11,7 @@ try {
     const errors = [];
     const turns = [];
     page.on('pageerror', error => errors.push(error.message));
-    page.on('request', request => { if (request.url().endsWith('/turns')) turns.push(request.url()); });
+    await page.route('**/turns', route => { turns.push(route.request().url()); return route.abort(); });
     await page.goto('http://127.0.0.1:5173');
     await page.locator('#dev-phone').fill('09000000967');
     await page.getByRole('button', { name: 'ادامه', exact: true }).last().click();
@@ -29,12 +29,16 @@ try {
     await field.fill('متن‌بلندبدونفاصله'.repeat(35));
     assert.equal(await field.evaluate(node => node.scrollWidth <= node.clientWidth + 1), true);
     await field.fill('خط اول');
-    await field.press('Enter');
+    await field.press('Shift+Enter');
     await field.pressSequentially('خط دوم');
-    assert.equal(await field.inputValue(), 'خط اول\nخط دوم');
+    assert.equal(await field.inputValue(), 'خط اول\nخط دوم', 'Shift+Enter must insert a new line');
     await field.press('Shift+Enter');
     await field.pressSequentially('خط سوم');
     assert.equal(await field.inputValue(), 'خط اول\nخط دوم\nخط سوم');
+    assert.deepEqual(turns, [], 'Shift+Enter must never submit');
+    for (const selector of ['.composer-hint', '.message-author', '.chat-subtitle', '.chat-history-button']) {
+      assert.equal(await page.locator(selector).count(), 0, `${selector} must be removed`);
+    }
     await field.fill(text);
     await page.waitForFunction(() => {
       const messages = document.querySelector('.messages-scroll').getBoundingClientRect();
@@ -46,9 +50,14 @@ try {
     assert.equal(await field.inputValue(), text);
     await field.fill('');
     assert.equal((await field.boundingBox()).height, small, 'clearing must shrink the field');
-    assert.deepEqual(turns, [], 'typing or Enter unexpectedly submitted');
+    await field.press('Enter');
+    assert.deepEqual(turns, [], 'Enter on an empty draft must not submit');
+    await field.fill('سلام');
+    await field.press('Enter');
+    await page.waitForFunction(() => document.querySelector('.composer textarea').value === '');
+    assert.equal(turns.length, 1, 'Enter with text must submit exactly once');
     assert.deepEqual(errors, []);
     await page.close();
   }
-  console.log('PASS: Persian/continuous text wraps, bounded auto-height, vertical scrolling, Enter newlines, resize/clear and unobscured message area at mobile/desktop widths. No model calls.');
+  console.log('PASS: Persian/continuous text wraps, bounded auto-height, vertical scrolling, Enter sends and Shift+Enter inserts new lines, resize/clear and unobscured message area at mobile/desktop widths. No model calls.');
 } finally { await browser.close(); }

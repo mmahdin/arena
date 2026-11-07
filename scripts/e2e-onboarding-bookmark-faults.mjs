@@ -28,11 +28,11 @@ try{
  const id=(await call('GET','/conversations')).body.items[0].id;
  const bookmarks='**/api/v1/messages/*/bookmark';
  await page.route(bookmarks,r=>r.abort('internetdisconnected'));
- await page.locator('.message-assistant .message-text').click({button:'right'});await page.getByRole('menuitem',{name:'ذخیره پیام',exact:true}).click();
+ await page.getByRole('button',{name:'ذخیره پیام',exact:true}).first().click();
  await page.getByText('وضعیت پیام‌های ذخیره‌شده دریافت نشد.').waitFor();
  assert.equal((await call('GET','/me/bookmarks')).body.items.length,0);
  await page.unroute(bookmarks);await page.getByRole('button',{name:'تلاش دوباره',exact:true}).click();await page.getByText('وضعیت پیام‌های ذخیره‌شده دریافت نشد.').waitFor({state:'hidden'});
- await page.locator('.message-assistant .message-text').click({button:'right'});await page.getByRole('menuitem',{name:'ذخیره پیام',exact:true}).click();await page.locator('.message-actions').waitFor({state:'hidden'});
+ await page.getByRole('button',{name:'ذخیره پیام',exact:true}).first().click();await page.getByRole('button',{name:'حذف از ذخیره‌شده‌ها'}).first().waitFor();
  assert.equal((await call('GET','/me/bookmarks')).body.items.length,1);
  await call('DELETE',`/conversations/${id}`);
  assert.equal((await call('GET','/me/bookmarks')).body.items.length,0);

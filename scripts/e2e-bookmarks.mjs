@@ -39,8 +39,8 @@ try {
  const id=convs.body.items[0].id;
  const messages=await call(`/api/v1/conversations/${id}/messages`);
  assert.equal(messages.body.items.length,2);const savedId=messages.body.items[1].id;
- await page.locator('.message-assistant .message-text').first().click({button:'right'});
- await page.getByRole('menuitem',{name:'ذخیره پیام'}).click();
+ await page.locator('.message-assistant').first().hover();
+ await page.getByRole('button',{name:'ذخیره پیام'}).first().click();
  const saved=await call('/api/v1/me/bookmarks');assert.equal(saved.status,200);
  assert.ok(saved.body.items.some(item=>item.id===savedId));
  await page.reload();await page.locator('.home-screen').waitFor();
@@ -48,13 +48,13 @@ try {
  await page.locator('.saved-history-entry').first().waitFor();
  await page.locator('.saved-history-entry').first().click();
  await page.locator('.chat-screen .message-assistant').first().waitFor();
- await page.locator('.message-assistant .message-text').first().click({button:'right'});
- await page.getByRole('menuitem',{name:'برداشتن از ذخیره‌شده‌ها'}).click();
+ await page.locator('.message-assistant').first().hover();
+ await page.getByRole('button',{name:'حذف از ذخیره‌شده‌ها'}).first().click();
  const removed=await call('/api/v1/me/bookmarks');assert.equal(removed.status,200);
  assert.ok(!removed.body.items.some(item=>item.id===savedId));
  // Save again, switch account, and verify the new session sees no foreign saved message.
- await page.locator('.message-assistant .message-text').first().click({button:'right'});
- await page.getByRole('menuitem',{name:'ذخیره پیام'}).click();
+ await page.locator('.message-assistant').first().hover();
+ await page.getByRole('button',{name:'ذخیره پیام'}).first().click();
  await page.locator('.chat-header .back-button').click();
  await page.locator('.home-menu-button').click();
  await page.getByRole('button',{name:'تعویض کاربر آزمایشی'}).click();
