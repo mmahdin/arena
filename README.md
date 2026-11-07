@@ -1,3 +1,5 @@
+> **Active brand (2026-11-07):** Theia / تیا. The scoped visual identity is documented in `docs/design/THEIA_IDENTITY_2026_11.md`; historical Hamrah handoff notes below are retained for architecture/backend context.
+
 ## Connected chat/history (Task 03)
 
 Apply this incremental change only **after Task 02 v2 synthetic phone login**. Chat and History now use the existing Go/MSSQL JSON conversation endpoints; backend updates/migrations are not required for this slice. The original Hamrah CSS and artwork remain the UI authority. See `VALIDATION_REPORT.md`.

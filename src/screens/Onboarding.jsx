@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Check, ChevronLeft, ChevronRight, Flame, Flower2, Landmark } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Flame, Landmark } from 'lucide-react';
+import TheiaMark from '../components/TheiaMark';
 import { APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import { resistVoiceDrag, voiceSwipeTarget } from '../features/onboarding/voiceCarousel';
 import {
@@ -33,11 +34,11 @@ function Welcome({ navigate }) {
   return (
     <Shell className="welcome-screen">
       <PageHeader
-        title="با همراه آشنا شو"
-        description="همراه کمک می‌کنه دربارهٔ احساساتت حرف بزنی و خودت رو بهتر بشناسی."
+        title="با تیا آشنا شو"
+        description="تیا کمک می‌کنه دربارهٔ احساساتت حرف بزنی و خودت رو بهتر بشناسی."
       />
       <div className="welcome-art artwork-wrap">
-        <img src="/assets/welcome-figures.png" alt="دو شخصیت گل‌مانند دست‌در دست" />
+        <img src="/assets/theia/welcome.svg" alt="دو فرم آرام رو به هم؛ نقطه‌ای از نور میان آن‌ها روشن می‌شود" />
       </div>
       <PrimaryButton onClick={() => nextFrom('welcome', navigate)}>شروع</PrimaryButton>
     </Shell>
@@ -48,8 +49,8 @@ function Testimonials({ navigate, back }) {
   return (
     <Shell theme="beige" back={back} className="testimonials-screen scrolling-screen">
       <PageHeader
-        title="بقیه دربارهٔ همراه چی می‌گن؟"
-        description="نظر کاربران همراه"
+        title="بقیه دربارهٔ تیا چی می‌گن؟"
+        description="نظر کاربران تیا"
       />
       <div className="reviews-list">
         {REVIEWS.map((review) => (
@@ -72,8 +73,8 @@ function Research({ navigate, back }) {
   return (
     <Shell theme="dark" back={back} className="research-screen">
       <PageHeader
-        title="همراه با کمک پژوهش‌های علمی طراحی شده."
-        description="پژوهش‌های مرتبط با همراه"
+        title="تیا با کمک پژوهش‌های علمی طراحی شده."
+        description="پژوهش‌های مرتبط با تیا"
       />
       <div className="research-logos" aria-label="مراکز پژوهشی">
         <span className="university-wordmark">نورث‌وسترن</span>
@@ -141,21 +142,29 @@ const INTERSTITIALS = {
     title: 'اول چند سؤال ساده بپرسم.',
     description: 'جواب‌هات کمک می‌کنن بهتر بشناسمت.',
     art: 'small',
+    asset: 'simple-intro',
+    alt: 'نور کوچک به نخستین روزنهٔ باریک نزدیک می‌شود',
   },
   'deeper-intro': {
     title: 'حالا بیشتر دربارهٔ خودت بگو.',
     description: 'با چند سؤال کوتاه کمکم کن بفهمم چرا اینجایی و چه چیزهایی برات مهم‌ترن.',
     art: 'medium',
+    asset: 'deeper-intro',
+    alt: 'نور به سطحی آینه‌ای می‌رسد و بازتابی نرم پیدا می‌کند',
   },
   'know-intro': {
     title: 'بذار بیشتر بشناسمت.',
     description: '',
     art: 'large',
+    asset: 'know-intro',
+    alt: 'دو آینهٔ خمیده نور را میان خود نگه می‌دارند و روزنه‌ای روشن می‌سازند',
   },
   'almost-intro': {
     title: 'دیگه چیزی نمونده!',
     description: 'حالا صدا و سبک حرف زدنم رو انتخاب کن.',
     art: 'tall',
+    asset: 'almost-intro',
+    alt: 'نور از مسیری باریک بالا می‌رود و به افقی باز نزدیک می‌شود',
   },
 };
 
@@ -165,7 +174,7 @@ function Interstitial({ route, navigate, back }) {
     <Shell theme="dark" back={back} className={`interstitial-screen art-${item.art}`}>
       <PageHeader title={item.title} description={item.description} />
       <div className="interstitial-art artwork-wrap">
-        <img src={`/assets/flower-person-${item.art}.png`} alt="شخصیت گل‌مانند همراه" />
+        <img src={`/assets/theia/${item.asset}.svg`} alt={item.alt} />
       </div>
       <PrimaryButton light onClick={() => nextFrom(route, navigate)}>ادامه</PrimaryButton>
     </Shell>
@@ -181,7 +190,7 @@ function Privacy({ navigate, back, privacySharing = true, privacyLoading = false
         title="حریم خصوصی تو مهمه."
         description="گفت‌وگوهات ذخیره می‌شن تا بعداً ادامه‌شون بدی."
       />
-      <img className="privacy-art" src="/assets/privacy-flower.png" alt="گل با نشان قفل" />
+      <img className="privacy-art" src="/assets/theia/privacy.svg" alt="نقطه‌ای از نور در پناه دو قاب آرام" />
       <button
         type="button"
         className="privacy-card"
@@ -558,9 +567,9 @@ function MoodScreen({ navigate, back, answers, setAnswer }) {
 function CheckinsScreen({ navigate, back }) {
   return (
     <Shell back={back} className="checkins-screen">
-      <PageHeader title="یه یادآوری، درست وقتی لازمه." description="همراه می‌تونه گاهی حالت رو بپرسه. هر وقت بخوای می‌تونی یادآوری‌ها رو خاموش کنی." />
+      <PageHeader title="یه یادآوری، درست وقتی لازمه." description="تیا می‌تونه گاهی حالت رو بپرسه. هر وقت بخوای می‌تونی یادآوری‌ها رو خاموش کنی." />
       <div className="checkins-art" aria-hidden="true">
-        <img src="/assets/checkins-handdrawn.svg" alt="" />
+        <img src="/assets/theia/checkins.svg" alt="" />
       </div>
       <PrimaryButton onClick={() => nextFrom('checkins', navigate)}>ادامه</PrimaryButton>
     </Shell>
@@ -698,6 +707,7 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
   return (
     <Shell theme="dark" back={back} className="voice-screen">
       <PageHeader title="دوست داری چه صدایی داشته باشم؟" />
+      <p className="sr-only">پخش صوتی نداریم؛ این انتخاب فعلاً نمایشی است.</p>
       <div
         className={`voice-carousel ${dragging ? 'is-dragging' : ''}`}
         dir="ltr"
@@ -854,7 +864,7 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
               aria-hidden={index !== active}
               inert={index !== active}
             >
-              <span className="approach-mark" aria-hidden="true"><Flower2 size={18} strokeWidth={1.4} /></span>
+              <span className="approach-mark" aria-hidden="true"><TheiaMark size={18} /></span>
               <p className="approach-response">{item.exampleResponse || item.response}</p>
             </article>
           ))}
@@ -890,7 +900,7 @@ function Ready({ navigate, savingProfile = false }) {
         title="من آماده‌ام!"
         description=""
       />
-      <div className="ready-art artwork-wrap"><img src="/assets/ready-daisy.png" alt="گل همراه در حال قدم‌زدن" /></div>
+      <div className="ready-art artwork-wrap"><img src="/assets/theia/ready.svg" alt="نور به نشان تیا می‌رسد؛ دو نیمهٔ بازتابی با رشته‌ای روشن کنار هم قرار می‌گیرند" /></div>
       <PrimaryButton disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>{savingProfile ? 'در حال ذخیره…' : 'شروع گفت‌وگو'}</PrimaryButton>
     </Shell>
   );

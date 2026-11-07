@@ -1,11 +1,13 @@
 {
-  "name": "hamrah-mobile",
+  "name": "theia-mobile",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "preview:approach": "node scripts/approach-preview.mjs --host 0.0.0.0",
+    "preview:theia": "node scripts/theia-preview.mjs --host 0.0.0.0",
+    "brand:icons": "node scripts/generate-brand-icons.mjs",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
     "check:foundation": "node scripts/check-foundation.mjs",
@@ -25,7 +27,8 @@
     "test:e2e:reflections": "node scripts/e2e-daily-reflections.mjs",
     "test:e2e:calendar": "node scripts/e2e-jalali-calendar.mjs",
     "test:e2e:titles": "node scripts/e2e-conversation-titles.mjs",
-    "test:e2e:composer": "node scripts/e2e-chat-composer.mjs"
+    "test:e2e:composer": "node scripts/e2e-chat-composer.mjs",
+    "test:e2e:brand": "node scripts/e2e-theia-brand.mjs"
   },
   "dependencies": {
     "@fontsource-variable/estedad": "^5.3.0",
@@ -37,6 +40,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@vitejs/plugin-react": "^4.3.4",
     "playwright": "^1.64.1",
     "vite": "^6.1.0"

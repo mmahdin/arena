@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 418 372" role="img" aria-labelledby="t-checkins-title">
+  <title id="t-checkins-title">یادآوری آرام؛ موج‌های نرم از نقطه‌ای روشن باز می‌گردند و نامه‌ای کوچک نزدیک می‌شود</title>
+  <defs>
+    <radialGradient id="tc-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#f7ecd4" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#f7ecd4" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="tc-card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#faf8f3"/>
+      <stop offset="1" stop-color="#ece6db"/>
+    </linearGradient>
+  </defs>
+  <rect width="418" height="372" fill="#cec4b8"/>
+  <path d="M112 258a126 126 0 0 1 194 0" fill="none" stroke="#23201b" stroke-width="1.6" stroke-linecap="round" opacity=".22"/>
+  <path d="M140 238a92 92 0 0 1 138 0" fill="none" stroke="#23201b" stroke-width="1.7" stroke-linecap="round" opacity=".4"/>
+  <path d="M168 218a58 58 0 0 1 82 0" fill="none" stroke="#23201b" stroke-width="1.8" stroke-linecap="round" opacity=".65"/>
+  <circle cx="209" cy="186" r="70" fill="url(#tc-glow)"/>
+  <circle cx="209" cy="186" r="9.5" fill="#23201b"/>
+  <circle cx="209" cy="186" r="3.6" fill="#d7b98a"/>
+  <path d="M209 206v48" fill="none" stroke="#23201b" stroke-width="1.5" stroke-linecap="round" opacity=".3"/>
+  <g transform="rotate(6 276 146)">
+    <rect x="248" y="126" width="56" height="40" rx="10" fill="url(#tc-card)"/>
+    <path d="M254 134l22 15 22-15" fill="none" stroke="#23201b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
+    <circle cx="296" cy="128" r="4" fill="#d7b98a"/>
+  </g>
+</svg>

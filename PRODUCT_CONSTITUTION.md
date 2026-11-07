@@ -1,3 +1,5 @@
+> **2026-11-07:** the active product brand is **Theia / تیا**. The prior Hamrah/floral description is historical. The constitution’s preservation, safety, privacy and backend-truth rules continue to apply; see `docs/decisions/ADR-004-theia-visual-identity.md`.
+
 # Product Constitution — همراه / Hamrah
 
 ## The designer UI is the product-intent authority
