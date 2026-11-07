@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Check, ChevronLeft, ChevronRight, Flame, Flower2, Landmark } from 'lucide-react';
 import { APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
+import { resistVoiceDrag, voiceSwipeTarget } from '../features/onboarding/voiceCarousel';
 import {
   BackButton,
   ChoiceButton,
@@ -559,17 +560,7 @@ function CheckinsScreen({ navigate, back }) {
     <Shell back={back} className="checkins-screen">
       <PageHeader title="یه یادآوری، درست وقتی لازمه." description="همراه می‌تونه گاهی حالت رو بپرسه. هر وقت بخوای می‌تونی یادآوری‌ها رو خاموش کنی." />
       <div className="checkins-art" aria-hidden="true">
-        <svg viewBox="0 0 300 265" focusable="false">
-          <rect width="300" height="265" rx="18" fill="var(--beige)" />
-          <path d="M119 189 L106 110 Q107 59 151 55 Q194 49 207 108 L213 189Z" fill="#fff" />
-          <g fill="none" stroke="#211f1c" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M126 57 Q122 35 139 34 Q153 35 151 55" />
-            <path d="M102 192 Q152 177 238 160" />
-            <path d="M151 184 Q156 211 174 207 Q184 204 186 183" />
-            <path d="M212 68 Q220 53 234 59 Q250 55 258 70 Q274 80 260 91 Q267 105 251 108 Q241 123 225 111 Q207 118 202 103 Q187 92 201 82 Q198 72 212 68Z" />
-            <path d="M230 80 Q241 71 245 83 Q251 95 237 96 Q225 94 230 80Z" />
-          </g>
-        </svg>
+        <img src="/assets/checkins-handdrawn.svg" alt="" />
       </div>
       <PrimaryButton onClick={() => nextFrom('checkins', navigate)}>ادامه</PrimaryButton>
     </Shell>
@@ -577,90 +568,186 @@ function CheckinsScreen({ navigate, back }) {
 }
 
 function VoiceScreen({ navigate, back, answers, setAnswer }) {
-  const initial = Math.max(0, VOICES.findIndex((voice) => voice.name === answers.voice));
+  const initial = Math.max(0, VOICES.findIndex((item) => item.name === answers.voice));
   const [active, setActive] = useState(initial);
+  const [drag, setDrag] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [cardMetrics, setCardMetrics] = useState({ width: 210, step: 224 });
   const trackRef = useRef(null);
   const cardRefs = useRef([]);
-  const scrollFrame = useRef(null);
+  const activeRef = useRef(initial);
+  const gestureRef = useRef(null);
+  const suppressClickRef = useRef(false);
+  const lastWheelRef = useRef(-Infinity);
   const voice = VOICES[active];
-  const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-  const select = (index, scroll = true) => {
-    const next = Math.max(0, Math.min(VOICES.length - 1, index));
-    setActive(next);
-    setAnswer('voice', VOICES[next].name);
-    if (scroll) {
-      cardRefs.current[next]?.scrollIntoView({
-        behavior: reducedMotion() ? 'auto' : 'smooth',
-        inline: 'center',
-        block: 'nearest',
-      });
-    }
-  };
-
+  // Offset measurements use layout sizes, not transformed bounding boxes.
+  // Recalculate at responsive breakpoints so the centered card never drifts.
   useLayoutEffect(() => {
-    cardRefs.current[initial]?.scrollIntoView({ behavior: 'auto', inline: 'center', block: 'nearest' });
-    return () => window.cancelAnimationFrame(scrollFrame.current);
+    const measure = () => {
+      const first = cardRefs.current[0];
+      const second = cardRefs.current[1];
+      if (!first) return;
+      const width = first.offsetWidth;
+      const step = second ? second.offsetLeft - first.offsetLeft : width + 14;
+      setCardMetrics((previous) => previous.width === width && previous.step === step
+        ? previous : { width, step });
+    };
+    measure();
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    if (observer && trackRef.current) observer.observe(trackRef.current);
+    window.addEventListener('resize', measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', measure);
+    };
   }, []);
 
-  const onScroll = () => {
-    window.cancelAnimationFrame(scrollFrame.current);
-    scrollFrame.current = window.requestAnimationFrame(() => {
-      const track = trackRef.current;
-      if (!track) return;
-      const center = track.scrollLeft + track.clientWidth / 2;
-      let nearest = 0;
-      let nearestDistance = Infinity;
-      cardRefs.current.forEach((card, index) => {
-        if (!card) return;
-        const distance = Math.abs(card.offsetLeft + card.offsetWidth / 2 - center);
-        if (distance < nearestDistance) { nearestDistance = distance; nearest = index; }
-      });
-      if (nearest !== active) select(nearest, false);
-    });
+  const select = (index) => {
+    const next = Math.max(0, Math.min(VOICES.length - 1, index));
+    if (next === activeRef.current) {
+      // Tapping the already-centered default voice must still save that choice.
+      if (answers.voice !== VOICES[next].name) setAnswer('voice', VOICES[next].name);
+      return;
+    }
+    activeRef.current = next;
+    setActive(next);
+    setAnswer('voice', VOICES[next].name);
+  };
+
+  const onPointerDown = (event) => {
+    if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    suppressClickRef.current = false;
+    // If a second gesture interrupts an in-flight snap, begin from the
+    // visible position rather than jumping to the pending destination.
+    const transform = trackRef.current ? window.getComputedStyle(trackRef.current).transform : 'none';
+    const visualX = transform === 'none' || typeof DOMMatrixReadOnly === 'undefined'
+      ? null : new DOMMatrixReadOnly(transform).m41;
+    const targetX = -activeRef.current * cardMetrics.step - cardMetrics.width / 2;
+    gestureRef.current = {
+      id: event.pointerId, x: event.clientX, y: event.clientY,
+      residual: visualX === null ? 0 : visualX - targetX,
+      startTime: event.timeStamp, axis: null,
+      samples: [{ x: event.clientX, time: event.timeStamp }],
+    };
+  };
+
+  const onPointerMove = (event) => {
+    const gesture = gestureRef.current;
+    if (!gesture || gesture.id !== event.pointerId) return;
+    const dx = event.clientX - gesture.x;
+    const dy = event.clientY - gesture.y;
+    if (!gesture.axis && Math.hypot(dx, dy) > 7) {
+      gesture.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+      if (gesture.axis === 'x') {
+        event.currentTarget.setPointerCapture(event.pointerId);
+        setDragging(true);
+      }
+    }
+    if (gesture.axis !== 'x') return;
+    // The browser handles vertical page gestures; horizontal movement is ours.
+    // At either end, add gentle resistance instead of revealing empty space.
+    setDrag(gesture.residual + resistVoiceDrag(dx, activeRef.current, VOICES.length));
+    gesture.samples.push({ x: event.clientX, time: event.timeStamp });
+    gesture.samples = gesture.samples.filter((sample) => event.timeStamp - sample.time <= 100);
+  };
+
+  const finishGesture = (event, cancelled = false) => {
+    const gesture = gestureRef.current;
+    if (!gesture || gesture.id !== event.pointerId) return;
+    gestureRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    setDragging(false);
+    setDrag(0);
+    if (gesture.axis !== 'x') return;
+    // Captured pointer events must not trigger a stray card click on release.
+    suppressClickRef.current = true;
+    if (cancelled) return;
+
+    const dx = event.clientX - gesture.x;
+    const samples = gesture.samples;
+    const oldest = samples[0];
+    const velocity = oldest && event.timeStamp > oldest.time
+      ? (event.clientX - oldest.x) / (event.timeStamp - oldest.time)
+      : dx / Math.max(1, event.timeStamp - gesture.startTime);
+    select(voiceSwipeTarget({
+      index: activeRef.current, count: VOICES.length, dx, velocity, step: cardMetrics.step,
+    }));
   };
 
   const onKeyDown = (event) => {
-    const target = { ArrowRight: active + 1, ArrowLeft: active - 1, Home: 0, End: VOICES.length - 1 }[event.key];
+    const target = { ArrowRight: activeRef.current + 1, ArrowLeft: activeRef.current - 1, Home: 0, End: VOICES.length - 1 }[event.key];
     if (target === undefined) return;
     event.preventDefault();
     select(target);
   };
 
+  const onWheel = (event) => {
+    if (Math.abs(event.deltaX) < 8 || Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+    event.preventDefault();
+    if (event.timeStamp - lastWheelRef.current < 340) return;
+    lastWheelRef.current = event.timeStamp;
+    select(activeRef.current + (event.deltaX > 0 ? 1 : -1));
+  };
+
+  const focusIndex = active - drag / Math.max(1, cardMetrics.step);
+  const offset = drag - active * cardMetrics.step - cardMetrics.width / 2;
+
   return (
     <Shell theme="dark" back={back} className="voice-screen">
-      <PageHeader title="دوست داری چه صدایی داشته باشم؟" description="بین صداها بکش یا روی هر کدوم بزنی، انتخاب می‌شه." />
+      <PageHeader title="دوست داری چه صدایی داشته باشم؟" />
       <div
-        className="voice-carousel"
+        className={`voice-carousel ${dragging ? 'is-dragging' : ''}`}
         dir="ltr"
-        ref={trackRef}
-        onScroll={onScroll}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={finishGesture}
+        onPointerCancel={(event) => finishGesture(event, true)}
+        onLostPointerCapture={(event) => finishGesture(event, true)}
+        onClickCapture={(event) => {
+          if (!suppressClickRef.current) return;
+          event.preventDefault();
+          event.stopPropagation();
+          suppressClickRef.current = false;
+        }}
+        onWheel={onWheel}
         onKeyDown={onKeyDown}
         tabIndex={0}
         role="group"
         aria-label="گزینه‌های صدا"
       >
-        {VOICES.map((item, index) => (
-          <button
-            type="button"
-            key={item.name}
-            ref={(node) => { cardRefs.current[index] = node; }}
-            className={`voice-card ${index === active ? 'is-active' : ''}`}
-            onClick={() => select(index)}
-            aria-pressed={index === active}
-            aria-label={`صدای ${item.name}، ${item.description}`}
-          >
-            <VoiceWave path={item.path} />
-            <span className="voice-card-copy" dir="rtl">
-              <strong>{item.name}</strong>
-              <small>{item.description}</small>
-            </span>
-            {index === active && <span className="voice-card-check" aria-hidden="true"><Check size={16} /></span>}
-          </button>
-        ))}
+        <div className="voice-track" ref={trackRef} style={{ transform: `translate3d(${offset}px, 0, 0)` }}>
+          {VOICES.map((item, index) => {
+            const proximity = Math.max(0, 1 - Math.abs(index - focusIndex));
+            return (
+              <button
+                type="button"
+                key={item.name}
+                ref={(node) => { cardRefs.current[index] = node; }}
+                className={`voice-card ${index === active ? 'is-active' : ''}`}
+                tabIndex={index === active ? 0 : -1}
+                style={dragging ? {
+                  opacity: 0.55 + 0.45 * proximity,
+                  transform: `scale(${0.92 + 0.08 * proximity})`,
+                } : undefined}
+                onClick={() => select(index)}
+                aria-pressed={index === active}
+                aria-label={`صدای ${item.name}، ${item.description}`}
+              >
+                <VoiceWave path={item.path} />
+                <span className="voice-card-copy" dir="rtl">
+                  <strong>{item.name}</strong>
+                  <small>{item.description}</small>
+                </span>
+                {index === active && <span className="voice-card-check" aria-hidden="true"><Check size={16} /></span>}
+              </button>
+            );
+          })}
+        </div>
       </div>
       <PagerDots count={VOICES.length} active={active} onChange={select} dark label="انتخاب صدا" labels={VOICES.map((item) => item.name)} />
-      <p className="voice-note">این انتخاب فعلاً نمایشی است؛ پخش صوتی نداریم.</p>
       <PrimaryButton light onClick={() => nextFrom('voice', navigate)}>ادامه با «{voice.name}»</PrimaryButton>
     </Shell>
   );

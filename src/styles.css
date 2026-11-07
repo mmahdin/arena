@@ -413,7 +413,6 @@ svg { flex-shrink: 0; }
 .voice-copy h2 { font-size: 25px; font-weight: 650; }
 .voice-copy p { margin-top: 8px; white-space: pre-line; font-size: 14px; line-height: 1.75; color: #e0ded9; }
 .voice-screen > .pager-dots { position: absolute; bottom: 137px; inset-inline: 0; }
-.voice-note { position: absolute; bottom: 95px; inset-inline: 28px; text-align: center; color: #a6a49f; font-size: 11px; line-height: 1.75; }
 .ready-art { position: absolute; top: 36%; bottom: 96px; inset-inline: 28px; }
 
 /* ---------- Home ---------- */
@@ -929,7 +928,7 @@ svg { flex-shrink: 0; }
   overflow: hidden;
   background: var(--beige);
 }
-.checkins-art svg { display: block; width: 100%; height: 100%; }
+.checkins-art img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .onboarding-welcome .message-text { white-space: normal; }
 @media (max-height: 700px) {
   .mood-screen .page-header, .checkins-screen .page-header { padding-top: 99px; }
@@ -1045,24 +1044,31 @@ svg { flex-shrink: 0; }
 }
 @keyframes letter-spin { to { transform: rotate(360deg); } }
 
-/* Voice: discoverable swipeable deck, no fake playback affordance. */
+/* Voice: the whole card track follows the finger, then snaps as one unit. */
 .voice-screen .page-header p { color: #c9c5bd; }
 .voice-carousel {
   position: absolute; top: clamp(245px, 39vh, 345px); inset-inline: 0;
   height: clamp(205px, 30vh, 250px);
-  display: flex; align-items: stretch; gap: 14px;
-  overflow-x: auto; overflow-y: hidden;
-  scroll-snap-type: x mandatory; scrollbar-width: none;
-  padding: 8px calc(50% - 105px);
-  direction: ltr; touch-action: pan-x;
+  display: block; overflow: hidden; padding: 0;
+  direction: ltr; touch-action: pan-y; cursor: grab;
+  user-select: none; -webkit-user-select: none;
+  overscroll-behavior-x: contain;
 }
-.voice-carousel::-webkit-scrollbar { display: none; }
+.voice-carousel.is-dragging { cursor: grabbing; }
 .voice-carousel:focus-visible { outline: 2px solid var(--lavender); outline-offset: -4px; border-radius: 20px; }
+.voice-track {
+  position: absolute; top: 8px; bottom: 8px; left: 50%;
+  display: flex; align-items: stretch; gap: 14px; width: max-content;
+  will-change: transform;
+  transition: transform 430ms cubic-bezier(.22, 1, .36, 1);
+}
+.voice-carousel.is-dragging .voice-track,
+.voice-carousel.is-dragging .voice-card { transition: none; }
 .voice-card {
   position: relative; flex: 0 0 210px; width: 210px; height: 100%;
   display: flex; flex-direction: column; overflow: hidden;
   padding: 0; border-radius: 22px; background: #fff; color: var(--ink);
-  scroll-snap-align: center; text-align: right;
+  text-align: right;
   opacity: .55; transform: scale(.92);
   transition: opacity 200ms ease, transform 200ms ease, box-shadow 200ms ease;
 }
@@ -1076,7 +1082,6 @@ svg { flex-shrink: 0; }
   display: grid; place-items: center; border-radius: 50%; background: var(--lavender); color: #171713;
 }
 .voice-screen > .pager-dots { bottom: 168px; }
-.voice-note { bottom: 112px; color: #a6a49f; }
 
 /* Conversation style: a calm, borderless preview on the page background.
    The sample replies remain a continuously swipeable track. */
@@ -1345,20 +1350,18 @@ svg { flex-shrink: 0; }
   .letter-art-panel { height: 158px; }
   .voice-carousel { top: 245px; height: 205px; }
   .voice-screen > .pager-dots { bottom: 132px; }
-  .voice-note { bottom: 86px; }
   .mood-screen .page-header, .checkins-screen .page-header { padding-top: 88px; }
   .mood-stage { top: 205px; bottom: 148px; }
   .checkins-art { top: 245px; }
   .composer-hint { display: none; }
 }
 @media (max-width: 374px) {
-  .voice-carousel { padding-inline: calc(50% - 94px); }
   .voice-card { flex-basis: 188px; width: 188px; }
   .message-text { max-width: 92%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .letter-spinner, .chat-skeleton i { animation: none; }
-  .voice-card, .envelope-art, .survey-option { transition: none; animation: none; }
+  .voice-track, .voice-card, .envelope-art, .survey-option { transition: none; animation: none; }
   /* The wheel still snaps, but ranges no longer tilt or scale in motion. */
   .age-option { transform: none; }
   .age-marker { animation: none; }
