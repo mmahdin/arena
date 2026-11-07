@@ -2,6 +2,7 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, resolve } from 'node:path';
 import process from 'node:process';
+import { FLOW } from '../src/data.js';
 
 const root = resolve(import.meta.dirname, '..');
 const read = (path) => readFileSync(join(root, path), 'utf8');
@@ -13,7 +14,7 @@ for (const [file, digest] of Object.entries(source)) {
   const path = join(root, file);
   check(`${verifyOriginal ? 'original bytes' : 'source exists'}: ${file}`, existsSync(path) && (!verifyOriginal || createHash('sha256').update(readFileSync(path)).digest('hex') === digest));
 }
-check('25-step onboarding source', (read('src/data.js').match(/  '\w[\w-]*',/g) || []).length >= 25);
+check('complete onboarding source', FLOW.length >= 25 && new Set(FLOW).size === FLOW.length && FLOW.at(-1) === 'home');
 check('RTL App', read('src/App.jsx').includes('dir="rtl"'));
 check('designer chat component present', read('src/screens/Main.jsx').includes('function Chat('));
 check('backend API snapshot', read('contracts/openapi/backend-openapi.snapshot.yaml').includes('/api/v1/conversations/{id}/turns:'));

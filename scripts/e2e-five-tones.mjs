@@ -39,7 +39,10 @@ try {
       const choice = APPROACHES[i];
       const style = APPROACH_TO_STYLE[choice.name];
       await openPreferences();
-      await page.getByRole('button', { name: `گزینه ${i + 1}` }).click();
+      await page.locator('.approach-stage').focus();
+      await page.keyboard.press('Home');
+      for (let step = 0; step < i; step++) await page.keyboard.press('ArrowLeft');
+      assert.equal(await page.locator('#approach-style').textContent(), choice.label || choice.name);
       await page.getByRole('button', { name: 'ذخیرهٔ سبک گفت‌وگو' }).click();
       await page.locator('.drawer-panel').waitFor();
       assert.equal((await me()).conversationStyle, style, `${choice.name} was not stored`);
@@ -47,7 +50,7 @@ try {
       await page.locator('.home-screen').waitFor();
       assert.equal((await me()).conversationStyle, style, 'style did not persist after refresh');
       await openPreferences();
-      assert.equal((await page.locator('.approach-response').textContent()).trim(), choice.response.trim(), `${choice.name} UI did not restore`);
+      assert.equal((await page.locator('.approach-reply.is-active .approach-response').textContent()).trim(), (choice.exampleResponse || choice.response).trim(), `${choice.name} UI did not restore`);
       await page.locator('.approach-screen .back-button').click();
       await page.locator('.drawer-panel').waitFor();
       await page.locator('.drawer-backdrop').click({ position: { x: 8, y: 400 } });

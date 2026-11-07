@@ -5,6 +5,8 @@
  */
 import assert from 'node:assert/strict';
 import { finishFullOnboarding } from './e2e-onboarding-helpers.mjs';
+import { APPROACHES } from '../src/data.js';
+import { APPROACH_TO_STYLE } from '../src/features/profile/preferences.js';
 
 let chromium;
 try { ({ chromium } = await import('playwright')); }
@@ -37,11 +39,14 @@ try {
   profile = await me();
   const original = { ...profile };
   const newStyle = profile.conversationStyle === 'listening' ? 'balanced' : 'listening';
-  const newStyleIndex = newStyle === 'listening' ? 2 : 1;
+  const newStyleIndex = APPROACHES.findIndex((item) => APPROACH_TO_STYLE[item.name] === newStyle);
   await menu();
   await page.getByRole('button', { name: 'ترجیحات' }).click();
   await page.locator('.approach-screen').waitFor();
-  await page.getByRole('button', { name: `گزینه ${newStyleIndex}` }).click();
+  await page.locator('.approach-stage').focus();
+  await page.keyboard.press('Home');
+  for (let step = 0; step < newStyleIndex; step++) await page.keyboard.press('ArrowLeft');
+  assert.equal(await page.locator('#approach-style').textContent(), APPROACHES[newStyleIndex].label || APPROACHES[newStyleIndex].name);
   await page.getByRole('button', { name: 'ذخیرهٔ سبک گفت‌وگو' }).click();
   await page.locator('.drawer-panel').waitFor();
   let saved = await me();

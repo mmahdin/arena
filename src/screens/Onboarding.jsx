@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Check, Flame, Landmark } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Flame, Flower2, Landmark } from 'lucide-react';
 import { APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import {
   BackButton,
@@ -669,112 +669,129 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
 function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = false, savingProfile = false, onSaveApproach }) {
   const initial = answers.approach ? Math.max(0, APPROACHES.findIndex((item) => item.name === answers.approach)) : 2;
   const [active, setActive] = useState(initial);
-  const [direction, setDirection] = useState(1);
   const [drag, setDrag] = useState(0);
+  const [dragging, setDragging] = useState(false);
   const gesture = useRef(null);
   const selectedIndex = useRef(initial);
-  const tabRefs = useRef([]);
   const approach = APPROACHES[active];
-  const select = (index) => {
+
+  const select = useCallback((index) => {
     const next = Math.max(0, Math.min(APPROACHES.length - 1, index));
     if (next === selectedIndex.current) return;
-    setDirection(next > selectedIndex.current ? 1 : -1);
     selectedIndex.current = next;
     setActive(next);
     setAnswer('approach', APPROACHES[next].name);
-  };
-  useLayoutEffect(() => {
-    tabRefs.current[active]?.scrollIntoView({
-      behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-      inline: 'center',
-      block: 'nearest',
-    });
-  }, [active]);
-  const onTabKeyDown = (event, index) => {
-    const target = { ArrowLeft: index + 1, ArrowRight: index - 1, Home: 0, End: APPROACHES.length - 1 }[event.key];
+  }, [setAnswer]);
+
+  const onKeyDown = (event) => {
+    const target = { ArrowLeft: selectedIndex.current + 1, ArrowRight: selectedIndex.current - 1, Home: 0, End: APPROACHES.length - 1 }[event.key];
     if (target === undefined) return;
     event.preventDefault();
-    const next = Math.max(0, Math.min(APPROACHES.length - 1, target));
-    select(next);
-    tabRefs.current[next]?.focus();
+    select(target);
   };
+
   const finishGesture = (event, cancelled = false) => {
     const start = gesture.current;
     if (!start || start.id !== event.pointerId) return;
     gesture.current = null;
+    setDragging(false);
     setDrag(0);
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    if (cancelled || start.axis !== 'x') return;
     const dx = event.clientX - start.x;
-    const dy = event.clientY - start.y;
-    if (!cancelled && Math.abs(dx) > 35 && Math.abs(dx) > Math.abs(dy) * 1.2) select(active + (dx < 0 ? 1 : -1));
+    const velocity = Math.abs(dx) / Math.max(1, event.timeStamp - start.time);
+    const distance = Math.max(1, event.currentTarget.querySelector('.approach-replies')?.clientWidth || 320);
+    // Only commit on release. During the gesture both the active reply and the
+    // incoming neighboring reply follow the finger at the same pixel offset.
+    if (Math.abs(dx) > distance * 0.24 || (Math.abs(dx) > 24 && velocity > 0.5)) {
+      select(selectedIndex.current + (dx < 0 ? 1 : -1));
+    }
   };
+
   return (
     <Shell theme="beige" back={back} className="approach-screen">
-      <PageHeader title="دوست داری چطوری باهات حرف بزنم؟" />
-      <div className="approach-tabs" role="tablist" aria-label="سبک‌های گفت‌وگو">
-        {APPROACHES.map((item, index) => (
-          <button
-            type="button"
-            key={item.name}
-            ref={(node) => { tabRefs.current[index] = node; }}
-            role="tab"
-            id={`approach-tab-${index}`}
-            aria-selected={index === active}
-            aria-controls="approach-panel"
-            tabIndex={index === active ? 0 : -1}
-            className={`approach-tab ${index === active ? 'is-active' : ''}`}
-            onClick={() => select(index)}
-            onKeyDown={(event) => onTabKeyDown(event, index)}
-          >
-            {index === active && <Check size={15} aria-hidden="true" />}
-            {item.label || item.name}
-          </button>
-        ))}
-      </div>
+      <PageHeader title="چطور باهات حرف بزنم؟" />
       <div
         className="approach-stage"
-        role="tabpanel"
-        id="approach-panel"
-        aria-labelledby={`approach-tab-${active}`}
+        role="region"
+        aria-label="نمونهٔ گفت‌وگو"
+        aria-describedby="approach-style approach-keyboard-hint"
         tabIndex={0}
-        onKeyDown={(event) => {
-          const target = { ArrowLeft: active + 1, ArrowRight: active - 1, Home: 0, End: APPROACHES.length - 1 }[event.key];
-          if (target === undefined) return;
-          event.preventDefault();
-          select(target);
-        }}
+        onKeyDown={onKeyDown}
         onPointerDown={(event) => {
-          if (!event.isPrimary || event.button !== 0 || event.target.closest('button')) return;
-          gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+          if (!event.isPrimary || event.button !== 0 || event.target.closest('button, a, input, textarea, select, label')) return;
+          gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY, time: event.timeStamp, axis: null };
           event.currentTarget.setPointerCapture(event.pointerId);
         }}
         onPointerMove={(event) => {
           const start = gesture.current;
           if (!start || start.id !== event.pointerId) return;
           const dx = event.clientX - start.x;
-          if (Math.abs(dx) > Math.abs(event.clientY - start.y)) setDrag(Math.max(-48, Math.min(48, dx * 0.35)));
+          const dy = event.clientY - start.y;
+          if (!start.axis) {
+            if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+            start.axis = Math.abs(dx) > Math.abs(dy) * 1.15 ? 'x' : 'y';
+          }
+          if (start.axis !== 'x') return;
+          const atEdge = (dx < 0 && selectedIndex.current === APPROACHES.length - 1) || (dx > 0 && selectedIndex.current === 0);
+          const distance = Math.max(1, event.currentTarget.querySelector('.approach-replies')?.clientWidth || 320);
+          setDragging(true);
+          // Full 1:1 tracking reveals the next reply progressively. Apply
+          // resistance only at the first/last style where no neighbor exists.
+          const offset = atEdge ? Math.max(-42, Math.min(42, dx * 0.16)) : Math.max(-distance, Math.min(distance, dx));
+          setDrag(offset);
         }}
         onPointerUp={finishGesture}
         onPointerCancel={(event) => finishGesture(event, true)}
         onLostPointerCapture={(event) => finishGesture(event, true)}
       >
-        <article className={`approach-card${drag ? ' is-dragging' : ''}`} style={{ '--approach-drag': `${drag}px` }}>
-          <span className="approach-preview-badge">نمونهٔ گفت‌وگو</span>
-          <div className="approach-message approach-message--user">
-            <p>{APPROACH_EXAMPLE_USER}</p>
-          </div>
-          <div className="approach-message approach-message--assistant" key={approach.name} style={{ '--approach-enter': `${direction * 18}px` }} aria-live="polite">
-            <span className="approach-author">همراه · {approach.label || approach.name}</span>
-            <p className="approach-response">{approach.exampleResponse || approach.response}</p>
-          </div>
-        </article>
-        <p className="approach-swipe-hint">برای تغییر سبک، کارت رو بکش</p>
+        <div className="approach-picker">
+          <button type="button" className="approach-direction" aria-label="سبک قبلی" disabled={active === 0 || savingProfile} onClick={() => select(active - 1)}>
+            <ChevronRight size={18} strokeWidth={1.5} aria-hidden="true" />
+          </button>
+          <h2 id="approach-style">{approach.label || approach.name}</h2>
+          <button type="button" className="approach-direction" aria-label="سبک بعدی" disabled={active === APPROACHES.length - 1 || savingProfile} onClick={() => select(active + 1)}>
+            <ChevronLeft size={18} strokeWidth={1.5} aria-hidden="true" />
+          </button>
+          <span id="approach-keyboard-hint" className="sr-only">با کلیدهای جهت چپ و راست هم می‌تونی سبک رو تغییر بدی.</span>
+        </div>
+        <div className="approach-message approach-message--user">
+          <p>{APPROACH_EXAMPLE_USER}</p>
+        </div>
+        <div className={`approach-replies${dragging ? ' is-dragging' : ''}`}>
+          {APPROACHES.map((item, index) => (
+            <article
+              key={item.name}
+              className={`approach-reply${index === active ? ' is-active' : ''}${Math.abs(index - active) <= 1 ? ' is-near' : ''}`}
+              style={{ '--slide-position': `${(index - active) * 100}%`, '--reply-drag': `${drag}px` }}
+              aria-hidden={index !== active}
+              inert={index !== active}
+            >
+              <span className="approach-mark" aria-hidden="true"><Flower2 size={18} strokeWidth={1.4} /></span>
+              <p className="approach-response">{item.exampleResponse || item.response}</p>
+            </article>
+          ))}
+        </div>
+        <div className="approach-position" aria-hidden="true">
+          {APPROACHES.map((item, index) => <span key={item.name} className={index === active ? 'is-active' : ''} />)}
+        </div>
       </div>
-      <PrimaryButton className="with-skip" disabled={savingProfile} onClick={() => {
-        if (profileEdit) onSaveApproach(approach.name);
-        else { setAnswer('approach', approach.name); nextFrom('approach', navigate); }
-      }}>{profileEdit ? (savingProfile ? 'در حال ذخیره…' : 'ذخیره') : `ادامه با «${approach.label || approach.name}»`}</PrimaryButton>
-      <button type="button" className="skip-button" onClick={() => profileEdit ? back() : nextFrom('approach', navigate)}>{profileEdit ? 'انصراف' : 'فعلاً رد کن'}</button>
+      <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {approach.label || approach.name}. گزینهٔ {(active + 1).toLocaleString('fa-IR')} از {APPROACHES.length.toLocaleString('fa-IR')}. {approach.exampleResponse || approach.response}
+      </p>
+      <div className="approach-actions">
+        <PrimaryButton
+          ariaLabel={profileEdit ? 'ذخیرهٔ سبک گفت‌وگو' : `ادامه با ${approach.label || approach.name}`}
+          disabled={savingProfile}
+          onClick={() => {
+            if (profileEdit) onSaveApproach(approach.name);
+            else { setAnswer('approach', approach.name); nextFrom('approach', navigate); }
+          }}
+        >{savingProfile ? 'در حال ذخیره…' : profileEdit ? 'ذخیره' : 'ادامه'}</PrimaryButton>
+        <button type="button" className="skip-button" onClick={() => profileEdit ? back() : nextFrom('approach', navigate)}>
+          {profileEdit ? 'انصراف' : 'رد کردن'}
+        </button>
+      </div>
     </Shell>
   );
 }

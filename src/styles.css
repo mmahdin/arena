@@ -414,38 +414,6 @@ svg { flex-shrink: 0; }
 .voice-copy p { margin-top: 8px; white-space: pre-line; font-size: 14px; line-height: 1.75; color: #e0ded9; }
 .voice-screen > .pager-dots { position: absolute; bottom: 137px; inset-inline: 0; }
 .voice-note { position: absolute; bottom: 95px; inset-inline: 28px; text-align: center; color: #a6a49f; font-size: 11px; line-height: 1.75; }
-.approach-screen .page-header { padding-top: 88px; }
-.approach-screen .page-header h1 { font-size: 29px; }
-.approach-stage { position: absolute; top: 216px; inset-inline: 0; height: min(455px, 52vh); touch-action: pan-y; }
-.approach-stage:focus-visible { outline: 2px solid var(--ink); outline-offset: -4px; border-radius: 20px; }
-.approach-card {
-  position: absolute;
-  left: 50%;
-  width: 282px;
-  height: 100%;
-  padding: 25px 17px;
-  transform: translateX(calc(-50% + var(--approach-drag, 0px)));
-  overflow: hidden;
-  border: 2px solid var(--ink);
-  border-radius: 20px;
-  transition: transform 260ms cubic-bezier(.2, .7, .2, 1);
-  user-select: none;
-  cursor: grab;
-}
-.approach-card.is-dragging { transition: none; cursor: grabbing; }
-.approach-user { padding: 14px 13px; border-radius: 17px; background: var(--light); font-size: 15px; line-height: 1.75; }
-.approach-response { margin-top: 27px; font-size: 15px; line-height: 1.9; animation: approach-response-in 260ms cubic-bezier(.2, .7, .2, 1); }
-@keyframes approach-response-in {
-  from { opacity: 0; transform: translateX(var(--approach-enter, 18px)); }
-  to { opacity: 1; transform: translateX(0); }
-}
-.approach-peek { position: absolute; top: 24px; bottom: 24px; width: 34px; padding: 0; background: transparent; border: 1.5px solid #756f66; border-radius: 16px; opacity: .75; cursor: pointer; }
-.approach-peek:disabled { cursor: default; }
-.approach-peek::after { content: ''; position: absolute; top: 24px; inset-inline-start: 0; width: 48px; height: 70px; border-radius: 14px; background: var(--light); }
-.approach-peek--before { inset-inline-start: -13px; }
-.approach-peek--after { inset-inline-end: -13px; }
-.approach-screen > .pager-dots { position: absolute; bottom: 151px; inset-inline: 0; }
-.approach-screen > .skip-button { bottom: 24px; }
 .ready-art { position: absolute; top: 36%; bottom: 96px; inset-inline: 28px; }
 
 /* ---------- Home ---------- */
@@ -707,8 +675,7 @@ svg { flex-shrink: 0; }
 .question-therapist .choice-scroll { margin-top: 84px; }
 .question-neurodivergent .choice-scroll { margin-top: 14px; }
 .question-faith .choice-scroll { margin-top: 50px; }
-.question-interests > .skip-button,
-.approach-screen > .skip-button { bottom: 28px; }
+.question-interests > .skip-button { bottom: 28px; }
 .art-tall .interstitial-art { top: 30%; }
 .question-therapist,
 .question-neurodivergent,
@@ -1111,43 +1078,135 @@ svg { flex-shrink: 0; }
 .voice-screen > .pager-dots { bottom: 168px; }
 .voice-note { bottom: 112px; color: #a6a49f; }
 
-/* Conversation style: realistic chat preview with visible style tabs. */
-.approach-screen .page-header { padding-top: 84px; }
-.approach-tabs {
-  display: flex; gap: 8px; margin-top: 18px; padding: 0 24px 6px;
-  overflow-x: auto; scrollbar-width: none;
+/* Conversation style: a cohesive, quiet selection card. The sample replies
+   remain a continuously swipeable track; only the presentation changes. */
+.approach-screen {
+  --approach-muted: #514a41;
+  display: flex; flex-direction: column;
+  padding-inline: 20px; padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
 }
-.approach-tabs::-webkit-scrollbar { display: none; }
-.approach-tab {
-  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px;
-  min-height: 40px; padding: 8px 15px; border-radius: 999px;
-  background: rgb(35 32 27 / 9%); color: #4a443c;
-  font-size: 13px; font-weight: 570; white-space: nowrap;
-  transition: background 150ms ease, color 150ms ease;
+.approach-screen::-webkit-scrollbar { display: none; }
+.approach-screen > .screen-top-inset { flex: 0 0 auto; }
+.approach-screen > .back-button {
+  top: max(24px, env(safe-area-inset-top, 0px)); inset-inline-start: 16px;
+  width: 44px; height: 44px; background: transparent;
 }
-.approach-tab.is-active { background: var(--ink); color: var(--light); }
+.approach-screen > .back-button svg { width: 20px; height: 20px; }
+.approach-screen .page-header {
+  flex: 0 0 auto; padding: clamp(56px, 8dvh, 76px) 0 0; text-align: center;
+}
+.approach-screen .page-header h1 {
+  font-size: 26px; font-weight: 650; line-height: 1.6;
+  letter-spacing: -.65px; text-wrap: balance;
+}
 .approach-stage {
-  position: absolute; top: clamp(235px, 33vh, 285px); bottom: 150px; inset-inline: 20px;
-  height: auto; display: flex; flex-direction: column; gap: 10px; touch-action: pan-y;
+  position: relative; min-height: 0; flex: 0 0 auto;
+  display: flex; flex-direction: column; align-items: stretch;
+  margin-top: clamp(42px, 7dvh, 68px);
+  padding: 20px 16px 26px;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 28px;
+  background: rgb(255 255 255 / 13%);
+  touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none;
 }
-.approach-stage:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; border-radius: 24px; }
-.approach-card {
-  position: relative; left: auto; width: 100%; max-width: 340px; height: auto;
-  flex: 1; min-height: 0; margin: 0 auto; padding: 16px;
-  display: flex; flex-direction: column; gap: 14px;
-  overflow-y: auto; overscroll-behavior: contain;
-  border: 1.5px solid rgb(35 32 27 / 55%); border-radius: 24px;
-  background: rgb(243 242 238 / 45%);
-  transform: translateX(var(--approach-drag, 0px));
+.approach-stage:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+.approach-picker {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center; align-self: center; width: min(100%, 300px);
+  flex: 0 0 auto; margin-bottom: 26px; text-align: center;
 }
-.approach-preview-badge { align-self: center; padding: 4px 12px; border-radius: 999px; background: rgb(35 32 27 / 10%); color: #5c554b; font-size: 11px; font-weight: 650; }
-.approach-message { max-width: 92%; padding: 13px 15px; border-radius: 18px; font-size: 14px; line-height: 1.85; }
-.approach-message--user { align-self: flex-end; background: #e3ddd3; border-end-end-radius: 6px; }
-.approach-message--assistant { align-self: flex-start; background: #f7f5f0; border: 1px solid rgb(35 32 27 / 12%); border-end-start-radius: 6px; animation: approach-response-in 240ms cubic-bezier(.2, .7, .2, 1); }
-.approach-author { display: block; margin-bottom: 7px; color: #7a7266; font-size: 11px; font-weight: 650; }
-.approach-response { margin: 0; font-size: 14px; line-height: 1.9; }
-.approach-swipe-hint { text-align: center; color: #6c6459; font-size: 12px; }
-.approach-screen > .pager-dots { display: none; }
+.approach-picker h2 {
+  min-height: 34px; color: var(--ink); font-size: 19px;
+  font-weight: 660; line-height: 1.7;
+}
+.approach-direction {
+  display: grid; place-items: center; width: 44px; height: 44px;
+  padding: 0; background: transparent; color: var(--approach-muted);
+  border-radius: 8px; transition: opacity 150ms ease, color 150ms ease;
+}
+.approach-direction:hover:not(:disabled) { color: var(--ink); }
+.approach-direction:active:not(:disabled) { opacity: .55; }
+.approach-direction:disabled { opacity: .28; }
+.approach-message {
+  padding: 13px 17px; font-size: 15px; font-weight: 400;
+  line-height: 1.9; overflow-wrap: anywhere;
+}
+.approach-message--user {
+  align-self: flex-start; max-width: 90%; margin-bottom: 18px;
+  border-radius: 22px; border-end-start-radius: 6px;
+  background: rgb(35 32 27 / 8%); color: var(--ink);
+}
+/* All replies share one grid slot, keeping the card height stable when a
+   different example is selected. Adjacent replies follow the pointer 1:1. */
+.approach-replies { display: grid; isolation: isolate; overflow: hidden; width: 100%; }
+.approach-reply {
+  grid-area: 1 / 1; display: flex; align-items: flex-start;
+  gap: 10px; min-width: 0; visibility: hidden; pointer-events: none;
+  transform: translate3d(calc(var(--slide-position, 0%) + var(--reply-drag, 0px)), 0, 0);
+  transition: transform 360ms cubic-bezier(.22, 1, .36, 1);
+  will-change: transform;
+}
+.approach-reply.is-near { visibility: visible; }
+.approach-reply.is-active { z-index: 2; pointer-events: auto; }
+.approach-replies.is-dragging .approach-reply { transition: none; }
+.approach-replies.is-dragging { cursor: grabbing; }
+.approach-mark {
+  flex: 0 0 20px; width: 20px; height: 20px;
+  display: grid; place-items: center; margin-top: 16px;
+  color: var(--approach-muted);
+}
+.approach-response {
+  flex: 1; min-width: 0; margin: 0; padding: 17px 18px;
+  border-radius: 22px; border-end-end-radius: 6px;
+  background: var(--light); color: var(--ink);
+  font-size: 15px; font-weight: 400; line-height: 2;
+  letter-spacing: -.1px; overflow-wrap: anywhere;
+}
+/* The marker belongs to the whole conversation preview, not its title.
+   Physical order matches the adjacent reply tracks in this RTL screen. */
+.approach-position {
+  display: flex; align-items: center; align-self: center; justify-content: center;
+  gap: 8px; height: 12px; margin-top: 26px; direction: ltr;
+  pointer-events: none;
+}
+.approach-position span { width: 5px; height: 5px; border-radius: 999px; background: #82776c; }
+.approach-position span.is-active { width: 15px; background: var(--ink); }
+.approach-actions {
+  flex: 0 0 auto; display: flex; flex-direction: column;
+  align-items: center; gap: 4px; margin-top: auto; padding-top: 28px;
+}
+.approach-actions .primary-button {
+  position: static; inset: auto; width: 100%; min-height: 56px;
+  height: auto; flex-shrink: 0; padding: 16px 20px;
+  border-radius: 18px; font-size: 16px; font-weight: 550; line-height: 1.5;
+}
+.approach-actions .skip-button {
+  position: static; inset: auto; transform: none; min-height: 44px;
+  padding: 8px 16px; color: var(--approach-muted);
+  font-size: 13px; font-weight: 450;
+}
+.approach-screen button:focus-visible { outline-color: var(--ink); }
+@media (max-height: 700px) {
+  .approach-screen .page-header { padding-top: 40px; }
+  .approach-stage { margin-top: 28px; padding-block: 16px 18px; }
+  .approach-picker { margin-bottom: 16px; }
+  .approach-message--user { margin-bottom: 14px; }
+  .approach-position { margin-top: 18px; }
+  .approach-actions { padding-top: 20px; }
+}
+@media (max-width: 374px) {
+  .approach-screen { padding-inline: 16px; }
+  .approach-screen .page-header h1 { font-size: 24px; }
+  .approach-stage { padding-inline: 12px; }
+  .approach-reply { gap: 8px; }
+  .approach-response { padding: 15px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .approach-reply, .approach-reply.is-active { transition: none; transform: none; }
+  .approach-reply:not(.is-active) { visibility: hidden; }
+  .approach-direction { transition: none; }
+}
 
 /* Mood/reminder: consistent heading rhythm and mathematically aligned slider. */
 .mood-screen .page-header,
@@ -1292,8 +1351,6 @@ svg { flex-shrink: 0; }
   .voice-carousel { top: 245px; height: 205px; }
   .voice-screen > .pager-dots { bottom: 132px; }
   .voice-note { bottom: 86px; }
-  .approach-screen .page-header { padding-top: 76px; }
-  .approach-stage { top: 268px; bottom: 142px; }
   .mood-screen .page-header, .checkins-screen .page-header { padding-top: 88px; }
   .mood-stage { top: 205px; bottom: 148px; }
   .checkins-art { top: 245px; }
@@ -1302,12 +1359,11 @@ svg { flex-shrink: 0; }
 @media (max-width: 374px) {
   .voice-carousel { padding-inline: calc(50% - 94px); }
   .voice-card { flex-basis: 188px; width: 188px; }
-  .approach-message { max-width: 96%; font-size: 13.5px; }
   .message-text { max-width: 92%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .letter-spinner, .chat-skeleton i { animation: none; }
-  .voice-card, .envelope-art, .survey-option, .approach-message--assistant { transition: none; animation: none; }
+  .voice-card, .envelope-art, .survey-option { transition: none; animation: none; }
   /* The wheel still snaps, but ranges no longer tilt or scale in motion. */
   .age-option { transform: none; }
   .age-marker { animation: none; }

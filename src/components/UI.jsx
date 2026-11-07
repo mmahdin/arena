@@ -26,13 +26,14 @@ export function BackButton({ onClick, dark = false, floating = false, label = 'Ø
   );
 }
 
-export function PrimaryButton({ children, onClick, disabled = false, light = false, className = '', type = 'button' }) {
+export function PrimaryButton({ children, onClick, disabled = false, light = false, className = '', type = 'button', ariaLabel }) {
   return (
     <button
       type={type}
       className={`primary-button ${light ? 'primary-button--light' : ''} ${className}`}
       onClick={onClick}
       disabled={disabled}
+      aria-label={ariaLabel}
     >
       {children}
     </button>

@@ -151,6 +151,22 @@ test('frontend refinement removes diary/fake controls and keeps backend boundari
   assert.ok(main.includes('type="radio"'));
 });
 
+test('conversation style redesign is a minimal, accessible chat preview', () => {
+  const onboarding = read('../src/screens/Onboarding.jsx');
+  const css = read('../src/styles.css');
+  for (const removed of ['approach-tabs', 'approach-preview-badge', 'approach-swipe-hint', 'approach-author']) {
+    assert.ok(!onboarding.includes(removed), `${removed} should stay out of the redesigned screen`);
+  }
+  assert.ok(onboarding.includes('چطور باهات حرف بزنم؟'));
+  assert.ok(onboarding.includes('inert={index !== active}'));
+  assert.ok(onboarding.includes('aria-live="polite"'));
+  assert.ok(onboarding.includes('<h2 id="approach-style"'));
+  assert.ok(!onboarding.includes('برای تغییر سبک، به چپ یا راست بکش'));
+  assert.ok(css.includes('.approach-replies { display: grid;'));
+  assert.ok(css.includes('.approach-reply, .approach-reply.is-active { transition: none; transform: none; }'));
+  assert.ok(APPROACH_EXAMPLE_USER.length <= 60, 'the shared prompt should stay concise');
+});
+
 test('style preview keeps the five original options and one shared user prompt', () => {
   assert.deepEqual(APPROACHES.map((item) => item.name), [
     'گفت‌وگوی آزاد', 'همدلی و شنیدن', 'به من یاد بده', 'راهنمایی آرام', 'حل مسئله با هم',
