@@ -1,0 +1,15 @@
+{
+  "name": "تیا — Theia",
+  "short_name": "تیا",
+  "description": "همراهی آرام برای گفت‌وگو و دیدنِ روشن‌تر خود.",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#100F0C",
+  "theme_color": "#100F0C",
+  "icons": [
+    { "src": "/assets/theia-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/theia-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

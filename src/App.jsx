@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
+import { TheiaLoader } from './components/Brand';
 import { FLOW, LEGACY_INFO_ROUTES } from './data';
 import { createOnboardingGreeting } from './features/profile/onboardingGreeting';
 import { VALID_ROUTES, ONBOARDING_ROUTES, canOpenRoute, canVisitOnboarding, onboardingMove, visibleOnboardingRoute, previousOnboardingRoute } from './features/profile/navigation';
@@ -531,8 +532,13 @@ export default function App() {
   return (
     <div className="app-shell" data-screen-surface={active ? screenSurfaceForRoute(route) : 'light'} dir="rtl">
       {active && !complete && progressPhase !== 'ready' ? (
-        <section className="connected-status" role="status">
-          {progressPhase === 'error' ? <><p>مرحلهٔ قبلیت پیدا نشد.</p><button type="button" onClick={() => setProgressRetry(n => n + 1)}>تلاش دوباره</button></> : <p>در حال آماده‌سازی…</p>}
+        <section className="boot-screen theme-dark" role="status">
+          {progressPhase === 'error' ? (
+            <>
+              <p>مرحلهٔ قبلی‌ت پیدا نشد.</p>
+              <button type="button" className="quiet-button" onClick={() => setProgressRetry(n => n + 1)}>تلاش دوباره</button>
+            </>
+          ) : <TheiaLoader label="در حال آماده‌سازی…" />}
         </section>
       ) : active ? (
         <main className="screen-transition" key={`${session.profile?.userId}:${route}`} aria-busy={progressSaving && !complete}>
@@ -541,7 +547,7 @@ export default function App() {
       ) : (
         <DevLogin session={session} login={(phone) => store.login(phone)} retry={() => session.error?.action === 'logout' ? store.leave() : store.bootstrap()} />
       )}
-      {toast && <div className="toast" role="status"><CheckCircle2 size={19} /><span>{toast}</span></div>}
+      {toast && <div className="toast" role="status"><CheckCircle2 size={17} /><span>{toast}</span></div>}
     </div>
   );
 }

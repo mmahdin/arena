@@ -1,8 +1,15 @@
 # Source preservation and design authority
 
-- Source of truth: user-uploaded `ai-therapist-frontend(1).zip` (a new **همراه** UI, not the earlier رهراه gallery or TypeScript foundation).
-- This addition **does not modify** `src/**`, `public/**` or `index.html`; the UI keeps its component tree, custom CSS, illustration assets, route order, typography, images and demo interactions.
-- Only developer tooling/configuration can change (Vite host/proxy, npm check scripts, docs/tests). No visual or interactive feature was implemented by the repackaging.
-- Run `npm run check:source-baseline` to verify byte-identical original sources against `docs/design/original-source-sha256.json`.
-- `src/styles.css` is the styling source of truth. `FRONTEND_DESIGN_SPEC.md` describes the implementation as it exists rather than introducing a new look.
-- The previous Rahrah screenshot set has **not** been imported; it is a different design baseline. No older theme should override this source.
+## 2026-11-07 — Theia identity baseline (current)
+
+- The product is now branded **Theia / تیا**. The identity, design system, illustration language and every screen were rebuilt for this brand; the previous floral (Ash-inspired) artwork is intentionally removed and must not return.
+- `docs/design/original-source-sha256.json` now pins the **Theia** identity surface: entry HTML, icon set, manifest, design tokens (`src/styles.css`), the brand primitives (`src/components/Brand.jsx`) and the screens that compose them.
+- Run `npm run check:source-baseline` to confirm those files are present; `npm run check:source-baseline -- --verify-original` compares their exact bytes.
+- `src/styles.css` remains the single styling source of truth and `FRONTEND_DESIGN_SPEC.md` remains the interaction contract. `docs/design/THEIA_IDENTITY.md` documents the new visual system, tokens and component vocabulary.
+- Behaviour, routes, backend integration and the onboarding question set are preserved; only presentation, brand language and the art direction changed.
+- The earlier uploaded `ai-therapist-frontend(1).zip` (همراه) and the Rahrah gallery are historical references. No part of their floral iconography should be reintroduced.
+
+## Historical note (pre-rebrand)
+
+- Source was the user-uploaded `ai-therapist-frontend(1).zip` (the **همراه** UI). The repackaging step did not modify `src/**`, `public/**` or `index.html`; only developer tooling changed.
+- That preservation guarantee applied to the repackaging task only and has been superseded by the 2026-11-07 rebrand above.

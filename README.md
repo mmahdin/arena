@@ -6,7 +6,7 @@ Locally: `npm ci && npm test && npm run build && npm run dev`. With a real local
 
 ---
 
-# همراه
+# تیا — Theia
 
 یک رابط موبایل‌محور فارسی و راست‌به‌چپ، بازسازی‌شده از توالی ۳۸ تصویر مرجع. رابط با React و Vite ساخته شده و هیچ بک‌اند یا اتصال هوش مصنوعی واقعی ندارد.
 

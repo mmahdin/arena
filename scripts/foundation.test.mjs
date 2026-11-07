@@ -11,7 +11,14 @@ test('designer routes and visual assets remain present', () => {
   for (const r of ['welcome','privacy','age','therapist','voice','approach','ready','home']) assert.match(data,new RegExp(`'${r}'`));
   assert.match(app,/routeFromHash/);
   assert.match(app,/dir="rtl"/);
-  assert.equal(readdirSync(new URL('public/assets/',root)).length,9);
+  const assets = readdirSync(new URL('public/assets/',root));
+  assert.ok(assets.includes('theia-icon.svg'), 'the Theia app icon exists');
+  assert.ok(assets.includes('theia-icon-512.png'), 'a raster icon is shipped for touch devices');
+  assert.ok(existsSync(new URL('public/favicon.svg',root)), 'favicon follows the new brand');
+  assert.ok(
+    !assets.some((name) => /flower|daisy|privacy-flower|expert-|welcome-figures/.test(name)),
+    'the previous floral artwork is no longer part of the product',
+  );
 });
 
 test('handoff defines synthetic-only release scope and future API integration', () => {

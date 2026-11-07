@@ -19,7 +19,7 @@ The original designer's complete 24-step pre-Home onboarding is reachable again 
 
 ---
 
-# AGENTS — Hamrah (همراه) frontend, new designer-source edition
+# AGENTS — Theia (تیا) frontend
 
 **Main rule: the attached `ai-therapist-frontend(1).zip` is the authoritative product UI design.** Preserve the actual React/JSX screens, `src/styles.css`, route flow and original illustrations. Do NOT import or rebuild the earlier Rahrah/Wellbeing frontend, and do not silently turn the project into TypeScript, Tailwind or React Router.
 
@@ -34,7 +34,7 @@ The original designer's complete 24-step pre-Home onboarding is reachable again 
 8. `VALIDATION_REPORT.md` and `NEXT_AGENT_TASKS.md`.
 
 ## Product decision hierarchy
-- **Source of truth for look, brand, interaction layout, and intended user journey:** this *new* designer JSX source, under the Persian brand **همراه**.
+- **Source of truth for look, brand, interaction layout, and intended user journey:** `src/styles.css`, `src/components/Brand.jsx` and the screens under `src/screens/`, under the Persian brand **تیا** (Theia). See `docs/design/THEIA_IDENTITY.md`.
 - **Source of truth for what the currently validated backend actually supports:** current backend `contracts/openapi/openapi.yaml` and Go/MSSQL implementation; the frontend OpenAPI snapshot is only a reference copy.
 - **Current testing restrictions:** internal / local / synthetic data only; don't imply the UI is clinically safe or publicly released. When a designed flow asks for something the backend does not support, **log a product/backend gap**, preserve the design, do not fake connected behavior or invent endpoints.
 - **Unsupported claims are not product facts:** testimonials, 6000 ratings, 14 research articles/university associations, named clinicians, 'saved on phone' and 'delete account' copy are unverified or contradict the local prototype. Do not display as real to any real user; correct or gate before connecting testers while preserving layout.

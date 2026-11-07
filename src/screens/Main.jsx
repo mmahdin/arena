@@ -7,7 +7,6 @@ import {
   ChevronDown,
   ChevronLeft,
   Copy,
-  Flower2,
   History as HistoryIcon,
   Info,
   LogOut,
@@ -25,6 +24,7 @@ import {
   MiniEnvelope,
   StatusBar,
 } from '../components/UI';
+import { Aperture, LetterSymbol, QuietVignette, TheiaMark, TheiaWordmark } from '../components/Brand';
 import Letters from './Letters';
 import { parseLetterReplyMessage } from '../features/letters/discuss';
 import { validateDisplayName } from '../features/profile/preferences';
@@ -33,6 +33,10 @@ const formatDate = (value) => {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? 'تاریخ نامشخص' : new Intl.DateTimeFormat('fa-IR', { month: 'short', day: 'numeric' }).format(date);
 };
+
+const greetingFor = (name) => (name ? `سلام، ${name}` : 'سلام');
+
+/* ---------- Home: the aperture ---------- */
 
 function Home({ navigate, name, underlay = false, onNewConversation, letterPhase = 'idle', letters = [], readLetterIds = [] }) {
   const hasUnreadLetter = letterPhase === 'ready' && letters.some(letter => !readLetterIds.includes(letter.id));
@@ -44,56 +48,60 @@ function Home({ navigate, name, underlay = false, onNewConversation, letterPhase
   return (
     <section className={`app-screen theme-dark home-screen ${underlay ? 'is-underlay' : ''}`} dir="rtl">
       <StatusBar dark />
-      <button type="button" className="home-menu-button" onClick={() => navigate('menu')} aria-label="بازکردن منو">
-        <MenuIcon size={23} strokeWidth={1.8} aria-hidden="true" />
-      </button>
+      <div className="home-topbar">
+        <button type="button" className="home-menu-button" onClick={() => navigate('menu')} aria-label="بازکردن منو">
+          <MenuIcon size={21} strokeWidth={1.6} aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          className={`home-letter-link ${hasUnreadLetter ? 'is-unread' : ''}`}
+          onClick={() => navigate('letter')}
+          aria-label={hasUnreadLetter ? 'خواندن نامهٔ تازهٔ تیا' : 'بازکردن نامه‌های تیا'}
+          title={hasUnreadLetter ? 'نامهٔ تازه' : 'نامه‌های تیا'}
+        >
+          <span className="home-letter-symbol" aria-hidden="true">
+            <MiniEnvelope />
+            {hasUnreadLetter && <span className="home-letter-seal" />}
+          </span>
+        </button>
+      </div>
+
+      <div className="home-greeting">
+        <span className="eyebrow">تیا کنارته</span>
+        <h1>{greetingFor(name)}</h1>
+        <p>هر وقت آماده بودی، من اینجام.</p>
+      </div>
 
       <div className="home-invitation">
         <button type="button" className="home-start-conversation" onClick={startConversation} aria-label="شروع گفت‌وگوی تازه">
           <span className="home-conversation-art" aria-hidden="true">
-            <svg className="home-conversation-orbit" viewBox="0 0 240 240" fill="none" focusable="false">
-              <path className="home-orbit-trace home-orbit-trace--first" d="M187 48C157 19 113 21 81 38C39 61 21 105 35 148C45 182 73 205 107 211" />
-              <path className="home-orbit-trace home-orbit-trace--second" d="M58 177C83 205 127 219 163 202C200 185 222 151 211 109C205 88 195 75 184 65" />
-              <path className="home-orbit-accent" d="M60 76C76 58 97 52 112 51" />
-              <circle className="home-orbit-point" cx="111" cy="211" r="2.6" />
-            </svg>
-            <Flower2 className="home-conversation-mark" size={52} strokeWidth={1.05} aria-hidden="true" />
+            <span className="home-conversation-glow" />
+            <Aperture />
           </span>
           <span className="home-start-label">بیا حرف بزنیم</span>
         </button>
       </div>
 
-      <button
-        type="button"
-        className={`home-letter-link ${hasUnreadLetter ? 'is-unread' : ''}`}
-        onClick={() => navigate('letter')}
-        aria-label={hasUnreadLetter ? 'خواندن نامهٔ تازهٔ همراه' : 'بازکردن نامه‌های همراه'}
-        title={hasUnreadLetter ? 'نامهٔ تازه' : 'نامه‌های همراه'}
-      >
-        <span className="home-letter-symbol" aria-hidden="true">
-          <MiniEnvelope />
-          {hasUnreadLetter && <span className="home-letter-seal"><Flower2 size={10} strokeWidth={1.8} /></span>}
-        </span>
-      </button>
-
       <nav className="home-navigation" aria-label="گفت‌وگوها">
         <button type="button" className="home-history-link" onClick={() => navigate('history')} aria-label="نمایش گفت‌وگوهای قبلی">
-          <span className="home-history-stack" aria-hidden="true">
-            <span className="home-history-sheet home-history-sheet--back" />
-            <span className="home-history-sheet home-history-sheet--front">
-              <span className="home-history-stroke" />
-              <span className="home-history-stroke home-history-stroke--short" />
-            </span>
-          </span>
           <span className="home-history-caption">
+            <span className="home-history-stack" aria-hidden="true">
+              <span className="home-history-sheet home-history-sheet--back" />
+              <span className="home-history-sheet home-history-sheet--front">
+                <span className="home-history-stroke" />
+                <span className="home-history-stroke home-history-stroke--short" />
+              </span>
+            </span>
             <span>گفت‌وگوهای قبلی</span>
-            <ChevronLeft size={15} strokeWidth={1.6} aria-hidden="true" />
           </span>
+          <ChevronLeft size={16} strokeWidth={1.5} aria-hidden="true" />
         </button>
       </nav>
     </section>
   );
 }
+
+/* ---------- Survey ---------- */
 
 function Survey({ back, answers, setAnswer, navigate, notify }) {
   const options = ['اصلاً', 'چند روز', 'بیشتر از نصف روزها', 'تقریباً هر روز'];
@@ -110,6 +118,7 @@ function Survey({ back, answers, setAnswer, navigate, notify }) {
       <StatusBar dark />
       <BackButton dark onClick={back} />
       <div className="survey-copy">
+        <p className="eyebrow">یک سؤال کوتاه</p>
         <p className="survey-context" id="survey-context">توی دو هفتهٔ گذشته، چند وقت یه بار این حس رو داشتی؟</p>
         <h1 id="survey-question">کم شدن علاقه یا لذتت از کارهایی که قبلاً دوست داشتی</h1>
         <p className="survey-support">پاسخ درست یا غلط وجود نداره؛ نزدیک‌ترین گزینه رو انتخاب کن.</p>
@@ -128,7 +137,7 @@ function Survey({ back, answers, setAnswer, navigate, notify }) {
                 onChange={() => choose(option)}
               />
               <span>{option}</span>
-              <Check size={18} className="survey-check" aria-hidden="true" />
+              <Check size={16} className="survey-check" aria-hidden="true" />
             </label>
           );
         })}
@@ -136,6 +145,8 @@ function Survey({ back, answers, setAnswer, navigate, notify }) {
     </section>
   );
 }
+
+/* ---------- History ---------- */
 
 function History({ back, navigate, conversations = [], conversationId, historyPhase, historyError, onReloadHistory, onOpenConversation, onDeleteConversation, onRenameConversation, onNewConversation, deletingId, renamingId }) {
   const [editingId, setEditingId] = useState(null);
@@ -158,7 +169,7 @@ function History({ back, navigate, conversations = [], conversationId, historyPh
       <BackButton dark onClick={back} />
       <h1 className="history-title">گفت‌وگوهای قبلی</h1>
       <button type="button" className="history-new" onClick={startNew} aria-label="گفت‌وگوی جدید">
-        <Plus size={20} aria-hidden="true" />
+        <Plus size={18} aria-hidden="true" />
       </button>
       <div className="history-content" aria-live="polite">
         {historyPhase === 'loading' && <p className="connected-status">در حال بارگذاری گفت‌وگوها…</p>}
@@ -166,7 +177,12 @@ function History({ back, navigate, conversations = [], conversationId, historyPh
           <p>گفت‌وگو بارگذاری یا حذف نشد. دوباره تلاش کن.</p>
           <button type="button" onClick={onReloadHistory}>تلاش دوباره</button>
         </div>}
-        {historyPhase === 'ready' && conversations.length === 0 && <p className="connected-status">هنوز گفت‌وگویی نداری.</p>}
+        {historyPhase === 'ready' && conversations.length === 0 && (
+          <div className="history-empty">
+            <QuietVignette size={84} />
+            <p>هنوز گفت‌وگویی نداری.</p>
+          </div>
+        )}
         {conversations.map((item) => (
           <div className={`connected-history-entry ${item.id === conversationId ? 'is-active' : ''}`} key={item.id}>
             {editingId === item.id ? (
@@ -185,7 +201,7 @@ function History({ back, navigate, conversations = [], conversationId, historyPh
                   <span className="history-date"><strong>{item.title || 'گفت‌وگوی بدون عنوان'}</strong><small>{formatDate(item.updatedAt)}</small></span>
                 </button>
                 <button type="button" className="connected-rename" disabled={Boolean(renamingId) || deletingId === item.id} onClick={() => beginRename(item)} aria-label={`تغییر نام ${item.title || 'گفت‌وگو'}`}>
-                  <Pencil size={17} aria-hidden="true" />
+                  <Pencil size={15} aria-hidden="true" />
                 </button>
                 <button type="button" className="connected-delete" disabled={deletingId === item.id || Boolean(renamingId)} onClick={() => onDeleteConversation(item.id)} aria-label={`حذف ${item.title || 'گفت‌وگو'}`}>
                   {deletingId === item.id ? 'در حال حذف…' : 'حذف'}
@@ -199,7 +215,9 @@ function History({ back, navigate, conversations = [], conversationId, historyPh
   );
 }
 
-function SavedMessages({ back, bookmarks = [], bookmarkPhase, bookmarkError, onReloadBookmarks, onOpenSavedMessage }) {
+/* ---------- Saved messages ---------- */
+
+function SavedMessages({ back, bookmarks = [], bookmarkPhase, onReloadBookmarks, onOpenSavedMessage }) {
   return (
     <section className="app-screen theme-dark history-screen saved-messages-screen" dir="rtl">
       <StatusBar dark />
@@ -211,10 +229,16 @@ function SavedMessages({ back, bookmarks = [], bookmarkPhase, bookmarkError, onR
           <p>پیام‌های ذخیره‌شده بارگذاری نشدن.</p>
           <button type="button" onClick={onReloadBookmarks}>تلاش دوباره</button>
         </div>}
-        {bookmarkPhase === 'ready' && bookmarks.length === 0 && <p className="connected-status">هنوز پیامی ذخیره نکردی.</p>}
+        {bookmarkPhase === 'ready' && bookmarks.length === 0 && (
+          <div className="history-empty">
+            <QuietVignette size={84} />
+            <p>هنوز پیامی ذخیره نکردی.</p>
+            <span>هر جمله‌ای که برات ماند، با یک نشان می‌تونی نگهش داری.</span>
+          </div>
+        )}
         {bookmarks.map(item => (
           <button type="button" key={item.id} className="saved-history-entry" onClick={() => onOpenSavedMessage(item)}>
-            <Bookmark size={18} fill="currentColor" aria-hidden="true" />
+            <Bookmark size={16} fill="currentColor" aria-hidden="true" />
             <span>{item.content.length > 125 ? `${item.content.slice(0, 125)}…` : item.content}</span>
           </button>
         ))}
@@ -223,12 +247,14 @@ function SavedMessages({ back, bookmarks = [], bookmarkPhase, bookmarkError, onR
   );
 }
 
+/* ---------- Menu ---------- */
+
 const MENU_ITEMS = [
   { label: 'گفت‌وگوهای قبلی', icon: HistoryIcon, route: 'history' },
   { label: 'پیام‌های ذخیره‌شده', icon: Bookmark, route: 'saved' },
-  { label: 'نامه‌های همراه', icon: Mail, route: 'letter' },
+  { label: 'نامه‌های تیا', icon: Mail, route: 'letter' },
   { label: 'تنظیمات', icon: Settings2, route: 'settings' },
-  { label: 'درباره', icon: Info, route: 'research' },
+  { label: 'دربارهٔ تیا', icon: Info, route: 'research' },
 ];
 
 function Drawer({ navigate, name, onLogout, onSwitchTester }) {
@@ -237,25 +263,33 @@ function Drawer({ navigate, name, onLogout, onSwitchTester }) {
       <Home navigate={() => {}} name={name} underlay />
       <button type="button" className="drawer-backdrop" onClick={() => navigate('home')} aria-label="بستن منو" />
       <aside className="drawer-panel" aria-label="منوی اصلی">
-        <div className="drawer-brand">همراه</div>
+        <div className="drawer-brand">
+          <span className="welcome-brand__mark">
+            <TheiaMark size={26} color="var(--text-ink)" />
+            <TheiaWordmark size={29} tone="ink" />
+          </span>
+          <small>همراهی برای دیدنِ روشن‌تر</small>
+        </div>
         <nav className="drawer-nav">
           {MENU_ITEMS.map(({ label, icon: Icon, route }) => (
             <button type="button" key={route} onClick={() => navigate(route)}>
-              <Icon size={24} strokeWidth={1.65} aria-hidden="true" />
+              <Icon size={20} strokeWidth={1.5} aria-hidden="true" />
               <span>{label}</span>
+              <ChevronLeft size={15} strokeWidth={1.4} aria-hidden="true" style={{ marginInlineStart: 'auto', opacity: .3 }} />
             </button>
           ))}
         </nav>
         <div className="drawer-footer">
-          <button type="button" aria-label="تعویض کاربر آزمایشی" onClick={() => onSwitchTester?.()}><Settings2 size={23} /><span>عوض کردن حساب</span></button>
-          <button type="button" onClick={() => onLogout?.()}><LogOut size={23} /><span>خروج</span></button>
+          <button type="button" aria-label="تعویض کاربر آزمایشی" onClick={() => onSwitchTester?.()}><Settings2 size={18} strokeWidth={1.5} /><span>عوض کردن حساب</span></button>
+          <button type="button" onClick={() => onLogout?.()}><LogOut size={18} strokeWidth={1.5} /><span>خروج</span></button>
         </div>
       </aside>
     </div>
   );
 }
 
-/** Edit profile and privacy here; the example-rich style selector is reused standalone. */
+/* ---------- Settings ---------- */
+
 function Settings({ back, profileName = '', conversationStyle = 'balanced', savingProfile = false,
   onSaveSettings, onOpenStyle, privacySharing, privacyLoading, privacySaving, privacyLoaded, privacyError,
   onTogglePrivacy, onRetryPrivacy }) {
@@ -273,9 +307,9 @@ function Settings({ back, profileName = '', conversationStyle = 'balanced', savi
     setFeedback(ok ? 'تغییرات ذخیره شد.' : 'ذخیره نشد. دوباره تلاش کن.');
   };
   return (
-    <section className="app-screen theme-dark settings-screen" dir="rtl">
-      <StatusBar dark />
-      <BackButton dark onClick={back} />
+    <section className="app-screen theme-light settings-screen" dir="rtl">
+      <StatusBar />
+      <BackButton onClick={back} />
       <h1 className="settings-page-title">تنظیمات</h1>
       <div className="settings-scroll">
         <form id="settings-profile-form" onSubmit={submit}>
@@ -303,7 +337,7 @@ function Settings({ back, profileName = '', conversationStyle = 'balanced', savi
           <button type="button" className="settings-style-link" onClick={onOpenStyle} disabled={savingProfile}
             aria-label="تغییر سبک گفت‌وگو و دیدن نمونه‌های هر سبک">
             <span>تغییر سبک گفت‌وگو</span>
-            <ChevronLeft size={19} strokeWidth={1.7} aria-hidden="true" />
+            <ChevronLeft size={18} strokeWidth={1.5} aria-hidden="true" />
           </button>
         </div>
         <section className="settings-group settings-privacy" aria-labelledby="settings-privacy-heading">
@@ -311,7 +345,7 @@ function Settings({ back, profileName = '', conversationStyle = 'balanced', savi
           <button type="button" className="settings-privacy-toggle" role="switch" aria-checked={Boolean(privacySharing)}
             aria-disabled={!privacyLoaded || privacyLoading || privacySaving}
             disabled={!privacyLoaded || privacyLoading || privacySaving} onClick={onTogglePrivacy}>
-            <span>اجازهٔ استفاده از گفت‌وگوها</span>
+            <span>استفاده از حرف‌هام برای پاسخ‌های بهتر</span>
             <span className={`settings-switch ${privacySharing ? 'is-on' : ''}`} aria-hidden="true"><span /></span>
           </button>
           {privacyLoading && <p className="settings-muted" role="status">در حال بارگذاری…</p>}
@@ -320,13 +354,15 @@ function Settings({ back, profileName = '', conversationStyle = 'balanced', savi
             <button type="button" onClick={onRetryPrivacy}>تلاش دوباره</button>
           </div>}
         </section>
+        <p className="settings-footnote">تیا جای درمان نیست؛ اگر حالت خوب نبود، با اورژانس اجتماعی ۱۲۳ یا یک آدم قابل‌اعتماد تماس بگیر.</p>
       </div>
     </section>
   );
 }
 
+/* ---------- Chat ---------- */
+
 function MessageTools({ message, open, saved, saving, bookmarkReady, onToggleBookmark }) {
-  const assistant = message.role === 'assistant';
   const [copied, setCopied] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [flash, setFlash] = useState('');
@@ -379,16 +415,16 @@ function MessageTools({ message, open, saved, saving, bookmarkReady, onToggleBoo
     <div className={`message-tools ${open ? 'is-open' : ''}`}>
       <div className="message-tools-inner" role="group" aria-label="گزینه‌های پیام">
         <button type="button" className={`message-tool ${copied ? 'is-done' : ''}`} onClick={copy} aria-label="کپی پیام" title="کپی پیام">
-          {copied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}
+          {copied ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
         </button>
         <button type="button" className={`message-tool message-tool--save ${saved ? 'is-saved' : ''} ${saving ? 'is-busy' : ''}`}
           onClick={toggleSave} disabled={!bookmarkReady || saving}
           aria-label={saved ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره پیام'} title={saved ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره پیام'}>
-          <Bookmark size={17} fill={saved ? 'currentColor' : 'none'} aria-hidden="true" />
+          <Bookmark size={15} fill={saved ? 'currentColor' : 'none'} aria-hidden="true" />
         </button>
         <button type="button" className={`message-tool ${speaking ? 'is-speaking' : ''}`} onClick={speak}
           aria-label={speaking ? 'توقف خواندن' : 'خواندن با صدای دستگاه'} title={speaking ? 'توقف خواندن' : 'خواندن با صدای دستگاه'}>
-          <Volume2 size={17} aria-hidden="true" />
+          <Volume2 size={15} aria-hidden="true" />
         </button>
         {flash && <span className="message-flash" role="status">{flash}</span>}
       </div>
@@ -409,7 +445,7 @@ function ConversationSheet({ open, onClose, conversations = [], conversationId, 
   return (
     <BottomSheet open={open} onClose={onClose} title="گفت‌وگوها" className="conversation-sheet">
       <button type="button" className="conversation-new" onClick={startNew} disabled={sending}>
-        <span className="conversation-new-icon"><Plus size={18} aria-hidden="true" /></span>
+        <span className="conversation-new-icon"><Plus size={16} aria-hidden="true" /></span>
         <strong>گفت‌وگوی جدید</strong>
       </button>
       <div className="conversation-list" aria-live="polite">
@@ -450,10 +486,10 @@ function ChatSkeleton() {
 function LetterReference({ title, dismiss }) {
   return (
     <div className={`chat-letter-reference ${dismiss ? 'is-composer-reference' : 'is-message-reference'}`} role="note" aria-label={`ارجاع به نامهٔ ${title}`}>
-      <Mail size={15} strokeWidth={1.7} aria-hidden="true" />
+      <LetterSymbol size={18} />
       <span className="chat-letter-reference-title" dir="auto">{title}</span>
       {dismiss && <button type="button" className="chat-letter-reference-close" onClick={dismiss} aria-label="حذف ارجاع به نامه">
-        <X size={15} strokeWidth={1.7} aria-hidden="true" />
+        <X size={14} strokeWidth={1.8} aria-hidden="true" />
       </button>}
     </div>
   );
@@ -462,12 +498,11 @@ function LetterReference({ title, dismiss }) {
 function Chat({
   navigate, onboardingGreeting = '', messages = [], pendingTurn, sending, chatLoading, chatError,
   onSendMessage, onRetryMessage, onRetryChatLoad, onNewConversation, notify,
-  bookmarks = [], bookmarkPhase, bookmarkError, bookmarkBusyId, onToggleBookmark, onReloadBookmarks,
+  bookmarks = [], bookmarkPhase, bookmarkBusyId, onToggleBookmark, onReloadBookmarks,
   conversations = [], conversationId, activeConversation, historyPhase, historyError, onReloadHistory,
   onOpenConversation, savedMessageTarget, onSavedMessageTargetDone, chatDraft = '', onDraftChange,
   letterReply, onDismissLetterReply,
 }) {
-  // undefined → tools follow the latest assistant message; null → all closed; id → that message.
   const [toolsFor, setToolsFor] = useState(undefined);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [showJump, setShowJump] = useState(false);
@@ -526,8 +561,6 @@ function Chat({
       return undefined;
     }
 
-    // Scroll the chat container itself, never the entire screen; center the
-    // message when it fits, and start at its top for very long messages.
     stickToBottom.current = false;
     const containerRect = scroller.getBoundingClientRect();
     const messageRect = message.getBoundingClientRect();
@@ -540,7 +573,6 @@ function Chat({
     return () => window.clearTimeout(timer);
   }, [savedMessageTarget, conversationId, chatLoading, chatError, messages, onSavedMessageTargetDone, notify]);
   useEffect(() => { setToolsFor(undefined); }, [messages.length]);
-  // Only messages that arrive after the thread is on screen get the entrance motion.
   useEffect(() => {
     knownIds.current = chatLoading ? null : new Set(messages.map((message) => message.id));
   }, [messages, chatLoading]);
@@ -556,7 +588,6 @@ function Chat({
     const clean = text.trim();
     if (!clean || sending || pendingTurn || chatLoading) return;
     if ([...clean].length > 4000) { notify('پیام می‌تونه تا ۴۰۰۰ کاراکتر باشه.'); return; }
-    // Chat store clears the draft only after accepting the turn; retain it on validation errors.
     void onSendMessage(clean);
   };
   const onComposerKeyDown = (event) => {
@@ -582,7 +613,7 @@ function Chat({
         <BackButton dark onClick={() => navigate('home')} />
         <button type="button" className="chat-title-button" onClick={() => setSheetOpen(true)} aria-haspopup="dialog" aria-expanded={sheetOpen} aria-label={`${title}، گفت‌وگوها`}>
           <span className="chat-title">{title}</span>
-          <ChevronDown size={16} aria-hidden="true" />
+          <ChevronDown size={15} aria-hidden="true" />
         </button>
       </header>
       <div className="messages-scroll" ref={scrollRef} onScroll={onScroll} role="log" aria-live="polite" aria-busy={chatLoading}>
@@ -600,7 +631,7 @@ function Chat({
             </div>
           ) : (
             <div className="chat-empty">
-              <Flower2 size={30} strokeWidth={1.3} aria-hidden="true" />
+              <QuietVignette size={96} />
               <h2>اینجا می‌تونی راحت حرف بزنی.</h2>
             </div>
           ))}
@@ -648,7 +679,7 @@ function Chat({
       </div>
       <button type="button" className={`jump-to-latest ${showJump ? 'is-visible' : ''}`} tabIndex={showJump ? 0 : -1} aria-hidden={!showJump} aria-label="آخرین پیام"
         onClick={() => { stickToBottom.current = true; setShowJump(false); scrollToBottom(); }}>
-        <ArrowDown size={18} aria-hidden="true" />
+        <ArrowDown size={17} aria-hidden="true" />
       </button>
       <form className="composer-wrap" ref={composerRef} onSubmit={(event) => { event.preventDefault(); send(draft); }}>
         {letterReply && <LetterReference title={letterReply.title} dismiss={onDismissLetterReply} />}
@@ -658,7 +689,7 @@ function Chat({
             placeholder="پیامت رو بنویس…" aria-label="متن پیام"
             onKeyDown={onComposerKeyDown} />
           <button type="submit" className={`send-button ${sendDisabled ? '' : 'is-ready'}`} disabled={sendDisabled} aria-label="فرستادن پیام">
-            <ArrowUp size={20} strokeWidth={2.2} aria-hidden="true" />
+            <ArrowUp size={18} strokeWidth={2} aria-hidden="true" />
           </button>
         </div>
       </form>
