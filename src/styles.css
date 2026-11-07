@@ -1078,12 +1078,12 @@ svg { flex-shrink: 0; }
 .voice-screen > .pager-dots { bottom: 168px; }
 .voice-note { bottom: 112px; color: #a6a49f; }
 
-/* Conversation style: a cohesive, quiet selection card. The sample replies
-   remain a continuously swipeable track; only the presentation changes. */
+/* Conversation style: a calm, borderless preview on the page background.
+   The sample replies remain a continuously swipeable track. */
 .approach-screen {
   --approach-muted: #514a41;
   display: flex; flex-direction: column;
-  padding-inline: 20px; padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  padding-inline: 28px; padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
   overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
 }
 .approach-screen::-webkit-scrollbar { display: none; }
@@ -1104,17 +1104,13 @@ svg { flex-shrink: 0; }
   position: relative; min-height: 0; flex: 0 0 auto;
   display: flex; flex-direction: column; align-items: stretch;
   margin-top: clamp(42px, 7dvh, 68px);
-  padding: 20px 16px 26px;
-  border: 1px solid rgb(255 255 255 / 22%);
-  border-radius: 28px;
-  background: rgb(255 255 255 / 13%);
   touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none;
 }
-.approach-stage:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+.approach-stage:focus-visible { outline: 2px solid var(--ink); outline-offset: 8px; border-radius: 8px; }
 .approach-picker {
   display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px;
   align-items: center; align-self: center; width: min(100%, 300px);
-  flex: 0 0 auto; margin-bottom: 26px; text-align: center;
+  flex: 0 0 auto; margin-bottom: clamp(30px, 4dvh, 38px); text-align: center;
 }
 .approach-picker h2 {
   min-height: 34px; color: var(--ink); font-size: 19px;
@@ -1189,7 +1185,7 @@ svg { flex-shrink: 0; }
 .approach-screen button:focus-visible { outline-color: var(--ink); }
 @media (max-height: 700px) {
   .approach-screen .page-header { padding-top: 40px; }
-  .approach-stage { margin-top: 28px; padding-block: 16px 18px; }
+  .approach-stage { margin-top: 28px; }
   .approach-picker { margin-bottom: 16px; }
   .approach-message--user { margin-bottom: 14px; }
   .approach-position { margin-top: 18px; }
@@ -1198,7 +1194,6 @@ svg { flex-shrink: 0; }
 @media (max-width: 374px) {
   .approach-screen { padding-inline: 16px; }
   .approach-screen .page-header h1 { font-size: 24px; }
-  .approach-stage { padding-inline: 12px; }
   .approach-reply { gap: 8px; }
   .approach-response { padding: 15px 16px; }
 }

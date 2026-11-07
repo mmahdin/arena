@@ -72,16 +72,16 @@ try {
       return picker.bottom < prompt.top && prompt.bottom < reply.top && reply.bottom < actions.top;
     }), 'style selector should sit immediately above the example conversation');
     assert.equal((await page.locator('.approach-message--user').textContent()).trim(), APPROACH_EXAMPLE_USER);
-    // The new soft card keeps the indicator beneath the entire conversation.
+    // Pagination belongs below the conversation; the preview stays borderless.
     assert.ok(await page.evaluate(() => {
       const stage = document.querySelector('.approach-stage');
       const reply = document.querySelector('.approach-replies').getBoundingClientRect();
       const dots = document.querySelector('.approach-position').getBoundingClientRect();
       const style = getComputedStyle(stage);
-      return dots.top > reply.bottom && dots.bottom < stage.getBoundingClientRect().bottom
-        && parseFloat(style.borderTopLeftRadius) >= 24
-        && style.backgroundColor !== 'rgba(0, 0, 0, 0)';
-    }), 'the dots should be under the conversation inside a subtle rounded card');
+      return dots.top > reply.bottom && dots.bottom <= stage.getBoundingClientRect().bottom
+        && style.backgroundColor === 'rgba(0, 0, 0, 0)'
+        && parseFloat(style.borderTopWidth) === 0;
+    }), 'the dots should sit under the conversation without an outer card');
     for (const removed of ['.approach-tabs', '.approach-preview-badge', '.approach-swipe-hint', '.approach-author', '.approach-description', '.approach-change-note', '.approach-example-label', '.approach-step', '.approach-picker .pager-dots']) {
       assert.equal(await page.locator(removed).count(), 0, `${removed} should not return`);
     }
