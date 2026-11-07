@@ -1815,3 +1815,75 @@ svg { flex-shrink: 0; }
 @media (prefers-reduced-motion: reduce) {
   .chat-letter-reference { transition: none; }
 }
+
+/* ---------- Theia (تیا) visual identity refinements ---------- */
+:root {
+  --theia-dawn: #f6cf98;
+  --theia-moon: #d5d9f7;
+  --theia-gold: #d8a76c;
+}
+
+.privacy-art {
+  top: 43%;
+  width: 142px;
+  height: 164px;
+}
+@media (max-height: 700px) {
+  .privacy-art {
+    top: 45%;
+    width: 112px;
+    height: 130px;
+  }
+}
+
+.mood-glow[data-mood-level="3"] {
+  background: radial-gradient(ellipse at center, rgb(246 207 152 / 42%), rgb(213 217 247 / 32%) 46%, transparent 70%);
+}
+.mood-glow[data-mood-level="4"] {
+  background: radial-gradient(ellipse at center, rgb(246 207 152 / 56%), rgb(213 217 247 / 22%) 48%, transparent 70%);
+}
+
+.wax-seal {
+  background: #b88c58;
+  color: #fcf5e8;
+  box-shadow: inset 0 0 0 4px #cca26e, inset 0 0 0 6px #916a3d, 0 3px 6px rgb(0 0 0 / 28%);
+}
+
+.drawer-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.drawer-brand-mark {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 10px rgb(246 207 152 / 14%));
+}
+
+.home-conversation-art::before {
+  background: radial-gradient(circle, rgb(246 207 152 / 10%) 0%, rgb(213 217 247 / 8%) 38%, transparent 73%);
+}
+.home-orbit-point--sun {
+  fill: var(--theia-dawn);
+}
+.home-orbit-crescent {
+  fill: var(--theia-moon);
+  opacity: .86;
+}
+.theia-home-emblem {
+  filter: drop-shadow(0 0 16px rgb(246 207 152 / 12%));
+}
+.home-letter-seal {
+  background: var(--theia-gold);
+  color: #231a10;
+}
+
+.letter-read-signature {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+}
+.letter-signature-mark {
+  opacity: .85;
+}
+
