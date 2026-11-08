@@ -34,7 +34,7 @@ The original designer's complete 24-step pre-Home onboarding is reachable again 
 8. `VALIDATION_REPORT.md` and `NEXT_AGENT_TASKS.md`.
 
 ## Product decision hierarchy
-- **Source of truth for look, brand, interaction layout, and intended user journey:** this *new* designer JSX source, under the Persian brand **همراه**.
+- **Source of truth for look, brand, interaction layout, and intended user journey:** this *new* designer JSX source, under the Persian brand **کنار** (formerly همراه).
 - **Source of truth for what the currently validated backend actually supports:** current backend `contracts/openapi/openapi.yaml` and Go/MSSQL implementation; the frontend OpenAPI snapshot is only a reference copy.
 - **Current testing restrictions:** internal / local / synthetic data only; don't imply the UI is clinically safe or publicly released. When a designed flow asks for something the backend does not support, **log a product/backend gap**, preserve the design, do not fake connected behavior or invent endpoints.
 - **Unsupported claims are not product facts:** testimonials, 6000 ratings, 14 research articles/university associations, named clinicians, 'saved on phone' and 'delete account' copy are unverified or contradict the local prototype. Do not display as real to any real user; correct or gate before connecting testers while preserving layout.
@@ -45,7 +45,8 @@ The original designer's complete 24-step pre-Home onboarding is reachable again 
 - `src/screens/Onboarding.jsx`: 25-route journey, mostly *locally held answers*. Some ask health / belief / age / therapy history. These data **must not silently become server-collected**.
 - `src/screens/Main.jsx`: Home, health-related survey, a static day card, static History, menu, mock chat and static AI Insight. Chat's `setTimeout` reply is a demo, not AI.
 - `src/data.js`: demo questions, voice choices, approach choices, sample conversation and unverified review copy.
-- CSS/fontrendering and `public/assets/**` are design artifacts; preserve.
+- CSS/fontrendering, `public/assets/**` (legacy Ash-era florals, kept but unreferenced) and `public/brand/**` are design artifacts; preserve.
+- Persian brand is **کنار (Kenar)**; the visual identity lives in `src/components/Kenar.jsx` and is documented in `docs/design/KENAR_VISUAL_IDENTITY.md`. Do not reintroduce Ash-era flowers, floral characters or the old `Flower2` icon.
 
 ## Implementation rules
 1. Freeze the source (manifest + screenshots on real device when available). Add API/state logic in `src/core/api/*.js` and feature folders as needed, then wire screens one at a time. Do not mass-replace JSX/class names.

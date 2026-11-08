@@ -1,4 +1,6 @@
-# Frontend design and interaction contract — همراه (current authority)
+# Frontend design and interaction contract — کنار (current authority)
+
+> 2026-11-08 brand identity: the product is now **کنار (Kenar)**. All Ash-derived floral figures, characters and decorative symbols are replaced by the **Kenar identity system** — one inked horizon line plus a small companion that sits on it (`src/components/Kenar.jsx`, `public/brand/`). The change is *visual identity only*: layouts, navigation, interaction, component structure, spacing, copy length and the 26-step onboarding order are unchanged, and no screen was redesigned. Where this document still says «همراه», «floral» or references the old PNGs, the Kenar identity supersedes the imagery — see `docs/design/KENAR_VISUAL_IDENTITY.md` (authority for mark, character, palette additions, motion, voice and application map) and the presentation sheet `docs/design/kenar-identity-sheet.png`.
 
 > 2026-11-06 approach design: use the `ui-ux-pro-max` Minimalism & Swiss Style direction with low density. Show one heading, the current style name between two subtle, unboxed chevrons, one shared example prompt and one authored reply. The style name is plain text; swipe the example left/right, tap a chevron or use the arrow keys to change it. There is no dropdown. Back, Continue and quiet Skip/Cancel remain. The chevrons have 44px hit areas with no visible container; style lists, dropdowns, written gesture instructions, subtitles, counters, descriptions and footer notes are removed. Five small, noninteractive position dots sit below the style name, ordered to match the physical slide positions (LTR), with one elongated active mark synchronized to swipe, arrows and keyboard. Preserve the five original style keys, mapping, default, swipe/keyboard behavior, stable reply slot, reduced motion, beige palette and local typography. See `docs/design/APPROACH_REDESIGN_2026_11.md`.
 
@@ -8,7 +10,7 @@
 **This uploaded 2026-11-02 new `ai-therapist-frontend(1).zip` is the definitive visual product reference.** It replaces the earlier Rahrah design and the older TypeScript Wellbeing prototype as a visual source. No broad redesign is requested; the 2026-11-06 approach-screen update above is the scoped exception. Make each new functional state feel native to this exact UI; do not migrate from another app.
 
 ## Visual language observed in source
-- Persian friendly, soft organic floral figures; deliberate contrast between light neutral onboarding and almost-black home/chat screens.
+- Persian friendly, soft line-drawn presence; deliberate contrast between light neutral onboarding and almost-black home/chat screens. *(Imagery updated 2026-11-08 to Kenar: no floral figures remain.)*
 - Max-width **430px** centered mobile viewport; page transitions ~180ms in CSS; RTL throughout. Keep mobile portrait hierarchy intact when adding loader/errors.
 - Fonts: Estedad for primary, Vazirmatn and Noto Naskh Arabic installed locally.
 - Main CSS tokens: `--light:#f3f2ee`, `--ink:#23201b`, `--beige:#cec4b8`, `--dark:#12110d`, `--lavender:#d5d9f7`, `--yellow:#f6cf98`, `--green:#9eda9e`.

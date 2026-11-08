@@ -1,0 +1,19 @@
+{
+  "name": "کنار",
+  "short_name": "کنار",
+  "description": "یه نفر که همین‌جا، کنارت می‌مونه.",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#12110d",
+  "theme_color": "#12110d",
+  "icons": [
+    { "src": "/brand/kenar-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/kenar-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/kenar-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/brand/kenar-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

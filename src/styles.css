@@ -1815,3 +1815,207 @@ svg { flex-shrink: 0; }
 @media (prefers-reduced-motion: reduce) {
   .chat-letter-reference { transition: none; }
 }
+
+/* ==========================================================================
+   Kenar identity system — 2026-11
+   One inked line, one horizon, one small presence sitting beside it.
+   The app keeps every existing layout; only the marks, illustrations and the
+   words that name the product change.
+   ========================================================================== */
+:root {
+  --kenar-sand: #e9d0ae;
+  --kenar-clay: #b9744f;
+  --kenar-shore: #a89e90;
+  --kenar-night: #12110d;
+}
+
+/* ---------- The drawing ---------- */
+.kenar-scene {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: var(--ink);
+  pointer-events: none;
+}
+.kenar-scene > svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.theme-dark .kenar-scene { color: #efe8db; }
+.kenar-caption {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 2px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #6f6961;
+  font-size: 13.5px;
+  font-weight: 480;
+  line-height: 1.7;
+  letter-spacing: -.15px;
+  text-align: center;
+  opacity: 0;
+  animation: kenar-caption-in 700ms cubic-bezier(.2, .7, .2, 1) 1150ms forwards;
+}
+.kenar-caption::before {
+  content: '';
+  flex: none;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--kenar-clay);
+}
+.theme-dark .kenar-caption { color: #a9a29a; }
+
+/* The horizon draws itself, then the companion settles onto it. */
+.kenar-line--draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: kenar-draw 1000ms cubic-bezier(.3, .7, .2, 1) 80ms forwards;
+}
+.kenar-character.is-animated {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: kenar-settle 720ms cubic-bezier(.22, .8, .24, 1) 420ms both;
+}
+.kenar-eyes.is-blinking {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: kenar-blink 8.5s ease-in-out 3s infinite;
+}
+.kenar-loop { stroke-dasharray: 1; stroke-dashoffset: 0; opacity: .42; }
+@keyframes kenar-draw { to { stroke-dashoffset: 0; } }
+@keyframes kenar-settle {
+  from { opacity: 0; transform: translateY(9px) scale(.986); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes kenar-blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  93% { transform: scaleY(.08); }
+}
+@keyframes kenar-caption-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- Logo, wordmark, seal ---------- */
+.kenar-mark { display: block; flex: none; overflow: visible; }
+.kenar-glyph { display: block; flex: none; overflow: visible; }
+.kenar-wordmark {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  color: inherit;
+}
+.kenar-wordmark-lockup { display: flex; align-items: flex-end; gap: 9px; direction: rtl; }
+.kenar-wordmark-mark { margin-bottom: 3px; }
+.kenar-wordmark-text {
+  font-family: 'Estedad Variable', 'Vazirmatn Variable', Tahoma, sans-serif;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -1.6px;
+}
+.kenar-wordmark-rule { display: block; width: 116px; height: 12px; color: inherit; }
+
+/* ---------- Onboarding illustrations ---------- */
+.welcome-screen .welcome-art { top: 27%; bottom: 92px; inset-inline: 24px; }
+.welcome-screen .page-header h1 { font-size: 31px; }
+.welcome-screen .page-header p { max-width: 342px; }
+.kenar-scene--welcome > svg { height: 94%; }
+.art-small .interstitial-art { top: 53%; inset-inline: 30px; }
+.art-medium .interstitial-art { top: 50%; inset-inline: 28px; }
+.art-large .interstitial-art { top: 43%; inset-inline: 26px; }
+.art-tall .interstitial-art { top: 27%; inset-inline: 26px; }
+.interstitial-screen .page-header p { color: #c9c3b9; }
+.kenar-scene--privacy { position: absolute; }
+.privacy-screen .privacy-art { top: 47%; width: 112px; height: 112px; }
+.checkins-art .kenar-scene { height: 100%; }
+.checkins-art .kenar-scene > svg { height: 92%; }
+.ready-screen .ready-art { top: 33%; bottom: 92px; }
+.ready-screen .page-header h1 { font-size: 31px; }
+.ready-screen .page-header p { color: #5f594f; font-size: 15px; }
+
+/* The reply avatar in the conversation-style preview. */
+.approach-mark { color: #6b6259; }
+.approach-mark .kenar-mark { width: 19px; height: 19px; }
+
+/* ---------- Home: the companion inside the orbit ---------- */
+.home-conversation-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  height: 100%;
+  color: #f0e9dc;
+  animation: home-mark-breathe 6.5s ease-in-out 900ms infinite;
+}
+.home-conversation-scene > svg { height: 100%; }
+.home-letter-seal { color: #3a2620; }
+.home-screen .kenar-glyph { width: 12px; height: 12px; }
+
+/* ---------- Letters ---------- */
+.letter-signature-glyph {
+  display: inline-block;
+  margin-inline-start: 9px;
+  color: #c3b194;
+  opacity: .85;
+  vertical-align: -1px;
+}
+
+/* ---------- Chat ---------- */
+.chat-empty { color: #8e887f; }
+.chat-empty .kenar-mark { color: #b6afa5; }
+
+/* ---------- Wax seal: the same presence, pressed into the letter ---------- */
+.wax-seal {
+  background: #b4715a;
+  color: #5d2f27;
+  box-shadow: inset 0 0 0 4px #c4836a, inset 0 0 0 6px #9a5a45, 0 3px 5px rgb(0 0 0 / 28%);
+}
+.wax-seal .kenar-mark { width: 34px; height: 34px; }
+
+/* ---------- Drawer ---------- */
+.drawer-brand {
+  margin: 73px 24px 0;
+  display: inline-flex;
+  color: #efe9df;
+}
+.drawer-brand .kenar-wordmark-text { font-size: 46px; letter-spacing: -2px; }
+.drawer-brand .kenar-wordmark-rule { width: 138px; height: 13px; }
+.drawer-brand .kenar-wordmark-mark { margin-bottom: 4px; }
+
+/* ---------- Login (internal tester hand-off) ---------- */
+.dev-login-art .kenar-scene { position: absolute; inset: 0; height: 100%; }
+.dev-login-art .kenar-scene > svg { height: 100%; }
+.dev-login-heading .kenar-mark { color: #6d655b; }
+
+/* ---------- Brand-consistent focus ring ---------- */
+.home-start-conversation:focus-visible,
+.home-letter-link:focus-visible,
+.home-history-link:focus-visible { outline-color: var(--kenar-sand); }
+
+@media (max-height: 740px) {
+  .welcome-screen .welcome-art { top: 25%; bottom: 86px; }
+  .art-small .interstitial-art { top: 50%; }
+  .art-medium .interstitial-art { top: 48%; }
+  .art-large .interstitial-art { top: 41%; }
+  .art-tall .interstitial-art { top: 25%; }
+  .ready-screen .ready-art { top: 31%; bottom: 86px; }
+  .kenar-caption { font-size: 12.5px; bottom: 0; }
+}
+@media (max-height: 660px) {
+  .kenar-caption { display: none; }
+}
+@media (max-width: 374px) {
+  .kenar-wordmark-text { font-size: 38px; }
+  .drawer-brand .kenar-wordmark-text { font-size: 42px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kenar-line--draw { stroke-dasharray: none; stroke-dashoffset: 0; animation: none; }
+  .kenar-character.is-animated { animation: none; opacity: 1; transform: none; }
+  .kenar-eyes.is-blinking { animation: none; }
+  .kenar-caption { animation: none; opacity: 1; transform: none; }
+  .home-conversation-scene { animation: none; }
+}

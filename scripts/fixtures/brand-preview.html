@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>کنار — پیش‌نمایش هویت بصری</title>
+    <style>
+      :root { color-scheme: dark; }
+      /* This page is a long document, unlike the app shell. */
+      html, body { height: auto !important; margin: 0; background: #0d0c0a !important; }
+      body { overflow: auto !important; }
+      #brand-preview { direction: rtl; color: #efe9df; }
+      .bp-wrap { max-width: 1180px; margin: 0 auto; padding: 48px 24px 96px; }
+      .bp-eyebrow { display: flex; align-items: center; gap: 10px; color: #b9744f; font-size: 13px; letter-spacing: .4px; }
+      .bp-eyebrow::before { content: ''; width: 26px; height: 1px; background: #b9744f; }
+      .bp-title { margin: 18px 0 0; font-size: clamp(34px, 5vw, 52px); font-weight: 700; letter-spacing: -2px; }
+      .bp-lead { max-width: 640px; margin: 16px 0 0; color: #b3ada3; font-size: 16px; line-height: 2; }
+      .bp-note { margin-top: 22px; display: inline-flex; align-items: center; gap: 9px; padding: 9px 14px; border: 1px solid #2b2823; border-radius: 999px; color: #8f897f; font-size: 12px; }
+      .bp-note b { color: #cbbfa9; font-weight: 600; }
+      .bp-section { margin-top: 64px; }
+      .bp-section > h2 { margin: 0 0 6px; font-size: 21px; font-weight: 650; }
+      .bp-section > p { margin: 0 0 24px; color: #9a948a; font-size: 14px; line-height: 1.9; }
+
+      .bp-lockup { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; }
+      .bp-card { border: 1px solid #262320; border-radius: 22px; background: #141311; overflow: hidden; }
+      .bp-card--paper { background: #f3f2ee; border-color: #e2dfd8; color: #23201b; }
+      .bp-card img { display: block; width: 100%; height: auto; }
+      .bp-card-pad { padding: 22px; }
+      .bp-card h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+      .bp-card small { color: #8d877d; font-size: 12px; }
+      .bp-swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 12px; }
+      .bp-swatch { padding: 16px; border-radius: 18px; border: 1px solid #262320; }
+      .bp-swatch i { display: block; width: 100%; height: 56px; border-radius: 12px; margin-bottom: 12px; }
+      .bp-swatch b { display: block; font-size: 13px; font-weight: 600; }
+      .bp-swatch span { color: #8d877d; font-size: 11.5px; }
+      .bp-posese { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+      .bp-pose { padding: 14px 10px 10px; border-radius: 20px; background: #f3f2ee; color: #23201b; text-align: center; }
+      .bp-pose svg { width: 100%; height: 120px; display: block; }
+      .bp-pose strong { display: block; font-size: 12.5px; font-weight: 600; }
+      .bp-pose span { color: #7d766c; font-size: 11px; }
+
+      .bp-gallery { display: flex; gap: 26px; overflow-x: auto; padding: 8px 4px 26px; scroll-snap-type: x mandatory; }
+      .bp-item { flex: 0 0 auto; width: 390px; scroll-snap-align: center; }
+      .bp-frame { position: relative; width: 390px; height: 780px; border-radius: 30px; overflow: hidden; border: 1px solid #2f2b26; box-shadow: 0 30px 70px rgb(0 0 0 / 55%); background: #12110d; }
+      .bp-frame .app-shell { --app-height: 780px; height: 780px; max-width: 390px; box-shadow: none; }
+      .bp-label { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 14px; }
+      .bp-label strong { font-size: 13.5px; font-weight: 600; }
+      .bp-label span { color: #8a847a; font-size: 11.5px; direction: ltr; }
+      .bp-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+      .bp-story { display: grid; gap: 14px; }
+      .bp-story li { list-style: none; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #24211d; }
+      .bp-story b { color: #cbbfa9; font-weight: 600; }
+      .bp-story p { margin: 4px 0 0; color: #9a948a; font-size: 13.5px; line-height: 1.9; }
+      .bp-story em { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #1d1b18; color: #b9744f; font-style: normal; font-size: 12px; }
+      .bp-typography { display: grid; gap: 14px; }
+      .bp-type-row { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; padding-bottom: 12px; border-bottom: 1px solid #24211d; }
+      .bp-type-row span { color: #8a847a; font-size: 11.5px; }
+      @media (max-width: 860px) {
+        .bp-lockup { grid-template-columns: minmax(0, 1fr); }
+        .bp-wrap { padding: 32px 16px 72px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="brand-preview"></div>
+    <script type="module" src="./brand-preview.jsx"></script>
+  </body>
+</html>

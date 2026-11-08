@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Mail } from 'lucide-react';
 import { BackButton } from '../components/UI';
+import { KenarGlyph } from '../components/Kenar';
 
 const dateFormat = new Intl.DateTimeFormat('fa-IR', { dateStyle: 'long' });
 const dayFormat = new Intl.DateTimeFormat('fa-IR', { day: 'numeric', month: 'long' });
@@ -48,7 +49,10 @@ function LetterReader({ letter, onClose, onDiscuss }) {
             <p className="letter-read-body letter-reveal" style={reveal()} key={index}>{paragraph}</p>
           ))}
           {letter.question && <p className="letter-read-question letter-reveal" style={reveal()}>{letter.question}</p>}
-          <p className="letter-read-signature letter-reveal" style={reveal()}>همراه</p>
+          <p className="letter-read-signature letter-reveal" style={reveal()}>
+            کنار
+            <span className="letter-signature-glyph" aria-hidden="true"><KenarGlyph size={15} /></span>
+          </p>
 
           <footer className="letter-end letter-reveal" style={reveal()}>
             {onDiscuss && (
@@ -127,7 +131,7 @@ function Inbox({ back, phase, letters, readIds, onOpen, onReload, focusId }) {
     <section className="app-screen theme-dark letters-screen">
       <BackButton dark onClick={back} />
       <div className="letters-scroll">
-        <header className="letters-head"><h1>نامه‌های همراه</h1></header>
+        <header className="letters-head"><h1>نامه‌های کنار</h1></header>
         {body}
       </div>
     </section>

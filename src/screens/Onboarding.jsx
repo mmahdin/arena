@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Check, ChevronLeft, ChevronRight, Flame, Flower2, Landmark } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Flame, Landmark } from 'lucide-react';
 import { APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import { resistVoiceDrag, voiceSwipeTarget } from '../features/onboarding/voiceCarousel';
 import {
@@ -12,6 +12,7 @@ import {
   StatusBar,
   VoiceWave,
 } from '../components/UI';
+import { KenarMark, KenarScene } from '../components/Kenar';
 
 const nextFrom = (route, navigate) => {
   const nextIndex = FLOW.indexOf(route) + 1;
@@ -33,11 +34,11 @@ function Welcome({ navigate }) {
   return (
     <Shell className="welcome-screen">
       <PageHeader
-        title="با همراه آشنا شو"
-        description="همراه کمک می‌کنه دربارهٔ احساساتت حرف بزنی و خودت رو بهتر بشناسی."
+        title="با کنار آشنا شو"
+        description="کنار یعنی همین‌جا بودن، کنارِ تو. یه جای آروم برای حرف زدن و بهتر شناختن خودت."
       />
       <div className="welcome-art artwork-wrap">
-        <img src="/assets/welcome-figures.png" alt="دو شخصیت گل‌مانند دست‌در دست" />
+        <KenarScene variant="welcome" />
       </div>
       <PrimaryButton onClick={() => nextFrom('welcome', navigate)}>شروع</PrimaryButton>
     </Shell>
@@ -48,8 +49,8 @@ function Testimonials({ navigate, back }) {
   return (
     <Shell theme="beige" back={back} className="testimonials-screen scrolling-screen">
       <PageHeader
-        title="بقیه دربارهٔ همراه چی می‌گن؟"
-        description="نظر کاربران همراه"
+        title="بقیه دربارهٔ کنار چی می‌گن؟"
+        description="نظر کاربران کنار"
       />
       <div className="reviews-list">
         {REVIEWS.map((review) => (
@@ -72,8 +73,8 @@ function Research({ navigate, back }) {
   return (
     <Shell theme="dark" back={back} className="research-screen">
       <PageHeader
-        title="همراه با کمک پژوهش‌های علمی طراحی شده."
-        description="پژوهش‌های مرتبط با همراه"
+        title="کنار با کمک پژوهش‌های علمی طراحی شده."
+        description="پژوهش‌های مرتبط با کنار"
       />
       <div className="research-logos" aria-label="مراکز پژوهشی">
         <span className="university-wordmark">نورث‌وسترن</span>
@@ -139,22 +140,22 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
 const INTERSTITIALS = {
   'simple-intro': {
     title: 'اول چند سؤال ساده بپرسم.',
-    description: 'جواب‌هات کمک می‌کنن بهتر بشناسمت.',
+    description: 'جواب‌هات کمک می‌کنن بهتر بشناسمت؛ عجله‌ای هم نیست.',
     art: 'small',
   },
   'deeper-intro': {
     title: 'حالا بیشتر دربارهٔ خودت بگو.',
-    description: 'با چند سؤال کوتاه کمکم کن بفهمم چرا اینجایی و چه چیزهایی برات مهم‌ترن.',
+    description: 'لازم نیست همه‌چیز رو یه‌بار بگی. با چند سؤال کوتاه کمکم کن بفهمم چه چیزهایی برات مهم‌ترن.',
     art: 'medium',
   },
   'know-intro': {
     title: 'بذار بیشتر بشناسمت.',
-    description: '',
+    description: 'داری برام آشنا می‌شی.',
     art: 'large',
   },
   'almost-intro': {
     title: 'دیگه چیزی نمونده!',
-    description: 'حالا صدا و سبک حرف زدنم رو انتخاب کن.',
+    description: 'حالا صدای من رو هم انتخاب کن.',
     art: 'tall',
   },
 };
@@ -165,7 +166,7 @@ function Interstitial({ route, navigate, back }) {
     <Shell theme="dark" back={back} className={`interstitial-screen art-${item.art}`}>
       <PageHeader title={item.title} description={item.description} />
       <div className="interstitial-art artwork-wrap">
-        <img src={`/assets/flower-person-${item.art}.png`} alt="شخصیت گل‌مانند همراه" />
+        <KenarScene variant={item.art} />
       </div>
       <PrimaryButton light onClick={() => nextFrom(route, navigate)}>ادامه</PrimaryButton>
     </Shell>
@@ -181,7 +182,7 @@ function Privacy({ navigate, back, privacySharing = true, privacyLoading = false
         title="حریم خصوصی تو مهمه."
         description="گفت‌وگوهات ذخیره می‌شن تا بعداً ادامه‌شون بدی."
       />
-      <img className="privacy-art" src="/assets/privacy-flower.png" alt="گل با نشان قفل" />
+      <KenarScene variant="privacy" className="privacy-art" />
       <button
         type="button"
         className="privacy-card"
@@ -558,9 +559,9 @@ function MoodScreen({ navigate, back, answers, setAnswer }) {
 function CheckinsScreen({ navigate, back }) {
   return (
     <Shell back={back} className="checkins-screen">
-      <PageHeader title="یه یادآوری، درست وقتی لازمه." description="همراه می‌تونه گاهی حالت رو بپرسه. هر وقت بخوای می‌تونی یادآوری‌ها رو خاموش کنی." />
+      <PageHeader title="یه یادآوری، درست وقتی لازمه." description="کنار می‌تونه گاهی حالت رو بپرسه. هر وقت بخوای می‌تونی یادآوری‌ها رو خاموش کنی." />
       <div className="checkins-art" aria-hidden="true">
-        <img src="/assets/checkins-handdrawn.svg" alt="" />
+        <KenarScene variant="checkins" />
       </div>
       <PrimaryButton onClick={() => nextFrom('checkins', navigate)}>ادامه</PrimaryButton>
     </Shell>
@@ -854,7 +855,7 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
               aria-hidden={index !== active}
               inert={index !== active}
             >
-              <span className="approach-mark" aria-hidden="true"><Flower2 size={18} strokeWidth={1.4} /></span>
+              <span className="approach-mark" aria-hidden="true"><KenarMark size={19} /></span>
               <p className="approach-response">{item.exampleResponse || item.response}</p>
             </article>
           ))}
@@ -888,9 +889,9 @@ function Ready({ navigate, savingProfile = false }) {
     <Shell className="ready-screen">
       <PageHeader
         title="من آماده‌ام!"
-        description=""
+        description="از این به بعد، کنارتم."
       />
-      <div className="ready-art artwork-wrap"><img src="/assets/ready-daisy.png" alt="گل همراه در حال قدم‌زدن" /></div>
+      <div className="ready-art artwork-wrap"><KenarScene variant="ready" /></div>
       <PrimaryButton disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>{savingProfile ? 'در حال ذخیره…' : 'شروع گفت‌وگو'}</PrimaryButton>
     </Shell>
   );
