@@ -491,7 +491,7 @@ export default function App() {
     onReloadBookmarks: () => chatStore.listBookmarks(),
     onSendMessage: (text) => {
       const message = letterReply ? buildLetterReplyMessage(text, letterReply) : text;
-      if (!message) { setToast('پیامت رو کمی کوتاه‌تر بنویس تا متن نامه هم همراهش فرستاده بشه.'); return false; }
+        if (!message) { setToast('پیامت رو کمی کوتاه‌تر بنویس تا متن نامه هم کنارش فرستاده بشه.'); return false; }
       setOnboardingGreeting('');
       const queued = chatStore.send(message);
       // The store synchronously creates a pending turn when it accepts a send.

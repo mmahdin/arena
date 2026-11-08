@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="kenar logo">
+  <!-- Kenar brand mark: the companion pebble, a gentle presence beside you -->
+  <circle cx="100" cy="100" r="96" fill="#f7f3ec" />
+  <circle cx="100" cy="100" r="92" fill="none" stroke="#dccfae" stroke-width="6" />
+  <!-- companion pebble -->
+  <path d="M 46 98 C 46 62 96 42 100 46 C 104 42 154 62 154 98 C 154 134 104 158 100 154 C 96 158 46 134 46 98 Z" fill="#d8b98a" />
+  <path d="M 70 94 C 76 90 88 90 94 96 C 100 100 88 102 82 98" fill="none" stroke="#5c4a3c" stroke-width="7" stroke-linecap="round" />
+  <circle cx="78" cy="86" r="5" fill="#5c4a3c" />
+  <circle cx="122" cy="86" r="5" fill="#5c4a3c" />
+</svg>

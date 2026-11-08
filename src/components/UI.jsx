@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import {
   ArrowRight,
   Check,
-  Flower2,
   Plus,
   Star,
   X,
@@ -143,7 +142,7 @@ export function ChoiceButton({ children, selected, onClick, multi = false, disab
   );
 }
 
-export function EnvelopeArt({ onClick, label = 'نامهٔ همراه', ariaLabel = 'باز کردن نامهٔ همراه' }) {
+export function EnvelopeArt({ onClick, label = 'نامهٔ کنار', ariaLabel = 'باز کردن نامهٔ کنار' }) {
   const content = (
     <>
       <svg className="envelope-lines" viewBox="0 0 340 160" aria-hidden="true">
@@ -152,7 +151,7 @@ export function EnvelopeArt({ onClick, label = 'نامهٔ همراه', ariaLabe
         <path d="M332 148 L214 69" />
       </svg>
       <span className="envelope-date">{label}</span>
-      <span className="wax-seal"><Flower2 size={34} strokeWidth={1.25} /></span>
+      <span className="wax-seal"><KenarSeal size={34} strokeWidth={1.2} /></span>
     </>
   );
 
@@ -233,5 +232,52 @@ export function VoiceWave({ path }) {
         <path d={path} fill="none" stroke="#171713" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </div>
+  );
+}
+
+/** Kenar brand mark: the companion pebble — a gentle presence beside you. */
+export function KenarMark({ size = 24, strokeWidth = 1.2 }) {
+  return (
+    <svg
+      className="kenar-mark"
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M6 14 C6 10 10 6 12 8 C14 6 18 10 18 14 C18 18 12 20 12 16 C12 20 6 18 6 14 Z" />
+      <circle cx="10" cy="11" r="1" fill="currentColor" />
+      <circle cx="14" cy="11" r="1" fill="currentColor" />
+      <path d="M11 14 Q12 15 13 14" />
+    </svg>
+  );
+}
+
+/** Kenar wax seal: the companion sealed inside a circle, used as a badge of presence. */
+export function KenarSeal({ size = 24, strokeWidth = 1.2 }) {
+  return (
+    <svg
+      className="kenar-seal"
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="M6 14 C6 10 10 6 12 8 C14 6 18 10 18 14 C18 18 12 20 12 16 C12 20 6 18 6 14 Z" fill="currentColor" />
+      <circle cx="10" cy="11" r="0.7" fill="#5c4a3c" />
+      <circle cx="14" cy="11" r="0.7" fill="#5c4a3c" />
+      <path d="M11 14 Q12 15 13 14" fill="none" stroke="#5c4a3c" strokeWidth="1" />
+    </svg>
   );
 }
