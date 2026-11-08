@@ -2,11 +2,11 @@ import React, { useEffect, useRef } from 'react';
 import {
   ArrowRight,
   Check,
-  Flower2,
   Plus,
   Star,
   X,
 } from 'lucide-react';
+import { KenarMark } from '../brand/kenar';
 
 export function StatusBar() {
   // Keep the shared header spacing and safe area; device chrome belongs to the OS.
@@ -143,7 +143,7 @@ export function ChoiceButton({ children, selected, onClick, multi = false, disab
   );
 }
 
-export function EnvelopeArt({ onClick, label = 'نامهٔ همراه', ariaLabel = 'باز کردن نامهٔ همراه' }) {
+export function EnvelopeArt({ onClick, label = 'نامهٔ کنار', ariaLabel = 'باز کردن نامهٔ کنار' }) {
   const content = (
     <>
       <svg className="envelope-lines" viewBox="0 0 340 160" aria-hidden="true">
@@ -152,7 +152,7 @@ export function EnvelopeArt({ onClick, label = 'نامهٔ همراه', ariaLabe
         <path d="M332 148 L214 69" />
       </svg>
       <span className="envelope-date">{label}</span>
-      <span className="wax-seal"><Flower2 size={34} strokeWidth={1.25} /></span>
+      <span className="wax-seal"><KenarMark mono /></span>
     </>
   );
 

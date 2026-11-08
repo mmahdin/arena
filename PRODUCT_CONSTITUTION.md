@@ -1,7 +1,7 @@
-# Product Constitution — همراه / Hamrah
+# Product Constitution — کنار / Kenar
 
 ## The designer UI is the product-intent authority
-The current uploaded JSX/CSS implementation establishes the **همراه** brand, floral illustrations, mobile-first tone, 25-step onboarding sequence, home/reflection, history, chat, insight and message actions. Keep these screens and their visual system, including choices that await separate backend work. An agent must not discard them simply because the former technical MVP is smaller.
+The current uploaded JSX/CSS implementation establishes the **کنار** brand and its mobile-first tone; the original floral identity was replaced in 2026-11-08 by the Kenar identity (see `docs/design/KENAR_IDENTITY.md`), while layouts remain unchanged. It also establishes 25-step onboarding sequence, home/reflection, history, chat, insight and message actions. Keep these screens and their visual system, including choices that await separate backend work. An agent must not discard them simply because the former technical MVP is smaller.
 
 ## Distinguish design authority from verified claims
 Visual design cannot prove statements about medical effectiveness, institutional research affiliations, expert credentials, 6000+ reviews, therapy, data location, account deletion or voice/analysis functionality. The current UI has such claims. Before a screen is exposed in the connected tester flow: substantiate or replace factual copy while keeping its design geometry. The product is an AI tool, not a human clinician; do not imply diagnosis, prescription, medical service, guaranteed outcomes or active crisis monitoring.

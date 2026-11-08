@@ -7,7 +7,6 @@ import {
   ChevronDown,
   ChevronLeft,
   Copy,
-  Flower2,
   History as HistoryIcon,
   Info,
   LogOut,
@@ -25,6 +24,12 @@ import {
   MiniEnvelope,
   StatusBar,
 } from '../components/UI';
+import {
+  ChatPresence,
+  HomePresence,
+  KenarWordmark,
+  Pebble,
+} from '../brand/kenar';
 import Letters from './Letters';
 import { parseLetterReplyMessage } from '../features/letters/discuss';
 import { validateDisplayName } from '../features/profile/preferences';
@@ -51,13 +56,7 @@ function Home({ navigate, name, underlay = false, onNewConversation, letterPhase
       <div className="home-invitation">
         <button type="button" className="home-start-conversation" onClick={startConversation} aria-label="شروع گفت‌وگوی تازه">
           <span className="home-conversation-art" aria-hidden="true">
-            <svg className="home-conversation-orbit" viewBox="0 0 240 240" fill="none" focusable="false">
-              <path className="home-orbit-trace home-orbit-trace--first" d="M187 48C157 19 113 21 81 38C39 61 21 105 35 148C45 182 73 205 107 211" />
-              <path className="home-orbit-trace home-orbit-trace--second" d="M58 177C83 205 127 219 163 202C200 185 222 151 211 109C205 88 195 75 184 65" />
-              <path className="home-orbit-accent" d="M60 76C76 58 97 52 112 51" />
-              <circle className="home-orbit-point" cx="111" cy="211" r="2.6" />
-            </svg>
-            <Flower2 className="home-conversation-mark" size={52} strokeWidth={1.05} aria-hidden="true" />
+            <HomePresence className="home-presence" />
           </span>
           <span className="home-start-label">بیا حرف بزنیم</span>
         </button>
@@ -67,12 +66,12 @@ function Home({ navigate, name, underlay = false, onNewConversation, letterPhase
         type="button"
         className={`home-letter-link ${hasUnreadLetter ? 'is-unread' : ''}`}
         onClick={() => navigate('letter')}
-        aria-label={hasUnreadLetter ? 'خواندن نامهٔ تازهٔ همراه' : 'بازکردن نامه‌های همراه'}
-        title={hasUnreadLetter ? 'نامهٔ تازه' : 'نامه‌های همراه'}
+        aria-label={hasUnreadLetter ? 'خواندن نامهٔ تازهٔ کنار' : 'بازکردن نامه‌های کنار'}
+        title={hasUnreadLetter ? 'نامهٔ تازه' : 'نامه‌های کنار'}
       >
         <span className="home-letter-symbol" aria-hidden="true">
           <MiniEnvelope />
-          {hasUnreadLetter && <span className="home-letter-seal"><Flower2 size={10} strokeWidth={1.8} /></span>}
+          {hasUnreadLetter && <span className="home-letter-seal"><Pebble /></span>}
         </span>
       </button>
 
@@ -226,7 +225,7 @@ function SavedMessages({ back, bookmarks = [], bookmarkPhase, bookmarkError, onR
 const MENU_ITEMS = [
   { label: 'گفت‌وگوهای قبلی', icon: HistoryIcon, route: 'history' },
   { label: 'پیام‌های ذخیره‌شده', icon: Bookmark, route: 'saved' },
-  { label: 'نامه‌های همراه', icon: Mail, route: 'letter' },
+  { label: 'نامه‌های کنار', icon: Mail, route: 'letter' },
   { label: 'تنظیمات', icon: Settings2, route: 'settings' },
   { label: 'درباره', icon: Info, route: 'research' },
 ];
@@ -237,7 +236,7 @@ function Drawer({ navigate, name, onLogout, onSwitchTester }) {
       <Home navigate={() => {}} name={name} underlay />
       <button type="button" className="drawer-backdrop" onClick={() => navigate('home')} aria-label="بستن منو" />
       <aside className="drawer-panel" aria-label="منوی اصلی">
-        <div className="drawer-brand">همراه</div>
+        <div className="drawer-brand"><KenarWordmark as="div" /></div>
         <nav className="drawer-nav">
           {MENU_ITEMS.map(({ label, icon: Icon, route }) => (
             <button type="button" key={route} onClick={() => navigate(route)}>
@@ -600,8 +599,8 @@ function Chat({
             </div>
           ) : (
             <div className="chat-empty">
-              <Flower2 size={30} strokeWidth={1.3} aria-hidden="true" />
-              <h2>اینجا می‌تونی راحت حرف بزنی.</h2>
+              <span className="chat-empty-mark" aria-hidden="true"><ChatPresence /></span>
+              <h2>اینجا می‌تونی راحت حرف بزنی. من کنارتم.</h2>
             </div>
           ))}
           {messages.map((message) => {

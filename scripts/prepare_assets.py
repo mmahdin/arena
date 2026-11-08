@@ -1,5 +1,10 @@
-"""Extract only the reusable artwork/photography from the supplied references.
-The interface itself is rendered with React; no screenshot is used as a screen.
+"""Extract the reusable photography from the supplied references.
+
+Historical note (2026-11-08): this script used to cut the Ash-inspired floral
+illustrations out of the reference images. That identity was replaced by the
+original Kenar identity, whose artwork is vector and lives in
+`src/brand/kenar.jsx` — nothing has to be extracted for it. Only the expert
+portraits are still prepared here; the floral calls were removed on purpose.
 """
 from pathlib import Path
 from PIL import Image
@@ -30,14 +35,6 @@ def artwork(number: int, box: tuple[int, int, int, int], background: tuple[int, 
     result.putdata(pixels)
     result.save(OUT / name, optimize=True)
 
-
-artwork(38, (150, 700, 960, 2150), (243, 242, 238), "welcome-figures.png")
-artwork(33, (250, 1300, 950, 2110), (0, 0, 0), "flower-person-small.png")
-artwork(31, (270, 1210, 970, 2110), (0, 0, 0), "flower-person-medium.png")
-artwork(23, (250, 1060, 950, 2110), (0, 0, 0), "flower-person-large.png")
-artwork(17, (170, 700, 910, 2110), (0, 0, 0), "flower-person-tall.png")
-artwork(13, (130, 850, 950, 2150), (243, 242, 238), "ready-daisy.png")
-artwork(32, (370, 1170, 710, 1550), (243, 242, 238), "privacy-flower.png")
 
 source(35).crop((0, 680, 480, 1790)).save(OUT / "expert-man.jpg", quality=92, optimize=True)
 source(35).crop((514, 680, 1080, 1660)).save(OUT / "expert-woman.jpg", quality=92, optimize=True)

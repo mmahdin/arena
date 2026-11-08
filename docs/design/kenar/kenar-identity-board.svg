@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1240" viewBox="0 0 1800 1240">
+<style>
+  .fg { fill: #221f19; } .clay { fill: #b9775a; } .paper { fill: #f4f1ea; }
+  text { font-family: 'Estedad'; fill: #221f19; }
+  .naskh { font-family: 'Noto Naskh Arabic'; }
+  .muted { fill: #6f6a61; }
+  .line { stroke: #221f19; stroke-width: 1; opacity: .18; fill: none; }
+  .k-figure.k-fg { fill: #221f19; }
+  .k-figure.k-accent { fill: #b9775a; }
+  .k-shawl { fill: none; stroke: rgba(70,28,16,.24); stroke-width: 2.2; stroke-linecap: round; }
+  .k-paper-fill { fill: #f4f1ea; }
+  .k-accent-fill { fill: #b9775a; }
+  .k-accent-stroke { fill: none; stroke: #b9775a; stroke-width: 1; }
+  .k-line { fill: none; stroke: #221f19; stroke-width: 2.6; stroke-linecap: round; }
+  .k-far { fill: none; stroke: #b9775a; stroke-width: 1.2; stroke-linecap: round; opacity: .22; }
+  .k-ripple-line { fill: none; stroke: #b9775a; stroke-width: 1.3; stroke-linecap: round; opacity: .5; }
+  .kenar-mark .k-line { stroke-width: 2.8; opacity: .9; }
+  .k-ripple circle { fill: none; stroke: #b9775a; }
+
+  .k-darkfg { fill: #f1ece2; } .k-dline { stroke: #f1ece2; stroke-width: 2.6; fill: none; stroke-linecap: round; }
+</style>
+<rect width="1800" height="1240" fill="#f4f1ea"/>
+
+<!-- header -->
+<text x="1720" y="132" text-anchor="end" class="naskh" font-size="108" letter-spacing="-1">کنار</text>
+<path d="M 1372 150 C 1500 145 1660 154 1742 147" class="line" stroke="#221f19" stroke-width="2" opacity=".45"/>
+<circle cx="1373" cy="149" r="9" class="clay"/>
+<text x="1720" y="196" text-anchor="end" font-size="19" letter-spacing="4" class="muted">KENAR · VISUAL IDENTITY</text>
+<text x="80" y="112" font-size="30">هویت بصری کنار</text>
+<text x="80" y="152" font-size="17" class="muted">یک کرانه. دو همنشین. جای تو، همیشه نگه‌داشته.</text>
+<path d="M80 232 L1720 232" class="line"/>
+
+<!-- left: concept -->
+<g>
+  <text x="80" y="300" font-size="15" letter-spacing="3" class="muted">THE IDEA</text>
+  <text x="80" y="356" font-size="34">کنار یعنی کسی همین نزدیکی.</text>
+  <text x="80" y="404" font-size="17" class="muted">نه روبه‌رویت، نه بالای سرت؛ کنارت.</text>
+  <text x="80" y="438" font-size="17" class="muted">همهٔ هویت از همین یک جمله ساخته شده است.</text>
+
+  <text x="80" y="512" font-size="15" letter-spacing="3" class="muted">THE SUBJECT</text>
+  <text x="80" y="556" font-size="25">دو نشسته، روی یک خطِ نشکسته</text>
+  <text x="80" y="594" font-size="16" class="muted">خط، کرانه است؛ دو فرم، دو همنشین.</text>
+  <text x="80" y="622" font-size="16" class="muted">فرم گِلی همیشه کنار است — گرم، ساکن، شنوا.</text>
+
+  <text x="80" y="696" font-size="15" letter-spacing="3" class="muted">PRINCIPLES</text>
+  <text x="80" y="740" font-size="19">حرف نمی‌زند؛ می‌نشیند.</text>
+  <text x="80" y="774" font-size="19">جای خالی را نگه می‌دارد، پرش نمی‌کند.</text>
+  <text x="80" y="808" font-size="19">گرم است، نه پرسروصدا.</text>
+  <text x="80" y="842" font-size="19">همیشه یکی هست که کنارت باشد.</text>
+</g>
+
+<!-- mark tile -->
+<g transform="translate(980 276)">
+  <rect width="330" height="330" rx="76" fill="#14120e"/>
+  <svg x="40" y="40" width="250" height="250" viewBox="0 0 48 48" preserveAspectRatio="xMidYMax meet"><path class="k-dline" d="M 5 38.4 C 15 37.3 33 38.7 43 37.6"></path><g transform="translate(17.5 38.4) scale(0.34) rotate(-2)" class="k-figure k-mono"><path d="M -27 0 C -29 -19 -25 -33 -13 -40 C -6 -44 6 -44 13 -40 C 24 -35 28 -21 27 0 Z"></path><circle cx="0" cy="-54" r="13"></circle></g><g transform="translate(31 38.4) scale(0.27) rotate(3)" class="k-figure k-mono"><path d="M -27 0 C -29 -19 -25 -33 -13 -40 C -6 -44 6 -44 13 -40 C 24 -35 28 -21 27 0 Z"></path><circle cx="0" cy="-54" r="13"></circle></g></svg>
+</g>
+<text x="1145" y="652" text-anchor="middle" font-size="15" class="muted">نشانه</text>
+
+<!-- palette -->
+<g transform="translate(1370 276)">
+  <text x="350" y="0" text-anchor="end" font-size="15" letter-spacing="3" class="muted">PALETTE</text>
+  
+    <g transform="translate(0 28)">
+      <rect x="278" y="0" width="72" height="42" rx="10" fill="#f4f1ea" stroke="#221f19" stroke-opacity=".16"/>
+      <text x="262" y="18" text-anchor="end" font-size="16">کاغذ</text>
+      <text x="262" y="37" text-anchor="end" font-size="11" class="muted">#F4F1EA</text>
+    </g>
+    <g transform="translate(0 82)">
+      <rect x="278" y="0" width="72" height="42" rx="10" fill="#221f19" stroke="#221f19" stroke-opacity=".16"/>
+      <text x="262" y="18" text-anchor="end" font-size="16">مرکب</text>
+      <text x="262" y="37" text-anchor="end" font-size="11" class="muted">#221F19</text>
+    </g>
+    <g transform="translate(0 136)">
+      <rect x="278" y="0" width="72" height="42" rx="10" fill="#b9775a" stroke="#221f19" stroke-opacity=".16"/>
+      <text x="262" y="18" text-anchor="end" font-size="16">گِل</text>
+      <text x="262" y="37" text-anchor="end" font-size="11" class="muted">#B9775A</text>
+    </g>
+    <g transform="translate(0 190)">
+      <rect x="278" y="0" width="72" height="42" rx="10" fill="#cec8e0" stroke="#221f19" stroke-opacity=".16"/>
+      <text x="262" y="18" text-anchor="end" font-size="16">غروب</text>
+      <text x="262" y="37" text-anchor="end" font-size="11" class="muted">#CEC8E0</text>
+    </g>
+    <g transform="translate(0 244)">
+      <rect x="278" y="0" width="72" height="42" rx="10" fill="#e5dac8" stroke="#221f19" stroke-opacity=".16"/>
+      <text x="262" y="18" text-anchor="end" font-size="16">ماسه</text>
+      <text x="262" y="37" text-anchor="end" font-size="11" class="muted">#E5DAC8</text>
+    </g>
+</g>
+
+<!-- story frames -->
+<path d="M80 878 L1720 878" class="line"/>
+<text x="80" y="928" font-size="15" letter-spacing="3" class="muted">ONBOARDING · ONE STORY IN SIX FRAMES</text>
+<text x="1720" y="928" text-anchor="end" font-size="16" class="muted">جات رو کنارم نگه داشتم.</text>
+
+  <g transform="translate(80 956)">
+    <rect width="252" height="220" rx="18" fill="#efeade"/>
+    <svg x="8" y="6" width="236" height="190" viewBox="0 128 300 196" preserveAspectRatio="xMidYMax meet"><g class="k-dusk" style="opacity:0.16"><circle cx="212" cy="128" r="24" class="k-accent-fill"></circle><circle cx="212" cy="128" r="41" class="k-accent-stroke" opacity=".55"></circle></g><path class="k-far" d="M -10 238 C 80 232 220 232 310 238"></path><path d="M 4 300 C 96 297 208 303 296 298" class="k-line"></path><g transform="translate(128 300) scale(1.36) rotate(4)" class="k-figure k-accent"><path d="M -27 0 C -29 -19 -25 -33 -13 -40 C -6 -44 6 -44 13 -40 C 24 -35 28 -21 27 0 Z"></path><circle cx="0" cy="-54" r="13"></circle><path class="k-shawl" d="M -23 -11 C -10 -5 10 -7 24 -15"></path></g></svg>
+    <text x="126" y="212" text-anchor="middle" font-size="13" class="muted">کنار، تنها، کنارِ کرانه</text>
+  </g>
+  <g transform="translate(358 956)">
+    <rect width="252" height="220" rx="18" fill="#efeade"/>
+    <svg x="8" y="6" width="236" height="190" viewBox="0 128 300 196" preserveAspectRatio="xMidYMax meet"><g class="k-dusk" style="opacity:0.16"><circle cx="208" cy="124" r="26" class="k-accent-fill"></circle><circle cx="208" cy="124" r="44" class="k-accent-stroke" opacity=".55"></circle></g><path class="k-far" d="M -10 238 C 80 232 220 232 310 238"></path><path d="M 4 300 C 96 297 208 303 296 298" class="k-line"></path><g class="k-place"><ellipse class="k-accent-fill" cx="212" cy="288" rx="18" ry="11"></ellipse><path class="k-ripple-line" d="M 184 297 C 198 284 228 284 240 297"></path></g><g transform="translate(130 300) scale(1.48) rotate(4)" class="k-figure k-accent"><path d="M -27 0 C -29 -19 -25 -33 -13 -40 C -6 -44 6 -44 13 -40 C 24 -35 28 -21 27 0 Z"></path><circle cx="0" cy="-54" r="13"></circle><path class="k-shawl" d="M -23 -11 C -10 -5 10 -7 24 -15"></path></g></svg>
+    <text x="126" y="212" text-anchor="middle" font-size="13" class="muted">سنگ را می‌گذارد؛ جات محفوظ است</text>
+  </g>
+  <g transform="translate(636 956)">
+    <rect width="252" height="220" rx="18" fill="#efeade"/>
+    <svg x="8" y="6" width="236" height="190" viewBox="0 128 300 196" preserveAspectRatio="xMidYMax meet"><g class="k-dusk" style="opacity:0.16"><circle cx="204" cy="120" r="27" class="k-accent-fill"></circle><circle cx="204" cy="120" r="46" class="k-accent-stroke" opacity=".55"></circle></g><path class="k-far" d="M -10 238 C 80 232 220 232 310 238"></path><path d="M 4 300 C 96 297 208 303 296 298" class="k-line"></path><g transform="translate(218 300) scale(1.16) rotate(-3)" class="k-figure k-fg"><path d="M -27 0 C -29 -19 -25 -33 -13 -40 C -6 -44 6 -44 13 -40 C 24 -35 28 -21 27 0 Z"></path><circle cx="0" cy="-54" r="13"></circle></g><g transform="translate(124 300) scale(1.56) rotate(4)" class="k-figure k-accent"><path d="M -27 0 C -29 -19 -25 -33 -13 -40 C -6 -44 6 -44 13 -40 C 24 -35 28 -21 27 0 Z"></path><circle cx="0" cy="-54" r="13"></circle><path class="k-shawl" d="M -23 -11 C -10 -5 10 -7 24 -15"></path></g></svg>
+    <text x="126" y="212" text-anchor="middle" font-size="13" class="muted">تو می‌رسی</text>
+  </g>
+  <g transform="translate(914 956)">
+    <rect width="252" height="220" rx="18" fill="#efeade"/>
+    <svg x="8" y="6" width="236" height="190" viewBox="0 128 300 196" preserveAspectRatio="xMidYMax meet"><g class="k-dusk" style="opacity:0.16"><circle cx="198" cy="116" r="28" class="k-accent-fill"></circle><circle cx="198" cy="116" r="48" class="k-accent-stroke" opacity=".55"></circle></g><path class="k-far" d="M -10 238 C 80 232 220 232 310 238"></path><path d="M 4 300 C 96 297 208 303 296 298" class="k-line"></path><g transform="translate(212 300) scale(1.52) rotate(-3)" class="k-figure k-fg"><path d="M -27 0 C -29 -19 -25 -33 -13 -40 C -6 -44 6 -44 13 -40 C 24 -35 28 -21 27 0 Z"></path><circle cx="0" cy="-54" r="13"></circle></g><g transform="translate(122 300) scale(1.7) rotate(4)" class="k-figure k-accent"><path d="M -27 0 C -29 -19 -25 -33 -13 -40 C -6 -44 6 -44 13 -40 C 24 -35 28 -21 27 0 Z"></path><circle cx="0" cy="-54" r="13"></circle><path class="k-shawl" d="M -23 -11 C -10 -5 10 -7 24 -15"></path></g></svg>
+    <text x="126" y="212" text-anchor="middle" font-size="13" class="muted">نزدیک‌تر</text>
+  </g>
+  <g transform="translate(1192 956)">
+    <rect width="252" height="220" rx="18" fill="#efeade"/>
+    <svg x="8" y="6" width="236" height="190" viewBox="0 128 300 196" preserveAspectRatio="xMidYMax meet"><g class="k-dusk" style="opacity:0.16"><circle cx="192" cy="112" r="29" class="k-accent-fill"></circle><circle cx="192" cy="112" r="49" class="k-accent-stroke" opacity=".55"></circle></g><path class="k-far" d="M -10 238 C 80 232 220 232 310 238"></path><path d="M 4 300 C 96 297 208 303 296 298" class="k-line"></path><g transform="translate(202 300) scale(1.7) rotate(-3)" class="k-figure k-fg"><path d="M -27 0 C -29 -19 -25 -33 -13 -40 C -6 -44 6 -44 13 -40 C 24 -35 28 -21 27 0 Z"></path><circle cx="0" cy="-54" r="13"></circle></g><g transform="translate(120 300) scale(1.86) rotate(4)" class="k-figure k-accent"><path d="M -27 0 C -29 -19 -25 -33 -13 -40 C -6 -44 6 -44 13 -40 C 24 -35 28 -21 27 0 Z"></path><circle cx="0" cy="-54" r="13"></circle><path class="k-shawl" d="M -23 -11 C -10 -5 10 -7 24 -15"></path></g></svg>
+    <text x="126" y="212" text-anchor="middle" font-size="13" class="muted">شانه‌به‌شانه</text>
+  </g>
+  <g transform="translate(1470 956)">
+    <rect width="252" height="220" rx="18" fill="#efeade"/>
+    <svg x="8" y="6" width="236" height="190" viewBox="0 128 300 196" preserveAspectRatio="xMidYMax meet"><g class="k-dusk" style="opacity:0.16"><circle cx="186" cy="108" r="30" class="k-accent-fill"></circle><circle cx="186" cy="108" r="51" class="k-accent-stroke" opacity=".55"></circle></g><path class="k-far" d="M -10 238 C 80 232 220 232 310 238"></path><path d="M 4 300 C 96 297 208 303 296 298" class="k-line"></path><g transform="translate(194 300) scale(1.9) rotate(-3)" class="k-figure k-fg"><path d="M -27 0 C -29 -19 -25 -33 -13 -40 C -6 -44 6 -44 13 -40 C 24 -35 28 -21 27 0 Z"></path><circle cx="0" cy="-54" r="13"></circle></g><g transform="translate(118 300) scale(2.04) rotate(4)" class="k-figure k-accent"><path d="M -27 0 C -29 -19 -25 -33 -13 -40 C -6 -44 6 -44 13 -40 C 24 -35 28 -21 27 0 Z"></path><circle cx="0" cy="-54" r="13"></circle><path class="k-shawl" d="M -23 -11 C -10 -5 10 -7 24 -15"></path></g></svg>
+    <text x="126" y="212" text-anchor="middle" font-size="13" class="muted">کنار هم</text>
+  </g>
+
+<path d="M80 1200 L1720 1200" class="line"/>
+<text x="80" y="1232" font-size="13" class="muted">کنار — هویت بصری · همان رابط کاربری، هویت تازه</text>
+<text x="1720" y="1232" text-anchor="end" font-size="13" class="muted">mark · wordmark · 6 scenes · seal · favicon</text>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="کنار">
+  <title>کنار</title>
+  <rect width="512" height="512" rx="116" fill="#14120e"/>
+  <circle cx="317" cy="184" r="70" fill="#b9775a" opacity="0.17"/>
+  <circle cx="317" cy="184" r="112" fill="none" stroke="#b9775a" stroke-width="2" opacity="0.16"/>
+  <path d="M 56 364 C 176 360 344 368 456 362" fill="none" stroke="#f1ece2" stroke-width="9" stroke-linecap="round" opacity="0.9"/>
+  <g fill="#f1ece2">
+    <path d="M 192 360 C 187 310 197 275 228 260 C 248 250 276 250 296 260 C 323 273 335 306 330 360 Z"/>
+    <circle cx="261" cy="225" r="34"/>
+  </g>
+  <g fill="#c98263" transform="rotate(-6 373 360)">
+    <path d="M 326 360 C 322 326 329 302 350 291 C 364 284 383 284 396 291 C 415 300 423 323 420 360 Z"/>
+    <circle cx="373" cy="265" r="23"/>
+  </g>
+  <path d="M 352 330 C 366 336 386 334 404 326" fill="none" stroke="#14120e" stroke-width="5" stroke-linecap="round" opacity="0.22"/>
+</svg>
