@@ -1,4 +1,11 @@
-# Frontend design and interaction contract — همراه (current authority)
+# Frontend design and interaction contract — کنار / Kenar (current authority)
+
+> 2026-11-08 visual identity: the floral Ash-inspired artwork is replaced by the
+> original Kenar identity — two river stones on one shore line, the "patient stone"
+> companion, and a paper/sand/ochre/pine palette. **Layouts, navigation, interaction,
+> component structure, spacing and route order are unchanged**; only artwork, colour
+> tokens, decorative glyphs and the brand name moved. Full rationale and asset map:
+> `docs/design/KENAR_VISUAL_IDENTITY.md`. Brand sheet: `docs/design/kenar-brand-sheet.svg`.
 
 > 2026-11-06 approach design: use the `ui-ux-pro-max` Minimalism & Swiss Style direction with low density. Show one heading, the current style name between two subtle, unboxed chevrons, one shared example prompt and one authored reply. The style name is plain text; swipe the example left/right, tap a chevron or use the arrow keys to change it. There is no dropdown. Back, Continue and quiet Skip/Cancel remain. The chevrons have 44px hit areas with no visible container; style lists, dropdowns, written gesture instructions, subtitles, counters, descriptions and footer notes are removed. Five small, noninteractive position dots sit below the style name, ordered to match the physical slide positions (LTR), with one elongated active mark synchronized to swipe, arrows and keyboard. Preserve the five original style keys, mapping, default, swipe/keyboard behavior, stable reply slot, reduced motion, beige palette and local typography. See `docs/design/APPROACH_REDESIGN_2026_11.md`.
 
@@ -8,10 +15,10 @@
 **This uploaded 2026-11-02 new `ai-therapist-frontend(1).zip` is the definitive visual product reference.** It replaces the earlier Rahrah design and the older TypeScript Wellbeing prototype as a visual source. No broad redesign is requested; the 2026-11-06 approach-screen update above is the scoped exception. Make each new functional state feel native to this exact UI; do not migrate from another app.
 
 ## Visual language observed in source
-- Persian friendly, soft organic floral figures; deliberate contrast between light neutral onboarding and almost-black home/chat screens.
+- Persian friendly, hand-drawn **stone** figures resting on a single shore line; deliberate contrast between warm paper onboarding and deep pine home/chat screens. No floral imagery.
 - Max-width **430px** centered mobile viewport; page transitions ~180ms in CSS; RTL throughout. Keep mobile portrait hierarchy intact when adding loader/errors.
 - Fonts: Estedad for primary, Vazirmatn and Noto Naskh Arabic installed locally.
-- Main CSS tokens: `--light:#f3f2ee`, `--ink:#23201b`, `--beige:#cec4b8`, `--dark:#12110d`, `--lavender:#d5d9f7`, `--yellow:#f6cf98`, `--green:#9eda9e`.
+- Main CSS tokens (Kenar): `--light:#f7f3e9`, `--ink:#1e2a23`, `--beige:#ddd2bd`, `--dark:#101510`, `--sand:#d8c7a6`, `--sand-deep:#bfa87e`, `--ochre:#8a6849`, `--clay:#c37c52`, `--sage:#a6c1ab`. The legacy names `--lavender`, `--yellow` and `--green` remain as aliases so existing declarations keep working, but they now resolve to the Kenar accents.
 - Components `StatusBar`, `BackButton`, `PrimaryButton`, `ChoiceButton`, `PageHeader`, `PagerDots`, `VoiceWave` etc. are already implemented; reuse rather than replacing them.
 
 ## Screen behavior map (design preserved, functionality gated by current scope)

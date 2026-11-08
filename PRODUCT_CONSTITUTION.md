@@ -1,7 +1,10 @@
-# Product Constitution — همراه / Hamrah
+# Product Constitution — کنار / Kenar
 
 ## The designer UI is the product-intent authority
-The current uploaded JSX/CSS implementation establishes the **همراه** brand, floral illustrations, mobile-first tone, 25-step onboarding sequence, home/reflection, history, chat, insight and message actions. Keep these screens and their visual system, including choices that await separate backend work. An agent must not discard them simply because the former technical MVP is smaller.
+The current uploaded JSX/CSS implementation establishes the **کنار (Kenar)** brand, its stone-and-shore illustrations, mobile-first tone, 26-step onboarding sequence, home/letters, history, chat and message actions. Keep these screens and their layout, navigation and interaction system, including choices that await separate backend work. An agent must not discard them simply because the former technical MVP is smaller.
+
+## Brand identity is now Kenar, and it is original
+The floral, Ash-inspired artwork has been replaced by the Kenar identity documented in `docs/design/KENAR_VISUAL_IDENTITY.md`: two river stones resting on one shore line, the "patient stone" companion, and a paper/sand/ochre/pine palette. The mark, the companion, the shore and the palette must stay coherent. Do not reintroduce flower, petal, stem or daisy imagery, and do not swap the companion for an arbitrary decorative symbol: the identity carries the meaning of the name (کنار — to be beside someone). Changing the artwork is a legitimate brand task; changing layout geometry, navigation, spacing or control behaviour is not.
 
 ## Distinguish design authority from verified claims
 Visual design cannot prove statements about medical effectiveness, institutional research affiliations, expert credentials, 6000+ reviews, therapy, data location, account deletion or voice/analysis functionality. The current UI has such claims. Before a screen is exposed in the connected tester flow: substantiate or replace factual copy while keeping its design geometry. The product is an AI tool, not a human clinician; do not imply diagnosis, prescription, medical service, guaranteed outcomes or active crisis monitoring.

@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
     "check:foundation": "node scripts/check-foundation.mjs",
+    "build:brand": "node scripts/brand/build-kenar-assets.mjs",
     "test": "node --test scripts/*.test.mjs",
     "test:e2e:session": "node scripts/e2e-session.mjs",
     "check:source-baseline": "node scripts/check-foundation.mjs --verify-original",

@@ -2,11 +2,57 @@ import React, { useEffect, useRef } from 'react';
 import {
   ArrowRight,
   Check,
-  Flower2,
   Plus,
   Star,
   X,
 } from 'lucide-react';
+
+/**
+ * Kenar mark — two stones resting side by side on a shore line.
+ * "کنار" means *beside*: the shoreline, and the one who stays at your side.
+ * Drawn inline so it inherits currentColor and stays crisp at any size.
+ */
+export function KenarMark({ size = 24, className = '', title, ...rest }) {
+  return (
+    <svg
+      className={`kenar-mark ${className}`}
+      width={size}
+      height={size * 0.75}
+      viewBox="0 0 160 120"
+      fill="none"
+      role={title ? 'img' : undefined}
+      aria-hidden={title ? undefined : 'true'}
+      aria-label={title}
+      focusable="false"
+      {...rest}
+    >
+      <path
+        d="M106.6 71.4C111.3 71.4 114.7 74.4 115.6 78.2C116.9 83.8 112.6 89.2 105.2 89.2C97.8 89.2 96.4 86 96.4 82.6C96.4 76.4 101.2 71.4 106.6 71.4Z"
+        fill="currentColor"
+        opacity=".55"
+      />
+      <path
+        d="M52 34.5C68.5 34.5 83 46.5 83 62.2C83 71.8 78 78 68.5 82.6C61.8 86 49 90.5 37.6 90.5C28.6 90.5 21 86.4 21 76.2C21 53 32.5 34.5 52 34.5Z"
+        fill="currentColor"
+      />
+      <path
+        d="M20 97C46 105 96 105 132 94"
+        stroke="currentColor"
+        strokeWidth="5.4"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+/** Wordmark: the product name set as its own typographic signature. */
+export function KenarWordmark({ className = '' }) {
+  return (
+    <span className={`kenar-wordmark ${className}`} aria-label="کنار">
+      <span aria-hidden="true">کنار</span>
+    </span>
+  );
+}
 
 export function StatusBar() {
   // Keep the shared header spacing and safe area; device chrome belongs to the OS.
@@ -143,7 +189,7 @@ export function ChoiceButton({ children, selected, onClick, multi = false, disab
   );
 }
 
-export function EnvelopeArt({ onClick, label = 'نامهٔ همراه', ariaLabel = 'باز کردن نامهٔ همراه' }) {
+export function EnvelopeArt({ onClick, label = 'نامهٔ کنار', ariaLabel = 'باز کردن نامهٔ کنار' }) {
   const content = (
     <>
       <svg className="envelope-lines" viewBox="0 0 340 160" aria-hidden="true">
@@ -152,7 +198,7 @@ export function EnvelopeArt({ onClick, label = 'نامهٔ همراه', ariaLabe
         <path d="M332 148 L214 69" />
       </svg>
       <span className="envelope-date">{label}</span>
-      <span className="wax-seal"><Flower2 size={34} strokeWidth={1.25} /></span>
+      <span className="wax-seal"><KenarMark size={34} /></span>
     </>
   );
 
@@ -162,52 +208,67 @@ export function EnvelopeArt({ onClick, label = 'نامهٔ همراه', ariaLabe
   return <div className="envelope-art">{content}</div>;
 }
 
-export function ScribbleArt() {
+/**
+ * A single companion stone resting on its shore, with two quiet ripples.
+ * Shared decorative motif for panels that used to carry the floral artwork.
+ */
+export function ShoreStoneArt({ className = '' }) {
   return (
-    <svg className="scribble-art" viewBox="0 0 260 190" aria-hidden="true">
+    <svg className={`shore-stone-art ${className}`} viewBox="0 0 260 190" aria-hidden="true">
+      <g fill="none" stroke="currentColor" strokeLinecap="round" opacity=".55">
+        <path d="M18 132 C60 142 200 142 244 130" strokeWidth="4" />
+        <path d="M56 150 C96 158 168 158 206 148" strokeWidth="2.6" opacity=".6" />
+      </g>
       <path
-        fill="#fff"
-        d="M43 22 C67 8 91 16 116 11 C143 5 174 4 195 17 C218 31 218 52 224 72 C230 95 223 119 206 132 C187 147 158 139 132 144 C112 148 94 143 79 146 L62 179 C55 188 48 181 49 169 L52 139 C30 130 21 109 24 85 C26 59 26 35 43 22 Z"
-      />
-      <path
-        d="M75 103 C96 114 119 93 110 71 C103 52 87 67 91 82 C98 105 143 91 179 87"
-        fill="none"
-        stroke="#111"
-        strokeWidth="9"
-        strokeLinecap="round"
+        d="M130 132 C96 132 72 116 68 92 C63 62 88 40 118 40 C150 40 174 64 172 94 C171 112 158 132 130 132 Z"
+        fill="currentColor"
+        fillOpacity=".18"
+        stroke="currentColor"
+        strokeWidth="4.4"
         strokeLinejoin="round"
       />
-      <path d="M151 88 C164 76 174 76 182 88" fill="none" stroke="#111" strokeWidth="8" strokeLinecap="round" />
+      <g fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round">
+        <path d="M104 82 C109 89 116 89 121 82" />
+        <path d="M136 82 C141 89 148 89 153 82" />
+        <path d="M124 100 C128 104 133 104 137 100" />
+      </g>
     </svg>
   );
 }
 
+/**
+ * The "beside" constellation: two stones sharing one shore, drawn as points
+ * of light. Replaces the previous astral-flower imagery on insight panels.
+ */
 export function ConstellationArt() {
   return (
     <svg className="constellation-art" viewBox="0 0 390 210" aria-hidden="true">
-      <path d="M92 53 C157 63 231 79 289 139" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" />
-      <g fill="#17231a">
-        <ellipse cx="92" cy="53" rx="10" ry="15" transform="rotate(24 92 53)" />
-        <ellipse cx="192" cy="54" rx="8" ry="12" transform="rotate(24 192 54)" />
-        <ellipse cx="287" cy="52" rx="8" ry="12" transform="rotate(24 287 52)" />
-        <ellipse cx="88" cy="139" rx="7" ry="12" transform="rotate(20 88 139)" />
-        <ellipse cx="192" cy="139" rx="7" ry="12" transform="rotate(20 192 139)" />
-        <ellipse cx="290" cy="139" rx="9" ry="13" transform="rotate(20 290 139)" />
+      <path d="M34 150 C120 168 268 168 356 146" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" opacity=".5" />
+      <g fill="currentColor" opacity=".9">
+        <ellipse cx="152" cy="96" rx="24" ry="20" />
+        <ellipse cx="204" cy="112" rx="13" ry="11" opacity=".6" />
       </g>
-      <g fill="none" stroke="#fff" strokeWidth="5">
-        <ellipse cx="92" cy="53" rx="21" ry="20" transform="rotate(24 92 53)" />
-        <ellipse cx="290" cy="139" rx="23" ry="20" transform="rotate(-20 290 139)" />
+      <g fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" opacity=".55">
+        <path d="M128 62 C136 50 152 46 164 52" />
+        <path d="M118 116 C104 122 92 120 84 112" />
+      </g>
+      <g fill="currentColor" opacity=".45">
+        <circle cx="94" cy="58" r="3" />
+        <circle cx="286" cy="74" r="3.4" />
+        <circle cx="312" cy="112" r="2.4" />
       </g>
     </svg>
   );
 }
 
+/** Concentric ripples — an idea settling, the way a stone settles the water. */
 export function InsightSpiral() {
   return (
     <svg className="insight-spiral" viewBox="0 0 160 120" aria-hidden="true">
-      <g fill="none" stroke="#9299b3" strokeWidth="5" strokeLinecap="round" opacity=".75">
-        <path d="M155 12 C116 -4 54 5 30 38 C3 74 37 111 84 115 C126 119 157 94 151 61 C146 30 110 18 79 28 C48 38 39 67 55 86 C70 104 105 103 121 84 C137 65 124 42 102 41 C79 39 64 56 70 72 C75 86 96 90 105 78 C113 68 104 57 94 59" />
-        <path d="M146 4 C105 -8 43 8 20 46" opacity=".45" />
+      <g fill="none" stroke="currentColor" strokeLinecap="round" opacity=".7">
+        <ellipse cx="96" cy="62" rx="18" ry="13" strokeWidth="3.4" />
+        <ellipse cx="96" cy="62" rx="36" ry="26" strokeWidth="2.6" opacity=".7" />
+        <ellipse cx="96" cy="62" rx="54" ry="39" strokeWidth="2.2" opacity=".45" />
       </g>
     </svg>
   );

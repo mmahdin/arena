@@ -11,7 +11,14 @@ test('designer routes and visual assets remain present', () => {
   for (const r of ['welcome','privacy','age','therapist','voice','approach','ready','home']) assert.match(data,new RegExp(`'${r}'`));
   assert.match(app,/routeFromHash/);
   assert.match(app,/dir="rtl"/);
-  assert.equal(readdirSync(new URL('public/assets/',root)).length,9);
+  // Kenar identity: the floral Ash artwork is replaced by the stone/shore set.
+  for (const asset of ['brand/kenar-mark.svg', 'brand/kenar-icon.svg', 'kenar/welcome-figures.svg',
+    'kenar/companion-small.svg', 'kenar/companion-medium.svg', 'kenar/companion-large.svg',
+    'kenar/companion-tall.svg', 'kenar/privacy-ring.svg', 'kenar/ready-companions.svg',
+    'kenar/checkins-rhythm.svg']) {
+    assert.ok(existsSync(new URL(`public/assets/${asset}`, root)), asset);
+  }
+  assert.ok(!existsSync(new URL('public/assets/welcome-figures.png', root)), 'Ash floral art must not return');
 });
 
 test('handoff defines synthetic-only release scope and future API integration', () => {

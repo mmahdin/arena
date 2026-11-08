@@ -7,7 +7,6 @@ import {
   ChevronDown,
   ChevronLeft,
   Copy,
-  Flower2,
   History as HistoryIcon,
   Info,
   LogOut,
@@ -22,7 +21,10 @@ import {
 import {
   BackButton,
   BottomSheet,
+  KenarMark,
+  KenarWordmark,
   MiniEnvelope,
+  ShoreStoneArt,
   StatusBar,
 } from '../components/UI';
 import Letters from './Letters';
@@ -57,7 +59,7 @@ function Home({ navigate, name, underlay = false, onNewConversation, letterPhase
               <path className="home-orbit-accent" d="M60 76C76 58 97 52 112 51" />
               <circle className="home-orbit-point" cx="111" cy="211" r="2.6" />
             </svg>
-            <Flower2 className="home-conversation-mark" size={52} strokeWidth={1.05} aria-hidden="true" />
+            <KenarMark className="home-conversation-mark" size={76} />
           </span>
           <span className="home-start-label">بیا حرف بزنیم</span>
         </button>
@@ -67,12 +69,12 @@ function Home({ navigate, name, underlay = false, onNewConversation, letterPhase
         type="button"
         className={`home-letter-link ${hasUnreadLetter ? 'is-unread' : ''}`}
         onClick={() => navigate('letter')}
-        aria-label={hasUnreadLetter ? 'خواندن نامهٔ تازهٔ همراه' : 'بازکردن نامه‌های همراه'}
-        title={hasUnreadLetter ? 'نامهٔ تازه' : 'نامه‌های همراه'}
+        aria-label={hasUnreadLetter ? 'خواندن نامهٔ تازهٔ کنار' : 'بازکردن نامه‌های کنار'}
+        title={hasUnreadLetter ? 'نامهٔ تازه' : 'نامه‌های کنار'}
       >
         <span className="home-letter-symbol" aria-hidden="true">
           <MiniEnvelope />
-          {hasUnreadLetter && <span className="home-letter-seal"><Flower2 size={10} strokeWidth={1.8} /></span>}
+          {hasUnreadLetter && <span className="home-letter-seal"><KenarMark size={13} /></span>}
         </span>
       </button>
 
@@ -226,7 +228,7 @@ function SavedMessages({ back, bookmarks = [], bookmarkPhase, bookmarkError, onR
 const MENU_ITEMS = [
   { label: 'گفت‌وگوهای قبلی', icon: HistoryIcon, route: 'history' },
   { label: 'پیام‌های ذخیره‌شده', icon: Bookmark, route: 'saved' },
-  { label: 'نامه‌های همراه', icon: Mail, route: 'letter' },
+  { label: 'نامه‌های کنار', icon: Mail, route: 'letter' },
   { label: 'تنظیمات', icon: Settings2, route: 'settings' },
   { label: 'درباره', icon: Info, route: 'research' },
 ];
@@ -237,7 +239,7 @@ function Drawer({ navigate, name, onLogout, onSwitchTester }) {
       <Home navigate={() => {}} name={name} underlay />
       <button type="button" className="drawer-backdrop" onClick={() => navigate('home')} aria-label="بستن منو" />
       <aside className="drawer-panel" aria-label="منوی اصلی">
-        <div className="drawer-brand">همراه</div>
+        <div className="drawer-brand"><KenarWordmark /><span className="drawer-brand-sub">کنارت می‌مونم</span></div>
         <nav className="drawer-nav">
           {MENU_ITEMS.map(({ label, icon: Icon, route }) => (
             <button type="button" key={route} onClick={() => navigate(route)}>
@@ -600,8 +602,9 @@ function Chat({
             </div>
           ) : (
             <div className="chat-empty">
-              <Flower2 size={30} strokeWidth={1.3} aria-hidden="true" />
+              <KenarMark size={46} />
               <h2>اینجا می‌تونی راحت حرف بزنی.</h2>
+              <p>کنار تو می‌مونم؛ هر وقت آماده بودی شروع کن.</p>
             </div>
           ))}
           {messages.map((message) => {
