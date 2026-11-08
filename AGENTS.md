@@ -19,9 +19,9 @@ The original designer's complete 24-step pre-Home onboarding is reachable again 
 
 ---
 
-# AGENTS — Hamrah (همراه) frontend, new designer-source edition
+# AGENTS — Kenar (کنار) frontend, new designer-source edition
 
-**Main rule: the attached `ai-therapist-frontend(1).zip` is the authoritative product UI design.** Preserve the actual React/JSX screens, `src/styles.css`, route flow and original illustrations. Do NOT import or rebuild the earlier Rahrah/Wellbeing frontend, and do not silently turn the project into TypeScript, Tailwind or React Router.
+**Main rule: the attached `ai-therapist-frontend(1).zip` is the authoritative product UI design.** Preserve the actual React/JSX screens, `src/styles.css`, route flow, spacing and interactions. Since 2026-11-08 the product is named **کنار (Kenar)** and its visual identity is original: the Ash-inspired floral illustrations and symbols are retired and replaced by the Kenar identity (two presences on a shore line, `src/brand/kenar.jsx`). Read `docs/design/KENAR_IDENTITY.md` first; keep the layouts and never restore the floral assets. Do NOT import or rebuild the earlier Rahrah/Wellbeing frontend, and do not silently turn the project into TypeScript, Tailwind or React Router.
 
 ## Read in this order
 1. `MVP_SCOPE.md` (what is ready for the currently approved *internal* build).
@@ -34,7 +34,7 @@ The original designer's complete 24-step pre-Home onboarding is reachable again 
 8. `VALIDATION_REPORT.md` and `NEXT_AGENT_TASKS.md`.
 
 ## Product decision hierarchy
-- **Source of truth for look, brand, interaction layout, and intended user journey:** this *new* designer JSX source, under the Persian brand **همراه**.
+- **Source of truth for interaction layout, screens and intended user journey:** this *new* designer JSX source. **Source of truth for look and brand:** the Kenar identity layer (`docs/design/KENAR_IDENTITY.md`, `src/brand/kenar.jsx`, the Kenar block at the end of `src/styles.css`).
 - **Source of truth for what the currently validated backend actually supports:** current backend `contracts/openapi/openapi.yaml` and Go/MSSQL implementation; the frontend OpenAPI snapshot is only a reference copy.
 - **Current testing restrictions:** internal / local / synthetic data only; don't imply the UI is clinically safe or publicly released. When a designed flow asks for something the backend does not support, **log a product/backend gap**, preserve the design, do not fake connected behavior or invent endpoints.
 - **Unsupported claims are not product facts:** testimonials, 6000 ratings, 14 research articles/university associations, named clinicians, 'saved on phone' and 'delete account' copy are unverified or contradict the local prototype. Do not display as real to any real user; correct or gate before connecting testers while preserving layout.

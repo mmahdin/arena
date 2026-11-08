@@ -29,7 +29,7 @@ export const QUESTIONS = {
     ],
   },
   referral: {
-    title: 'چطور با همراه آشنا شدی؟',
+    title: 'چطور با کنار آشنا شدی؟',
     description: '',
     type: 'single',
     options: ['اینستاگرام', 'چت‌بات هوش مصنوعی', 'تلگرام', 'بله'],
