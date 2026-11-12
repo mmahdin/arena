@@ -13,14 +13,14 @@ test('Theia logo, app icons, manifest and connected onboarding story assets exis
     'public/brand/theia-logo.svg',
     'public/brand/theia-icon-192.png',
     'public/brand/theia-icon-512.png',
-    'public/brand/theia-welcome.png',
-    'public/brand/theia-privacy.png',
-    'public/brand/theia-story-1.png',
-    'public/brand/theia-story-2.png',
-    'public/brand/theia-story-3.png',
-    'public/brand/theia-story-4.png',
-    'public/brand/theia-checkins.png',
-    'public/brand/theia-ready.png',
+    'public/brand/theia-welcome.svg',
+    'public/brand/theia-privacy.svg',
+    'public/brand/theia-story-1.svg',
+    'public/brand/theia-story-2.svg',
+    'public/brand/theia-story-3.svg',
+    'public/brand/theia-story-4.svg',
+    'public/brand/theia-checkins.svg',
+    'public/brand/theia-ready.svg',
   ];
   for (const file of assets) {
     const url = new URL(file, root);
@@ -55,7 +55,7 @@ test('HTML head, manifest and UI screens reflect the Persian RTL Theia (تیا) 
   assert.match(data, /چطور با تیا آشنا شدی؟/);
 
   // Ensure all four chapters of the night-to-dawn onboarding story are wired in sequence
-  for (const step of ['theia-welcome.png', 'theia-privacy.png', 'theia-story-1.png', 'theia-story-2.png', 'theia-story-3.png', 'theia-story-4.png', 'theia-checkins.png', 'theia-ready.png']) {
+  for (const step of ['theia-welcome.svg', 'theia-privacy.svg', 'theia-story-1.svg', 'theia-story-2.svg', 'theia-story-3.svg', 'theia-story-4.svg', 'theia-checkins.svg', 'theia-ready.svg']) {
     assert.ok(onboarding.includes(`/brand/${step}`), `Onboarding missing ${step}`);
   }
 });
@@ -77,4 +77,8 @@ test('active UI replaces all flower/Ash icons and illustrations with Theia visua
   assert.ok(activeSource.includes('TheiaMark'));
   assert.ok(activeSource.includes('TheiaSealIcon'));
   assert.ok(activeSource.includes('TheiaLetterEmpty'));
+  assert.ok(!activeSource.includes('Goddess'));
+  assert.ok(!read('src/screens/Onboarding.jsx').includes('تیا در'));
+  assert.ok(read('src/components/TheiaBrand.jsx').includes('home-conversation-mark'));
+  assert.ok(read('public/favicon.svg').includes('#e8b979'));
 });
