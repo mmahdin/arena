@@ -1,24 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
   <defs>
-    <radialGradient id="dawnGlow" cx="50%" cy="68%" r="52%">
-      <stop offset="0%" stop-color="#f6cf98" stop-opacity="0.34"/>
-      <stop offset="65%" stop-color="#f6cf98" stop-opacity="0.08"/>
-      <stop offset="100%" stop-color="#12110d" stop-opacity="0"/>
+    <radialGradient id="favGlow" cx="50%" cy="55%" r="50%">
+      <stop offset="0%" stop-color="#f6cf98" stop-opacity=".3"/>
+      <stop offset="45%" stop-color="#f0bf82" stop-opacity=".08"/>
+      <stop offset="100%" stop-color="#f0bf82" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="favSun" cx="50%" cy="36%" r="62%">
+      <stop offset="0%" stop-color="#fdf1da"/><stop offset="66%" stop-color="#f6cf98"/><stop offset="100%" stop-color="#e2ab6b"/>
     </radialGradient>
   </defs>
   <rect width="128" height="128" rx="28" fill="#12110d"/>
-  <circle cx="64" cy="76" r="52" fill="url(#dawnGlow)"/>
-  <g stroke="#f6cf98" stroke-linecap="round" opacity="0.72">
-    <line x1="64" y1="98" x2="64" y2="112" stroke-width="2.1"/>
-    <line x1="48" y1="95" x2="43" y2="107" stroke-width="1.8"/>
-    <line x1="80" y1="95" x2="85" y2="107" stroke-width="1.8"/>
-    <line x1="34" y1="87" x2="25" y2="96" stroke-width="1.6"/>
-    <line x1="94" y1="87" x2="103" y2="96" stroke-width="1.6"/>
-  </g>
-  <circle cx="64" cy="58" r="38" fill="#171612" stroke="#d5d9f7" stroke-opacity="0.22" stroke-width="1.4"/>
-  <path d="M68.5 20.5C89 22.8 103.8 41 101.5 61.5C99.2 82 81 96.8 60.5 94.5C45.8 92.8 33.7 83.1 28.7 69.8C35.2 80 47 86.4 60.2 85.4C78 84.1 91.5 68.7 90.2 50.9C89.2 37.2 80.5 25.6 68.5 20.5Z" fill="#d5d9f7" fill-opacity="0.12" stroke="#e4e6fa" stroke-width="2.8" stroke-linejoin="round"/>
-  <path d="M57 24C49.4 28.7 45.8 36.3 46.5 44.3C46.8 47.6 43.6 51.5 41.5 54.8C40.6 56.1 41.5 57.3 43.3 57.9C42.4 59.8 42.9 61.7 44.6 62.5C43.9 64.3 44.7 66.4 46.9 67.2C49.7 68.3 54.5 66.5 58.4 66.8C62.8 67.2 65.4 71.9 63.5 78.8C62.1 83.9 57 87.9 50.8 90.1" stroke="#f6f3ec" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M57 24C54.1 33.5 59.2 42.2 68.2 49C76.9 55.7 80.2 66.5 75.2 79.8C72.9 85.8 68.2 90.7 62.1 93.3" stroke="#d5d9f7" stroke-opacity="0.88" stroke-width="2.1" stroke-linecap="round"/>
-  <path d="M45.4 45.6C43.5 46.1 41.9 45.7 40.7 44.8" stroke="#f6f3ec" stroke-width="1.8" stroke-linecap="round"/>
-  <path d="M70 31L72.1 37.1L78.2 39.2L72.1 41.3L70 47.4L67.9 41.3L61.8 39.2L67.9 37.1L70 31Z" fill="#f6cf98"/>
+  <circle cx="64" cy="66" r="46" fill="url(#favGlow)"/>
+  <path d="M77.6 25.2A38 38 0 1 1 27.2 60" stroke="#f3efe6" stroke-width="2.4" stroke-linecap="round" opacity=".9"/>
+  <path d="M30 80H96" stroke="#f3efe6" stroke-width="1.6" opacity=".5" stroke-linecap="round"/>
+  <circle cx="48" cy="77" r="7.6" fill="url(#favSun)"/>
+  <path d="M64 26A38 38 0 0 0 26 64" stroke="#f6cf98" stroke-width="2.8" stroke-linecap="round" opacity=".95"/>
+  <circle cx="88" cy="44" r="1.2" fill="#d5d9f7" opacity=".8"/>
 </svg>

@@ -1,5 +1,16 @@
 # Frontend design and interaction contract — همراه (current authority)
 
+> **2026-11-12 brand amendment — Theia identity.** The character-led Theia
+> illustration (and every goddess portrait) is retired. The active visual
+> identity for the logo, app icon, wax seal, home emblem and all onboarding
+> illustrations is the **Aperture of First Light** system documented in
+> `docs/brand/IDENTITY.md`: an open ring, a horizon and a single point of warm
+> light, with eight onboarding plates that open the aperture from Welcome to
+> Ready. UI layouts, screen order, typography, type scale, copy and CSS
+> geometry are unchanged; only the brand/illustration layer was replaced.
+> Illustrations are inline SVG in `src/components/TheiaBrand.jsx`. Do not
+> reintroduce character art or the old crescent/profile emblem.
+
 > 2026-11-06 approach design: use the `ui-ux-pro-max` Minimalism & Swiss Style direction with low density. Show one heading, the current style name between two subtle, unboxed chevrons, one shared example prompt and one authored reply. The style name is plain text; swipe the example left/right, tap a chevron or use the arrow keys to change it. There is no dropdown. Back, Continue and quiet Skip/Cancel remain. The chevrons have 44px hit areas with no visible container; style lists, dropdowns, written gesture instructions, subtitles, counters, descriptions and footer notes are removed. Five small, noninteractive position dots sit below the style name, ordered to match the physical slide positions (LTR), with one elongated active mark synchronized to swipe, arrows and keyboard. Preserve the five original style keys, mapping, default, swipe/keyboard behavior, stable reply slot, reduced motion, beige palette and local typography. See `docs/design/APPROACH_REDESIGN_2026_11.md`.
 
 > 2026-11-04 product update: the active Home no longer preserves the reflection card or diary-writing UI. The envelope opens Letters, and Chat is a separate continuous conversation experience. Older reflection-preservation notes below are historical; see `docs/integration/UX_REFINEMENT_2026_11.md` and `docs/integration/LETTERS_FRONTEND_BOUNDARY.md`.

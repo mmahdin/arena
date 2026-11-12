@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="تیا">
+  <defs>
+    <radialGradient id="theiaGlow" cx="50%" cy="55%" r="50%">
+      <stop offset="0%" stop-color="#f6cf98" stop-opacity=".3"/>
+      <stop offset="45%" stop-color="#f0bf82" stop-opacity=".08"/>
+      <stop offset="100%" stop-color="#f0bf82" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="theiaSun" cx="50%" cy="36%" r="62%">
+      <stop offset="0%" stop-color="#fdf1da"/><stop offset="66%" stop-color="#f6cf98"/><stop offset="100%" stop-color="#e2ab6b"/>
+    </radialGradient>
+  </defs>
+  <rect width="128" height="128" fill="#12110d"/>
+  <circle cx="64" cy="66" r="46" fill="url(#theiaGlow)"/>
+  <path d="M77.6 25.2A38 38 0 1 1 27.2 60" fill="none" stroke="#f3efe6" stroke-width="2.4" stroke-linecap="round" opacity=".9"/>
+  <path d="M30 80H96" stroke="#f3efe6" stroke-width="1.6" opacity=".5" stroke-linecap="round"/>
+  <circle cx="48" cy="77" r="7.6" fill="url(#theiaSun)"/>
+  <path d="M64 26A38 38 0 0 0 26 64" fill="none" stroke="#f6cf98" stroke-width="2.8" stroke-linecap="round" opacity=".95"/>
+  <circle cx="88" cy="44" r="1.2" fill="#d5d9f7" opacity=".8"/>
+</svg>

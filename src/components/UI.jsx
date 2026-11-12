@@ -152,7 +152,7 @@ export function EnvelopeArt({ onClick, label = 'نامهٔ تیا', ariaLabel = 
         <path d="M332 148 L214 69" />
       </svg>
       <span className="envelope-date">{label}</span>
-      <span className="wax-seal"><TheiaMark size={28} /></span>
+      <span className="wax-seal"><TheiaMark size={28} mono /></span>
     </>
   );
 

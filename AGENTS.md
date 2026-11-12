@@ -1,3 +1,12 @@
+## Approved brand amendment (2026-11-12)
+
+The user replaced the character-led Theia mascot with the **Aperture of First
+Light** identity. `docs/brand/IDENTITY.md` is the authority for the logo, app
+icon, seals, home emblem and onboarding illustrations; `TheiaBrand.jsx` holds
+the inline SVG plates. UI layout, typography, screen order and copy stay frozen.
+Never reintroduce the woman/goddess figure, the old crescent-profile emblem or
+the retired `public/brand/theia-*.png` character assets.
+
 ## Approved onboarding personalization amendment (2026-11-11)
 
 The user explicitly requested using onboarding information throughout chat. This
