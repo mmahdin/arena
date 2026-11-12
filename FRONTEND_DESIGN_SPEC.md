@@ -1,3 +1,16 @@
+> 2026-11-12 brand amendment — «دایرهٔ باز» / **The Open Circle**. The logo,
+> onboarding illustrations and brand identity have been re-authored around a single
+> brushline that does not close, one pearl of light and one horizon. The former
+> female-deity character and every raster illustration of her are retired. The
+> interface itself — layouts, screen order, Persian copy, typography, spacing,
+> controls and colour tokens — is intentionally unchanged; only the visual
+> storytelling, symbol, logo, icons and the privacy/check-in/ready artworks changed.
+> Onboarding plates are now native SVG chapters whose opening closes from 72° to 0°
+> by Ready and re-opens on Home. The identity contract, palette, motion and
+> illustration rules are in `docs/brand/THEIA_IDENTITY.md` and enforced by
+> `scripts/theia-brand.test.mjs`. Do not reintroduce the figure, a crescent emblem,
+> hands, keyholes, stars or generic AI imagery.
+
 # Frontend design and interaction contract — همراه (current authority)
 
 > 2026-11-06 approach design: use the `ui-ux-pro-max` Minimalism & Swiss Style direction with low density. Show one heading, the current style name between two subtle, unboxed chevrons, one shared example prompt and one authored reply. The style name is plain text; swipe the example left/right, tap a chevron or use the arrow keys to change it. There is no dropdown. Back, Continue and quiet Skip/Cancel remain. The chevrons have 44px hit areas with no visible container; style lists, dropdowns, written gesture instructions, subtitles, counters, descriptions and footer notes are removed. Five small, noninteractive position dots sit below the style name, ordered to match the physical slide positions (LTR), with one elongated active mark synchronized to swipe, arrows and keyboard. Preserve the five original style keys, mapping, default, swipe/keyboard behavior, stable reply slot, reduced motion, beige palette and local typography. See `docs/design/APPROACH_REDESIGN_2026_11.md`.
