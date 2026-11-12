@@ -38,7 +38,7 @@ function Welcome({ navigate }) {
         description="تیا کمک می‌کنه دربارهٔ احساساتت حرف بزنی و خودت رو بهتر بشناسی."
       />
       <div className="welcome-art artwork-wrap">
-        <img src="/brand/theia-welcome.png" alt="تیا، الههٔ روشنایی و بینش با گوی نور سحرگاهی" />
+        <img src="/brand/theia-welcome.svg" alt="نقطه‌ای از نور در میان حلقه‌های آرامِ سپیده‌دم" />
       </div>
       <PrimaryButton onClick={() => nextFrom('welcome', navigate)}>شروع</PrimaryButton>
     </Shell>
@@ -142,29 +142,29 @@ const INTERSTITIALS = {
     title: 'اول چند سؤال ساده بپرسم.',
     description: 'جواب‌هات کمک می‌کنن بهتر بشناسمت.',
     art: 'small',
-    src: '/brand/theia-story-1.png',
-    alt: 'تیا در آرامش شب زیر هلال ماه و نخستین اخگر نور',
+    src: '/brand/theia-story-1.svg',
+    alt: 'حلقه‌های آرامِ توجه پیرامون یک نقطهٔ روشن',
   },
   'deeper-intro': {
     title: 'حالا بیشتر دربارهٔ خودت بگو.',
     description: 'با چند سؤال کوتاه کمکم کن بفهمم چرا اینجایی و چه چیزهایی برات مهم‌ترن.',
     art: 'medium',
-    src: '/brand/theia-story-2.png',
-    alt: 'تیا در پرتو ماه و بازتاب آرام درون',
+    src: '/brand/theia-story-2.svg',
+    alt: 'لایه‌های شفافِ نور که به سوی مرکز همگرا می‌شوند',
   },
   'know-intro': {
     title: 'بذار بیشتر بشناسمت.',
     description: '',
     art: 'large',
-    src: '/brand/theia-story-3.png',
-    alt: 'طلوع نخستین نور سحرگاه پشت سر تیا',
+    src: '/brand/theia-story-3.svg',
+    alt: 'پرتویی که از میان لایه‌ها به سوی افق می‌گشاید',
   },
   'almost-intro': {
     title: 'دیگه چیزی نمونده!',
     description: 'حالا صدا و سبک حرف زدنم رو انتخاب کن.',
     art: 'tall',
-    src: '/brand/theia-story-4.png',
-    alt: 'هم‌نشینی خورشید، ماه و سپیده‌دم در کنار تیا',
+    src: '/brand/theia-story-4.svg',
+    alt: 'حلقه‌ای کامل پیرامون نقطهٔ تمرکز',
   },
 };
 
@@ -190,7 +190,7 @@ function Privacy({ navigate, back, privacySharing = true, privacyLoading = false
         title="حریم خصوصی تو مهمه."
         description="گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شن. برای پاسخ متناسب با تو، اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شن."
       />
-      <img className="privacy-art" src="/brand/theia-privacy.png" alt="نماد حریم خصوصی تیا با هلال ماه و ستارهٔ کلیددار" />
+      <img className="privacy-art" src="/brand/theia-privacy.svg" alt="نوری آرام درون حلقه‌ای محافظ و گشوده" />
       <button
         type="button"
         className="privacy-card"
@@ -575,7 +575,7 @@ function CheckinsScreen({ navigate, back }) {
     <Shell back={back} className="checkins-screen">
       <PageHeader title="یه یادآوری، درست وقتی لازمه." description="تیا می‌تونه گاهی حالت رو بپرسه. هر وقت بخوای می‌تونی یادآوری‌ها رو خاموش کنی." />
       <div className="checkins-art" aria-hidden="true">
-        <img src="/brand/theia-checkins.png" alt="" />
+        <img src="/brand/theia-checkins.svg" alt="" />
       </div>
       <PrimaryButton onClick={() => nextFrom('checkins', navigate)}>ادامه</PrimaryButton>
     </Shell>
@@ -905,7 +905,7 @@ function Ready({ navigate, savingProfile = false }) {
         title="من آماده‌ام!"
         description="با شروع گفت‌وگو، پاسخ‌های آشنایی اولیه‌ات ذخیره می‌شن و برای شخصی‌سازی چت در اختیار سرویس هوش مصنوعی قرار می‌گیرن."
       />
-      <div className="ready-art artwork-wrap"><img src="/brand/theia-ready.png" alt="تیا با هالهٔ خورشید، ماه و ستارهٔ صبحگاهی" /></div>
+      <div className="ready-art artwork-wrap"><img src="/brand/theia-ready.svg" alt="نوری که از یک نقطه به افقی روشن گسترش می‌یابد" /></div>
       <PrimaryButton disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>{savingProfile ? 'در حال ذخیره…' : 'شروع گفت‌وگو'}</PrimaryButton>
     </Shell>
   );

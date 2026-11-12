@@ -1818,9 +1818,8 @@ svg { flex-shrink: 0; }
 
 /* ---------- Theia (تیا) visual identity refinements ---------- */
 :root {
-  --theia-dawn: #f6cf98;
-  --theia-moon: #d5d9f7;
-  --theia-gold: #d8a76c;
+  --theia-dawn: #e8bd82;
+  --theia-gold: #c9975c;
 }
 
 .privacy-art {
@@ -1864,10 +1863,6 @@ svg { flex-shrink: 0; }
 }
 .home-orbit-point--sun {
   fill: var(--theia-dawn);
-}
-.home-orbit-crescent {
-  fill: var(--theia-moon);
-  opacity: .86;
 }
 .theia-home-emblem {
   filter: drop-shadow(0 0 16px rgb(246 207 152 / 12%));
