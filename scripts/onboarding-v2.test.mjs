@@ -18,7 +18,7 @@ test('v2 has exactly the requested 26 pages and a final direct-chat handoff', ()
 });
 
 test('v2 respects consent-sensitive options and allows no restorative selections', () => {
-  assert.deepEqual(QUESTIONS.identity.options, ['زن', 'مرد', 'غیردودویی', 'سایر', 'ترجیح می‌دم نگم']);
+  assert.deepEqual(QUESTIONS.identity.options, ['زن', 'مرد', 'تمایل ندارم بگم']);
   assert.equal(QUESTIONS.recharge.options.length, 6);
   assert.equal(QUESTIONS.recharge.allowEmpty, true);
   assert.deepEqual(QUESTIONS.referral.options, ['اینستاگرام', 'چت‌بات هوش مصنوعی', 'تلگرام', 'بله']);

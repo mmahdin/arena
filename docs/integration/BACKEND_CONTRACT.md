@@ -1,3 +1,14 @@
+## 2026-11-11 profile extension
+
+`PATCH /api/v1/me/profile` optionally accepts `onboardingAnswers`; omission preserves
+saved selections and `{}` clears them. GET `/me` returns them when present. Final
+Ready submits only explicit allowlisted choices; name/style settings edits omit
+the field. Migration 0016 must precede the new API and frontend. Authenticated
+`GET /api/v1/me/ai-status` reports configured provider/model/mock/promptVersion only;
+it does not verify provider connectivity. The backend OpenAPI and synchronized
+snapshot specify field bounds and schemas. Earlier name/style-only restrictions
+below are superseded for internal synthetic onboarding personalization.
+
 ## Task 03 — verified contract usage (no new endpoints)
 - Frontend `src/features/conversation/api.js` implements list/create/read messages/delete/submit turn using the existing `GET/POST /api/v1/conversations`, `GET /api/v1/conversations/{id}/messages`, `DELETE /api/v1/conversations/{id}`, and `POST /api/v1/conversations/{id}/turns`.
 - `store.js` uses `credentials:'include'` via `src/core/api/http.js`, body `{clientTurnId, message}`, and the same UUID/text on any retry. `401` invalidates session; 404 inaccessible thread; 409 in-progress turn; 503/provider issues are recoverable. Browser never calls LLM/MSSQL directly.

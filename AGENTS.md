@@ -1,3 +1,13 @@
+## Approved onboarding personalization amendment (2026-11-11)
+
+The user explicitly requested using onboarding information throughout chat. This
+supersedes older name/style-only and ephemeral-only restrictions below for the
+internal synthetic build. Send only explicit allowlisted `onboardingAnswers` on
+final Ready, with accurate server-storage/AI-processing copy. Drafts remain in React
+memory. Ordinary profile edits omit answers to preserve them. Gender options are
+exactly زن، مرد، تمایل ندارم بگم. No inferred traits or browser storage is added.
+Deploy backend migration 0016 and the matching API before this frontend.
+
 ## UX refinement product boundary (2026-11-04)
 The active product now has two primary experiences: **Chat** and **Letters**. Home's reflection card and diary-writing UI were removed by user request; do not reintroduce journaling/reflection prompts into Letters or Home without a new product decision. Legacy `#/day` and `#/insight` resolve to Letters. Opening Chat from Home must preserve/resume conversation context and must not auto-create a new conversation. Letters are frontend-only until an approved backend adapter is wired; sample content must remain explicitly illustrative, and personalized letters require server-owned conversation provenance. See `docs/integration/LETTERS_FRONTEND_BOUNDARY.md` and `docs/integration/UX_REFINEMENT_2026_11.md`. Existing reflection API/store modules and backend data remain untouched.
 

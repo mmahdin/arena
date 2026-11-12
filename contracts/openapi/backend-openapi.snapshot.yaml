@@ -139,6 +139,54 @@ paths:
         '401': {$ref: '#/components/responses/Problem'}
         '409': {$ref: '#/components/responses/Problem'}
         '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/me/onboarding-name:
+    patch:
+      operationId: saveCurrentOnboardingName
+      description: >-
+        Save the display name when asked during onboarding without marking onboarding
+        complete or storing any other questionnaire answers. Restricted to the
+        authenticated current user and to incomplete onboarding.
+      security: [{devSession: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [displayName]
+              properties:
+                displayName: {type: string, minLength: 1, maxLength: 60}
+      responses:
+        '200':
+          description: Profile with updated name; onboardingCompletedAt remains null
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Profile'}
+        '400': {$ref: '#/components/responses/Problem'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '409': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/me/ai-status:
+    get:
+      operationId: getAIStatus
+      description: Reports configured provider and model for the authenticated tester. Does not call the provider or prove upstream availability. No credentials are returned.
+      security: [{devSession: []}]
+      responses:
+        '200':
+          description: AI runtime configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [provider, model, mock, promptVersion]
+                properties:
+                  provider: {type: string, enum: [mock, openai-compatible]}
+                  model: {type: [string, 'null']}
+                  mock: {type: boolean}
+                  promptVersion: {type: string}
+        '401': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
   /api/v1/me/profile:
     patch:
       operationId: updateCurrentProfile
@@ -311,6 +359,69 @@ paths:
         '401': {$ref: '#/components/responses/Problem'}
         '404': {$ref: '#/components/responses/Problem'}
         '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/me/letters:
+    get:
+      operationId: listPersonalizedLetters
+      summary: List owner-scoped letters created from existing conversations (synthetic test only)
+      security: [{devSession: []}]
+      responses:
+        '200':
+          description: Most recent 30 letters; empty list is valid
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/PersonalizedLetter'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+    post:
+      operationId: createPersonalizedLetter
+      summary: Explicitly consent to generate one non-clinical letter from the latest eligible conversation
+      description: >-
+        Internal synthetic tests only. At least three user turns in one conversation are required.
+        Generation is not automatic. Existing letters are returned instead of triggering another
+        model call for the same source conversation. Real-user use requires a separately approved
+        consent/retention/deletion and safety policy plus proper authentication.
+      security: [{devSession: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [consent]
+              properties:
+                consent: {type: boolean, enum: [true]}
+      responses:
+        '200':
+          description: Newly generated or existing letter
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PersonalizedLetter'}
+        '400': {$ref: '#/components/responses/Problem'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '409': {$ref: '#/components/responses/Problem'}
+        '503': {$ref: '#/components/responses/Problem'}
+  /api/v1/me/letters/{id}:
+    delete:
+      operationId: deletePersonalizedLetter
+      summary: Delete a letter owned by the current user
+      security: [{devSession: []}]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {$ref: '#/components/schemas/UUID'}
+      responses:
+        '204': {description: Letter deleted}
+        '400': {$ref: '#/components/responses/Problem'}
+        '401': {$ref: '#/components/responses/Problem'}
+        '404': {$ref: '#/components/responses/Problem'}
   /api/v1/conversations:
     get:
       operationId: listConversations
@@ -466,6 +577,27 @@ components:
       required: [conversationSharingEnabled]
       properties:
         conversationSharingEnabled: {type: boolean}
+    PersonalizedLetter:
+      type: object
+      additionalProperties: false
+      required: [id, kind, title, salutation, paragraphs, question, createdAt, sourceConversationIds]
+      properties:
+        id: {$ref: '#/components/schemas/UUID'}
+        kind: {type: string, enum: [personalized]}
+        title: {type: string, minLength: 1, maxLength: 160}
+        salutation: {type: [string, 'null'], maxLength: 120}
+        paragraphs:
+          type: array
+          minItems: 2
+          maxItems: 6
+          items: {type: string, minLength: 1, maxLength: 2000}
+        question: {type: [string, 'null'], maxLength: 600}
+        createdAt: {type: string, format: date-time}
+        sourceConversationIds:
+          type: array
+          minItems: 1
+          maxItems: 1
+          items: {$ref: '#/components/schemas/UUID'}
     DailyReflection:
       type: object
       additionalProperties: false
@@ -477,19 +609,46 @@ components:
         updatedAt: {type: string, format: date-time}
     ProfileInput:
       type: object
-      description: Required for initial onboarding and subsequent full profile edits. Unknown keys are not part of the contract.
+      additionalProperties: false
+      description: Initial onboarding or profile edit. Optional onboardingAnswers replaces the explicit answers; omission preserves them and an empty object clears them. Answers are stored for this user and supplied to the configured AI for chat personalization. Synthetic data only. Unknown keys are rejected.
       required: [displayName, conversationStyle]
       properties:
         displayName: {type: string, minLength: 1, maxLength: 60}
         conversationStyle: {type: string, enum: [balanced, listening, teaching, gentle_guidance, collaborative, guidance]}
+        onboardingAnswers: {$ref: '#/components/schemas/OnboardingAnswers'}
+    OnboardingAnswers:
+      type: object
+      additionalProperties: false
+      description: Explicit self-reported answers only, never inferred traits. All fields optional. Maximum 4000 Unicode characters in serialized JSON; reject control and direction-override characters. Mood is an onboarding snapshot, not a current assessment. Voice, referrals and notification preferences are not model context.
+      properties:
+        age: {type: string, maxLength: 200}
+        identity: {type: string, enum: ['زن', 'مرد', 'تمایل ندارم بگم']}
+        therapist: {type: string, maxLength: 200}
+        faith: {type: string, maxLength: 200}
+        neurodivergent: {type: string, maxLength: 200}
+        mood: {type: integer, minimum: 0, maximum: 4}
+        concerns: {$ref: '#/components/schemas/OnboardingSelections'}
+        focus: {type: array, maxItems: 3, uniqueItems: true, items: {type: string, minLength: 1, maxLength: 200}}
+        feelings: {$ref: '#/components/schemas/OnboardingSelections'}
+        relationships: {$ref: '#/components/schemas/OnboardingSelections'}
+        interests: {$ref: '#/components/schemas/OnboardingSelections'}
+        strengths: {$ref: '#/components/schemas/OnboardingSelections'}
+        barriers: {$ref: '#/components/schemas/OnboardingSelections'}
+        recharge: {$ref: '#/components/schemas/OnboardingSelections'}
+    OnboardingSelections:
+      type: array
+      maxItems: 8
+      uniqueItems: true
+      items: {type: string, minLength: 1, maxLength: 200}
     Profile:
       type: object
       required: [userId, displayName, conversationStyle, onboardingCompletedAt]
       properties:
         userId: {$ref: '#/components/schemas/UUID'}
-        displayName: {type: string, description: Empty before onboarding}
+        displayName: {type: string, description: Empty before the name step; may be populated before onboarding completion}
         conversationStyle: {type: string, enum: [balanced, listening, teaching, gentle_guidance, collaborative, guidance]}
         onboardingCompletedAt: {type: [string, 'null'], format: date-time}
+        onboardingAnswers: {$ref: '#/components/schemas/OnboardingAnswers'}
     Conversation:
       type: object
       required: [id, title, createdAt, updatedAt]

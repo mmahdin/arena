@@ -1,3 +1,13 @@
+## Onboarding chat context amendment — 2026-11-11
+
+Final Ready now sends explicit allowlisted questionnaire selections as
+`onboardingAnswers` with name/style. Backend migration 0016 stores them on the
+session-owned profile, and `supportive-v5` uses them on every new chat turn, including
+after reload. Draft answers remain ephemeral; prior discarded answers cannot be
+recovered. Gender has three options: زن، مرد، تمایل ندارم بگم. Privacy/Ready disclose
+server storage and AI processing. This supersedes earlier ephemeral-only intake
+notes below; it adds no inferred traits, clinical assessment or public release.
+
 ## Current implementation status — UX refinement (2026-11-04) supersedes older product-shape notes
 - **Connected:** fictional phone-based Dev Session; full illustrated onboarding cursor; real Chat create/send/retry, message history, History list/open/continue/rename/delete, and saved messages through the existing Go/MSSQL contract.
 - **Conversation continuity:** opening Chat from Home no longer creates a conversation. The current in-memory thread is preserved; after reload the frontend restores the latest server-owned thread via existing `GET /conversations` + `GET /messages`. New Conversation is explicit and separate.

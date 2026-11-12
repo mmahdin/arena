@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { FLOW, LEGACY_INFO_ROUTES } from './data';
 import { createOnboardingGreeting } from './features/profile/onboardingGreeting';
+import { buildOnboardingAnswers } from './features/profile/onboardingAnswers';
 import { VALID_ROUTES, ONBOARDING_ROUTES, canOpenRoute, canVisitOnboarding, onboardingMove, visibleOnboardingRoute, previousOnboardingRoute } from './features/profile/navigation';
 import { approachForStyle, styleForApproach, validateDisplayName } from './features/profile/preferences';
 import OnboardingScreen from './screens/Onboarding';
@@ -39,7 +40,7 @@ export default function App() {
   const [toast, setToast] = useState('');
   const backOverrides = useRef({});
   const identityVersion = useRef(0);
-  // Server owns the monotonic route cursor. Sensitive answers stay in React memory only.
+  // Server owns the route cursor. Draft answers stay in React memory until Ready.
   const onboardingProgress = useRef({ userId: null, furthest: 0 });
   const progressRequest = useRef(null);
   const progressWritePending = useRef(false);
@@ -260,7 +261,7 @@ export default function App() {
     setOnboardingGreeting(createOnboardingGreeting(displayName, answers));
     setProfileSaving(true);
     try {
-      const success = await store.saveProfile(displayName, styleForApproach(answers.approach));
+      const success = await store.saveProfile(displayName, styleForApproach(answers.approach), buildOnboardingAnswers(answers));
       if (version === identityVersion.current) {
         if (success) {
           setAnswers({});

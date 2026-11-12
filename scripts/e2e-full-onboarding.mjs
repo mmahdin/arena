@@ -49,7 +49,7 @@ try {
   const visited = [];
   await finishFullOnboarding(page, 'کاربر همراه', { onStep: async route => visited.push(route) });
   assert.deepEqual(visited, ACTIVE_ONBOARDING_ROUTES);
-  assert.deepEqual(profilePayloadShapes, [['conversationStyle', 'displayName']], 'only approved fields are submitted once on Ready');
+  assert.deepEqual(profilePayloadShapes, [['conversationStyle', 'displayName', 'onboardingAnswers']], 'explicit answers are submitted once on Ready');
   await page.reload();
   await page.locator('.home-screen').waitFor();
   await context.close();

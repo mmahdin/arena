@@ -10,13 +10,15 @@ export const FLOW = [
 
 export const LEGACY_INFO_ROUTES = Object.freeze(['testimonials', 'research', 'experts']);
 
+export const AGE_RANGES = ['۵۵–۶۴', '۴۵–۵۴', '۳۵–۴۴', '۳۰–۳۴', '۲۵–۲۹', '۱۸–۲۴', 'کمتر از ۱۸'];
+
 
 export const QUESTIONS = {
   identity: {
     title: 'چطور خودت رو معرفی می‌کنی؟',
     description: 'این رو در نظر می‌گیرم تا بهتر باهات حرف بزنم.',
     type: 'single',
-    options: ['زن', 'مرد', 'غیردودویی', 'سایر', 'ترجیح می‌دم نگم'],
+    options: ['زن', 'مرد', 'تمایل ندارم بگم'],
   },
   recharge: {
     title: 'چی کمک می‌کنه دوباره حس کنی خودتی؟',
@@ -29,7 +31,7 @@ export const QUESTIONS = {
     ],
   },
   referral: {
-    title: 'چطور با همراه آشنا شدی؟',
+    title: 'چطور با تیا آشنا شدی؟',
     description: '',
     type: 'single',
     options: ['اینستاگرام', 'چت‌بات هوش مصنوعی', 'تلگرام', 'بله'],

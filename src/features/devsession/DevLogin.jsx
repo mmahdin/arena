@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Flower2, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
+import { TheiaMark } from '../../components/TheiaBrand';
 import { PageHeader, PrimaryButton, StatusBar } from '../../components/UI';
 import { normalizeTestPhone } from './phone';
 
@@ -19,10 +20,10 @@ export default function DevLogin({ session, login, retry }) {
   return (
     <section className="app-screen theme-light dev-login-screen" aria-busy={loading}>
       <StatusBar />
-      <PageHeader title="به همراه خوش اومدی!" />
-      <div className="dev-login-art" aria-hidden="true"><img src="/assets/ready-daisy.png" alt="" /></div>
+      <PageHeader title="به تیا خوش اومدی!" />
+      <div className="dev-login-art" aria-hidden="true"><img src="/brand/theia-welcome.png" alt="" /></div>
       <div className="dev-login-panel">
-        <div className="dev-login-heading"><Flower2 size={20} /><strong>ورود به حساب</strong></div>
+        <div className="dev-login-heading"><TheiaMark size={21} /><strong>ورود به حساب</strong></div>
         {loading && <p role="status">در حال ورود…</p>}
         {offline && <div className="dev-login-error" role="alert">
           <p>{session.error?.action === 'logout' ? 'خروج انجام نشد. دوباره تلاش کن.' : 'ارتباط برقرار نشد. دوباره تلاش کن.'}</p>

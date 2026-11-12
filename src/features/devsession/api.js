@@ -27,9 +27,10 @@ export const devSessionApi = {
     }
     return result;
   },
-  async profile(displayName, conversationStyle, signal) {
+  async profile(displayName, conversationStyle, signal, onboardingAnswers) {
     const result = await request('/api/v1/me/profile', {
-      method: 'PATCH', body: { displayName, conversationStyle }, signal,
+      method: 'PATCH', body: { displayName, conversationStyle,
+        ...(onboardingAnswers === undefined ? {} : { onboardingAnswers }) }, signal,
     });
     if (!result || typeof result.userId !== 'string' || typeof result.displayName !== 'string' ||
         !PROFILE_STYLES.includes(result.conversationStyle) ||

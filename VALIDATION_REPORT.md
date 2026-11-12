@@ -1,3 +1,14 @@
+## 2026-11-11 — Explicit onboarding context and gender options
+
+- PASSED: 3 new onboarding-answer tests (selection allowlist, cookie-backed profile payload, settings omission, session switching) and all 6 onboarding-v2 tests.
+- PASSED: production Vite build.
+- PASSED: isolated browser fixture of the real onboarding components at 360/390/430/1280px with reduced motion; three gender options, keyboard selection and default age/mood confirmation. Screenshots under `/tmp/hamrah-onboarding-visual/`. This is UI validation, not a live API journey.
+- FAILED (pre-existing): full `npm test`, 19/21 test files pass. `foundation.test.mjs` expects 9 legacy assets but HEAD contains only one; `ux-refinement.test.mjs` expects the already-absent text `پخش صوتی نداریم`. Neither failure was introduced by this change.
+- FAILED (pre-existing): `npm run check:foundation`, 32/41 checks pass; 9 original image paths are absent from this checkout. No placeholder assets were fabricated.
+- NOT RUN: `check:source-baseline` (source intentionally changed), live frontend/Go/MSSQL E2E and real OpenAI generation. No staging deployment was performed.
+- Backend validation: full Go suite, structure/contract checks and a real SQL Server 2022 upgrade/round-trip/isolation test passed. Migration 0016 was tested in a new isolated temporary container, which was removed; existing local/shared databases were not modified.
+- Deploy order: backend migration 0016 → backend API → frontend. Previously discarded answers cannot be recovered; incomplete draft selections still disappear on reload before Ready.
+
 # HAMRAH-QA-02 — Tasks05/06/07 live validation
 
 **PASS WITH LIMITATIONS (2026-11-02).** Real Go/MSSQL/Mock AI/browser full onboarding, resume, bookmarks, history, isolation and deletion passed. Fixed compilation, unapplied0008 SQL batching, null progress input, bookmark request races and covered Retry UI. Frontend44 tests, backend race/SQL/HTTP acceptance and builds pass. No external provider or real personal data.

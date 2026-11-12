@@ -1,6 +1,6 @@
 /**
  * Walk the complete original illustrated onboarding against the real running API.
- * UI interactions only: no interception, synthetic labels, no persisted questionnaire data.
+ * UI interactions only: no interception, synthetic selections saved on final Ready.
  */
 import assert from 'node:assert/strict';
 import { QUESTIONS } from '../src/data.js';

@@ -1,6 +1,6 @@
 /**
  * Single identity state machine: asynchronous responses are generation-fenced and
- * aborted when users switch. No cookie, user profile or intake answers are persisted.
+ * aborted when users switch. No cookies, profiles or intake answers in browser storage.
  */
 export function createSessionStore(api, { onInvalidate = () => {} } = {}) {
   let state = { phase: 'loading', profile: null, error: null };
@@ -60,13 +60,13 @@ export function createSessionStore(api, { onInvalidate = () => {} } = {}) {
     } catch (error) { fail(error, req, 'logout'); }
   }
 
-  async function saveProfile(displayName, conversationStyle) {
+  async function saveProfile(displayName, conversationStyle, onboardingAnswers) {
     if (state.phase !== 'authenticated') return false;
     // Keep identity while saving; only switch/logout can revoke this operation.
     const prior = state.profile;
     const req = begin('saving-profile');
     try {
-      const profile = await api.profile(displayName, conversationStyle, req.signal);
+      const profile = await api.profile(displayName, conversationStyle, req.signal, onboardingAnswers);
       if (req.current()) publish({ phase: 'authenticated', profile, error: null });
       return req.current();
     } catch (error) {

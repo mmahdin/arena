@@ -9,7 +9,7 @@ const MOOD_ACKNOWLEDGEMENTS = [
 /** A client-only, transient welcome; it never enters the persisted message history. */
 export function createOnboardingGreeting(name, answers = {}) {
   const displayName = typeof name === 'string' ? name.trim().slice(0, 60) : '';
-  const greeting = `سلام${displayName ? ` ${displayName}` : ''}، خوش اومدی. 🌿`;
+  const greeting = `سلام${displayName ? ` ${displayName}` : ''}، خوش اومدی. ✨`;
   const mood = Number.isInteger(answers.mood) && answers.mood >= 0 && answers.mood <= 4
     ? MOOD_ACKNOWLEDGEMENTS[answers.mood] : null;
   const concern = Array.isArray(answers.concerns) && typeof answers.concerns[0] === 'string'
