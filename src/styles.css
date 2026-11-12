@@ -141,7 +141,9 @@ svg { flex-shrink: 0; }
   white-space: nowrap;
 }
 .artwork-wrap { pointer-events: none; }
-.artwork-wrap img { width: 100%; height: 100%; object-fit: contain; }
+.artwork-wrap img, .artwork-wrap svg { width: 100%; height: 100%; object-fit: contain; }
+.theia-art { display: block; width: 100%; height: 100%; }
+.theia-scene { display: block; width: 100%; height: 100%; overflow: visible; }
 .pager-dots {
   display: flex;
   align-items: center;
@@ -167,7 +169,7 @@ svg { flex-shrink: 0; }
 .review-card p { margin-top: 13px; font-size: 14px; font-weight: 390; line-height: 1.75; }
 
 /* ---------- Research & experts ---------- */
-.research-screen, .experts-screen, .interstitial-screen, .voice-screen { background: #000; }
+.research-screen, .experts-screen, .interstitial-screen, .voice-screen { background: var(--theia-night); }
 .research-screen .page-header h1 { font-size: 28px; }
 .research-screen .page-header p { color: #d4d2ce; }
 .research-logos {
@@ -248,6 +250,7 @@ svg { flex-shrink: 0; }
 .art-large .interstitial-art { top: 44%; }
 .art-tall .interstitial-art { top: 28%; inset-inline: 38px; }
 .privacy-art { position: absolute; top: 49%; inset-inline-start: 50%; width: 102px; height: 116px; transform: translateX(50%); object-fit: contain; }
+.privacy-art.artwork-wrap { pointer-events: none; }
 .privacy-card {
   position: absolute;
   inset-inline: 24px;
@@ -683,7 +686,7 @@ svg { flex-shrink: 0; }
 .dev-login-screen { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
 .dev-login-screen .page-header { flex-shrink: 0; padding-top: clamp(20px, 5dvh, 44px); }
 .dev-login-art { position: relative; flex: 1 0 96px; min-height: 96px; pointer-events: none; }
-.dev-login-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.dev-login-art img, .dev-login-art .theia-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .dev-login-panel { position: relative; z-index: 2; flex-shrink: 0; margin: 0 24px max(24px, env(safe-area-inset-bottom)); padding: 20px; background: #fff; border-radius: 24px; box-shadow: 0 8px 26px rgb(35 32 27 / 7%); }
 .dev-login-heading { display: flex; align-items: center; gap: 10px; font-size: 17px; }
 .dev-login-panel > p { color: #615d57; font-size: 13px; line-height: 1.9; margin: 10px 0 16px; }
@@ -920,9 +923,11 @@ svg { flex-shrink: 0; }
   max-height: calc(100% - 390px);
   border-radius: 18px;
   overflow: hidden;
-  background: var(--beige);
+  background:
+    radial-gradient(120% 90% at 50% 108%, rgb(246 207 152 / 12%), transparent 62%),
+    var(--dark);
 }
-.checkins-art img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.checkins-art img, .checkins-art .theia-art, .checkins-art svg { display: block; width: 100%; height: 100%; object-fit: contain; }
 .onboarding-welcome .message-text { white-space: normal; }
 @media (max-height: 700px) {
   .mood-screen .page-header, .checkins-screen .page-header { padding-top: 99px; }
@@ -1473,7 +1478,7 @@ svg { flex-shrink: 0; }
   transform-origin: 50% 50%;
 }
 .home-orbit-trace--second { stroke: #b0aaa0; stroke-width: 1.45; }
-.home-orbit-accent { stroke: #d5d9f7; stroke-width: 1.75; stroke-linecap: round; opacity: .8; }
+.home-orbit-accent { stroke: #f6cf98; stroke-width: 1.6; stroke-linecap: round; opacity: .55; }
 .home-orbit-point { fill: #d5d9f7; }
 .home-conversation-mark {
   position: relative;
@@ -1483,7 +1488,7 @@ svg { flex-shrink: 0; }
 }
 .home-start-label { font-size: 20px; font-weight: 590; letter-spacing: -.2px; }
 @media (hover: hover) {
-  .home-start-conversation:hover .home-orbit-trace--first { transform: rotate(-6deg); stroke: #adaba4; }
+  .home-start-conversation:hover .home-orbit-trace--first { transform: rotate(-6deg); stroke: #c9975e; }
   .home-start-conversation:hover .home-orbit-trace--second { transform: rotate(7deg); stroke: #d5d9f7; }
   .home-start-conversation:hover .home-conversation-art::before { opacity: 1; transform: scale(1.12); }
 }
@@ -1865,6 +1870,10 @@ svg { flex-shrink: 0; }
 .home-orbit-point--sun {
   fill: var(--theia-dawn);
 }
+.home-orbit-point--moon {
+  fill: var(--theia-moon);
+  opacity: .8;
+}
 .home-orbit-crescent {
   fill: var(--theia-moon);
   opacity: .86;
@@ -1887,3 +1896,64 @@ svg { flex-shrink: 0; }
   opacity: .85;
 }
 
+
+
+/* ---------- Theia brand: «دایرهٔ باز» / The Open Circle ---------- */
+:root {
+  --theia-night: #12110d;
+  --theia-ink: #23201b;
+  --theia-paper: #f3f2ee;
+  --theia-ivory: #f3efe6;
+  --theia-dawn: #f6cf98;
+  --theia-ember: #e3ae72;
+  --theia-gold: #c9975e;
+  --theia-dusk: #d5d9f7;
+}
+
+/* The symbol is a brushline, not a stroke: the pressure lives in the path.
+   These rules only give it air and a slow, low-amplitude life. */
+.theia-mark { display: block; overflow: visible; }
+.theia-mark--luminous { filter: drop-shadow(0 0 9px rgb(246 207 152 / 18%)); }
+
+.theia-art { position: relative; }
+/* A whisper of paper grain keeps the vector light studies from feeling digital. */
+.theia-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.62'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+.theia-scene { animation: theia-scene-in 900ms cubic-bezier(.22, .7, .2, 1) both; }
+.theia-stroke { transform-box: fill-box; transform-origin: center; animation: theia-stroke-in 1100ms cubic-bezier(.22, .7, .2, 1) both; }
+.theia-orbit-trace { transform-origin: 50% 50%; animation: theia-orbit-drift 54s linear infinite; }
+.theia-mote {
+  animation: theia-mote-drift 9s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * -1.7s);
+}
+.home-conversation-mark .theia-mark,
+.theia-mark { transform-origin: 50% 50%; }
+
+@keyframes theia-scene-in {
+  from { opacity: 0; transform: translateY(9px) scale(.985); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes theia-stroke-in {
+  from { opacity: 0; transform: scale(.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes theia-orbit-drift {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes theia-mote-drift {
+  0%, 100% { opacity: .12; transform: translateY(0); }
+  50% { opacity: .55; transform: translateY(-4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theia-scene, .theia-stroke, .theia-orbit-trace, .theia-mote { animation: none; }
+}

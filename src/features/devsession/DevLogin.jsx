@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { TheiaMark } from '../../components/TheiaBrand';
+import { TheiaMark, TheiaScene } from '../../components/TheiaBrand';
 import { PageHeader, PrimaryButton, StatusBar } from '../../components/UI';
 import { normalizeTestPhone } from './phone';
 
@@ -21,7 +21,7 @@ export default function DevLogin({ session, login, retry }) {
     <section className="app-screen theme-light dev-login-screen" aria-busy={loading}>
       <StatusBar />
       <PageHeader title="به تیا خوش اومدی!" />
-      <div className="dev-login-art" aria-hidden="true"><img src="/brand/theia-welcome.png" alt="" /></div>
+      <div className="dev-login-art" aria-hidden="true"><TheiaScene variant="welcome" /></div>
       <div className="dev-login-panel">
         <div className="dev-login-heading"><TheiaMark size={21} /><strong>ورود به حساب</strong></div>
         {loading && <p role="status">در حال ورود…</p>}

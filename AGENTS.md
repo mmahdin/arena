@@ -1,3 +1,16 @@
+## Brand identity amendment (2026-11-12) — «دایرهٔ باز»
+
+Theia's visual identity is the **Open Circle**: a filled, brush-tapered ring that
+lifts before it closes, holding one pearl of light, over a hairline horizon. It
+is authored as SVG in `src/components/TheiaBrand.jsx`; onboarding plates are
+`TheiaScene` chapters, not raster images. The former illustrated female goddess
+and all `public/brand/theia-*.png` character artwork are **retired** — do not
+reintroduce the figure, a crescent-and-star emblem, hands-and-keyhole privacy
+art, celestial clip-art or generic AI imagery. Preserve layouts, copy,
+typography, spacing and the existing UI tokens. Read
+`docs/brand/THEIA_IDENTITY.md` before touching brand art, and keep
+`scripts/theia-brand.test.mjs` green (it asserts the closing-gap narrative).
+
 ## Approved onboarding personalization amendment (2026-11-11)
 
 The user explicitly requested using onboarding information throughout chat. This
