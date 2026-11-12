@@ -1,53 +1,54 @@
-## Connected chat/history (Task 03)
+# Theia AI Core — Architecture Handoff v1.3
 
-Apply this incremental change only **after Task 02 v2 synthetic phone login**. Chat and History now use the existing Go/MSSQL JSON conversation endpoints; backend updates/migrations are not required for this slice. The original Hamrah CSS and artwork remain the UI authority. See `VALIDATION_REPORT.md`.
+**تاریخ:** ۲۰۲۶-۱۱-۱۲  
+**وضعیت:** `ARCHITECTURE BASELINE — CONDITIONAL`  
+**هدف:** مرجع واحد معماری منطقی/عملیاتی AI Core تیا برای انطباق و پیاده‌سازی در **Backend موجود Go**؛ بدون طراحی Backend جدید و بدون انتخاب اجباری زبان، دیتابیس، صف، مدل یا provider.  
+**محدوده:** ورودی/خروجی ماژول‌ها، مالکیت داده، Orchestration، اتصال Psychology Domain، سناریوها، قراردادهای معنایی و تصمیم‌های باز. این بسته **کد محصول، پرامپت نهایی، پروتکل بالینی تأییدشده یا آزمون اجرای واقعی** نیست.
 
-Locally: `npm ci && npm test && npm run build && npm run dev`. With a real local Go/MSSQL Mock AI backend and Playwright available: `npm run test:e2e:chat`. No intercepted HTTP APIs in that test. Synthetic-only: no real phone numbers, private health data, or clinical validation.
+## از کجا شروع کنیم؟
 
----
+1. **[AI_CORE_ARCHITECTURE.md](AI_CORE_ARCHITECTURE.md):** تصویر کل سیستم، مرزها، قواعد قطعی و نحوه تصمیم‌گیری درباره ادغام ماژول‌ها.
+2. **[MODULE_SPECIFICATIONS.md](MODULE_SPECIFICATIONS.md):** شناسنامه P01–P09 و S01–S06؛ ورودی، کارکرد، خروجی، شرط اجرا، دانش و موارد ممنوع.
+3. **[DATA_CONTRACTS.md](DATA_CONTRACTS.md):** C01–C19 و معنا/نسخه/منبع خروجی‌ها؛ مرجع قرارداد منطقی.
+4. **[WORKFLOW.md](WORKFLOW.md):** مسیرهای عادی، تکمیلی، ایمنی، کنترل داده، حافظه و failure/commit.
+5. **[MEMORY_ARCHITECTURE.md](MEMORY_ARCHITECTURE.md):** M1–M6، چرخه خواندن/نوشتن، اصلاح فرضیه‌ها و درخواست حذف.
+6. **[PSYCHOLOGY_INTEGRATION.md](PSYCHOLOGY_INTEGRATION.md):** اتصال D1–D8 به taskها؛ هیچ متن پرامپتی یا تکنیک بالینی به‌عنوان مصوب معرفی نشده است.
+7. **[CONTRACT_COMPATIBILITY.md](CONTRACT_COMPATIBILITY.md):** نگاشت معنایی قراردادهای فعلی به اسناد/Schemaهای قدیمی و وضعیت شکاف‌ها.
+8. **[SCENARIO_ACCEPTANCE.md](SCENARIO_ACCEPTANCE.md):** سناریوهای T1–T12 و شرایط قبولی معماری؛ نمونه آزمون طراحی، نه نتایج تست اجراشده.
+9. **[OPEN_DECISIONS.md](OPEN_DECISIONS.md):** ۱۸ تصمیم باز، شدت و پیش‌فرض ایمن؛ صرفاً با مجوز نقش مسئول بسته شوند.
+10. **[AGENT_HANDOFF.md](AGENT_HANDOFF.md):** دستور کار برای ایجنت‌های توسعه در Backend Go موجود و شیوه گزارش Integration Delta.
 
-# همراه
+## قانون مرجع (Source of Truth)
 
-یک رابط موبایل‌محور فارسی و راست‌به‌چپ، بازسازی‌شده از توالی ۳۸ تصویر مرجع. رابط با React و Vite ساخته شده و هیچ بک‌اند یا اتصال هوش مصنوعی واقعی ندارد.
+| مسئله | سند مرجع | سایر اسناد چه هستند؟ |
+|---|---|---|
+| معماری و مالکیت منطقی | `AI_CORE_ARCHITECTURE.md` | خلاصه‌های وابسته |
+| وظیفه/شرط اجرای P/S | `MODULE_SPECIFICATIONS.md` | نمودارهای دیگر بیان فشرده‌اند |
+| معنا و فیلدهای حداقلی C01–C19 | `DATA_CONTRACTS.md` | جدول‌های سناریو مثال‌اند، نه schema جدید |
+| مسیرها و commit / invalidation | `WORKFLOW.md` | نمونه‌های اجرایی قابل مقایسه‌اند |
+| M1–M6 و lifecycle | `MEMORY_ARCHITECTURE.md` | قراردادها برای interface کافی‌اند |
+| D1–D8 و وضعیت تأیید دانش | `PSYCHOLOGY_INTEGRATION.md` | هیچ مثال placeholder یک pack مصوب نیست |
+| تصمیم‌های باز و release blockers | `OPEN_DECISIONS.md` | هر تصمیم جدید با ADR ثبت شود |
+| نام‌های قدیمی و تغییر wire | `CONTRACT_COMPATIBILITY.md` | Schemaهای فاز ۶ فقط **draft/mock** هستند |
 
-## اجرا
+**اولویت در تعارض:** محدودیت‌های قطعی ایمنی و اختیار معتبر Backend، سپس همین بسته v1.3 بر اساس جدول بالا؛ اسناد قدیمی v0.3 تا v1.2 فقط سابقه/راهنمای migration هستند. اختلاف جدید باید به‌عنوان `Integration Delta` ثبت شود، نه اینکه پنهانی قرارداد تغییر کند.
 
-```bash
-npm install
-npm run dev
-```
+## آنچه نهایی شده و آنچه نشده
 
-برای ساخت نسخه‌ی نهایی:
+- **مبنای منطقی:** P01–P09 به‌عنوان ۹ مسئولیت، S01–S06 به‌عنوان ۶ نقش، M1–M6 و D1–D8؛ تعداد فراخوانی مدل و سرویس‌های استقراری **قطعی نیست**.
+- **قواعد الزام‌آور در معماری:** منشأ شواهد، تمایز fact/inference/event، محدودیت scope، freshness، approval/commit/delivery جدا، رضایت واقعی، rollback/unknown و محدودبودن حلقه‌ها.
+- **مشروط و غیرفعال تا تأیید:** محتوای D5/D7، سطح خدمت حساس، ادعای ارجاع عملی، مداخلات حساس، ذخیره‌سازی inferential حساس، اجرای مسیرهای بدون کنترل ایمنی مصوب.
+- **هنوز باز:** مدل/Jev/provider، متن پرامپت‌ها، حد عددی retry و token، سیاست داده و نحوه تأمین ضمانت Backend؛ آنها را ایجنت توسعه حق ندارد به‌جای صاحب محصول/متخصص حدس بزند.
 
-```bash
-npm run build
-npm run preview
-```
+## Definition of Done برای همین گام مستندسازی
 
-## ساختار
+- [x] یک مرجع واحد با نقش روشن همه اسناد، بدون ارجاع اجباری به ساخت Backend جدید
+- [x] ۹ ماژول و ۶ نقش با producer/consumer/trigger/fallback
+- [x] ۱۹ قرارداد منطقی با شناسنامه و mapping به طرح‌های قدیمی
+- [x] State/Memory/Consent/Deletion و چهار وضعیت Response روشن
+- [x] نقشه D1–D8 در سطح task، نه متن نهایی prompt
+- [x] آزمون‌پذیری قراردادی با T1–T12 به‌صورت معیار پذیرش پیشنهادی
+- [x] ۱۸ تصمیم باز و مرز اختیار ایجنت توسعه
+- [ ] **نه ادعاشده:** اجرای آزمون واقعی Go/LLM یا تأیید بالینی/حریم داده
 
-- `src/screens/Onboarding.jsx`: خوش‌آمد، اعتماد و پژوهش، پرسش‌های چند/تک‌انتخابی، سن، صدا و سبک گفت‌وگو.
-- `src/screens/Main.jsx`: خانه، پرسش‌نامه، تاریخچه، جزئیات روز، منو، گفت‌وگو و بینش.
-- `src/components/UI.jsx`: اجزای مشترک و تصویرسازی‌های برداری.
-- `src/data.js`: متن‌ها، گزینه‌ها و داده‌ی نمایشی گفت‌وگو.
-- `src/styles.css`: توکن‌های رنگ، تایپوگرافی، چیدمان و حالت‌های واکنش‌گرا.
-- `public/assets`: فقط تصویرسازی‌ها و عکس‌های جداشده از مراجع؛ هیچ اسکرین‌شاتی به‌عنوان صفحه استفاده نشده است.
-
-فونت‌های Estedad، Vazirmatn و Noto Naskh Arabic به‌صورت محلی بارگذاری می‌شوند. مسیرها در hash مرورگر نگهداری می‌شوند و دکمه‌ی بازگشت مرورگر نیز کار می‌کند.
-
-## تعاملات
-
-- پاسخ‌های تک/چندانتخابی، محدودیت سه انتخاب، انتخاب سن با لمس یا اسکرول
-- کاروسل صدا و سبک گفت‌وگو با نقاط و ژست کشیدن
-- منوی کناری، تاریخچه و جزئیات روز
-- ارسال پیام و دریافت پاسخ نمایشی، پیشنهادهای آماده و حالت ورودی صوتی
-- منوی پیام با لمس طولانی یا کلیک راست: کپی، ذخیره، خواندن، بازتولید و گزارش
-- بازخورد بینش و ذخیره‌ی وضعیت پاسخ‌ها در طول نشست فعلی
-
-## Development handoff (new Hamrah UI baseline)
-
-This exact JSX/CSS UI is the product design source of truth. Start at `AGENTS.md`, `FRONTEND_DESIGN_SPEC.md`, `docs/integration/UI_BACKEND_GAP_MATRIX.md`, and `docs/roadmap/BACKEND_FRONTEND_INTEGRATION_PLAN.md`. `npm run check:foundation` verifies original source byte preservation; `npm test` runs the Node handoff checks. A localhost-only Vite proxy has been added for future `/api/v1` integration, but screens **still use demo state and mock chat**. This is internal synthetic testing only; see `PRODUCT_CONSTITUTION.md` before connecting any screen.
-
-### Hamrah synthetic phone-shaped login v2
-
-The previous seeded-user selector is rejected. Enter a **fictional** `0900000XXXX` test identifier. The Go backend `POST /api/v1/dev/identity-session` creates or resumes that synthetic profile with a revocable HttpOnly session cookie, without OTP/SMS. The backend migration `0007` must be applied first. See `docs/integration/PHONE_IDENTITY_V2.md`. Never use actual phone numbers or real sensitive chats. Run `npm test` and, when local services are ready, `npm run test:e2e:session`.
+**نقطه توقف سندی:** معماری به‌اندازه کافی برای *بررسی انطباق با Go و برنامه پیاده‌سازی* توصیف شده است؛ به‌معنی مجوز شروع قابلیت‌های gated یا آماده‌بودن برای انتشار نیست.
