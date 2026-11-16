@@ -1,0 +1,22 @@
+# AI module — Tasks 05–06 (internal synthetic tests only)
+
+- `policy/prompt.go`: versioned `supportive-v5`, five distinct conversational styles (plus legacy `guidance` alias) and explicitly **untrusted** profile preferences and onboarding answers. Uses relevant stated concerns, goals, interests, strengths, barriers and other explicit background on every turn; current messages/corrections take precedence. Declined disclosures are omitted at the profile port; mood is labeled a past snapshot, never a current assessment. Stored completed turns retain their original prompt version; do not rewrite prior records.
+- `policy/safety.go`: normalized Persian/English deterministic phrase heuristics, **NOT clinical screening**. Explicitly matched crisis phrases bypass the provider; matched unsafe model claims are replaced by a static safe fallback. They can still miss indirect intent, unsafe paraphrases and context/negation.
+- `application`: formats system + most recent bounded chronological history + new user input; history is a contiguous suffix limited by `MAX_CONTEXT_CHARS` (default 16000 Unicode characters). Repository also limits it by `MAX_CONTEXT_MESSAGES` (default 20). Limits are **character approximations, not token accounting**. The new message is added once, and past conversations are never searched.
+- `adapters/mock`: deterministic safe synthetic reply, default.
+- `adapters/openai`: server-side HTTPS Chat Completions-compatible request. Requires explicitly configured `MODEL_NAME` and `MODEL_API_KEY`; uses `max_completion_tokens` without temperature for GPT-5/6 and o-series, legacy `max_tokens` for older compatible models. GPT-5.6 uses `reasoning_effort=none` to reserve the small output budget for visible chat. Disallows HTTP redirects, rejects empty/truncated/oversized/filtered responses and returns sanitized errors. Only synthetic selections and synthetic chat are approved.
+- A `POST /turns` failing to reach the provider returns `503 AI_UNAVAILABLE`; the current turn lease is released. Client must retry using the **same clientTurnId and identical message**, never auto-create a fresh ID after timeout. Successful turn still saves both messages atomically; no streaming.
+- `LLM_TIMEOUT_SECONDS` is 5–90 (default 35), less than the SQL Server turn lease (120 seconds). `MODEL_MAX_OUTPUT_TOKENS` is 128–2048 (default 700), `MAX_CONTEXT_CHARS` is 2000–30000. Application also rejects empty output, malformed UTF-8, unexpected control characters or replies longer than 4000 Unicode code points, and rejects a reply after cancellation even if its gateway ignores context.
+- `GET /api/v1/me/ai-status` reports provider/model/mock/promptVersion to the authenticated tester; it does not probe the provider. No API key or endpoint credentials are returned. Provider-specific usage and billing are NOT implemented.
+- Safety evaluation and data handling remain blockers for real user data, public exposure or clinical claims. Cost budgets, operational rate limiting, strong output safety and provider-specific observability remain future work. Never log raw prompts, model output, tokens, headers or credentials.
+
+## Test matrix
+
+`go test ./internal/modules/ai/... ./internal/platform/config` exercises synthetic prompt constraints, context window selection, fake HTTPS Chat Completions payload/status/redirect/deadline and output safety. Full `go test ./...` and MSSQL integration should run in the user's local stack; provider smoke needs an explicitly approved non-sensitive test endpoint.
+
+## Task 06 — Additional safety checks
+
+- `supportive-v3` adds explicit rules for medication/diagnosis boundaries, delusion reinforcement, dependency and emergency-service claims. Old `promptVersion` values remain unchanged in SQL Server.
+- Both pre-generation crisis routing and post-generation output checking run in application/policy on the server. The checker is phrase-based, intentionally incomplete, and **must not be used as actual mental-health risk screening**.
+- A canceled request never accepts a late model reply. Provider failures, invalid output or expired context use generic errors; there is no automatic provider retry. The client keeps the same `clientTurnId` for a user-requested retry.
+- See [`docs/quality/ai-safety-evaluation.md`](../../../../../docs/quality/ai-safety-evaluation.md) for synthetic test matrix, known false negatives, and clinical release blockers. No DB migration and no HTTP contract change.

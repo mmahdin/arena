@@ -1,0 +1,35 @@
+ARG REGISTRY=hub.alibaba.ir/hubproxy
+ARG GO_VERSION=1.23
+
+FROM ${REGISTRY}/library/golang:${GO_VERSION}-alpine AS build
+WORKDIR /src/apps/api
+
+ARG GOPROXY=https://nexus.alibaba.ir/repository/go-proxy
+ENV GOPROXY=${GOPROXY} CGO_ENABLED=0
+
+COPY apps/api/go.mod apps/api/go.sum ./
+RUN go mod download
+COPY apps/api/ ./
+RUN go mod verify && go test ./... \
+    && go build -trimpath -ldflags="-s -w" -o /out/api ./cmd/api \
+    && go build -trimpath -ldflags="-s -w" -o /out/migrate ./cmd/migrate
+
+FROM ${REGISTRY}/library/alpine:3.20
+WORKDIR /app
+
+RUN sed -i 's|https://dl-cdn.alpinelinux.org|https://mirror.arvancloud.ir|g' /etc/apk/repositories \
+    && apk add --no-cache ca-certificates \
+    && addgroup -S app && adduser -S -G app app
+
+COPY --from=build /out/api /app/api
+COPY --from=build /out/migrate /app/migrate
+COPY apps/api/db/migrations /app/migrations
+
+ENV HTTP_ADDR=0.0.0.0:8080 MIGRATIONS_DIR=/app/migrations
+USER app
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD wget -qO- http://127.0.0.1:8080/health/live >/dev/null || exit 1
+
+CMD ["/app/api"]

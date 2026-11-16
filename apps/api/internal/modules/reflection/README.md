@@ -1,0 +1,3 @@
+# Daily reflections
+
+Explicit user-authored, calendar-day entries; local/synthetic-data-only. No AI generation, memory extraction, analytics, behavioral profiling, or sharing. One entry per (`user_id`, `entry_date`) with a SQL Server FK to the owner and a date+owner PK. PUT overwrites that day's text; DELETE is idempotent. GET/list are always owner-scoped via the signed local session. Text never enters application logs or prompts. Date is a calendar key selected by the client (no inferred timezone). The last 30 entries are listed; older entries are available by their exact date. See OpenAPI and `docs/integration/TASK08_DAILY_REFLECTIONS.md`.
