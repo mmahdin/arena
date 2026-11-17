@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WP-09 Retrieval — Implementation Summary</title>
+<style>
+  :root {
+    --ink: #14181f;
+    --muted: #6b7280;
+    --line: #e6e8ec;
+    --bg: #f7f8fa;
+    --card: #ffffff;
+    --accent: #2f6f5e;
+    --accent-soft: #eef5f2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .layout { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  aside {
+    width: 232px;
+    flex: 0 0 232px;
+    background: #ffffff;
+    border-right: 1px solid var(--line);
+    padding: 28px 22px;
+  }
+  .brand { font-weight: 650; letter-spacing: -0.01em; font-size: 15px; }
+  .brand span { display: block; color: var(--muted); font-weight: 400; font-size: 12.5px; margin-top: 2px; }
+  nav { margin-top: 30px; display: flex; flex-direction: column; gap: 2px; }
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 13.5px;
+    padding: 7px 10px;
+    border-radius: 7px;
+  }
+  nav a:hover { background: var(--accent-soft); color: var(--accent); }
+  .side-note {
+    margin-top: 34px;
+    font-size: 11.5px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+    line-height: 1.5;
+  }
+
+  /* Main */
+  main { flex: 1; padding: 34px 40px 64px; max-width: 1080px; }
+  header { margin-bottom: 30px; }
+  .eyebrow { font-size: 12px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  h1 { font-size: 26px; margin: 8px 0 6px; letter-spacing: -0.02em; font-weight: 650; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; max-width: 660px; }
+
+  /* Stat cards */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 26px 0 34px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 18px 16px;
+  }
+  .stat-label { font-size: 12px; color: var(--muted); letter-spacing: 0.02em; }
+  .stat-value { font-size: 26px; font-weight: 650; letter-spacing: -0.02em; margin: 6px 0 2px; }
+  .stat-sub { font-size: 12.5px; color: var(--muted); }
+
+  /* Sections */
+  section { margin-bottom: 34px; }
+  h2 {
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  h3 { font-size: 13.5px; font-weight: 600; margin: 18px 0 6px; }
+  p { margin: 0 0 10px; }
+  ul { margin: 0; padding-left: 18px; }
+  li { margin-bottom: 6px; }
+  code {
+    font-family: "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    background: #eef0f3;
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+  .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+  .panel ul { padding-left: 17px; }
+  .panel li { font-size: 13.8px; }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    margin-left: 6px;
+    vertical-align: 1px;
+  }
+  .badge.warn { background: #fdf3e7; color: #8a5a12; }
+  .note { font-size: 13.5px; color: var(--muted); }
+  footer { font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
+
+  @media (max-width: 900px) {
+    .layout { display: block; }
+    aside { width: auto; border-right: 0; border-bottom: 1px solid var(--line); padding: 20px; }
+    nav { flex-direction: row; flex-wrap: wrap; gap: 4px; margin-top: 16px; }
+    .side-note { display: none; }
+    main { padding: 24px 20px 48px; }
+    .stats, .panels { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">Theia AI Core<span>WP-09 · Retrieval</span></div>
+    <nav>
+      <a href="#summary">Summary</a>
+      <a href="#features">Implemented features</a>
+      <a href="#tests">Tests</a>
+      <a href="#integration">Integration requirements</a>
+      <a href="#open">Unresolved issues</a>
+    </nav>
+    <div class="side-note">
+      Contract Pack v1.2 · Final Architecture §3.4 / §4.4 / §7.3<br>
+      Go Modular Monolith · SQL Server 2022 · no pgvector
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <div class="eyebrow">Work package summary</div>
+      <h1>WP-09 — Retrieval Service</h1>
+      <p>The deterministic retrieval layer: temporal, thread, semantic, entity and anaphora strategies over SQL Server, with embedding integration, relevance scoring, ranking, deduplication and context-budget management.</p>
+    </header>
+
+    <div class="stats">
+      <div class="card">
+        <div class="stat-label">Implementation progress</div>
+        <div class="stat-value">5 / 5</div>
+        <div class="stat-sub">retrieval strategies complete; 9 storage ports, 1 migration</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Test results</div>
+        <div class="stat-value">108 passed</div>
+        <div class="stat-sub">of 109 tests (166 cases) · 1 skipped · 0 failed</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Changed files</div>
+        <div class="stat-value">30</div>
+        <div class="stat-sub">25 new · 5 touched · +6,492 / −0 lines · 3,610 src / 3,007 test</div>
+      </div>
+    </div>
+
+    <section id="summary">
+      <h2>Summary</h2>
+      <p>The service answers one question deterministically: <em>which stored memory belongs in this turn's context?</em> It runs before the Turn Brain, is driven purely by cheap signals and storage reads, and never calls an LLM — the only model use is the embedding tier, whose failure degrades semantic ranking to lexical overlap instead of failing the turn.</p>
+      <p>Rules live in a pure <code>domain/retrieval</code> package (no SQL, no clock reads), the workflow in <code>application/retrieval</code> over consumer-owned ports, and all SQL in <code>adapters/mssql</code>. Owner isolation, provenance, soft delete and status rules are enforced in code at three layers.</p>
+    </section>
+
+    <section id="features">
+      <h2>Implemented features</h2>
+      <ul>
+        <li><strong>Exact / temporal retrieval</strong> — timezone-correct window parsing (English + Persian, weekday, week, explicit date) combined with a recall verb; returns verbatim messages, never summaries, and reports <code>exact_match_found=false</code> rather than substituting semantics.</li>
+        <li><strong>Thread, entity and anaphora retrieval</strong> — thread links via <code>OPENJSON(thread_ids_json)</code>; relational mentions via <code>entities_json</code>; recent-item boosting on shared tags with an <code>ambiguous_reference</code> flag when the referent stays unresolved.</li>
+        <li><strong>Hybrid semantic retrieval</strong> — bounded owner-scoped candidate pool plus always-on preferences; cosine rerank in Go over <code>ai_embeddings</code>; lexical fallback for missing, corrupt or model-mismatched vectors.</li>
+        <li><strong>Embedding integration</strong> — offline deterministic embedder (default, no network) and an OpenAI-compatible <code>/embeddings</code> adapter; model id and dimensions travel with every vector and are validated before comparison.</li>
+        <li><strong>Relevance scoring and ranking</strong> — <code>0.50·similarity + 0.20·recency + 0.15·importance + 0.15·thread</code>, 21-day recency half-life, anaphora boost, 0.32 score floor, deterministic tie-breaks.</li>
+        <li><strong>Deduplication</strong> — by <code>cluster_id</code>, normalized text and near-duplicate overlap; novelty filter drops context already present in the recent window.</li>
+        <li><strong>Context-budget management</strong> — top-K 5 (7 with one extra hop), 60 tokens per item, 400 tokens total, conservative token estimation and truncation.</li>
+        <li><strong>Data isolation and provenance</strong> — server-resolved user id in every port, SQL filter plus adapter and service re-checks; items without evidence never surface; <code>rejected</code>, <code>superseded</code>, <code>highly_sensitive</code> and invalid hypotheses are excluded.</li>
+        <li><strong>Soft delete only</strong> — no code path deletes a row; <code>ai_memory_items.deleted_at</code> and <code>ai_message_suppressions</code> flag removals that retrieval excludes.</li>
+        <li><strong>Failure behaviour</strong> — any store failure, timeout or cancellation returns zero items with <code>meta.degraded=true</code> (FB-002 / BR-023), never a partial set presented as complete.</li>
+      </ul>
+      <h3>Repository rule codes covered</h3>
+      <p class="note">§3.4 retrieval strategies · §4.3 <code>RetrievalMeta</code> / <code>MemoryView</code> · §4.4 request, needs-context hop and result contracts · §7.2 <code>ai_*</code> read model · §7.3 owner-scoped read functions and float32 vector codec · §7.6 anti-over-retrieval · §7.7 deletion and sensitivity rules · BR-016 exact-recall gate · BR-023 degraded-memory constraint.</p>
+    </section>
+
+    <section id="tests">
+      <h2>Tests</h2>
+      <p>95 new test functions were added. Running the retrieval packages plus composition and config with <code>go test -count=1 -v</code> here gives <strong>109 tests / 166 cases: 108 passed, 1 skipped, 0 failed</strong>, and <code>go build ./...</code> plus <code>go vet ./...</code> are clean. The one skip is the SQL Server adapter scenario, which needs a live instance.</p>
+      <div class="panels">
+        <div class="panel">
+          <h3>Coverage by package</h3>
+          <ul>
+            <li><code>domain/retrieval</code> — 84.8% (scoring, dedupe, budget, temporal parsing, strategy rules)</li>
+            <li><code>application/retrieval</code> — 88.2% (strategies, exclusions, isolation, degradation)</li>
+            <li><code>adapters/embed</code> — 84.5% (deterministic + provider adapters)</li>
+            <li><code>adapters/mssql</code> — 17.8% offline; the remaining statements are SQL paths covered only by the gated integration tests</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>What is asserted</h3>
+          <ul>
+            <li>Ranking order, score floor, recency half-life, anaphora boost window</li>
+            <li>Cluster/text dedupe, novelty filter, top-K and token budgets</li>
+            <li>Missing, corrupt, dimension-mismatched and model-mismatched embeddings</li>
+            <li>Soft delete, superseded/rejected, no-provenance, highly-sensitive exclusions</li>
+            <li>Cross-user isolation at store and service level; hypotheses surfacing rules</li>
+            <li>Temporal verbatim recall, empty window, second hop, hard cap</li>
+            <li>Per-strategy store failure, cancellation, deadline; provider error sanitization</li>
+            <li>SQL Server scenario (gated): migrations, two users, every exclusion rule, suppressions, preferences, novelty window</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="integration">
+      <h2>Integration requirements</h2>
+      <ul>
+        <li><strong>Migration <code>0017_ai_retrieval.sql</code> must be applied</strong> before retrieval runs. It is additive and creates <code>ai_memory_items</code>, <code>ai_memory_evidence</code>, <code>ai_memory_tombstones</code>, <code>ai_embeddings</code>, <code>ai_threads</code> and <code>ai_message_suppressions</code>.</li>
+        <li><strong>WP-02</strong> must populate those tables (memory items with evidence, threads, embeddings). WP-09 only reads.</li>
+        <li><strong>WP-04</strong> owns the embedding tier. Set <code>EMBEDDING_PROVIDER</code> (<code>deterministic</code> default, or <code>openai-compatible</code>), <code>EMBEDDING_MODEL</code> and <code>EMBEDDING_DIMENSIONS</code>; a network embedder also needs <code>MODEL_API_KEY</code>. Vectors must be written as little-endian float32 with a model id.</li>
+        <li><strong>WP-08</strong> supplies <code>TurnView.TemporalRefs</code> and the focus thread id, and consumes <code>RetrievalMeta</code> to set <code>eligibility.memory_available</code> and the degraded constraint.</li>
+        <li><strong>WP-05 / WP-10</strong> must call <code>Retriever.Retrieve</code> in the parallel pre-Brain stage, pass <code>Exclude</code> for items already in context and issue at most one <code>NeedsContext</code> hop.</li>
+        <li><strong>Composition</strong>: <code>ai.NewRetrievalModule(cfg, db)</code> wires store, embedder, clock and tunables; it rejects a nil pool instead of running memory-less.</li>
+        <li><strong>Operations</strong>: no pgvector, no ANN index, no extra service. Hybrid recall is a bounded pool with in-Go cosine; volume must be benchmarked against real data before any latency claim.</li>
+      </ul>
+    </section>
+
+    <section id="open">
+      <h2>Unresolved issues</h2>
+      <div class="panels">
+        <div class="panel">
+          <h3>Not verified here</h3>
+          <ul>
+            <li>SQL Server integration tests were <strong>not executed</strong>: no instance in this environment. They are opt-in via <code>WELLBEING_INTEGRATION=true</code> and still need a live run, including the <code>0017</code> DDL and filtered indexes.</li>
+            <li>Provider embeddings were never called against a real endpoint (no approved test endpoint).</li>
+            <li>No latency or recall-quality benchmark at scale; the contract forbids promising millisecond vector search without one.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Open decisions</h3>
+          <ul>
+            <li><strong>Embedding model and dimensions</strong> (OPEN-4) — the offline deterministic embedder is a placeholder, not a semantic model.</li>
+            <li><strong>Person aliases</strong> ("my sister" → "Lena") are not implemented; entity matching is literal (§7.3 open).</li>
+            <li><strong>Hypothesis thread-match</strong> is validated but not strictly enforced: dropping unlinked hypotheses would contradict the inclusive <code>proposed|supported</code> default. Needs a review decision.</li>
+            <li><strong>Full-text search</strong> is unused; the LIKE content filter in the temporal window is intentionally forgiving.</li>
+            <li><strong>Persian temporal coverage</strong> is a pattern set, not a general date parser.</li>
+          </ul>
+        </div>
+      </div>
+      <p class="note" style="margin-top:14px;">Synthetic data only. No clinical policy is implemented in this work package, and nothing here authorizes handling real disclosures.</p>
+    </section>
+
+    <footer>
+      Deliverables: <code>theia-ai-core-wp09.patch</code> (implementation only) and this dashboard. No WP-10, WP-12 or later-module work is included.
+    </footer>
+  </main>
+</div>
+</body>
+</html>

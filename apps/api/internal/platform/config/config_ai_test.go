@@ -46,3 +46,38 @@ func TestProviderURLRejectsCredentialOrQuery(t *testing.T) {
 		})
 	}
 }
+
+func TestEmbeddingConfigurationDefaultsAreOffline(t *testing.T) {
+	setAIEnv(t)
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.EmbeddingProvider != "deterministic" || cfg.EmbeddingDimensions != 128 {
+		t.Fatalf("embedding tier must default to the offline deterministic model, got %q/%d", cfg.EmbeddingProvider, cfg.EmbeddingDimensions)
+	}
+}
+
+func TestEmbeddingConfigurationValidation(t *testing.T) {
+	setAIEnv(t)
+	t.Setenv("EMBEDDING_PROVIDER", "pgvector")
+	if _, err := Load(); err == nil || !strings.Contains(err.Error(), "EMBEDDING_PROVIDER") {
+		t.Fatalf("unknown embedding provider not rejected: %v", err)
+	}
+	t.Setenv("EMBEDDING_PROVIDER", "openai-compatible")
+	t.Setenv("EMBEDDING_MODEL", "text-embedding-synthetic")
+	t.Setenv("EMBEDDING_DIMENSIONS", "4")
+	if _, err := Load(); err == nil || !strings.Contains(err.Error(), "EMBEDDING_DIMENSIONS") {
+		t.Fatalf("out-of-range dimensions not rejected: %v", err)
+	}
+	t.Setenv("EMBEDDING_DIMENSIONS", "1024")
+	cfg, err := Load()
+	if err != nil || cfg.EmbeddingDimensions != 1024 {
+		t.Fatalf("valid embedding config rejected: %v %+v", err, cfg)
+	}
+	// The network embedding provider needs the same key as the LLM client.
+	t.Setenv("MODEL_API_KEY", "")
+	if _, err := Load(); err == nil {
+		t.Fatal("network embeddings without a key must be rejected")
+	}
+}

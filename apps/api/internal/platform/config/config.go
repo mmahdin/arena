@@ -29,6 +29,12 @@ type Config struct {
 	ModelMaxOutputTokens int
 	MaxContextChars      int
 	MaxContextMessages   int
+
+	// WP-09 retrieval embedding tier. Defaults are offline and synthetic-only;
+	// a network embedder is opt-in, exactly like LLM_PROVIDER.
+	EmbeddingProvider   string
+	EmbeddingModel      string
+	EmbeddingDimensions int
 }
 
 func Load() (Config, error) {
@@ -46,6 +52,9 @@ func Load() (Config, error) {
 		ModelMaxOutputTokens: 700,
 		MaxContextChars:      16000,
 		MaxContextMessages:   20,
+		EmbeddingProvider:    getenv("EMBEDDING_PROVIDER", "deterministic"),
+		EmbeddingModel:       getenv("EMBEDDING_MODEL", "deterministic-test-embed"),
+		EmbeddingDimensions:  128,
 	}
 	var err error
 	if cfg.DatabaseURL, err = LoadDatabaseURL(); err != nil {
@@ -94,6 +103,19 @@ func Load() (Config, error) {
 	}
 	if cfg.LLMProvider != "mock" && cfg.LLMProvider != "openai-compatible" {
 		return cfg, errors.New("unsupported LLM_PROVIDER")
+	}
+	if cfg.EmbeddingProvider != "deterministic" && cfg.EmbeddingProvider != "openai-compatible" {
+		return cfg, errors.New("unsupported EMBEDDING_PROVIDER")
+	}
+	if raw := os.Getenv("EMBEDDING_DIMENSIONS"); raw != "" {
+		n, err := strconv.Atoi(raw)
+		if err != nil || n < 8 || n > 8192 {
+			return cfg, errors.New("EMBEDDING_DIMENSIONS must be in 8..8192")
+		}
+		cfg.EmbeddingDimensions = n
+	}
+	if cfg.EmbeddingProvider == "openai-compatible" && (cfg.ModelAPIKey == "" || cfg.EmbeddingModel == "") {
+		return cfg, errors.New("EMBEDDING_MODEL and MODEL_API_KEY are required for the network embedding provider")
 	}
 	if cfg.LLMProvider == "openai-compatible" {
 		if cfg.ModelAPIKey == "" {

@@ -8,6 +8,9 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai"
+	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai/application/retrieval"
+	domain "github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai/domain/retrieval"
 	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/platform/config"
 )
 
@@ -73,5 +76,24 @@ func TestProductionRejectsDevSessions(t *testing.T) {
 	}, nil)
 	if err == nil {
 		t.Fatal("production must not mount test identity routes")
+	}
+}
+
+func TestRetrievalModuleWiring(t *testing.T) {
+	// A nil pool must be a wiring error, not a silently memory-less retriever.
+	if _, err := ai.NewRetrievalModule(config.Config{EmbeddingProvider: "deterministic"}, nil); err == nil {
+		t.Fatal("retrieval wiring must reject a nil database pool")
+	}
+}
+
+func TestRetrievalModuleDefaultsAreContractValues(t *testing.T) {
+	// The service itself is constructed directly here (no pool), proving the
+	// contract defaults survive construction.
+	svc, err := retrieval.New(retrieval.Config{Tunables: domain.Defaults()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := svc.Tunables(); got.MaxItems != 5 || got.HardCapWithHop != 7 || got.PerItemTokens != 60 {
+		t.Fatalf("retrieval defaults drifted: %+v", got)
 	}
 }
