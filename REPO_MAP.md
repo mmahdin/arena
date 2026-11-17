@@ -46,3 +46,12 @@ Use `module.go` as public constructor; put business logic in `application`, pure
 - `db/migrations/0020_soft_delete_preservation.sql` (under `apps/api`): non-destructive metadata, active uniqueness, NO ACTION owner references and physical-delete guards.
 - `docs/adr/0010-soft-delete-preservation.md`: binding WP-02 deletion correction; retention and visibility are independent of AI-use policy.
 - `apps/api/tests/integration/soft_delete_test.go`: preservation, visibility, re-creation, migration, rollback and delete/finalize concurrency tests.
+
+## AI Core WP-09 retrieval
+
+- `apps/api/internal/modules/ai/application/retrieval/`: retrieval service (policy, temporal parser, lexical extraction, scoring/ranking, store ports) and its unit suite.
+- `apps/api/internal/modules/ai/adapters/mssql/retrieval.go`: read-only owner-first SQL Server reads for windows, threads, entities, candidates and stored vectors.
+- `apps/api/internal/modules/ai/adapters/embedding/embedding.go`: WP-04 embedding client bridge for the retrieval port.
+- `apps/api/internal/app/composition/ai_retrieval.go`: explicit retriever construction; no runtime cutover.
+- `apps/api/tests/integration/ai_retrieval_test.go`: opt-in SQL Server retrieval, soft-delete, isolation and missing-vector tests.
+- `apps/api/internal/modules/ai/application/retrieval/README.md`, `docs/quality/ai-core-wp09.md`: package contract and verification notes.

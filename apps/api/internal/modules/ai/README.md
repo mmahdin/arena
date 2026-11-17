@@ -35,6 +35,21 @@ running experimental turn route; replacing that workflow is WP-05, so the old
 provider has not been silently installed as a fallback. See
 [WP-04 verification](../../../../../docs/quality/ai-core-wp04.md).
 
+## WP-09 retrieval
+
+[`application/retrieval`](application/retrieval/README.md) implements the
+retrieval service from Contract Pack v1.2 §§4.4/7.3/8.5: temporal exact recall,
+thread-, entity- and anaphora-aware lookup, and hybrid lexical + cosine ranking
+against the pinned `config/retrieval.yaml`. [`adapters/mssql/retrieval.go`](adapters/mssql/retrieval.go)
+is a **read-only** owner-first projection of WP-02 tables that hides soft-deleted
+rows instead of removing them; [`adapters/embedding`](adapters/embedding/embedding.go)
+bridges the WP-04 embedding client without adding a provider SDK. Missing or
+mismatched vectors contribute zero relevance rather than a fabricated score, and
+a broken strategy degrades the result instead of inventing memory. The service is
+constructed by `composition.NewRetriever` but is **not** wired into the live
+turn path yet; see [WP-09 verification](../../../../../docs/quality/ai-core-wp09.md)
+for the remaining WP-05 integration preconditions.
+
 ## Historical prototype behavior
 
 - `policy/prompt.go`: versioned `supportive-v5`, five distinct conversational styles (plus legacy `guidance` alias) and explicitly **untrusted** profile preferences and onboarding answers. Uses relevant stated concerns, goals, interests, strengths, barriers and other explicit background on every turn; current messages/corrections take precedence. Declined disclosures are omitted at the profile port; mood is labeled a past snapshot, never a current assessment. Stored completed turns retain their original prompt version; do not rewrite prior records.
