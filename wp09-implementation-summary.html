@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WP-09 Retrieval — Implementation Summary</title>
+<style>
+  :root{
+    --ink:#12141a;
+    --muted:#6a7280;
+    --line:#e6e8ec;
+    --bg:#f6f7f9;
+    --card:#ffffff;
+    --accent:#2f6f6b;
+    --accent-soft:#e8f2f1;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:var(--bg);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .shell{display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+
+  /* sidebar */
+  .side{
+    background:var(--card);
+    border-right:1px solid var(--line);
+    padding:32px 22px;
+    position:sticky;top:0;height:100vh;
+  }
+  .mark{
+    display:flex;align-items:center;gap:10px;
+    font-weight:650;font-size:15px;letter-spacing:-.01em;margin-bottom:6px;
+  }
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);flex:0 0 auto}
+  .side .sub{color:var(--muted);font-size:12.5px;margin:0 0 28px}
+  .nav{list-style:none;margin:0;padding:0;font-size:13.5px}
+  .nav li{margin:0 0 2px}
+  .nav a{
+    display:block;padding:7px 10px;border-radius:7px;
+    color:#454b56;text-decoration:none;letter-spacing:-.005em;
+  }
+  .nav a:hover{background:var(--bg);color:var(--ink)}
+  .nav a.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+
+  /* main */
+  main{padding:44px 52px 72px;max-width:1080px}
+  header.top{border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:34px}
+  .eyebrow{
+    text-transform:uppercase;letter-spacing:.11em;font-size:11px;
+    color:var(--accent);font-weight:650;margin:0 0 10px;
+  }
+  h1{font-size:29px;line-height:1.25;letter-spacing:-.022em;margin:0 0 10px;font-weight:660}
+  .lede{margin:0;color:var(--muted);font-size:14.5px;max-width:66ch}
+
+  /* stat cards */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:0 0 42px}
+  .stat{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:18px 20px;
+  }
+  .stat .k{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+  .stat .v{font-size:27px;font-weight:660;letter-spacing:-.02em;margin:8px 0 2px;line-height:1.15}
+  .stat .v small{font-size:13px;font-weight:550;color:var(--muted);letter-spacing:0}
+  .stat .n{font-size:12.5px;color:var(--muted)}
+
+  section{margin:0 0 38px}
+  h2{font-size:16.5px;letter-spacing:-.012em;margin:0 0 14px;font-weight:640}
+  p{margin:0 0 12px;font-size:14px}
+  .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .feat{
+    background:var(--card);border:1px solid var(--line);border-radius:11px;padding:16px 18px;
+  }
+  .feat h3{margin:0 0 6px;font-size:13.5px;font-weight:640;letter-spacing:-.006em}
+  .feat p{margin:0;font-size:13px;color:#4a505b;line-height:1.55}
+  ul.plain{margin:0;padding-left:19px;font-size:13.5px;color:#3d434e}
+  ul.plain li{margin-bottom:8px}
+  ul.plain li b{color:var(--ink);font-weight:620}
+  .note{
+    background:var(--accent-soft);border:1px solid #d5e6e4;border-radius:11px;
+    padding:14px 18px;font-size:13.2px;color:#28524f;
+  }
+  footer{
+    margin-top:46px;padding-top:18px;border-top:1px solid var(--line);
+    font-size:12px;color:var(--muted);
+  }
+  @media (max-width:820px){
+    .shell{grid-template-columns:1fr}
+    .side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:22px}
+    .side .sub{margin-bottom:0}
+    .nav{display:none}
+    main{padding:30px 22px 54px}
+    .stats{grid-template-columns:1fr}
+    .cards{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="mark"><span class="dot"></span>Theia AI Core</div>
+    <p class="sub">Work Package 09 · Retrieval</p>
+    <ul class="nav">
+      <li><a class="on" href="#overview">Overview</a></li>
+      <li><a href="#features">Implemented features</a></li>
+      <li><a href="#integration">Integration requirements</a></li>
+      <li><a href="#issues">Unresolved issues</a></li>
+    </ul>
+  </aside>
+
+  <main>
+    <header class="top" id="overview">
+      <p class="eyebrow">Implementation summary</p>
+      <h1>WP-09 — Retrieval Service</h1>
+      <p class="lede">Deterministic, read-only recall of prior memory for the Theia AI Core,
+        implemented against Contract Pack v1.2 and the Final Architecture Document.
+        Temporal, thread, entity, anaphora and hybrid strategies share one pinned
+        configuration from the Knowledge Bundle. No runtime cutover, no hard delete,
+        no new external service.</p>
+    </header>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="k">Implementation progress</div>
+        <div class="v">WP-09 <small>complete</small></div>
+        <div class="n">5 strategies · 4 packages · 2 adapters</div>
+      </div>
+      <div class="stat">
+        <div class="k">Test results</div>
+        <div class="v">146 <small>passing</small></div>
+        <div class="n">77 test functions · 0 failures · 6 SQL Server tests skipped</div>
+      </div>
+      <div class="stat">
+        <div class="k">Changed files</div>
+        <div class="v">20</div>
+        <div class="n">6,088 lines added · 13 new Go files</div>
+      </div>
+    </div>
+
+    <section id="features">
+      <h2>Implemented features</h2>
+      <div class="cards">
+        <div class="feat">
+          <h3>Temporal exact recall</h3>
+          <p>Half-open local-time windows parsed in the persisted user zone
+            ("today", "last Tuesday", "3 days ago"). Window messages are returned
+            verbatim; an empty window reports nothing found and is never filled by a
+            semantically similar memory.</p>
+        </div>
+        <div class="feat">
+          <h3>Thread, entity and anaphora lookup</h3>
+          <p>Memory linked to the focus or top active thread, records whose stored
+            entity role matches a role the user named, and recent emotion-tagged items
+            for references like "the same feeling again".</p>
+        </div>
+        <div class="feat">
+          <h3>Hybrid ranking</h3>
+          <p>Bounded lexical candidates are cosine-reranked in Go against stored
+            vectors: 0.50 similarity, 0.20 recency (21-day half-life), 0.15
+            importance, 0.15 thread match, compared to the bundle's minimum score.</p>
+        </div>
+        <div class="feat">
+          <h3>Missing-embedding honesty</h3>
+          <p>A candidate without a comparable vector gains no similarity. Absent
+            vectors, foreign models and dimension mismatches contribute zero rather
+            than a fabricated relevance score.</p>
+        </div>
+        <div class="feat">
+          <h3>Owner isolation and soft delete</h3>
+          <p>Every read is scoped by the server-resolved user id first and re-checked
+            in Go. Soft-deleted rows and their parents are hidden by visibility
+            predicates; nothing is ever purged.</p>
+        </div>
+        <div class="feat">
+          <h3>Degradation policy</h3>
+          <p>Ownership and validation errors abort; infrastructure failures return
+            partial items with a degraded flag. A total outage returns a typed error,
+            never an empty result presented as confident recall.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="integration">
+      <h2>Integration requirements</h2>
+      <ul class="plain">
+        <li><b>Composition wiring.</b> Construct the retriever with
+          <code>composition.NewRetriever</code> and inject it as WP-05's
+          <code>Dependencies.Retriever</code>. Nothing in the live turn path is
+          replaced by this patch.</li>
+        <li><b>Shared bundle registry.</b> Pass the same WP-03 registry that pins
+          per-turn bundles; <code>config/retrieval.yaml</code> and
+          <code>config/budgets.yaml</code> must exist and validate, or retrieval fails
+          closed.</li>
+        <li><b>Embedding model identity.</b> Configure the exact model id and
+          dimensions already stored in <code>dbo.ai_embeddings</code>. A mismatch is
+          ignored rather than mis-scored, so it degrades recall silently.</li>
+        <li><b>User time zone.</b> Windows are computed from
+          <code>ai_user_state.tz</code>; users without state default to UTC.</li>
+        <li><b>WP-05 precondition.</b> Enabling the retriever for real turns needs a
+          coordinated orchestrator change to forward admission time and text, which
+          this patch deliberately does not make.</li>
+      </ul>
+    </section>
+
+    <section id="issues">
+      <h2>Unresolved issues</h2>
+      <ul class="plain">
+        <li><b>No live SQL Server was available.</b> The six WP-09 integration tests
+          compile and skip without <code>WELLBEING_INTEGRATION=true</code>; the SQL has
+          not been executed against SQL Server 2022 in this environment.</li>
+        <li><b>Novelty filter not applied.</b> Dropping memory already present in recent
+          messages needs the assembler's history; duplicating that read here would
+          split WP-08's authority.</li>
+        <li><b>Person aliases unresolved.</b> Anaphora resolution to a named person is
+          still open in v1.2, so names are never promoted to entity roles.</li>
+        <li><b>Linear vector search.</b> Cosine reranking scans a bounded candidate
+          pool with no ANN index; this must not be presented as millisecond vector
+          search at scale.</li>
+        <li><b>Thresholds unvalidated.</b> Only a synthetic bundle was available; the
+          minimum-score floor has not been tuned against real recall quality.</li>
+        <li><b>Pre-existing failure.</b> One orchestrator replay test fails on the base
+          commit with WP-09 reverted; it is unrelated to this work.</li>
+      </ul>
+      <div class="note">Verification in this environment used an offline Go toolchain.
+        <code>go vet</code> is clean on all WP-09 packages and the retrieval suite passes
+        under <code>-race -count=3</code>.</div>
+    </section>
+
+    <footer>
+      Theia AI Core · WP-09 Retrieval · prepared from executed tests and reviewed diffs only
+    </footer>
+  </main>
+</div>
+</body>
+</html>
