@@ -92,6 +92,14 @@ func TestSyntheticPhoneIdentitySQLServer(t *testing.T) {
 		var result [4][2]int64
 		for i, table := range []string{"users", "user_profiles", "conversations", "messages"} {
 			columns := "*"
+			// Additive migrations add title flags and language metadata.
+			// Compare the original columns, not a changing SELECT * shape.
+			if table == "conversations" {
+				columns = "id,user_id,title,created_at,updated_at"
+			}
+			if table == "messages" {
+				columns = "id,conversation_id,turn_id,role,content,created_at,message_order"
+			}
 			if table == "user_profiles" {
 				columns = "user_id,display_name,conversation_style,onboarding_completed_at,updated_at"
 			}
@@ -106,7 +114,7 @@ func TestSyntheticPhoneIdentitySQLServer(t *testing.T) {
 		t.Fatal(err)
 	}
 	if after := fingerprint(); after != before {
-		t.Fatal("upgrade changed existing column values")
+		t.Fatalf("upgrade changed existing column fingerprints: before=%v after=%v", before, after)
 	}
 	if err := migrations.Apply(ctx, db, "../../db/migrations"); err != nil {
 		t.Fatal(err)
@@ -310,8 +318,9 @@ func phoneIdentityHTTP(t *testing.T, db *sql.DB) {
 		acceptRequest(t, client, server.URL, method, path, nil, 404)
 	}
 	acceptRequest(t, client, server.URL, "POST", route+"/turns", body, 404)
-	// Client-supplied identity cannot choose whose profile is edited.
-	own := acceptRequest(t, client, server.URL, "PATCH", "/api/v1/me/profile", map[string]any{"userId": a, "displayName": "آزمایش", "conversationStyle": "balanced"}, 200)
+	// Strict JSON rejects client-supplied identity; the session still owns the profile.
+	acceptRequest(t, client, server.URL, "PATCH", "/api/v1/me/profile", map[string]any{"userId": a, "displayName": "آزمایش", "conversationStyle": "balanced"}, 400)
+	own := acceptRequest(t, client, server.URL, "GET", "/api/v1/me", nil, 200)
 	if own["userId"] != b {
 		t.Fatal("client userId changed profile ownership")
 	}

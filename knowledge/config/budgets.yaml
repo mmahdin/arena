@@ -1,0 +1,23 @@
+# SYNTHETIC WP-03 CONTRACT FIXTURE ONLY. NOT CLINICALLY REVIEWED; NEVER SHIP TO USERS.
+schema: budgets.v1
+turn:
+  total_ms: 20000
+  safety_ms: 400
+  retrieval_ms: 300
+  brain_ms: 2500
+  gen_first_token_ms: 3000
+  gen_total_ms: 12000
+limits:
+  max_sync_llm_calls: 3
+  max_regenerations: 1
+  max_brain_hops: 1
+tokens:
+  brain_in: 3500
+  brain_out: 700
+  gen_in: 4500
+  gen_out: 600
+  wctx_target: 1500
+quotas:
+  reflection_per_user_per_day: 4
+  memory_writer_per_user_per_hour: 30
+  user_msgs_per_minute: 12

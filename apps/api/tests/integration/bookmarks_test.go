@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	saveddb "github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/bookmark/adapters/mssql"
+	convdb "github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/conversation/adapters/mssql"
 	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/platform/database"
 	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/platform/httpx"
 	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/platform/migrations"
@@ -118,12 +119,12 @@ func TestSavedMessagesSQLServer(t *testing.T) {
 	if err := repo.Save(ctx, a, msg); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := db.ExecContext(ctx, `DELETE dbo.conversations WHERE id=CONVERT(uniqueidentifier,@p1) AND user_id=CONVERT(uniqueidentifier,@p2)`, conv.String(), a.String()); err != nil {
+	if err := convdb.New(db).Delete(ctx, a, conv); err != nil {
 		t.Fatal(err)
 	}
 	saved, err = repo.List(ctx, a)
 	if err != nil || len(saved) != 0 {
-		t.Fatal("cascade delete failed", err)
+		t.Fatal("soft-delete visibility failed", err)
 	}
 	if err := repo.Save(ctx, a, msg); !errors.Is(err, httpx.ErrNotFound) {
 		t.Fatal("removed message accepted", err)

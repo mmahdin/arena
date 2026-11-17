@@ -1,0 +1,19 @@
+# SYNTHETIC WP-03 CONTRACT FIXTURE ONLY. NOT CLINICALLY REVIEWED; NEVER SHIP TO USERS.
+schema: policy_gate.v1
+questions:
+  max_consecutive_question_turns: 2
+  max_per_reply: 1
+hypotheses:
+  voice_requires_status: supported
+  voice_min_gap_hours: 24
+  voice_max_per_session: 1
+protocols:
+  offer_min_turns_since_last_offer: 6
+  max_offers_per_session: 1
+risk:
+  brain_may_raise: true
+  brain_may_lower: false
+repairs:
+  on_invalid_objective: reflect
+  on_missing_evidence: downgrade_to_inferred_or_drop
+  on_unknown_skill: default_skill_for_objective

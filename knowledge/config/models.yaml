@@ -1,0 +1,30 @@
+# SYNTHETIC WP-03 CONTRACT FIXTURE ONLY. NOT CLINICALLY REVIEWED; NEVER SHIP TO USERS.
+schema: models.v1
+tiers:
+  small:
+    chain:
+    - provider: synthetic
+      model: placeholder-small
+    temperature:
+      brain: 0.2
+      memory_writer: 0.1
+  strong:
+    chain:
+    - provider: synthetic
+      model: placeholder-strong
+    temperature:
+      generator: 0.7
+      reflection: 0.3
+  classifier:
+    chain:
+    - provider: synthetic
+      model: placeholder-classifier
+  embedding:
+    chain:
+    - provider: synthetic
+      model: placeholder-embedding
+    dim: 1024
+breaker:
+  error_rate_open: 0.3
+  window_s: 60
+  half_open_after_s: 30

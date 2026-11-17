@@ -330,8 +330,8 @@ func TestMVPHTTPAcceptance(t *testing.T) {
 	assertMessages(t, acceptRequest(t, clientB, server.URL, "GET", route+"/messages", nil, 200), 4)
 	var failedRows int
 	if err := db.QueryRowContext(ctx, `SELECT (SELECT COUNT(*) FROM dbo.turns WHERE id=CONVERT(uniqueidentifier,@p1))+
-        (SELECT COUNT(*) FROM dbo.messages WHERE turn_id=CONVERT(uniqueidentifier,@p1))`, retryID).Scan(&failedRows); err != nil || failedRows != 0 {
-		t.Fatalf("provider outage left turn/message rows: count=%d error=%v", failedRows, err)
+        (SELECT COUNT(*) FROM dbo.messages WHERE turn_id=CONVERT(uniqueidentifier,@p1))`, retryID).Scan(&failedRows); err != nil || failedRows != 1 {
+		t.Fatalf("provider outage must retain only its reservation: count=%d error=%v", failedRows, err)
 	}
 	acceptRequest(t, clientB, server.URL, "POST", route+"/turns", retryBody, 200)
 	assertMessages(t, acceptRequest(t, clientB, server.URL, "GET", route+"/messages", nil, 200), 6)
@@ -362,7 +362,7 @@ func TestMVPHTTPAcceptance(t *testing.T) {
 	acceptRequest(t, clientB, server.URL, "DELETE", route, nil, 204)
 	remaining := acceptArray(t, acceptRequest(t, clientB, server.URL, "GET", "/api/v1/me/bookmarks", nil, 200), "items")
 	if len(remaining) != 1 || remaining[0].(map[string]any)["conversationId"] != other {
-		t.Fatal("delete removed unrelated bookmark or retained child")
+		t.Fatal("soft deletion hid unrelated bookmark or exposed hidden history")
 	}
 	acceptRequest(t, clientB, server.URL, "DELETE", otherRoute, nil, 204)
 	assertAcceptanceCode(t, acceptRequest(t, clientB, server.URL, "GET", route+"/messages", nil, 404), "RESOURCE_NOT_FOUND")

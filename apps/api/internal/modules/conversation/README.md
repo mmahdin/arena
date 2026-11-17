@@ -1,5 +1,12 @@
 # Conversation Module
 
+WP-02 adds `adapters/mssql/TurnStore`, the consumer-owned AI storage/finalizer/lease
+and recovery implementation. It persists user input first and finalizes only the
+assistant plus AI state in a later short transaction. See
+[ADR 0009](../../../../../docs/adr/0009-ai-core-sql-lifecycle.md). The new path is not
+yet connected to HTTP (WP-05/16). Conversation deletion already uses the atomic
+soft deletion (migration 0020), preserving every original and derived row. The following workflow describes the transitional prototype.
+
 Owner of conversations, message history and idempotent turns. Each conversation belongs to exactly one internal `users.id` and ownership is checked by SQL with server-resolved `userID`.
 
 - **Domain:** message text nonempty; <= 4000 code points.
@@ -12,4 +19,10 @@ Owner of conversations, message history and idempotent turns. Each conversation 
 - **Crash recovery (migration `0006_turn_recovery_lease.sql`):** A processing turn has a 120-second SQL Server lease. A retry of the SAME `clientTurnId` and identical text returns 409 while active, and may atomically reclaim the reservation after expiration. A random lease ID fences stale workers from committing or releasing the new owner's reservation. A completed turn replays the same stored message IDs, reply and prompt version. Changed text always returns 400; foreign conversation/turn IDs return 404. Provider failure or cancellation releases only the current lease. Restart the old API process before applying the migration.
 - **Known TODO:** latest-100 history needs pagination; no SSE in starter; provider cost/rate limits; real-provider latency beyond the fixed lease, and full parallel turns with distinct IDs per conversation remain deferred. Do not use this internal prototype with real messages.
 - **Tests:** permission not-found, replayed ID same/different text, parallel requests, output error, DB rollback and cross-user separation.
-- **Live foundation tests:** `make integration-test` creates and drops its own `wellbeing_test_<uuid>` database. Covers fresh/repeated migrations, fixtures, wrong-owner access, pending/completed replay, payload mismatch, timestamp ties, cascading delete, migration rollback and checksum rejection. Full parallel-turn behavior remains deferred.
+- **Live foundation tests:** `make integration-test` creates and drops its own `wellbeing_test_<uuid>` database. Covers fresh/repeated migrations, fixtures, wrong-owner access, pending/completed replay, payload mismatch, timestamp ties, soft-delete visibility and preservation, migration rollback and checksum rejection. Full parallel-turn behavior remains deferred.
+
+Soft-deleted conversations are excluded from list, rename, history, admission,
+replay and recovery. Message/bookmark views inherit parent visibility; derived
+memories, analyses and letters retain their own visibility and content. Deletion
+expires only the target conversation's lease under the owner lock. Other chats
+and AI consent are unchanged. See ADR 0010 for the data-preservation policy.

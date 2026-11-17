@@ -269,7 +269,8 @@ paths:
         '503': {$ref: '#/components/responses/Problem'}
     delete:
       operationId: deleteDailyReflection
-      summary: Delete own entry, idempotently
+      summary: Soft-delete own entry, idempotently
+      description: Hides the entry; its original content and metadata remain stored. A later PUT creates a new active entry and preserves the deleted one.
       security: [{devSession: []}]
       responses:
         '204': {description: Entry removed or was already absent}
@@ -351,7 +352,8 @@ paths:
         '503': {$ref: '#/components/responses/Problem'}
     delete:
       operationId: unsaveMessage
-      summary: Idempotently remove bookmark on existing owned message
+      summary: Idempotently soft-delete bookmark on existing owned message
+      description: Preserves the bookmark record and source message. A later PUT creates a new active bookmark.
       security: [{devSession: []}]
       responses:
         '204': {description: Bookmark removed or already absent}
@@ -410,7 +412,8 @@ paths:
   /api/v1/me/letters/{id}:
     delete:
       operationId: deletePersonalizedLetter
-      summary: Delete a letter owned by the current user
+      summary: Soft-delete a letter owned by the current user
+      description: Hides the letter while preserving its content and provenance.
       security: [{devSession: []}]
       parameters:
         - name: id
@@ -418,7 +421,7 @@ paths:
           required: true
           schema: {$ref: '#/components/schemas/UUID'}
       responses:
-        '204': {description: Letter deleted}
+        '204': {description: Letter soft-deleted or already hidden}
         '400': {$ref: '#/components/responses/Problem'}
         '401': {$ref: '#/components/responses/Problem'}
         '404': {$ref: '#/components/responses/Problem'}
@@ -497,9 +500,11 @@ paths:
         '503': {$ref: '#/components/responses/Problem'}
     delete:
       operationId: deleteConversation
+      summary: Soft-delete an owned conversation
+      description: Hides the conversation and its messages from normal reads and prevents new turns or replay through this resource. All original records and AI-derived data remain stored. This does not change memory consent or define AI reuse of retained data. Repeating the request for an owned conversation succeeds.
       security: [{devSession: []}]
       responses:
-        '204': {description: Deleted}
+        '204': {description: Soft-deleted or already hidden}
         '404': {$ref: '#/components/responses/Problem'}
         '401': {$ref: '#/components/responses/Problem'}
         '503': {$ref: '#/components/responses/Problem'}

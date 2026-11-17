@@ -20,7 +20,7 @@ type Repository struct{ db *sql.DB }
 func New(db *sql.DB) *Repository { return &Repository{db: db} }
 func (r *Repository) List(ctx context.Context, uid uuid.UUID) ([]domain.Conversation, error) {
 	rows, err := r.db.QueryContext(ctx, `SELECT TOP (100) CONVERT(varchar(36),id),title,created_at,updated_at FROM dbo.conversations
-       WHERE user_id=CONVERT(uniqueidentifier,@p1) ORDER BY updated_at DESC,id DESC`, uid.String())
+       WHERE user_id=CONVERT(uniqueidentifier,@p1) AND deleted_at IS NULL ORDER BY updated_at DESC,id DESC`, uid.String())
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (r *Repository) Rename(ctx context.Context, uid, convID uuid.UUID, title st
 	err := r.db.QueryRowContext(ctx, `UPDATE dbo.conversations
         SET title=@p3,title_is_manual=1,updated_at=SYSUTCDATETIME()
         OUTPUT CONVERT(varchar(36),INSERTED.id),INSERTED.title,INSERTED.created_at,INSERTED.updated_at
-        WHERE id=CONVERT(uniqueidentifier,@p1) AND user_id=CONVERT(uniqueidentifier,@p2)`,
+        WHERE id=CONVERT(uniqueidentifier,@p1) AND user_id=CONVERT(uniqueidentifier,@p2) AND deleted_at IS NULL`,
 		convID.String(), uid.String(), title).Scan(&id, &c.Title, &c.CreatedAt, &c.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return c, httpx.ErrNotFound
@@ -67,7 +67,7 @@ func (r *Repository) Rename(ctx context.Context, uid, convID uuid.UUID, title st
 func (r *Repository) Messages(ctx context.Context, uid, convID uuid.UUID, limit int) ([]domain.Message, error) {
 	var exists bool
 	err := r.db.QueryRowContext(ctx, `SELECT CAST(CASE WHEN EXISTS(SELECT 1 FROM dbo.conversations
-      WHERE id=CONVERT(uniqueidentifier,@p1) AND user_id=CONVERT(uniqueidentifier,@p2)) THEN 1 ELSE 0 END AS bit)`, convID.String(), uid.String()).Scan(&exists)
+      WHERE id=CONVERT(uniqueidentifier,@p1) AND user_id=CONVERT(uniqueidentifier,@p2) AND deleted_at IS NULL) THEN 1 ELSE 0 END AS bit)`, convID.String(), uid.String()).Scan(&exists)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (r *Repository) Messages(ctx context.Context, uid, convID uuid.UUID, limit 
 	rows, err := r.db.QueryContext(ctx, `SELECT id,role,content,created_at FROM (
        SELECT TOP (@p3) CONVERT(varchar(36),m.id) AS id,m.role,m.content,m.created_at,m.message_order
        FROM dbo.messages m JOIN dbo.conversations c ON c.id=m.conversation_id
-       WHERE m.conversation_id=CONVERT(uniqueidentifier,@p1) AND c.user_id=CONVERT(uniqueidentifier,@p2)
+       WHERE m.conversation_id=CONVERT(uniqueidentifier,@p1) AND c.user_id=CONVERT(uniqueidentifier,@p2) AND c.deleted_at IS NULL AND m.deleted_at IS NULL
        ORDER BY m.message_order DESC
      ) AS recent ORDER BY message_order ASC`, convID.String(), uid.String(), limit)
 	if err != nil {
@@ -103,19 +103,36 @@ func (r *Repository) Messages(ctx context.Context, uid, convID uuid.UUID, limit 
 	return out, rows.Err()
 }
 func (r *Repository) Delete(ctx context.Context, uid, convID uuid.UUID) error {
-	result, err := r.db.ExecContext(ctx, `DELETE FROM dbo.conversations WHERE id=CONVERT(uniqueidentifier,@p1) AND user_id=CONVERT(uniqueidentifier,@p2)`, convID.String(), uid.String())
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
-	count, err := result.RowsAffected()
-	if err != nil {
+	defer tx.Rollback()
+	var owner uuid.UUID
+	if err = tx.QueryRowContext(ctx, `SELECT id FROM dbo.users WITH(UPDLOCK,HOLDLOCK) WHERE id=@p1`, uid).Scan(&owner); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return httpx.ErrNotFound
+		}
 		return err
 	}
-	if count == 0 {
-		return httpx.ErrNotFound
+	if err = tx.QueryRowContext(ctx, `SELECT id FROM dbo.conversations WHERE id=@p1 AND user_id=@p2`, convID, uid).Scan(&owner); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return httpx.ErrNotFound
+		}
+		return err
 	}
-	return nil
+	// The owner lock serializes deletion with admission/finalization. Keep all
+	// payloads and derived records intact; expire only this conversation's lease.
+	if _, err = tx.ExecContext(ctx, `UPDATE dbo.conversations SET deleted_at=SYSUTCDATETIME(),deleted_by=@p1,deletion_reason=N'user_request'
+ WHERE id=@p2 AND user_id=@p1 AND deleted_at IS NULL;
+ UPDATE l SET lease_expires_at=DATEADD(millisecond,-1,SYSUTCDATETIME()),updated_at=SYSUTCDATETIME()
+ FROM dbo.ai_user_turn_leases l JOIN dbo.turns t ON t.id=l.turn_id AND t.user_id=l.user_id
+ WHERE l.user_id=@p1 AND t.conversation_id=@p2 AND l.lease_expires_at>SYSUTCDATETIME()`, uid, convID); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
+
 func isUniqueViolation(err error) bool {
 	var se mssqldriver.Error
 	return errors.As(err, &se) && (se.Number == 2601 || se.Number == 2627)
@@ -128,13 +145,45 @@ func isUniqueViolation(err error) bool {
 const turnLeaseSeconds = 120
 
 func (r *Repository) ClaimTurn(ctx context.Context, uid, convID, turnID uuid.UUID, input string) (application.ClaimedTurn, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return application.ClaimedTurn{}, err
+	}
+	defer tx.Rollback()
+	if err := lockActiveConversation(ctx, tx, uid, convID); err != nil {
+		return application.ClaimedTurn{}, err
+	}
+	out, err := claimTurn(ctx, tx, uid, convID, turnID, input)
+	if err != nil {
+		return out, err
+	}
+	if err := tx.Commit(); err != nil {
+		return application.ClaimedTurn{}, err
+	}
+	return out, nil
+}
+
+// Lock order matches WP-02: owner first, then its visible conversation.
+func lockActiveConversation(ctx context.Context, tx *sql.Tx, uid, convID uuid.UUID) error {
+	var id string
+	err := tx.QueryRowContext(ctx, `SELECT CONVERT(varchar(36),id) FROM dbo.users WITH(UPDLOCK,HOLDLOCK) WHERE id=@p1`, uid).Scan(&id)
+	if err == nil {
+		err = tx.QueryRowContext(ctx, `SELECT CONVERT(varchar(36),id) FROM dbo.conversations WHERE id=@p1 AND user_id=@p2 AND deleted_at IS NULL`, convID, uid).Scan(&id)
+	}
+	if errors.Is(err, sql.ErrNoRows) {
+		return httpx.ErrNotFound
+	}
+	return err
+}
+
+func claimTurn(ctx context.Context, tx *sql.Tx, uid, convID, turnID uuid.UUID, input string) (application.ClaimedTurn, error) {
 	var out application.ClaimedTurn
 	hash := sha256.Sum256([]byte(input))
 	leaseID := uuid.New()
 
 	// Only the exact owner, conversation and input can reclaim an expired turn.
 	// SQL's conditional UPDATE serializes competing reclaim attempts.
-	recovered, err := r.db.ExecContext(ctx, `UPDATE dbo.turns SET lease_id=CONVERT(uniqueidentifier,@p5),
+	recovered, err := tx.ExecContext(ctx, `UPDATE dbo.turns SET lease_id=CONVERT(uniqueidentifier,@p5),
         lease_expires_at=DATEADD(second,@p6,SYSUTCDATETIME())
         WHERE id=CONVERT(uniqueidentifier,@p1) AND conversation_id=CONVERT(uniqueidentifier,@p2)
         AND user_id=CONVERT(uniqueidentifier,@p3) AND input_hash=@p4
@@ -153,7 +202,7 @@ func (r *Repository) ClaimTurn(ctx context.Context, uid, convID, turnID uuid.UUI
 	}
 
 	// The unique turn id and range lock serialize first-time concurrent claims.
-	result, err := r.db.ExecContext(ctx, `INSERT INTO dbo.turns(id,conversation_id,user_id,input_hash,status,lease_id,lease_expires_at)
+	result, err := tx.ExecContext(ctx, `INSERT INTO dbo.turns(id,conversation_id,user_id,input_hash,status,lease_id,lease_expires_at)
         SELECT CONVERT(uniqueidentifier,@p1),c.id,c.user_id,@p4,N'processing',CONVERT(uniqueidentifier,@p5),
         DATEADD(second,@p6,SYSUTCDATETIME())
         FROM dbo.conversations AS c
@@ -175,7 +224,7 @@ func (r *Repository) ClaimTurn(ctx context.Context, uid, convID, turnID uuid.UUI
 	}
 	var status string
 	var storedHash []byte
-	err = r.db.QueryRowContext(ctx, `SELECT status,input_hash FROM dbo.turns
+	err = tx.QueryRowContext(ctx, `SELECT status,input_hash FROM dbo.turns
         WHERE id=CONVERT(uniqueidentifier,@p1) AND conversation_id=CONVERT(uniqueidentifier,@p2)
         AND user_id=CONVERT(uniqueidentifier,@p3)`, turnID.String(), convID.String(), uid.String()).Scan(&status, &storedHash)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -195,8 +244,8 @@ func (r *Repository) ClaimTurn(ctx context.Context, uid, convID, turnID uuid.UUI
 		return out, httpx.ErrConflict
 	}
 	var userMsg, assistantMsg string
-	err = r.db.QueryRowContext(ctx, `SELECT CONVERT(varchar(36),t.user_message_id),CONVERT(varchar(36),t.assistant_message_id),
-       m.content,ISNULL(t.prompt_version,N'') FROM dbo.turns t JOIN dbo.messages m ON m.id=t.assistant_message_id
+	err = tx.QueryRowContext(ctx, `SELECT CONVERT(varchar(36),t.user_message_id),CONVERT(varchar(36),t.assistant_message_id),
+       m.content,ISNULL(t.prompt_version,N'') FROM dbo.turns t JOIN dbo.messages m ON m.id=t.assistant_message_id AND m.deleted_at IS NULL
        WHERE t.id=CONVERT(uniqueidentifier,@p1) AND t.user_id=CONVERT(uniqueidentifier,@p2)
        AND t.conversation_id=CONVERT(uniqueidentifier,@p3)`, turnID.String(), uid.String(), convID.String()).Scan(&userMsg, &assistantMsg, &out.Reply, &out.PromptVersion)
 	if err != nil {
@@ -220,6 +269,9 @@ func (r *Repository) CompleteTurn(ctx context.Context, uid, convID, turnID, leas
 		return out, err
 	}
 	defer tx.Rollback()
+	if err := lockActiveConversation(ctx, tx, uid, convID); err != nil {
+		return out, err
+	}
 	var status string
 	var currentLeaseID sql.NullString
 	err = tx.QueryRowContext(ctx, `SELECT status,CONVERT(varchar(36),lease_id) FROM dbo.turns WITH (UPDLOCK,ROWLOCK)
@@ -259,7 +311,7 @@ func (r *Repository) CompleteTurn(ctx context.Context, uid, convID, turnID, leas
 	// is stored. A user-edited title can never be overwritten by this update.
 	title := domain.SuggestedTitle(input)
 	_, err = tx.ExecContext(ctx, `UPDATE dbo.conversations SET title=@p3
-        WHERE id=CONVERT(uniqueidentifier,@p1) AND user_id=CONVERT(uniqueidentifier,@p2)
+        WHERE id=CONVERT(uniqueidentifier,@p1) AND user_id=CONVERT(uniqueidentifier,@p2) AND deleted_at IS NULL
         AND title_is_manual=0 AND title=@p4
         AND (SELECT COUNT_BIG(*) FROM dbo.messages
              WHERE conversation_id=CONVERT(uniqueidentifier,@p1) AND role=N'user')=1`,
@@ -268,7 +320,7 @@ func (r *Repository) CompleteTurn(ctx context.Context, uid, convID, turnID, leas
 		return out, err
 	}
 	_, err = tx.ExecContext(ctx, `UPDATE dbo.conversations SET updated_at=SYSUTCDATETIME()
-       WHERE id=CONVERT(uniqueidentifier,@p1) AND user_id=CONVERT(uniqueidentifier,@p2)`, convID.String(), uid.String())
+       WHERE id=CONVERT(uniqueidentifier,@p1) AND user_id=CONVERT(uniqueidentifier,@p2) AND deleted_at IS NULL`, convID.String(), uid.String())
 	if err != nil {
 		return out, err
 	}
@@ -278,7 +330,7 @@ func (r *Repository) CompleteTurn(ctx context.Context, uid, convID, turnID, leas
 	return application.TurnResult{UserMessageID: userMsgID, AssistantMessageID: aiMsgID, Reply: reply, PromptVersion: version}, nil
 }
 func (r *Repository) ReleaseTurn(ctx context.Context, uid, convID, turnID, leaseID uuid.UUID) error {
-	_, err := r.db.ExecContext(ctx, `DELETE FROM dbo.turns WHERE id=CONVERT(uniqueidentifier,@p1)
+	_, err := r.db.ExecContext(ctx, `UPDATE dbo.turns SET lease_expires_at=CONVERT(datetime2(3),'2000-01-01') WHERE id=CONVERT(uniqueidentifier,@p1)
       AND user_id=CONVERT(uniqueidentifier,@p2) AND conversation_id=CONVERT(uniqueidentifier,@p3)
       AND status=N'processing' AND lease_id=CONVERT(uniqueidentifier,@p4)`, turnID.String(), uid.String(), convID.String(), leaseID.String())
 	return err

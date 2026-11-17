@@ -1,0 +1,2237 @@
+[
+  {
+    "name": "brain.v1_valid",
+    "schema": "brain.v1",
+    "valid": true,
+    "changes": []
+  },
+  {
+    "name": "brain.v1_missing_schema_version",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "schema_version"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "brain.v1_null_schema_version",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "schema_version"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "brain.v1_missing_turn_analysis",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "turn_analysis"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "brain.v1_null_turn_analysis",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "turn_analysis"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "brain.v1_missing_understanding_update",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "understanding_update"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "brain.v1_null_understanding_update",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "understanding_update"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "brain.v1_missing_needs",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "needs"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "brain.v1_null_needs",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "needs"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "brain.v1_missing_decision",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "decision"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "brain.v1_null_decision",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "decision"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "brain.v1_missing_response_plan",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "response_plan"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "brain.v1_null_response_plan",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "response_plan"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "brain.v1_unknown",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "private_synthetic_key"
+        ],
+        "value": "must not leak"
+      }
+    ]
+  },
+  {
+    "name": "brain.v1_version",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "schema_version"
+        ],
+        "value": "future.v99"
+      }
+    ]
+  },
+  {
+    "name": "memwriter.v1_valid",
+    "schema": "memwriter.v1",
+    "valid": true,
+    "changes": []
+  },
+  {
+    "name": "memwriter.v1_missing_schema_version",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "schema_version"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "memwriter.v1_null_schema_version",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "schema_version"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "memwriter.v1_missing_ops",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "ops"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "memwriter.v1_null_ops",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "ops"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "memwriter.v1_unknown",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "private_synthetic_key"
+        ],
+        "value": "must not leak"
+      }
+    ]
+  },
+  {
+    "name": "memwriter.v1_version",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "schema_version"
+        ],
+        "value": "future.v99"
+      }
+    ]
+  },
+  {
+    "name": "safety.v1_valid",
+    "schema": "safety.v1",
+    "valid": true,
+    "changes": []
+  },
+  {
+    "name": "safety.v1_missing_level",
+    "schema": "safety.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "level"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "safety.v1_null_level",
+    "schema": "safety.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "level"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "safety.v1_missing_categories",
+    "schema": "safety.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "categories"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "safety.v1_null_categories",
+    "schema": "safety.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "categories"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "safety.v1_missing_confidence",
+    "schema": "safety.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "confidence"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "safety.v1_null_confidence",
+    "schema": "safety.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "confidence"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "safety.v1_unknown",
+    "schema": "safety.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "private_synthetic_key"
+        ],
+        "value": "must not leak"
+      }
+    ]
+  },
+  {
+    "name": "reflection.v1_valid",
+    "schema": "reflection.v1",
+    "valid": true,
+    "changes": []
+  },
+  {
+    "name": "reflection.v1_missing_schema_version",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "schema_version"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "reflection.v1_null_schema_version",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "schema_version"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "reflection.v1_missing_thread_id",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "thread_id"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "reflection.v1_null_thread_id",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "thread_id"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "reflection.v1_missing_hypothesis_ops",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "hypothesis_ops"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "reflection.v1_null_hypothesis_ops",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "hypothesis_ops"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "reflection.v1_missing_thread_proposals",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "thread_proposals"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "reflection.v1_null_thread_proposals",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "thread_proposals"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "reflection.v1_missing_information_gaps",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "information_gaps"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "reflection.v1_null_information_gaps",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "information_gaps"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "reflection.v1_unknown",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "private_synthetic_key"
+        ],
+        "value": "must not leak"
+      }
+    ]
+  },
+  {
+    "name": "reflection.v1_version",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "schema_version"
+        ],
+        "value": "future.v99"
+      }
+    ]
+  },
+  {
+    "name": "brain_safety_objective",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "decision",
+          "primary_objective"
+        ],
+        "value": "safety_support"
+      }
+    ]
+  },
+  {
+    "name": "brain_unknown_objective",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "decision",
+          "primary_objective"
+        ],
+        "value": "invented"
+      }
+    ]
+  },
+  {
+    "name": "brain_start",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "response_plan",
+          "protocol"
+        ],
+        "value": {
+          "action": "start"
+        }
+      }
+    ]
+  },
+  {
+    "name": "brain_unknown_skill",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "response_plan",
+          "skills",
+          "primary"
+        ],
+        "value": "not_in_bundle"
+      }
+    ]
+  },
+  {
+    "name": "brain_conflicting_format",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "turn_analysis",
+          "emotions",
+          "0",
+          "intensity"
+        ],
+        "value": "med"
+      }
+    ]
+  },
+  {
+    "name": "brain_unknown_emotion",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "turn_analysis",
+          "emotions",
+          "0",
+          "label"
+        ],
+        "value": "not_in_bundle"
+      }
+    ]
+  },
+  {
+    "name": "brain_question_budget",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "response_plan",
+          "question",
+          "max_count"
+        ],
+        "value": 2
+      }
+    ]
+  },
+  {
+    "name": "brain_fractional_count",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "response_plan",
+          "question",
+          "max_count"
+        ],
+        "value": 0.5
+      }
+    ]
+  },
+  {
+    "name": "brain_unknown_slot",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "understanding_update",
+          "slots",
+          "0",
+          "slot"
+        ],
+        "value": "invented"
+      }
+    ]
+  },
+  {
+    "name": "brain_no_evidence",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "understanding_update",
+          "slots",
+          "0",
+          "evidence"
+        ],
+        "value": []
+      }
+    ]
+  },
+  {
+    "name": "brain_unknown_epistemic",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "understanding_update",
+          "slots",
+          "0",
+          "status"
+        ],
+        "value": "unknown"
+      }
+    ]
+  },
+  {
+    "name": "brain_bad_uuid",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "understanding_update",
+          "slots",
+          "0",
+          "evidence",
+          "0"
+        ],
+        "value": "msg_123"
+      }
+    ]
+  },
+  {
+    "name": "brain_nil_uuid",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "understanding_update",
+          "thread_id"
+        ],
+        "value": "00000000-0000-0000-0000-000000000000"
+      }
+    ]
+  },
+  {
+    "name": "brain_upper_uuid",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "understanding_update",
+          "thread_id"
+        ],
+        "value": "96778BD1-86FE-42ED-A113-D2F329BBA3D5"
+      }
+    ]
+  },
+  {
+    "name": "brain_uuid_urn",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "understanding_update",
+          "thread_id"
+        ],
+        "value": "urn:uuid:96778bd1-86fe-42ed-a113-d2f329bba3d5"
+      }
+    ]
+  },
+  {
+    "name": "brain_unknown_nested",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "response_plan",
+          "question",
+          "private_synthetic_key"
+        ],
+        "value": "must not leak"
+      }
+    ]
+  },
+  {
+    "name": "brain_null_optional",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "risk_read"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "brain_risk_none",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "risk_read"
+        ],
+        "value": {
+          "level": "none",
+          "categories": [],
+          "reason_tag": "test"
+        }
+      }
+    ]
+  },
+  {
+    "name": "brain_long_slot",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "understanding_update",
+          "slots",
+          "0",
+          "value"
+        ],
+        "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  },
+  {
+    "name": "brain_too_many_skills",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "response_plan",
+          "skills",
+          "secondary"
+        ],
+        "value": [
+          "reflect_emotion",
+          "reflect_emotion",
+          "reflect_emotion"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "brain_propose_with_id",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "understanding_update",
+          "hypotheses",
+          "0",
+          "id"
+        ],
+        "value": "33b33d3f-8a88-425a-a394-f4316084674a"
+      }
+    ]
+  },
+  {
+    "name": "brain_support_without_id",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "understanding_update",
+          "hypotheses",
+          "0",
+          "op"
+        ],
+        "value": "support"
+      }
+    ]
+  },
+  {
+    "name": "brain_bad_hyp_tag",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "understanding_update",
+          "hypotheses",
+          "0",
+          "tag"
+        ],
+        "value": "invented"
+      }
+    ]
+  },
+  {
+    "name": "brain_bad_avoid",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "response_plan",
+          "must_avoid",
+          "0"
+        ],
+        "value": "invented"
+      }
+    ]
+  },
+  {
+    "name": "brain_bad_rationale",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "decision",
+          "rationale_tags",
+          "0"
+        ],
+        "value": "invented"
+      }
+    ]
+  },
+  {
+    "name": "brain_protocol_unknown",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "response_plan",
+          "protocol"
+        ],
+        "value": {
+          "action": "offer",
+          "protocol_id": "invented"
+        }
+      }
+    ]
+  },
+  {
+    "name": "brain_too_many_context",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "response_plan",
+          "permitted_context_ids"
+        ],
+        "value": [
+          "33b33d3f-8a88-425a-a394-f4316084674a",
+          "33b33d3f-8a88-425a-a394-f4316084674a",
+          "33b33d3f-8a88-425a-a394-f4316084674a",
+          "33b33d3f-8a88-425a-a394-f4316084674a",
+          "33b33d3f-8a88-425a-a394-f4316084674a",
+          "33b33d3f-8a88-425a-a394-f4316084674a",
+          "33b33d3f-8a88-425a-a394-f4316084674a",
+          "33b33d3f-8a88-425a-a394-f4316084674a"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "brain_bad_tone",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "response_plan",
+          "tone"
+        ],
+        "value": "invented"
+      }
+    ]
+  },
+  {
+    "name": "brain_bad_length",
+    "schema": "brain.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "response_plan",
+          "length"
+        ],
+        "value": "invented"
+      }
+    ]
+  },
+  {
+    "name": "memory_unknown_entity",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "entities",
+          "0",
+          "private_synthetic_key"
+        ],
+        "value": "must not leak"
+      }
+    ]
+  },
+  {
+    "name": "memory_importance_negative",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "importance"
+        ],
+        "value": -0.1
+      }
+    ]
+  },
+  {
+    "name": "memory_importance_high",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "importance"
+        ],
+        "value": 1.1
+      }
+    ]
+  },
+  {
+    "name": "memory_importance_null",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "importance"
+        ],
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "memory_empty_evidence",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "evidence_msg_ids"
+        ],
+        "value": []
+      }
+    ]
+  },
+  {
+    "name": "memory_bad_date",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "valid_from"
+        ],
+        "value": "2026-02-30"
+      }
+    ]
+  },
+  {
+    "name": "memory_unsupported_kind",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "kind"
+        ],
+        "value": "safety_event"
+      }
+    ]
+  },
+  {
+    "name": "memory_unsupported_epistemic",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "epistemic"
+        ],
+        "value": "system_observed"
+      }
+    ]
+  },
+  {
+    "name": "memory_unknown_op",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "op"
+        ],
+        "value": "delete"
+      }
+    ]
+  },
+  {
+    "name": "memory_update_no_target",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "op"
+        ],
+        "value": "update"
+      }
+    ]
+  },
+  {
+    "name": "memory_too_many_ops",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "ops"
+        ],
+        "value": [
+          {
+            "op": "add",
+            "kind": "fact",
+            "content": "Synthetic user prefers short replies",
+            "epistemic": "reported",
+            "evidence_msg_ids": [
+              "84412d48-c311-4cc2-a624-490717b3b1c6"
+            ],
+            "reason_tag": "preference",
+            "importance": 0,
+            "entities": [
+              {
+                "role": "friend",
+                "label": "Synthetic friend"
+              }
+            ],
+            "sensitivity": "normal",
+            "valid_from": "2026-11-16"
+          },
+          {
+            "op": "add",
+            "kind": "fact",
+            "content": "Synthetic user prefers short replies",
+            "epistemic": "reported",
+            "evidence_msg_ids": [
+              "84412d48-c311-4cc2-a624-490717b3b1c6"
+            ],
+            "reason_tag": "preference",
+            "importance": 0,
+            "entities": [
+              {
+                "role": "friend",
+                "label": "Synthetic friend"
+              }
+            ],
+            "sensitivity": "normal",
+            "valid_from": "2026-11-16"
+          },
+          {
+            "op": "add",
+            "kind": "fact",
+            "content": "Synthetic user prefers short replies",
+            "epistemic": "reported",
+            "evidence_msg_ids": [
+              "84412d48-c311-4cc2-a624-490717b3b1c6"
+            ],
+            "reason_tag": "preference",
+            "importance": 0,
+            "entities": [
+              {
+                "role": "friend",
+                "label": "Synthetic friend"
+              }
+            ],
+            "sensitivity": "normal",
+            "valid_from": "2026-11-16"
+          },
+          {
+            "op": "add",
+            "kind": "fact",
+            "content": "Synthetic user prefers short replies",
+            "epistemic": "reported",
+            "evidence_msg_ids": [
+              "84412d48-c311-4cc2-a624-490717b3b1c6"
+            ],
+            "reason_tag": "preference",
+            "importance": 0,
+            "entities": [
+              {
+                "role": "friend",
+                "label": "Synthetic friend"
+              }
+            ],
+            "sensitivity": "normal",
+            "valid_from": "2026-11-16"
+          },
+          {
+            "op": "add",
+            "kind": "fact",
+            "content": "Synthetic user prefers short replies",
+            "epistemic": "reported",
+            "evidence_msg_ids": [
+              "84412d48-c311-4cc2-a624-490717b3b1c6"
+            ],
+            "reason_tag": "preference",
+            "importance": 0,
+            "entities": [
+              {
+                "role": "friend",
+                "label": "Synthetic friend"
+              }
+            ],
+            "sensitivity": "normal",
+            "valid_from": "2026-11-16"
+          },
+          {
+            "op": "add",
+            "kind": "fact",
+            "content": "Synthetic user prefers short replies",
+            "epistemic": "reported",
+            "evidence_msg_ids": [
+              "84412d48-c311-4cc2-a624-490717b3b1c6"
+            ],
+            "reason_tag": "preference",
+            "importance": 0,
+            "entities": [
+              {
+                "role": "friend",
+                "label": "Synthetic friend"
+              }
+            ],
+            "sensitivity": "normal",
+            "valid_from": "2026-11-16"
+          },
+          {
+            "op": "add",
+            "kind": "fact",
+            "content": "Synthetic user prefers short replies",
+            "epistemic": "reported",
+            "evidence_msg_ids": [
+              "84412d48-c311-4cc2-a624-490717b3b1c6"
+            ],
+            "reason_tag": "preference",
+            "importance": 0,
+            "entities": [
+              {
+                "role": "friend",
+                "label": "Synthetic friend"
+              }
+            ],
+            "sensitivity": "normal",
+            "valid_from": "2026-11-16"
+          },
+          {
+            "op": "add",
+            "kind": "fact",
+            "content": "Synthetic user prefers short replies",
+            "epistemic": "reported",
+            "evidence_msg_ids": [
+              "84412d48-c311-4cc2-a624-490717b3b1c6"
+            ],
+            "reason_tag": "preference",
+            "importance": 0,
+            "entities": [
+              {
+                "role": "friend",
+                "label": "Synthetic friend"
+              }
+            ],
+            "sensitivity": "normal",
+            "valid_from": "2026-11-16"
+          },
+          {
+            "op": "add",
+            "kind": "fact",
+            "content": "Synthetic user prefers short replies",
+            "epistemic": "reported",
+            "evidence_msg_ids": [
+              "84412d48-c311-4cc2-a624-490717b3b1c6"
+            ],
+            "reason_tag": "preference",
+            "importance": 0,
+            "entities": [
+              {
+                "role": "friend",
+                "label": "Synthetic friend"
+              }
+            ],
+            "sensitivity": "normal",
+            "valid_from": "2026-11-16"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "memory_add_missing_kind",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "kind"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "memory_add_missing_content",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "content"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "memory_add_missing_epistemic",
+    "schema": "memwriter.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "epistemic"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "memory_update",
+    "schema": "memwriter.v1",
+    "valid": true,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "content"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "entities"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "epistemic"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "importance"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "kind"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "op"
+        ],
+        "value": "update"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "reason_tag"
+        ],
+        "value": "synthetic_test"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "sensitivity"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "target_id"
+        ],
+        "value": "33b33d3f-8a88-425a-a394-f4316084674a"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "valid_from"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "memory_confirm",
+    "schema": "memwriter.v1",
+    "valid": true,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "content"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "entities"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "epistemic"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "importance"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "kind"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "op"
+        ],
+        "value": "confirm"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "reason_tag"
+        ],
+        "value": "synthetic_test"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "sensitivity"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "target_id"
+        ],
+        "value": "33b33d3f-8a88-425a-a394-f4316084674a"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "valid_from"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "memory_contradict",
+    "schema": "memwriter.v1",
+    "valid": true,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "content"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "entities"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "epistemic"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "importance"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "kind"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "op"
+        ],
+        "value": "contradict"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "reason_tag"
+        ],
+        "value": "synthetic_test"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "sensitivity"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "target_id"
+        ],
+        "value": "33b33d3f-8a88-425a-a394-f4316084674a"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "valid_from"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "memory_supersede",
+    "schema": "memwriter.v1",
+    "valid": true,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "content"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "entities"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "epistemic"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "importance"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "kind"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "op"
+        ],
+        "value": "supersede"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "reason_tag"
+        ],
+        "value": "synthetic_test"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "sensitivity"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "target_id"
+        ],
+        "value": "33b33d3f-8a88-425a-a394-f4316084674a"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "valid_from"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "memory_reject",
+    "schema": "memwriter.v1",
+    "valid": true,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "content"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "entities"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "epistemic"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "importance"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "kind"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "op"
+        ],
+        "value": "reject"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "reason_tag"
+        ],
+        "value": "synthetic_test"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "sensitivity"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "target_id"
+        ],
+        "value": "33b33d3f-8a88-425a-a394-f4316084674a"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "valid_from"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "memory_noop",
+    "schema": "memwriter.v1",
+    "valid": true,
+    "changes": [
+      {
+        "path": [
+          "ops",
+          "0",
+          "content"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "entities"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "epistemic"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "importance"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "kind"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "op"
+        ],
+        "value": "noop"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "reason_tag"
+        ],
+        "value": "synthetic_test"
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "sensitivity"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "ops",
+          "0",
+          "valid_from"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "safety_negative",
+    "schema": "safety.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "confidence"
+        ],
+        "value": -0.1
+      }
+    ]
+  },
+  {
+    "name": "safety_high",
+    "schema": "safety.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "confidence"
+        ],
+        "value": 1.1
+      }
+    ]
+  },
+  {
+    "name": "safety_invalid_level",
+    "schema": "safety.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "level"
+        ],
+        "value": "unknown"
+      }
+    ]
+  },
+  {
+    "name": "safety_bad_flag",
+    "schema": "safety.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "context_flags",
+          "0"
+        ],
+        "value": "invented"
+      }
+    ]
+  },
+  {
+    "name": "safety_bad_category",
+    "schema": "safety.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "categories"
+        ],
+        "value": [
+          "invented"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "reflection_unknown_framework",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "formulation",
+          "framework"
+        ],
+        "value": "invented"
+      }
+    ]
+  },
+  {
+    "name": "reflection_unknown_field",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "formulation",
+          "fields",
+          "private_synthetic_key"
+        ],
+        "value": {
+          "value": "test",
+          "status": "reported",
+          "evidence": [
+            "84412d48-c311-4cc2-a624-490717b3b1c6"
+          ],
+          "needs_more_evidence": false
+        }
+      },
+      {
+        "path": [
+          "formulation",
+          "fields",
+          "situation"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "reflection_nested_unknown",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "formulation",
+          "fields",
+          "situation",
+          "extra"
+        ],
+        "value": true
+      }
+    ]
+  },
+  {
+    "name": "reflection_bad_phase",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "thread_proposals",
+          "0",
+          "phase"
+        ],
+        "value": "invented"
+      }
+    ]
+  },
+  {
+    "name": "reflection_bad_range",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "episode",
+          "msg_range"
+        ],
+        "value": [
+          "84412d48-c311-4cc2-a624-490717b3b1c6"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "reflection_bad_id",
+    "schema": "reflection.v1",
+    "valid": false,
+    "changes": [
+      {
+        "path": [
+          "thread_id"
+        ],
+        "value": "thr_123"
+      }
+    ]
+  },
+  {
+    "name": "brain_minimal",
+    "schema": "brain.v1",
+    "valid": true,
+    "changes": [
+      {
+        "path": [
+          "needs",
+          "memory_tags"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "needs",
+          "memory_worthy"
+        ],
+        "value": false
+      },
+      {
+        "path": [
+          "response_plan",
+          "permitted_context_ids"
+        ],
+        "value": []
+      },
+      {
+        "path": [
+          "turn_analysis",
+          "emotions"
+        ],
+        "value": []
+      },
+      {
+        "path": [
+          "turn_analysis",
+          "past_references"
+        ],
+        "value": []
+      },
+      {
+        "path": [
+          "understanding_update",
+          "hypotheses"
+        ],
+        "value": []
+      },
+      {
+        "path": [
+          "understanding_update",
+          "slots"
+        ],
+        "value": []
+      },
+      {
+        "path": [
+          "understanding_update",
+          "thread_id"
+        ],
+        "remove": true
+      }
+    ]
+  },
+  {
+    "name": "brain_all_optional_fields",
+    "schema": "brain.v1",
+    "valid": true,
+    "changes": [
+      {
+        "path": [
+          "needs",
+          "needs_context"
+        ],
+        "value": {
+          "kind": "entity",
+          "query": "Synthetic friend",
+          "why": "missing_background"
+        }
+      },
+      {
+        "path": [
+          "response_plan",
+          "protocol"
+        ],
+        "value": {
+          "action": "offer",
+          "protocol_id": "synthetic_protocol",
+          "step_outcome": "partial",
+          "inputs_captured": {
+            "situation": "test"
+          },
+          "note_tag": "needs_simpler"
+        }
+      },
+      {
+        "path": [
+          "response_plan",
+          "voice_hypothesis_id"
+        ],
+        "value": "33b33d3f-8a88-425a-a394-f4316084674a"
+      },
+      {
+        "path": [
+          "risk_read"
+        ],
+        "value": {
+          "level": "elevated",
+          "categories": [
+            "other"
+          ],
+          "reason_tag": "synthetic_signal"
+        }
+      },
+      {
+        "path": [
+          "turn_analysis",
+          "correction_target"
+        ],
+        "value": "33b33d3f-8a88-425a-a394-f4316084674a"
+      },
+      {
+        "path": [
+          "turn_analysis",
+          "new_thread_topic"
+        ],
+        "value": "Synthetic topic"
+      },
+      {
+        "path": [
+          "turn_analysis",
+          "target_thread_id"
+        ],
+        "value": "96778bd1-86fe-42ed-a113-d2f329bba3d5"
+      },
+      {
+        "path": [
+          "understanding_update",
+          "session_mode"
+        ],
+        "value": "exploring"
+      },
+      {
+        "path": [
+          "understanding_update",
+          "session_summary_delta"
+        ],
+        "value": "Synthetic delta"
+      },
+      {
+        "path": [
+          "understanding_update",
+          "thread_phase_proposal"
+        ],
+        "value": "understanding_sufficient"
+      }
+    ]
+  },
+  {
+    "name": "reflection_episode_only",
+    "schema": "reflection.v1",
+    "valid": true,
+    "changes": [
+      {
+        "path": [
+          "formulation"
+        ],
+        "remove": true
+      },
+      {
+        "path": [
+          "hypothesis_ops"
+        ],
+        "value": []
+      },
+      {
+        "path": [
+          "thread_proposals"
+        ],
+        "value": []
+      }
+    ]
+  }
+]

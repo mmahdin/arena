@@ -1,0 +1,49 @@
+{
+  "schema": "problem.v1",
+  "slots": [
+    {
+      "id": "situation",
+      "importance": {
+        "exploring": 0.9
+      },
+      "ask_cost": 0.2,
+      "ask_hint": "SYNTHETIC PLACEHOLDER"
+    },
+    {
+      "id": "emotions",
+      "importance": {
+        "exploring": 0.8
+      },
+      "ask_cost": 0.2,
+      "ask_hint": "SYNTHETIC PLACEHOLDER"
+    },
+    {
+      "id": "goal",
+      "importance": {
+        "working": 0.8
+      },
+      "ask_cost": 0.2,
+      "ask_hint": "SYNTHETIC PLACEHOLDER"
+    }
+  ],
+  "readiness_rule": {
+    "require_filled": [
+      "situation",
+      "emotions"
+    ],
+    "and_any_of": [
+      "goal"
+    ],
+    "min_user_turns_in_thread": 3
+  },
+  "information_needs": {
+    "v_min": 0.45,
+    "recently_asked_hours": 24,
+    "max_returned": 2,
+    "suppress_if": [
+      "mode_venting",
+      "risk_gte_elevated",
+      "user_declined_slot"
+    ]
+  }
+}

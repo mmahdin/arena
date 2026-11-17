@@ -1,0 +1,3 @@
+# SYNTHETIC WP-03 CONTRACT FIXTURE ONLY. NOT CLINICALLY REVIEWED; NEVER SHIP TO USERS.
+schema: crisis_templates.v1
+templates: {}

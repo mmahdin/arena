@@ -1,0 +1,2 @@
+# SYNTHETIC WP-03 CONTRACT FIXTURE ONLY. NOT CLINICALLY REVIEWED; NEVER SHIP TO USERS.
+SYNTHETIC PLACEHOLDER. Requires clinician-authored guidance and approval before use.

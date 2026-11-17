@@ -23,7 +23,7 @@ All routes require the existing signed, revocable session; identity is never sup
 
 ## Database
 
-Forward-only migration `0012_daily_reflections.sql` creates owner/date primary key, `users` cascade FK and owner/date index. It does not alter applied migrations or existing records. No scheduled/automatic diary generation. `PUT` serializes same-key updates via a serializable SQL transaction. Delete of user cascades through the FK.
+Forward-only migration `0012_daily_reflections.sql` creates owner/date primary key, `users` cascade FK and owner/date index. It does not alter applied migrations or existing records. No scheduled/automatic diary generation. Migration 0020 adds surrogate row IDs, soft-delete metadata and filtered active owner/date uniqueness, replaces the cascade with NO ACTION, and guards physical deletion. PUT and DELETE serialize on the owner; deleted entries remain stored and a later PUT creates a new active row.
 
 ## Validation checklist
 

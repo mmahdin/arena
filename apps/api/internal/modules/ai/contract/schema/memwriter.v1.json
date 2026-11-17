@@ -1,0 +1,180 @@
+{
+  "$id": "https://theia.app/schemas/memwriter.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "ops"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "memwriter.v1"
+    },
+    "ops": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "$ref": "#/$defs/op"
+      }
+    }
+  },
+  "$defs": {
+    "op": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "evidence_msg_ids",
+        "reason_tag"
+      ],
+      "properties": {
+        "op": {
+          "enum": [
+            "add",
+            "update",
+            "confirm",
+            "contradict",
+            "supersede",
+            "reject",
+            "noop"
+          ]
+        },
+        "target_id": {
+          "$ref": "#/$defs/memory_id"
+        },
+        "kind": {
+          "enum": [
+            "fact",
+            "preference",
+            "episode",
+            "hypothesis",
+            "goal",
+            "event"
+          ]
+        },
+        "content": {
+          "type": "string",
+          "maxLength": 320
+        },
+        "epistemic": {
+          "enum": [
+            "reported",
+            "inferred"
+          ]
+        },
+        "evidence_msg_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "$ref": "#/$defs/message_id"
+          }
+        },
+        "entities": {
+          "type": "array",
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "required": [
+              "role"
+            ],
+            "properties": {
+              "role": {
+                "type": "string",
+                "maxLength": 30
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 40
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "tags": {
+          "type": "array",
+          "maxItems": 6,
+          "items": {
+            "type": "string",
+            "maxLength": 30
+          }
+        },
+        "sensitivity": {
+          "enum": [
+            "normal",
+            "sensitive",
+            "highly_sensitive"
+          ]
+        },
+        "importance": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "valid_from": {
+          "type": "string",
+          "format": "date"
+        },
+        "reason_tag": {
+          "type": "string",
+          "maxLength": 40
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "add"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "kind",
+              "content",
+              "epistemic"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "enum": [
+                  "update",
+                  "confirm",
+                  "contradict",
+                  "supersede",
+                  "reject"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "target_id"
+            ]
+          }
+        }
+      ]
+    },
+    "memory_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "not": {
+        "const": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "message_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "not": {
+        "const": "00000000-0000-0000-0000-000000000000"
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

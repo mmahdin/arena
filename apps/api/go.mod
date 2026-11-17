@@ -6,6 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.10.1
 	github.com/google/uuid v1.6.0
 	github.com/microsoft/go-mssqldb v1.7.2
+	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 )
 
 require (

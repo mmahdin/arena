@@ -12,7 +12,7 @@ An additive, local-only, synthetic-data vertical slice. The original Hamrah UI a
 
 ## Database and retention
 
-Migration `0009_saved_messages.sql` creates `dbo.saved_messages` keyed by original message UUID, a user-owned index, and a single cascading message FK. There is no duplicated message text in the table. Deleting a conversation cascades via turns/messages to bookmarks. Migration is forward-only and must never be edited after application. The table references message IDs, so saved entries disappear with their source conversation. The list contains message content only for the requesting owner. SQL logs must not include content or cookies.
+Migration `0009_saved_messages.sql` creates `dbo.saved_messages` keyed by original message UUID, a user-owned index, and a single cascading message FK. There is no duplicated message text in the table. Migration 0020 supersedes the delete cascade with a validated NO ACTION reference. Conversation soft deletion hides bookmarks through the source conversation predicate while preserving every record. Migration is forward-only and must never be edited after application. Deleted bookmarks remain stored; a later save creates a new active row with the same message reference. The list contains message content only for the requesting owner. SQL logs must not include content or cookies.
 
 ## Local validation
 

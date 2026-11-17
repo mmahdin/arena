@@ -26,7 +26,7 @@ func scan(row *sql.Row) (application.Reflection, error) {
 }
 func (r *Repository) List(ctx context.Context, uid uuid.UUID) ([]application.Reflection, error) {
 	rows, err := r.db.QueryContext(ctx, `SELECT TOP(30) CONVERT(varchar(10),entry_date,23),body,created_at,updated_at
-        FROM dbo.daily_reflections WHERE user_id=CONVERT(uniqueidentifier,@p1) ORDER BY entry_date DESC`, uid.String())
+        FROM dbo.daily_reflections WHERE deleted_at IS NULL AND user_id=CONVERT(uniqueidentifier,@p1) ORDER BY entry_date DESC`, uid.String())
 	if err != nil {
 		return nil, err
 	}
@@ -42,17 +42,17 @@ func (r *Repository) List(ctx context.Context, uid uuid.UUID) ([]application.Ref
 	return result, rows.Err()
 }
 func (r *Repository) Get(ctx context.Context, uid uuid.UUID, date string) (application.Reflection, error) {
-	return scan(r.db.QueryRowContext(ctx, selectColumns+` WHERE user_id=CONVERT(uniqueidentifier,@p1) AND entry_date=CONVERT(date,@p2,23)`, uid.String(), date))
+	return scan(r.db.QueryRowContext(ctx, selectColumns+` WHERE deleted_at IS NULL AND user_id=CONVERT(uniqueidentifier,@p1) AND entry_date=CONVERT(date,@p2,23)`, uid.String(), date))
 }
 func (r *Repository) Save(ctx context.Context, uid uuid.UUID, date, body string) (application.Reflection, error) {
-	// Serializing on the composite key avoids concurrent insert races without affecting other days/users.
-	tx, err := r.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	// Serialize on the owner before the filtered active key; retain deleted revisions.
+	tx, err := r.begin(ctx, uid)
 	if err != nil {
 		return application.Reflection{}, err
 	}
 	defer tx.Rollback()
 	res, err := tx.ExecContext(ctx, `UPDATE dbo.daily_reflections WITH(UPDLOCK) SET body=@p3,updated_at=SYSUTCDATETIME()
-      WHERE user_id=CONVERT(uniqueidentifier,@p1) AND entry_date=CONVERT(date,@p2,23)`, uid.String(), date, body)
+      WHERE deleted_at IS NULL AND user_id=CONVERT(uniqueidentifier,@p1) AND entry_date=CONVERT(date,@p2,23)`, uid.String(), date, body)
 	if err != nil {
 		return application.Reflection{}, err
 	}
@@ -67,7 +67,7 @@ func (r *Repository) Save(ctx context.Context, uid uuid.UUID, date, body string)
 			return application.Reflection{}, err
 		}
 	}
-	item, err := scan(tx.QueryRowContext(ctx, selectColumns+` WHERE user_id=CONVERT(uniqueidentifier,@p1) AND entry_date=CONVERT(date,@p2,23)`, uid.String(), date))
+	item, err := scan(tx.QueryRowContext(ctx, selectColumns+` WHERE deleted_at IS NULL AND user_id=CONVERT(uniqueidentifier,@p1) AND entry_date=CONVERT(date,@p2,23)`, uid.String(), date))
 	if err != nil {
 		return application.Reflection{}, err
 	}
@@ -76,8 +76,32 @@ func (r *Repository) Save(ctx context.Context, uid uuid.UUID, date, body string)
 	}
 	return item, nil
 }
+func (r *Repository) begin(ctx context.Context, uid uuid.UUID) (*sql.Tx, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	var owner string
+	err = tx.QueryRowContext(ctx, `SELECT CONVERT(varchar(36),id) FROM dbo.users WITH(UPDLOCK,HOLDLOCK) WHERE id=@p1`, uid).Scan(&owner)
+	if err != nil {
+		tx.Rollback()
+		if errors.Is(err, sql.ErrNoRows) {
+			err = httpx.ErrNotFound
+		}
+		return nil, err
+	}
+	return tx, nil
+}
 func (r *Repository) Delete(ctx context.Context, uid uuid.UUID, date string) error {
-	_, err := r.db.ExecContext(ctx, `DELETE FROM dbo.daily_reflections WHERE user_id=CONVERT(uniqueidentifier,@p1)
+	tx, err := r.begin(ctx, uid)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	_, err = tx.ExecContext(ctx, `UPDATE dbo.daily_reflections SET deleted_at=SYSUTCDATETIME(),deleted_by=CONVERT(uniqueidentifier,@p1),deletion_reason=N'user_request' WHERE deleted_at IS NULL AND user_id=CONVERT(uniqueidentifier,@p1)
       AND entry_date=CONVERT(date,@p2,23)`, uid.String(), date)
-	return err
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
 }

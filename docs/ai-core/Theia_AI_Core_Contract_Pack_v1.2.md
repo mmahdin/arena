@@ -1,8 +1,10 @@
 # Theia AI Core — Contract Pack v1.2 — Clean-Slate AI Core in a Go Modular Monolith
 
+> **Binding WP-02 correction (2026-11-16): soft deletion only.** All user-initiated deletion hides records using deletion metadata; it must preserve original content, references, and related records. Conversation deletion does not delete or invalidate derived memories, analyses, formulations, embeddings, consent, or other AI state. Retention and UI visibility are separate from permission for AI use: this correction grants neither reuse nor an implicit reuse ban. Existing explicit consent controls remain unchanged; a separate AI-use policy must govern future retrieval/workers. Permanent deletion, legal erasure, backup removal, and retention cleanup require a separate future policy and are not implemented or authorized here. This amendment supersedes earlier destructive-deletion and table-retirement language, including in archived Contract Packs.
+
 *Revision v1.2 of the implementation contract, derived from the Final AI Core Architecture Document, the v1.0 Contract Pack and the inspected Go backend snapshot (migrations through `0016`). This is a normative **target specification**, not an assertion that the AI Core exists or that SQL was executed. It defines Go contracts, JSON Schemas, SQL Server data and migration contracts, Knowledge Bundle formats, internal integration, validation and test fixtures. Detailed prompt wording and module algorithms remain separate work.*
 
-> **Binding architectural decision — CLEAN-SLATE AI:** The repository is an **early-stage Go/Gin Modular Monolith**, and its original AI implementation is a **disposable experiment**, not a subsystem to extend, wrap, retain or use as the correctness baseline. Rebuild the AI pipeline from the approved AI Core design: Gateway, Safety, Assembler, Retrieval, Turn Brain, Policy Gate, Protocol Engine, Generator, Validator, State Committer, Memory Writer/Committer, Reflection Worker, Scheduler and Trace/Eval. Delete or replace old prompt-building, recent-history-only responses, regex-only safety, `ReplyGenerator.Reply`, `supportive-v5` and obsolete AI wiring. The old `modules/reflection` **daily-reflections feature is explicitly out of scope and targeted for decommissioning** (code/routes/contracts and legacy table through a reviewed new migration); do **not** preserve it merely because it exists. AI psychological Reflection is a new component built from the new specification.
+> **Binding architectural decision — CLEAN-SLATE AI:** The repository is an **early-stage Go/Gin Modular Monolith**, and its original AI implementation is a **disposable experiment**, not a subsystem to extend, wrap, retain or use as the correctness baseline. Rebuild the AI pipeline from the approved AI Core design: Gateway, Safety, Assembler, Retrieval, Turn Brain, Policy Gate, Protocol Engine, Generator, Validator, State Committer, Memory Writer/Committer, Reflection Worker, Scheduler and Trace/Eval. Delete or replace old prompt-building, recent-history-only responses, regex-only safety, `ReplyGenerator.Reply`, `supportive-v5` and obsolete AI wiring. The old `modules/reflection` **daily-reflections feature is explicitly out of scope and targeted for decommissioning** (code/routes/contracts; retain the legacy table and every row); do **not** preserve it merely because it exists. AI psychological Reflection is a new component built from the new specification.
 
 > **Preserve the platform, not the prototypes:** Keep the established **single Go module, Modular Monolith import rules, Gin HTTP, `internal/app/composition`, Microsoft SQL Server 2022, `database/sql` / `go-mssqldb`, UUIDs and checksummed forward-only T-SQL migration runner**. Reuse proven generic authentication, user identity, data ownership and physical conversation/message storage *only when compatible with the target*. Existing Conversation turn behavior, endpoint shapes, idempotency/lease implementation, storage schema and onboarding coupling may be **refactored or migrated** as required; none of these experimental behaviors is an untouchable requirement. Never create duplicate sources of truth. There is **no gRPC, separate AI Core service, additional deployment or inter-module network RPC**.
 
@@ -92,7 +94,7 @@ The uploaded backend snapshot is a working **software scaffold**, not an impleme
 | `internal/modules/conversation` | Conversations, messages, a rudimentary `Turn()` workflow, idempotency lease and non-streaming HTTP | **Retain the concept and one message store; redesign the turn application flow** around the full AI Gateway + Orchestrator contract. Existing service functions, lease semantics and HTTP response shape are nonbinding. |
 | `internal/modules/ai/application/service.go`, `ai/policy/*` | `ReplyGenerator.Reply`, one-shot response, `supportive-v5` prompt and crude phrase checks | **REPLACE/DELETE**. Not a foundation for Turn Brain, safety, memory, Generator or prompt policy. No old prompt/safety fallback in the new architecture. |
 | `internal/modules/ai/adapters/{openai,mock}` | Small prototype text generator integrations | **Replace with contract-compliant model client/adapters**. Tested network configuration ideas may be reused, but not the behavior, shape or error policy. |
-| `internal/modules/reflection` / `/me/daily-reflections` / `dbo.daily_reflections` | User-authored calendar CRUD, unrelated to AI formulation | **RETIRE** as a legacy placeholder feature at the user's direction; remove wiring/routes/feature documentation and obsolete tests, and handle the table with a forward-only, data-safe migration/decommission procedure. The new AI Reflection Worker is implemented independently under `modules/ai`. |
+| `internal/modules/reflection` / `/me/daily-reflections` / `dbo.daily_reflections` | User-authored calendar CRUD, unrelated to AI formulation | **RETIRE** as a legacy placeholder feature at the user's direction; remove wiring/routes/feature documentation and obsolete tests, and retain its table and rows under the soft-delete policy. The new AI Reflection Worker is implemented independently under `modules/ai`. |
 | `contracts/openapi/openapi.yaml` | Public HTTP contract for the prototype | **Use the existing file/contract workflow**, but revise endpoints, response semantics and versioning as needed for the target product. Do not freeze its prototype `promptVersion`/turn behavior. |
 
 **Definition of platform reuse:** keep framework, build, configuration, migration, UUID and database utilities when technically sound. **Definition of AI replacement:** remove old AI business logic and tests asserting prototype behavior; write new tests against the full architecture. A legacy feature is not an architectural dependency simply because code currently exists.
@@ -155,7 +157,7 @@ The above are **logical responsibility boundaries**; do not create empty package
 4. AI Core owns its `ai_*` tables and read/write policies; SQL lives only in owning MSSQL adapters; external LLM calls only through new provider-neutral adapter interfaces. Avoid SQL or third-party SDK dependencies in domain packages.
 5. Build new Safety, Brain, Generator, Memory and Reflection **from the approved architecture**, not by renaming the existing `ai/application/service.go`, `policy/prompt.go`, `policy/safety.go` or daily reflection modules.
 6. Old AI code, unused legacy AI routes, tests asserting experimental prompt behavior, and the Daily Reflection feature must be removed or explicitly marked as transitional with a bounded removal work package. A *feature flag* is not a rationale for retaining obsolete AI logic indefinitely.
-7. Do not edit migrations already applied. Review existing `daily_reflections` data/consent before dropping its table in a new numbered migration; removal of the feature's code and HTTP routes is a target outcome, not a license to destroy non-synthetic user data blindly.
+7. Do not edit migrations already applied. Feature code/routes may be retired, but retain `daily_reflections` and all original records. New migrations must replace destructive cascades and purge procedures with preservation safeguards; no table retirement or permanent deletion is authorized in this phase.
 8. One backend deployment process initially; bounded, persistent SQL Server jobs can be executed by in-process workers. No gRPC, external event broker, sidecar or separate AI Core HTTP deployment.
 9. Follow approved product/clinical/security review gates before handling real mental-health data. The old synthetic-only tests and placeholder safety are not evidence of safety.
 
@@ -1512,6 +1514,8 @@ type MemoryCommitter interface {
 	Maintain(ctx context.Context, userID contract.ID, now time.Time) (MaintenanceReport, error)
 }
 type CorrectionKind string // "contest" | "reject" | "supersede_pending"
+// Delete means soft deletion of explicit scope only; never purge derivatives or change AI consent.
+// DeletionReport counts records newly hidden, not records physically erased.
 type DeletionScope struct { ItemIDs, MessageIDs []contract.ID; Category string; All bool; Reason string }
 
 type Reflector interface {
@@ -1692,14 +1696,21 @@ Event payload shapes are defined in §9.3.
 
 ### 7.1 Ownership and migration contract
 
-- **Physical storage owner:** `conversation` can remain the owner of one `dbo.conversations`, `dbo.turns` and `dbo.messages` schema; **rework its old application workflow** to be a storage/cross-module gateway rather than the one-shot `ReplyGenerator` executor. Preserve schema/data only where consistent with new AI lifecycle and privacy rules.
+- **Physical storage owner:** `conversation` can remain the owner of one `dbo.conversations`, `dbo.turns` and `dbo.messages` schema; **rework its old application workflow** to be a storage/cross-module gateway rather than the one-shot `ReplyGenerator` executor. Preserve all original data while adapting the schema to the new lifecycle and soft-delete rules.
 - **Required `0017+` transition:** inspect and, if needed, extend `dbo.turns` status/check constraints to include `queued`, `failed`, `cancelled`; support raw user message persisted in an admitted/in-progress turn *before* assistant generation, reliably tracked attempt/lease/error state, and safe idempotent result replay. The existing two-message end-of-turn write constraint must be relaxed deliberately, with tests. Do not hand-edit `0001` or `0006`.
 - **One active turn per user:** implement durable, expiring per-user serialization (e.g. new `dbo.ai_user_turn_leases` table) rather than blindly relying on a per-conversation `ClaimTurn`. Define recovery and queue/coalescing policy, including crash and multi-device behavior.
 - **AI-owned state:** `dbo.ai_sessions`, `ai_threads`, `ai_formulations`, `ai_protocol_instances`, `ai_user_state`, `ai_memory_items`, `ai_memory_evidence`, `ai_memory_tombstones`, `ai_hypothesis_cooldowns`, `ai_open_loops`, `ai_follow_ups`, `ai_turn_events`, `ai_jobs`, optional `ai_outbox`, `ai_turn_traces`, `ai_embeddings`, and optional linking table `ai_turn_context`.
-- **Old Daily Reflections:** remove `internal/modules/reflection` source, `/me/daily-reflections` HTTP routes, OpenAPI operations, and obsolete tests/wiring as part of decommissioning. **Do not edit** applied `0012_daily_reflections.sql`. First verify that the environment contains only disposable synthetic data or export/obtain explicit authorization; then remove `dbo.daily_reflections` via a *new* forward-only migration and verify no data loss outside the approved scope. This table is **not** input to AI Reflection.
+- **Old Daily Reflections:** remove `internal/modules/reflection` source, `/me/daily-reflections` HTTP routes, OpenAPI operations, and obsolete tests/wiring as part of decommissioning. **Do not edit** applied `0012_daily_reflections.sql`. Retain `dbo.daily_reflections` and all rows; code/route retirement does not authorize dropping stored data. Permanent disposal is deferred to a separate future policy. This table is **not** input to AI Reflection.
 - **Migrations:** the logical AI table outline in §7.2 is a starting point, **not a complete executable transition**. Add reviewed T-SQL for the existing `turns` schema and per-user lease before claiming lifecycle readiness; use the actual checksummed runner (`0017+`). SQL Server composite owner FKs, JSON validation, triggers and index constraints require database integration tests.
 - **Conversation/session:** a visible chat can remain open while AI internal sessions close for consolidation. Do not conflate them.
-- **No forced retention of test AI data or behaviors:** the old prompt/gateway and daily reflection data structures are not authority over new state model. Retain generic user and chat data only as required by approved data migration/privacy policy.
+- **Data preservation does not preserve prototype behavior:** old prompts/gateways remain replaceable, but every original record must be retained. No data purge accompanies code replacement.
+
+The WP-02 correction is migration `0020_soft_delete_preservation.sql`; `0001–0019`
+remain immutable. Add nullable deletion metadata to conversations, messages,
+bookmarks, diary entries, letters, memory items and formulations. Future explicit
+soft-delete APIs for additional resource types must add equivalent metadata and
+visibility tests before exposure; no new memory/account deletion API is part of
+this correction. Retained related records do not inherit deletion flags.
 
 ### 7.2 Canonical additive T-SQL migration outline (`0017_ai_core_foundation.sql`)
 
@@ -1940,7 +1951,7 @@ CREATE TABLE dbo.ai_turn_traces (
     review_flags_json nvarchar(max) NOT NULL DEFAULT N'[]' CHECK (ISJSON(review_flags_json)=1),
     sampled_for_review bit NOT NULL DEFAULT (0),
     created_at datetime2(3) NOT NULL DEFAULT SYSUTCDATETIME(),
-    expires_at datetime2(3) NOT NULL
+    expires_at datetime2(3) NULL -- historical advisory metadata; no automatic erasure
 );
 CREATE INDEX IX_ai_traces_expiry ON dbo.ai_turn_traces(expires_at);
 
@@ -1973,7 +1984,7 @@ CREATE TABLE dbo.ai_user_turn_leases (
 CREATE INDEX IX_ai_user_turn_leases_expiry ON dbo.ai_user_turn_leases(lease_expires_at);
 ```
 
-Use a short transaction to claim/renew/release the lease and make crash recovery idempotent. **Do not hold a transaction open while querying LLMs.** The exact `ALTER TABLE dbo.turns` statements and old data migration steps must be generated from the actual schema and verified in SQL Server, not invented as an untested drop-in script. A separate forward migration may decommission `dbo.daily_reflections` **only after** the retention/data-safety gate in §7.1.
+Use a short transaction to claim/renew/release the lease and make crash recovery idempotent. **Do not hold a transaction open while querying LLMs.** The exact `ALTER TABLE dbo.turns` statements and old data migration steps must be generated from the actual schema and verified in SQL Server, not invented as an untested drop-in script. No migration may drop `dbo.daily_reflections` in this phase; see the preservation rule in §7.1.
 
 **DDL review gates before implementation:** verify all `DEFAULT`/`CHECK` expressions and filtered indexes in SQL Server 2022, cross-user owner constraints (a bare FK to `dbo.conversations(id)` is **not enough**), and no multiple cascade paths. Prefer composite `(id,user_id)` FKs wherever possible, after adding necessary unique constraints. The SQL above is a specification draft, not a substitute for the migration test or an approval for real private data.
 
@@ -1996,24 +2007,26 @@ SQL Server 2022 has no PostgreSQL `pgvector` operators/indexes. The binary `floa
 
 - **Gateway.Admit** is the new admission gate, backed by Conversation's one durable message/turn store. Persist the user message and admitted/in-progress turn in a short first transaction. Release all transactions before LLM work. Then in a second short transaction **TurnFinalizer.Complete** inserts only the validated assistant message, completes `dbo.turns`, applies synchronous `StateDelta`, enqueues `dbo.ai_jobs` and saves trace/outbox metadata. An LLM failure leaves a durable failed/unfinished user-only turn (not an unsafe assistant message). Handle version conflict, expired lease, idempotent replay and user-only history explicitly.
 - **Owner isolation** is enforced in every query by server-resolved `user_id`, by conversation joins and by composite FKs when available. The existing backend does not have PostgreSQL RLS; **do not claim RLS is enabled**. SQL Server row-level security is an optional future defense, requiring explicit `SESSION_CONTEXT` design and tests.
-- Deleting conversation or user data must remove/neutralize all derived AI references, evidence, embeddings, cached snippets, AI sessions, traces, jobs and tombstones as appropriate. Polymorphic evidence references require explicit cleanup; constraints alone cannot guarantee zero residue.
-- Corrections and deletions take priority over background memory writes; memory tombstones suppress unwanted re-extraction using a keyed per-user HMAC. Backup lifecycle and hard-deletion claims remain **[OPEN]** until deployment policy is approved.
+- User-initiated deletion is **soft deletion only**: record UTC `deleted_at`, server-resolved `deleted_by`, and a bounded `deletion_reason=user_request`; preserve content and provenance. `deleted_at IS NULL` means visible. Apply owner checks and visibility predicates to all normal lists, direct reads, saved-message views, and turn admission/replay/recovery paths. Repeated deletion preserves the original timestamp.
+- Conversation deletion marks only the conversation. Its messages and bookmarks are hidden by parent visibility joins; all rows remain. Independently stored letters, memories, analyses, formulations, evidence, embeddings, sessions, jobs, traces and consent remain intact, with their own visibility. No recursive soft-delete or derived-data invalidation is implied. Expire only the deleted conversation's active processing lease under the same owner lock; exclude it from admission/finalization/recovery queues. Other conversations remain usable.
+- Remove physical purge procedures and cascading delete actions in a **new** forward migration. Preserve validated composite owner FKs with `NO ACTION`; guard persisted tables against accidental physical `DELETE`. Do not erase content, replace it with empty tombstones, truncate tables, or run retention cleanup. Re-creating a deleted diary entry, bookmark or letter creates a distinct active record; filtered unique indexes enforce active uniqueness while retaining the old record.
+- Retention/visibility is independent of AI eligibility. Soft deletion must not reset `memory_paused`, consent, preferences, risk state, evidence counts or suppression lists, or silently authorize/forbid future AI reuse of retained derivatives. Explicit correction/suppression controls remain separate. No deletion-triggered extraction or re-analysis is introduced. Future retrieval/workers need a separately approved use policy. Permanent deletion, legal erasure and backup disposal remain deferred.
 - **Privacy gate:** the current repo handles **synthetic data only** and uses placeholder phrase safety. No production rollout, clinical claim, automated crisis escalation, real intimate disclosures, or storage of actual sensitive memory is authorized by this contract. Encryption/KMS, incident handling, access review, clinician access and deletion/backup verification are explicit pre-release deliverables.
 
-### 7.5 Retention defaults (proposals, not deployed controls)
+### 7.5 Retention and future policy
 
-| Data | Proposed rule |
+| Data | Current preservation rule |
 | --- | --- |
-| Physical `dbo.messages`, `dbo.turns` | One source of truth is preserved. Define the **new approved product retention and deletion policy**; do not inherit prototype policies without review. |
-| `dbo.ai_turn_traces.payload_enc` | Target expiry after 30 days; summary redacted. The trace retention job must be built and tested. |
-| `dbo.ai_turn_events` | Proposed 180-day retention, with verified state reconstruction strategy. |
-| Completed `dbo.ai_jobs` | Proposed 7-day retention; published `dbo.ai_outbox` 14 days. |
-| `dbo.ai_memory_items`, embeddings and formulations | Hold **only if future consent/privacy product decisions allow**; default `memory_paused=true` in synthetic foundation. |
+| Physical `dbo.messages`, `dbo.turns` | Preserve all rows, including soft-deleted records. Visibility is not a retention deadline. |
+| `dbo.ai_turn_traces.payload_enc` | Preserve payload and summary. Historical `expires_at` values are metadata only; new traces have no default expiry. No retention worker is authorized. |
+| `dbo.ai_turn_events` | Preserve events and reconstruction history; no expiry cleanup. |
+| Completed `dbo.ai_jobs` | Preserve jobs/outbox, including terminal records; no cleanup. |
+| `dbo.ai_memory_items`, embeddings and formulations | Preserve existing content and all related records. Consent controls govern new collection/use separately; `memory_paused=true` remains the synthetic default. |
 
 ### 7.6 Migration validation
 
 - The existing SQL Server migration runner owns transactions and checksums. Create only **new** sequential migrations; use no Postgres syntax. Validate upgrades from the snapshot and fresh bootstrap into a disposable SQL Server 2022 database.
-- Include Go repository contract tests for owner scoping, idempotency, atomic commit/rollback, optimistic concurrency, simulated process crash and lease recovery, safe memory deletion, partial reflection and embedding dimension mismatch.
+- Include Go repository contract tests for owner scoping, idempotency, atomic commit/rollback, optimistic concurrency, simulated process crash and lease recovery, soft-delete visibility and exact payload/provenance preservation, partial reflection and embedding dimension mismatch.
 - Do not run model network calls inside the SQL transaction. No claimed success before the final `Commit` succeeds.
 - Verify cross-user access tests with two different synthetic accounts; synthetic-only stage deploys are not substitutes for privacy/security approval.
 
@@ -2567,7 +2580,7 @@ Event payloads must not casually contain raw mental-health text; user-scoped and
 
 **Remove the old AI behavior:** one-shot `ReplyGenerator.Reply`, `supportive-v5`, limited-history-only prompt assembly, crude phrase-based safety as the sole safeguard, old response/prompt tests and the wiring in `internal/app/composition/api.go`. The **new** safety lexicons in the versioned Knowledge Bundle are separate clinically reviewed assets; do not copy the old phrase patterns and call them production safety.
 
-**Remove the old Daily Reflections feature:** `internal/modules/reflection`, `/me/daily-reflections` routes, its OpenAPI paths and legacy tests/docs; decommission `dbo.daily_reflections` with a checked **new** migration (never alter `0012`). This is a retirement of an unrelated experimental feature, **not** a replacement for the new `modules/ai/application/reflection` psychological Reflection Worker. Inspect bookmark/letters/onboarding/test references and update affected imports, acceptance tests, seed scripts and fixtures. No silent data loss; require proof of disposable synthetic data or an approved export/deletion plan first.
+**Remove the old Daily Reflections feature:** `internal/modules/reflection`, `/me/daily-reflections` routes, its OpenAPI paths and legacy tests/docs; retain `dbo.daily_reflections` and all rows (never alter `0012`). This is a retirement of an unrelated experimental feature, **not** a replacement for the new `modules/ai/application/reflection` psychological Reflection Worker. Inspect bookmark/letters/onboarding/test references and update affected imports, acceptance tests, seed scripts and fixtures. No stored data is discarded during feature retirement; permanent disposal belongs to a separate future policy.
 
 **Keep or refactor only true platform assets:** Gin, user identity, UUID, SQL Server connection/migrations, configuration primitives, HTTP conventions, composition and one source of chat messages. Existing app features not part of AI are not automatically redefined by this contract.
 
@@ -2581,7 +2594,7 @@ Target capabilities (not assumed already implemented): process/replay a turn, me
 2. No call path reaches the old `ReplyGenerator`, `supportive-v5`, placeholder crisis checks or legacy Daily Reflection code; old routes and imports removed.
 3. Gateway persists raw user messages first; per-user serialization, retry and recovery behavior pass tests across multiple conversations/devices.
 4. Only validated assistant messages reach storage; assistant message, synchronous AI state, jobs and trace commit atomically; **no LLM call inside SQL transactions**.
-5. One SQL Server/UUID message source of truth; `0017+` migrations (including turn-lifecycle redesign and reviewed Daily Reflection decommission) pass clean-install and upgrade tests.
+5. One SQL Server/UUID message source of truth; `0017+` migrations (including turn-lifecycle redesign and data-preserving soft deletion) pass clean-install and upgrade tests.
 6. Brain/Generator/Memory/Reflection contracts in §§4–12 remain intact and are tested; safety is not inherited from prototype code.
 7. New OpenAPI and Gin handlers match the chosen external turn/replay/privacy semantics, not automatically the old JSON shape.
 8. Private synthetic testing is not treated as approval for production sensitive or crisis-related data.
@@ -2696,7 +2709,7 @@ Thresholds `τ` live in `config/thresholds.yaml` under `validator`; every classi
 | MC-006 | Dedupe: add with neighbor cosine ≥ `memory.dedupe_cosine_gte` and compatible entities → convert to `confirm` | convert |
 | MC-007 | Changed slot-like fact (same entity/attribute, different value): `supersede` if user statement is explicit; else mark both `contested` and add `confirm_fact` open loop | apply |
 | MC-008 | `memory_paused=true` → drop all `add/update` (corrections and deletions still apply) | drop |
-| MC-009 | Claim hash in suppression list → drop add | drop |
+| MC-009 | Claim hash in an explicitly authorized suppression list → drop add; soft deletion alone does not add suppression entries | drop |
 | MC-010 | Cooldown: hypothesis tag in `dbo.ai_hypothesis_cooldowns` active → drop propose | drop |
 | MC-011 | `sensitivity=highly_sensitive` items are stored encrypted and excluded from default retrieval; only stored if volunteered (`source` message is user) | enforce |
 | MC-012 | Hot-set cap: if exceeded, lowest `importance·recency` non-pinned items → `stale` | enforce |
@@ -2706,7 +2719,7 @@ Thresholds `τ` live in `config/thresholds.yaml` under `validator`; every classi
 | RF-003 | User endorsement spawns a new `reported` item that references the hypothesis; the hypothesis is not edited into a fact | enforce |
 | RF-004 | Formulation fields below `min_evidence`/`min_sessions` are forced to `unknown` | enforce |
 | RF-005 | Reflection may not set `thread.phase` beyond its proposal; State Committer applies ST-002/003 | enforce |
-| RF-006 | Reflection output referencing deleted evidence is rejected as a whole | reject |
+| RF-006 | Reflection requires existing owner-scoped evidence and separately approved AI-use eligibility. A visibility flag alone is not an AI-use policy; never erase retained evidence or its derivatives. | validate against explicit use policy |
 
 ### 10.6 Support checks used by rules
 
@@ -2923,7 +2936,7 @@ Multi-turn scenarios use `turns: [ {text, expect}, ... ]` with state carried bet
 | `orchestrator/gate_test` | Each BR rule has ≥ 1 violating fixture and its expected repair | every commit |
 | `state/fsm_test` | Thread, Protocol, Risk, Hypothesis FSMs: all allowed and forbidden transitions | every commit |
 | `modules/ai/adapters/mssql/schema_test` | SQL Server 2022 T-SQL migrations, CHECK/FK/filtered index constraints and **owner-scoped cross-user isolation** (no Postgres RLS) | CI with real SQL Server |
-| `memory/commit_test` | MC rules; dedupe/supersede/contest scenarios, explicit deletion cleanup; no residual derived content | CI with real SQL Server |
+| `memory/commit_test` | MC rules; dedupe/supersede/contest scenarios, soft-delete visibility; all original and derived content/provenance preserved; no implicit reuse policy | CI with real SQL Server |
 | `validator/rules_test` | Each OV rule with positive and negative fixtures per supported locale | every commit |
 | `bundle/lint_test` | Linter catches each failure class using broken sample bundles | every commit |
 | `llm/client_test` | Retry, breaker, no-retry-after-first-token, usage accounting (using a fake provider) | every commit |
@@ -2943,7 +2956,7 @@ Multi-turn scenarios use `turns: [ {text, expect}, ... ]` with state carried bet
 | --- | --- | --- | --- |
 | **WP-00** | Prototype retirement & delta plan | — | Inventory old `modules/ai` and top-level `modules/reflection` routes/code/tests/migrations; enumerate dependencies and data-loss risks; identify exact removals, forward migration, and new AI turn API plan. No old AI runtime path retained. |
 | **WP-01** | Core Go contracts and schemas | WP-00 | Create new typed contracts, ports, UUIDs, JSON Schemas, validation fixtures and tests from §§3–6; no dependency on `ReplyGenerator.Reply`. |
-| **WP-02** | SQL Server and lifecycle redesign | WP-01 | Reuse one `dbo.messages`/`dbo.turns` store, adapt statuses for user-message-first admission, add per-user lease, AI-owned tables, state/assistant finalization UoW, privacy and migration tests (`0017+`). Retire Daily Reflection table only after approved data-safe gate. |
+| **WP-02** | SQL Server and lifecycle redesign | WP-01 | Reuse one `dbo.messages`/`dbo.turns` store, adapt statuses for user-message-first admission, add per-user lease, AI-owned tables, state/assistant finalization UoW, privacy and migration tests (`0017+`). Preserve Daily Reflection table and data. User deletion is soft-only; no derived purge, cascade or retention cleanup. |
 | **WP-03** | Knowledge Bundle toolchain | WP-01 | Implement entirely new versioned loader/registry/linter and approved synthetic placeholders; old `supportive-v5` policy is not imported. |
 | **WP-04** | LLM client layer | WP-01 | New provider-neutral structured + streaming client, small/strong/classifier/embedding tiers, cost/timeout/fallback and independent fake adapter; replace old one-shot gateway contract. |
 | **WP-05** | Gateway + Orchestrator walking skeleton | WP-01/02/04 | New in-process `ProcessTurn`; durable user admission, per-user lock, router, trace, basic safe plan and finalizer. Test a real two-stage turn end to end, including failed turn and idempotent replay. |
@@ -2953,7 +2966,7 @@ Multi-turn scenarios use `turns: [ {text, expect}, ... ]` with state carried bet
 | **WP-09** | Retrieval | WP-02/08 | SQL Server temporal/thread/semantic/anaphora/entity strategies; embedding adapter and verified relevance tests. No implied pgvector deployment. |
 | **WP-10** | Turn Brain | WP-04/08/09 | New structured reasoning, policy gate, bounded second retrieval hop and clinician-reviewed decision goldens. |
 | **WP-11** | Generator | WP-04/07/10 | New plan-bound Generator, Skill Cards and output checks; **not** the old simple `Generate(messages)`/`Reply()` method. |
-| **WP-12** | Memory | WP-02/04/08 | New Memory Writer/Committer, evidence/provenance, corrections, deletion, consent and privacy use cases. |
+| **WP-12** | Memory | WP-02/04/08 | New Memory Writer/Committer, evidence/provenance, corrections, soft deletion, explicit consent/use policies and privacy use cases; no permanent erasure policy in this phase. |
 | **WP-13** | Protocol Engine | WP-03/08/10 | Protocol eligibility, consent, state transitions and reviewed initial intervention schemas. |
 | **WP-14** | NEW AI Reflection + Scheduler | WP-12/13 | New psychological formulation and episode consolidation + leased jobs; explicitly unrelated to and not built from deleted Daily Reflection CRUD. |
 | **WP-15** | Eval harness | WP-01/10/11 | Golden runner, trace replay, longitudinal/safety tests, clinician review hooks; tests target fresh architecture. |
@@ -2971,7 +2984,7 @@ Multi-turn scenarios use `turns: [ {text, expect}, ... ]` with state carried bet
 6. Documents inputs, outputs, state ownership, evidence and rule-code coverage in the package README.
 7. Preserves the Modular Monolith's import boundaries; SQL only in MSSQL adapters/UoW, provider SDK access only in model adapters.
 8. Emits metrics for latency, degraded/error paths, token/cost usage and rule hits.
-9. **No old AI reply/prompt/safety path or Daily Reflection dependency remains.** Data-retirement and route-removal checks are green.
+9. **No old AI reply/prompt/safety path or Daily Reflection dependency remains.** Data-preservation and route-removal checks are green; stored Daily Reflection rows remain.
 
 ### 13.3 Contract change process
 
@@ -2989,7 +3002,7 @@ Multi-turn scenarios use `turns: [ {text, expect}, ... ]` with state carried bet
 | ID | Issue | Provisional contract / decision needed |
 | --- | --- | --- |
 | [OPEN-1] | Launch locales / Persian safety coverage | UI is Persian-first; approve `fa-*` content, crisis resources, locale tests and clinical review before real release. English example files are placeholders. |
-| [OPEN-2] | Data retention, backup deletion and consent | Define raw messages, AI memory, encrypted traces and exports; synthetic-only baseline isn't a production privacy policy. |
+| [OPEN-2] | Data retention, backup deletion and consent | All records currently retained. Define permanent deletion/legal erasure/backup disposal in a separate future policy; define AI-use eligibility independently from retention and visibility. |
 | [OPEN-3] | Human escalation / critical-risk responsibilities | No staffing/workflow is assumed; settle clinical and legal responsibilities. |
 | [OPEN-4] | Embedding model/vector retrieval on SQL Server 2022 | Select model/dimensions, retrieval strategy and real benchmark; 1024 dimensions are illustrative. |
 | [OPEN-5] | Proactive engagement | Opt-in only; delivery mechanism not yet implemented. |
@@ -2997,7 +3010,7 @@ Multi-turn scenarios use `turns: [ {text, expect}, ... ]` with state carried bet
 | [OPEN-7] | Human review/encryption/access | Restricted review and production data safeguards need a separate approved design. |
 | [OPEN-8] | Conversation schema migration / two-phase admission | Finalize `dbo.turns` status and lease migration, per-user serialization, user-only failed turns, concurrent-device behavior, and recovery transaction tests. |
 | [OPEN-9] | Scope and deployment authorization | Original synthetic-only MVP excludes advanced AI; update product/architecture documents and obtain privacy/security/clinical review before production. |
-| [OPEN-10] | Retirement of `dbo.daily_reflections` | User explicitly requests removing the old feature. Confirm the database has only disposable synthetic rows or approve export/retention before the new drop-table migration. |
+| [OPEN-10] | Retirement of `dbo.daily_reflections` | Feature code/routes may be retired; the table and its rows must remain. Permanent disposal is outside the current policy. |
 
 **Important distinction:** These open items do not justify retaining prototype AI code. They identify approvals or migration details that must be resolved *before corresponding implementation/release*, while contract-first scaffolding can proceed.
 
@@ -3089,7 +3102,7 @@ type LLMUsage struct {
 3. **Identifiers/database:** UUID/`uniqueidentifier`, SQL Server T-SQL and forward-only `0017+` migrations remain authoritative. `dbo.conversations`, `dbo.turns`, `dbo.messages` may be **migrated/refactored** to meet the new contract, but must remain a single authoritative raw conversation source.
 4. **Turn lifecycle replaces old tests:** User message admitted and persisted before LLM processing; failed/in-progress turns remain durable; only validated assistant output commits together with AI state, jobs and trace. The existing `ClaimTurn`/`CompleteTurn` and 120-second lease are inspection references, not immutable rules. Per-user coordination spans conversations; new migration/tests are required.
 5. **No legacy AI path:** Remove one-shot `ReplyGenerator.Reply`, `supportive-v5`, old simplified context/prompt and phrase-only safety. Rebuild from new Brain, Protocol, Validator, Memory and Knowledge Bundle contracts. Old AI module files can be deleted/replaced; do not route new failures through the legacy system.
-6. **Legacy Reflection retirement:** Delete the former user-authored `modules/reflection` Daily Reflection feature, API routes/contracts and stale references. AI Core Reflection is freshly implemented as psychological formulation inside `modules/ai/application/reflection`. Retire `dbo.daily_reflections` in a new migration after checking data status; do not alter applied `0012`.
+6. **Legacy Reflection retirement:** Delete the former user-authored `modules/reflection` Daily Reflection feature, API routes/contracts and stale references. AI Core Reflection is freshly implemented as psychological formulation inside `modules/ai/application/reflection`. Retain `dbo.daily_reflections` and all rows under the soft-delete policy; do not alter applied `0012`.
 7. **HTTP target:** Use the existing Gin/OpenAPI *mechanism*, not necessarily the existing Turn JSON payload or `promptVersion`. Contract for new response/retry/streaming is specified in §9 before exposing it to clients.
 8. **Privacy and readiness:** Synthetic-only tests, mocked provider calls and example lexicons are not clinical or production approval. All new code needs privacy/security/safety checks; no blanket authorization for handling real sensitive data.
 9. **Contract compilation:** The included Go, SQL and YAML blocks form a normative design, not a compiled implementation. WP-01/02 must resolve imports, schema mirror equivalence, migration dependencies, thread/user locks, type references and SQL Server syntax through real tests.

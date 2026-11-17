@@ -53,4 +53,13 @@ If a request involves public availability, real personal chat data, diagnosis, a
 The approved local UI enters a **fictional phone-shaped test identifier**, not a seeded-user dropdown. `POST /api/v1/dev/identity-session` find-or-creates a test user and cookie; this is not OTP authentication. Accept `09xxxxxxxxx` phone-shaped identifiers for local synthetic testing only. This is not mobile authentication; do not use personal phone numbers. Preserve frontend design; legacy seeded-list routes remain only to keep previous automated tests working. See `apps/api/internal/modules/devsession/README.md`.
 
 ## HAMRAH-BACKEND-07: Saved Messages
-Read `docs/integration/TASK07_SAVED_MESSAGES.md`. Do not remove the existing Chat menu or redesign the designer UI. Bookmarks use owner-checked message IDs and cascade with deleted conversations; local synthetic-only.
+Read `docs/integration/TASK07_SAVED_MESSAGES.md`. Do not remove the existing Chat menu or redesign the designer UI. Bookmarks use owner-checked message IDs and inherit soft-deleted conversation visibility while retaining all records (ADR 0010); local synthetic-only.
+
+## WP-02 soft-delete correction (2026-11-16)
+
+All user deletion is soft-only. Preserve original and derived data; do not purge,
+cascade physical deletes, clear content or run retention cleanup. Conversation
+deletion must not invalidate derived memories/analyses or change consent. Normal
+queries hide deleted resources. Retention/visibility and AI-use permissions are
+separate; no implicit reuse policy is authorized. Permanent/legal erasure is a
+separate future policy. Use migration 0020 and ADR 0010; keep prior migrations immutable.

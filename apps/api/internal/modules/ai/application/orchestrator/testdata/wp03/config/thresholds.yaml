@@ -1,0 +1,59 @@
+{
+  "schema": "thresholds.v1",
+  "hypothesis": {
+    "supported_min_support": 2,
+    "supported_min_sessions": 2,
+    "contested_when": {
+      "contradict_gte": 1,
+      "and_contradict_gte_support": true
+    },
+    "stale_after_days": 90,
+    "rejection_cooldown_days": 21
+  },
+  "memory": {
+    "dedupe_cosine_gte": 0.9,
+    "contradiction_requires_user_confirmation": true,
+    "stale_after_days": 90,
+    "stale_importance_lt": 0.3,
+    "hot_set_max_items": 150
+  },
+  "session": {
+    "idle_timeout_min": 30
+  },
+  "thread": {
+    "dormant_after_days": 30,
+    "max_active": 3
+  },
+  "resumption_bands": {
+    "same_min": 30,
+    "short_hours": 24,
+    "day_days": 7
+  },
+  "safety": {
+    "l1_min_confidence_for_high": 0.55,
+    "deescalate": {
+      "min_hours_since_signal": 24,
+      "require_user_statement": true,
+      "then_level": "low"
+    }
+  },
+  "engagement": {
+    "late_night_window": "01:00-05:00",
+    "dependency_watch_if": {
+      "late_night_sessions_7d_gte": 4,
+      "or_avg_daily_minutes_gte": 120
+    }
+  },
+  "reflection": {
+    "triggers": {
+      "session_closed": true,
+      "min_new_items": 3,
+      "thread_turns_gte": 8,
+      "contradiction_events_gte": 2
+    },
+    "min_evidence_for_formulation": {
+      "sessions": 2,
+      "situations": 3
+    }
+  }
+}

@@ -1,0 +1,35 @@
+# SYNTHETIC WP-03 CONTRACT FIXTURE ONLY. NOT CLINICALLY REVIEWED; NEVER SHIP TO USERS.
+schema: retrieval.v1
+defaults:
+  max_items: 5
+  min_score: 0.32
+  per_item_tokens: 60
+  hard_cap_with_hop: 7
+weights:
+  similarity: 0.5
+  recency: 0.2
+  importance: 0.15
+  thread_match: 0.15
+recency:
+  half_life_days: 21
+anaphora:
+  recent_window_days: 14
+  emotion_boost: 0.15
+  topic_boost: 0.1
+temporal:
+  max_messages: 12
+  default_roles:
+  - user
+  week_starts_on: monday
+  tz_source: user_state
+hypotheses:
+  include_statuses:
+  - proposed
+  - supported
+  require_thread_match: true
+novelty_filter:
+  skip_if_in_recent_messages: 8
+  similarity_gte: 0.92
+timeouts:
+  total_ms: 300
+  per_strategy_ms: 200

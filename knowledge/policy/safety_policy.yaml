@@ -1,0 +1,25 @@
+# SYNTHETIC WP-03 CONTRACT FIXTURE ONLY. NOT CLINICALLY REVIEWED; NEVER SHIP TO USERS.
+schema: safety_policy.v1
+categories: {}
+template_families: {}
+risk_fsm:
+  deescalate:
+    from_high_to_elevated:
+      min_hours_since_signal: 12
+      require:
+      - no_new_signals
+    from_elevated_to_low:
+      min_hours_since_signal: 24
+      require:
+      - no_new_signals
+      - user_statement_safe_or_topic_neutral_3_turns
+  follow_up_hours: 24
+second_look:
+  downgrade:
+    from: high
+    to: elevated
+    when_context_flags_any:
+    - fictional
+    - quoted
+    never_when:
+    - first_person_present_tense

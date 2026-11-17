@@ -111,7 +111,7 @@ func TestSQLServerFoundation(t *testing.T) {
             AND (lease_id IS NOT NULL OR lease_expires_at IS NOT NULL)`).Scan(&invalidCompleted); err != nil || invalidCompleted != 0 {
 			t.Fatalf("upgrade changed completed turns: count=%d error=%v", invalidCompleted, err)
 		}
-		if _, err := db.ExecContext(ctx, `DELETE FROM dbo.turns WHERE id=CONVERT(uniqueidentifier,@p1)`, turn.String()); err != nil {
+		if _, err := db.ExecContext(ctx, `UPDATE dbo.turns SET lease_expires_at=CONVERT(datetime2(3),'2000-01-01') WHERE id=CONVERT(uniqueidentifier,@p1)`, turn.String()); err != nil {
 			t.Fatal(err)
 		}
 	})
@@ -212,7 +212,7 @@ func TestSQLServerFoundation(t *testing.T) {
 			t.Fatalf("expired session accepted: %v %v", ok, err)
 		}
 	})
-	t.Run("ownership replay ordering and cascade", func(t *testing.T) {
+	t.Run("ownership replay ordering and soft deletion", func(t *testing.T) {
 		repo := convdb.New(db)
 		a := uuid.MustParse("11111111-1111-4111-8111-111111111111")
 		b := uuid.MustParse("22222222-2222-4222-8222-222222222222")
@@ -267,8 +267,8 @@ func TestSQLServerFoundation(t *testing.T) {
 			t.Fatal(err)
 		}
 		var count int
-		if err := db.QueryRowContext(ctx, "SELECT (SELECT COUNT(*) FROM dbo.turns WHERE id=CONVERT(uniqueidentifier,@p1))+(SELECT COUNT(*) FROM dbo.messages WHERE turn_id=CONVERT(uniqueidentifier,@p1))", turn.String()).Scan(&count); err != nil || count != 0 {
-			t.Fatalf("cascade: count=%d error=%v", count, err)
+		if err := db.QueryRowContext(ctx, "SELECT (SELECT COUNT(*) FROM dbo.turns WHERE id=CONVERT(uniqueidentifier,@p1))+(SELECT COUNT(*) FROM dbo.messages WHERE turn_id=CONVERT(uniqueidentifier,@p1))", turn.String()).Scan(&count); err != nil || count != 3 {
+			t.Fatalf("preserved turn and messages: count=%d error=%v", count, err)
 		}
 	})
 	t.Run("expired processing turn recovery is fenced and replayed", func(t *testing.T) {
@@ -476,8 +476,8 @@ func TestSQLServerFoundation(t *testing.T) {
 					}
 					var count int
 					if err := db.QueryRowContext(ctx, `SELECT (SELECT COUNT(*) FROM dbo.turns WHERE id=CONVERT(uniqueidentifier,@p1))+
-                        (SELECT COUNT(*) FROM dbo.messages WHERE turn_id=CONVERT(uniqueidentifier,@p1))`, turn.String()).Scan(&count); err != nil || count != 0 {
-						t.Fatalf("failed generation persisted rows: count=%d error=%v", count, err)
+                        (SELECT COUNT(*) FROM dbo.messages WHERE turn_id=CONVERT(uniqueidentifier,@p1))`, turn.String()).Scan(&count); err != nil || count != 1 {
+						t.Fatalf("failed generation must retain only its reservation: count=%d error=%v", count, err)
 					}
 					// Same UUID/input can be retried after failure or cancellation.
 					working := aiapp.New(integrationGateway(func(context.Context, []aiapp.ChatMessage) (string, error) {

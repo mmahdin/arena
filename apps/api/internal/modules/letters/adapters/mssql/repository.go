@@ -20,7 +20,7 @@ func New(db *sql.DB) *Repository { return &Repository{db: db} }
 func (r *Repository) List(ctx context.Context, userID uuid.UUID) ([]application.Letter, error) {
 	rows, err := r.db.QueryContext(ctx, `SELECT TOP(30) CONVERT(varchar(36), id), title, salutation, paragraphs_json, question, created_at,
        CONVERT(varchar(36), source_conversation_id)
-       FROM dbo.personalized_letters WHERE user_id=CONVERT(uniqueidentifier,@p1)
+       FROM dbo.personalized_letters WHERE deleted_at IS NULL AND user_id=CONVERT(uniqueidentifier,@p1)
        ORDER BY created_at DESC, id DESC`, userID.String())
 	if err != nil {
 		return nil, err
@@ -62,8 +62,8 @@ func (r *Repository) LatestEligible(ctx context.Context, uid uuid.UUID) (applica
 	var id string
 	// Require at least three completed user messages in one existing, owner-scoped conversation.
 	err := r.db.QueryRowContext(ctx, `SELECT TOP(1) CONVERT(varchar(36), c.id)
-      FROM dbo.conversations c WHERE c.user_id=CONVERT(uniqueidentifier,@p1)
-      AND (SELECT COUNT_BIG(*) FROM dbo.messages m WHERE m.conversation_id=c.id AND m.role=N'user') >= 3
+      FROM dbo.conversations c WHERE c.deleted_at IS NULL AND c.user_id=CONVERT(uniqueidentifier,@p1)
+      AND (SELECT COUNT_BIG(*) FROM dbo.messages m WHERE m.conversation_id=c.id AND m.role=N'user' AND m.deleted_at IS NULL) >= 3
       ORDER BY c.updated_at DESC, c.id DESC`, uid.String()).Scan(&id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return result, application.ErrInsufficientContext
@@ -79,7 +79,7 @@ func (r *Repository) LatestEligible(ctx context.Context, uid uuid.UUID) (applica
 	rows, err := r.db.QueryContext(ctx, `SELECT role,content FROM (
         SELECT TOP(20) m.role, m.content, m.message_order
         FROM dbo.messages m JOIN dbo.conversations c ON c.id=m.conversation_id
-        WHERE c.id=CONVERT(uniqueidentifier,@p1) AND c.user_id=CONVERT(uniqueidentifier,@p2)
+        WHERE c.id=CONVERT(uniqueidentifier,@p1) AND c.user_id=CONVERT(uniqueidentifier,@p2) AND c.deleted_at IS NULL AND m.deleted_at IS NULL
         ORDER BY m.message_order DESC
       ) recent ORDER BY message_order ASC`, id, uid.String())
 	if err != nil {
@@ -99,7 +99,7 @@ func (r *Repository) LatestEligible(ctx context.Context, uid uuid.UUID) (applica
 func (r *Repository) BySource(ctx context.Context, uid, conversationID uuid.UUID) (application.Letter, error) {
 	var id string
 	err := r.db.QueryRowContext(ctx, `SELECT CONVERT(varchar(36),id) FROM dbo.personalized_letters
-      WHERE user_id=CONVERT(uniqueidentifier,@p1) AND source_conversation_id=CONVERT(uniqueidentifier,@p2)`, uid.String(), conversationID.String()).Scan(&id)
+      WHERE deleted_at IS NULL AND user_id=CONVERT(uniqueidentifier,@p1) AND source_conversation_id=CONVERT(uniqueidentifier,@p2)`, uid.String(), conversationID.String()).Scan(&id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return application.Letter{}, httpx.ErrNotFound
 	}
@@ -113,7 +113,7 @@ func (r *Repository) byID(ctx context.Context, uid uuid.UUID, id string) (applic
 	var raw, conversationID string
 	var salutation, question sql.NullString
 	err := r.db.QueryRowContext(ctx, `SELECT title,salutation,paragraphs_json,question,created_at,CONVERT(varchar(36),source_conversation_id)
-        FROM dbo.personalized_letters WHERE user_id=CONVERT(uniqueidentifier,@p1) AND id=CONVERT(uniqueidentifier,@p2)`, uid.String(), id).
+        FROM dbo.personalized_letters WHERE deleted_at IS NULL AND user_id=CONVERT(uniqueidentifier,@p1) AND id=CONVERT(uniqueidentifier,@p2)`, uid.String(), id).
 		Scan(&l.Title, &salutation, &raw, &question, &l.CreatedAt, &conversationID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return l, httpx.ErrNotFound
@@ -153,7 +153,7 @@ func (r *Repository) Save(ctx context.Context, uid, conversationID uuid.UUID, dr
 	_, err = r.db.ExecContext(ctx, `INSERT dbo.personalized_letters(id,user_id,source_conversation_id,title,salutation,paragraphs_json,question)
       SELECT CONVERT(uniqueidentifier,@p1),c.user_id,c.id,@p4,@p5,@p6,@p7
       FROM dbo.conversations c
-      WHERE c.id=CONVERT(uniqueidentifier,@p2) AND c.user_id=CONVERT(uniqueidentifier,@p3)`,
+      WHERE c.id=CONVERT(uniqueidentifier,@p2) AND c.user_id=CONVERT(uniqueidentifier,@p3) AND c.deleted_at IS NULL`,
 		id.String(), conversationID.String(), uid.String(), draft.Title, draft.Salutation, encoded, draft.Question)
 	if uniqueError(err) {
 		return r.BySource(ctx, uid, conversationID)
@@ -164,7 +164,7 @@ func (r *Repository) Save(ctx context.Context, uid, conversationID uuid.UUID, dr
 	return r.byID(ctx, uid, id.String())
 }
 func (r *Repository) Delete(ctx context.Context, uid, id uuid.UUID) error {
-	result, err := r.db.ExecContext(ctx, `DELETE FROM dbo.personalized_letters
+	result, err := r.db.ExecContext(ctx, `UPDATE dbo.personalized_letters SET deleted_at=COALESCE(deleted_at,SYSUTCDATETIME()),deleted_by=CONVERT(uniqueidentifier,@p2),deletion_reason=N'user_request'
       WHERE id=CONVERT(uniqueidentifier,@p1) AND user_id=CONVERT(uniqueidentifier,@p2)`, id.String(), uid.String())
 	if err != nil {
 		return err

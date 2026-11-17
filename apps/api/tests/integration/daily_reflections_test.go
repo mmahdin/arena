@@ -121,10 +121,10 @@ func TestDailyReflectionsSQLServer(t *testing.T) {
 	if _, err := repo.Save(ctx, a, day, "یادداشت بعد از حذف"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := db.ExecContext(ctx, `DELETE dbo.users WHERE id=CONVERT(uniqueidentifier,@p1)`, a.String()); err != nil {
-		t.Fatal(err)
+	if _, err := db.ExecContext(ctx, `DELETE dbo.users WHERE id=CONVERT(uniqueidentifier,@p1)`, a.String()); err == nil {
+		t.Fatal("physical account deletion accepted")
 	}
-	if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM dbo.daily_reflections`).Scan(&count); err != nil || count != 0 {
-		t.Fatal("FK cascade", count, err)
+	if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM dbo.daily_reflections`).Scan(&count); err != nil || count != 2 {
+		t.Fatal("preserved deleted entry and replacement", count, err)
 	}
 }

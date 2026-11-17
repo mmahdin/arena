@@ -16,7 +16,7 @@ func (r *Repository) owned(ctx context.Context, uid, id uuid.UUID) (bool, error)
 	var exists bool
 	err := r.db.QueryRowContext(ctx, `SELECT CAST(CASE WHEN EXISTS(
     SELECT 1 FROM dbo.messages m JOIN dbo.conversations c ON c.id=m.conversation_id
-    WHERE m.id=CONVERT(uniqueidentifier,@p1) AND c.user_id=CONVERT(uniqueidentifier,@p2)
+    WHERE m.id=CONVERT(uniqueidentifier,@p1) AND c.user_id=CONVERT(uniqueidentifier,@p2) AND c.deleted_at IS NULL AND m.deleted_at IS NULL
  ) THEN 1 ELSE 0 END AS bit)`, id.String(), uid.String()).Scan(&exists)
 	return exists, err
 }
@@ -24,8 +24,8 @@ func (r *Repository) Save(ctx context.Context, uid, id uuid.UUID) error {
 	// The row/key-range locks make parallel identical saves idempotent.
 	result, err := r.db.ExecContext(ctx, `INSERT INTO dbo.saved_messages(message_id,user_id)
  SELECT m.id,c.user_id FROM dbo.messages m JOIN dbo.conversations c ON c.id=m.conversation_id
- WHERE m.id=CONVERT(uniqueidentifier,@p1) AND c.user_id=CONVERT(uniqueidentifier,@p2)
- AND NOT EXISTS(SELECT 1 FROM dbo.saved_messages s WITH(UPDLOCK,HOLDLOCK) WHERE s.message_id=m.id)`, id.String(), uid.String())
+ WHERE m.id=CONVERT(uniqueidentifier,@p1) AND c.user_id=CONVERT(uniqueidentifier,@p2) AND c.deleted_at IS NULL AND m.deleted_at IS NULL
+ AND NOT EXISTS(SELECT 1 FROM dbo.saved_messages s WITH(UPDLOCK,HOLDLOCK) WHERE s.message_id=m.id AND s.deleted_at IS NULL)`, id.String(), uid.String())
 	if err != nil {
 		return err
 	}
@@ -53,18 +53,18 @@ func (r *Repository) Remove(ctx context.Context, uid, id uuid.UUID) error {
 	if !exists {
 		return httpx.ErrNotFound
 	}
-	_, err = r.db.ExecContext(ctx, `DELETE s FROM dbo.saved_messages s
+	_, err = r.db.ExecContext(ctx, `UPDATE s SET deleted_at=SYSUTCDATETIME(),deleted_by=CONVERT(uniqueidentifier,@p2),deletion_reason=N'user_request' FROM dbo.saved_messages s
  JOIN dbo.messages m ON m.id=s.message_id
  JOIN dbo.conversations c ON c.id=m.conversation_id
  WHERE s.message_id=CONVERT(uniqueidentifier,@p1) AND s.user_id=CONVERT(uniqueidentifier,@p2)
- AND c.user_id=CONVERT(uniqueidentifier,@p2)`, id.String(), uid.String())
+ AND c.user_id=CONVERT(uniqueidentifier,@p2) AND c.deleted_at IS NULL AND m.deleted_at IS NULL AND s.deleted_at IS NULL`, id.String(), uid.String())
 	return err
 }
 func (r *Repository) List(ctx context.Context, uid uuid.UUID) ([]application.SavedMessage, error) {
 	rows, err := r.db.QueryContext(ctx, `SELECT TOP(100) CONVERT(varchar(36),m.id),CONVERT(varchar(36),m.conversation_id),
  m.role,m.content,m.created_at,s.saved_at FROM dbo.saved_messages s
  JOIN dbo.messages m ON m.id=s.message_id JOIN dbo.conversations c ON c.id=m.conversation_id
- WHERE s.user_id=CONVERT(uniqueidentifier,@p1) AND c.user_id=CONVERT(uniqueidentifier,@p1)
+ WHERE s.user_id=CONVERT(uniqueidentifier,@p1) AND c.user_id=CONVERT(uniqueidentifier,@p1) AND c.deleted_at IS NULL AND m.deleted_at IS NULL AND s.deleted_at IS NULL
  ORDER BY s.saved_at DESC,m.message_order DESC`, uid.String())
 	if err != nil {
 		return nil, err

@@ -1,0 +1,64 @@
+{
+  "schema_version": "reflection.v1",
+  "thread_id": "96778bd1-86fe-42ed-a113-d2f329bba3d5",
+  "formulation": {
+    "framework": "synthetic_framework",
+    "fields": {
+      "situation": {
+        "value": "Synthetic example",
+        "status": "reported",
+        "evidence": [
+          "84412d48-c311-4cc2-a624-490717b3b1c6"
+        ],
+        "needs_more_evidence": false
+      }
+    },
+    "paragraph": "Synthetic summary"
+  },
+  "hypothesis_ops": [
+    {
+      "op": "add",
+      "kind": "hypothesis",
+      "content": "May prefer short examples",
+      "epistemic": "inferred",
+      "evidence_msg_ids": [
+        "84412d48-c311-4cc2-a624-490717b3b1c6"
+      ],
+      "reason_tag": "preference",
+      "importance": 0,
+      "entities": [
+        {
+          "role": "friend",
+          "label": "Synthetic friend"
+        }
+      ],
+      "sensitivity": "normal",
+      "valid_from": "2026-11-16"
+    }
+  ],
+  "episode": {
+    "session_id": "96778bd1-86fe-42ed-a113-d2f329bba3d5",
+    "summary": "Synthetic session",
+    "topics": [
+      "example"
+    ],
+    "emotions": [
+      "sad"
+    ],
+    "outcome": "explored",
+    "msg_range": [
+      "84412d48-c311-4cc2-a624-490717b3b1c6",
+      "84412d48-c311-4cc2-a624-490717b3b1c6"
+    ],
+    "follow_ups": []
+  },
+  "thread_proposals": [
+    {
+      "thread_id": "96778bd1-86fe-42ed-a113-d2f329bba3d5",
+      "phase": "maintaining",
+      "op": "resolve",
+      "reason": "synthetic_case"
+    }
+  ],
+  "information_gaps": []
+}
