@@ -6,11 +6,17 @@ package orchestrator
 import (
 	"context"
 	"errors"
+	"reflect"
 	"strings"
 	"time"
 	"unicode/utf16"
 
+	"golang.org/x/text/unicode/norm"
+
+	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai/application/brain"
 	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai/application/contextstate"
+	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai/application/generator"
+	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai/application/protocol"
 	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai/contract"
 	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai/ports"
 	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai/safety"
@@ -24,19 +30,23 @@ import (
 type Fallback func(route contract.Route, objective contract.Objective, locale string) (string, bool)
 
 type Dependencies struct {
-	Gateway   ports.Gateway
-	Store     ports.ConversationStore
-	Finalizer ports.TurnFinalizer
-	Recovery  ports.TurnRecovery // optional: explicit retry, cancellation and heartbeat
-	Router    ports.Router
-	Safety    ports.SafetyGate
-	Assembler ports.ContextAssembler
-	Retriever ports.Retriever // absent until WP-09; memory is unavailable
-	Brain     ports.Brain
-	Generator ports.Generator
-	Validator ports.Validator
-	Crisis    ports.CrisisPlanner // required only for a crisis route
-	Tracer    ports.Tracer
+	Reflection    TurnReflection
+	ProtocolFacts ProtocolFacts
+	Gateway       ports.Gateway
+	Store         ports.ConversationStore
+	Finalizer     ports.TurnFinalizer
+	Recovery      ports.TurnRecovery // optional: explicit retry, cancellation and heartbeat
+	Router        ports.Router
+	Safety        ports.SafetyGate
+	Assembler     ports.ContextAssembler
+	Retriever     ports.Retriever // WP-09, requiring an explicit AI-use policy
+	Brain         ports.Brain
+	Generator     ports.Generator
+	Validator     ports.Validator
+	Crisis        ports.CrisisPlanner  // required only for a crisis route
+	Memory        TurnMemory           // WP-12, explicitly composed with current consent policy
+	Protocol      ports.ProtocolEngine // WP-13, approved and pinned deterministic interventions
+	Tracer        ports.Tracer
 }
 type Options struct {
 	RouterConfig     ports.RouterConfig
@@ -84,6 +94,14 @@ func New(d Dependencies, opts Options) (*Service, error) {
 // model work; one finalizer transaction makes the assistant message visible.
 // Replaying a completed/failed/cancelled key never calls the model again.
 func (o *Service) ProcessTurn(ctx context.Context, req contract.TurnRequest) (contract.TurnResult, error) {
+	// Wake-up events are internal outbox metadata, not user-authored messages.
+	// Until a reviewed synthetic-turn admission/finalization contract exists,
+	// reject BEFORE Gateway.Admit: a substituted gateway must not fabricate a
+	// user message or lease an ordinary turn for a proactive event.
+	if req.Origin == contract.OriginWakeUp || req.WakeUp != nil {
+		return contract.TurnResult{}, coreError(contract.ErrForbidden, "wakeup_contract", nil)
+	}
+	req.Text = norm.NFC.String(req.Text)
 	a, err := o.deps.Gateway.Admit(ctx, req)
 	if err != nil {
 		return contract.TurnResult{}, err
@@ -100,7 +118,18 @@ func (o *Service) ProcessTurn(ctx context.Context, req contract.TurnRequest) (co
 		return contract.TurnResult{}, coreError(contract.ErrStateConflict, "admit", nil)
 	}
 
-	turnCtx, cancel := context.WithTimeout(ctx, o.opts.TotalTimeout)
+	turnTimeout := o.opts.TotalTimeout
+	if g, ok := o.deps.Generator.(interface {
+		WP11()
+		TurnTimeout() time.Duration
+	}); ok && g.TurnTimeout() < turnTimeout {
+		turnTimeout = g.TurnTimeout()
+	}
+	deadline := time.Now().Add(turnTimeout)
+	if b, ok := contract.BudgetFromContext(ctx); ok && !b.TotalDeadline.IsZero() && b.TotalDeadline.Before(deadline) {
+		deadline = b.TotalDeadline
+	}
+	turnCtx, cancel := context.WithDeadline(ctx, deadline)
 	defer cancel()
 	var tr ports.TurnTrace
 	if o.deps.Tracer != nil {
@@ -357,7 +386,15 @@ func (o *Service) prepare(ctx context.Context, req contract.TurnRequest, a contr
 			return
 		}
 		turn := contract.TurnView{TurnID: a.TurnID, MessageID: a.UserMessageID, Text: req.Text, Lang: req.Locale, Origin: req.Origin}
-		ret, err := o.deps.Retriever.Retrieve(ctx, contract.RetrievalRequest{UserID: a.UserID, Turn: turn, MaxItems: 5})
+		var focus *contract.ID
+		if o.integration != nil {
+			focus = prior.Session.FocusThreadID
+		}
+		exclude := make([]contract.ID, 0, len(history))
+		for _, m := range history {
+			exclude = append(exclude, m.ID)
+		}
+		ret, err := o.deps.Retriever.Retrieve(ctx, contract.RetrievalRequest{UserID: a.UserID, Turn: turn, FocusThread: focus, Exclude: exclude, MaxItems: 5})
 		retrieveCh <- retrieveResult{ret, err}
 	}()
 	var safe safetyResult
@@ -449,42 +486,96 @@ func (o *Service) prepare(ctx context.Context, req contract.TurnRequest, a contr
 		tr.Record("route", trace.Observation{RuleID: decision.Reason, Degraded: safe.signal.Degraded})
 	}
 	if decision.Route == contract.RouteProactive {
-		// WP-02 rejects wake-up admission; a future WP-14-approved synthetic
-		// pathway must explicitly enable it. No unconsented proactive output.
+		// Defense in depth: no PROACTIVE turn is authorized by the current
+		// admission/finalization contract. No unconsented proactive output.
 		return contract.PreparedTurn{}, "route", coreError(contract.ErrValidation, "proactive", nil)
 	}
 
+	// Pre-Brain WP-13 shortlist. Never show the model candidates without
+	// explicit readiness and a verifiable owner-scoped snapshot. Candidate
+	// scoring and contraindications are deterministic and bundle-defined.
+	if o.integration != nil && o.deps.Protocol != nil && decision.Route == contract.RouteNormal && wc.Protocol == nil {
+		if p, ok := o.deps.Protocol.(interface {
+			ShortlistWithContext(context.Context, protocol.ShortlistContext) ([]contract.ProtocolBrief, error)
+		}); ok && wc.Eligibility.ProtocolsPossible {
+			readiness := protocol.ExplicitReadiness(wc.Turn.Text)
+			if readiness != protocol.ReadinessUnknown {
+				flags := []string{}
+				verified := false
+				if o.deps.ProtocolFacts != nil && stateSnapshot.Focus != nil {
+					var e error
+					flags, verified, e = o.deps.ProtocolFacts.Flags(ctx, a.UserID, stateSnapshot.Focus.ID)
+					if e != nil {
+						verified = false
+						flags = nil
+					}
+				}
+				candidates, e := p.ShortlistWithContext(ctx, protocol.ShortlistContext{WCtx: wc, Thread: stateSnapshot.Focus, User: stateSnapshot.User, Readiness: readiness, Flags: flags, FlagsVerified: verified, Now: o.integration.now()})
+				if e != nil {
+					return contract.PreparedTurn{}, "protocol_shortlist", e
+				}
+				wc.Shortlist = candidates
+			}
+		}
+		if len(wc.Shortlist) == 0 {
+			wc.Eligibility.ProtocolsPossible = false
+			wc.Eligibility.ReasonsBlocked = append(wc.Eligibility.ReasonsBlocked, "no_eligible_reviewed_protocol")
+		}
+	}
 	objective := contract.ObjReflect
 	plan := restrictedPlan()
 	degraded := safe.signal.Degraded || retr.result.Meta.Degraded
 	var crisis *contract.CrisisPlan
 	var banner *contract.SafetyBanner
 	var vettedBrain *contract.BrainDecision
+	if g, ok := o.deps.Generator.(interface {
+		WP11()
+		MaxSyncCalls() int
+	}); ok {
+		limit := g.MaxSyncCalls()
+		if b, ok := contract.BudgetFromContext(ctx); ok && b.MaxLLMCalls > 0 && b.MaxLLMCalls < limit {
+			limit = b.MaxLLMCalls
+		}
+		ctx = contract.WithCallAllowance(ctx, limit)
+	}
 	switch decision.Route {
 	case contract.RouteFast:
 		objective = contract.ObjAnswerDirect
 	case contract.RouteNormal:
-		started = time.Now()
-		brainCtx, cancel := context.WithTimeout(ctx, o.opts.BrainTimeout)
-		output, e := o.deps.Brain.Decide(brainCtx, ports.BrainInput{WCtx: wc, Safety: safe.signal, Bundle: o.bundleReference(ctx)})
-		cancel()
-		if tr != nil {
-			tr.AddUsage(output.Usage)
-		}
-		record(tr, "brain", started, e != nil)
-		if e != nil || output.Decision.SchemaVersion != "brain.v1" || !output.Decision.Decision.Primary.Valid() || output.Decision.Plan.Protocol != nil || output.Decision.Plan.VoiceHypothesisID != nil {
-			degraded = true // FB-001: restricted reflect plan, never unvetted intervention
+		var output ports.BrainOutput
+		if _, wp10 := o.deps.Brain.(turnBrain); wp10 {
+			var brainDegraded bool
+			output, wc, brainDegraded, err = o.decideWP10(ctx, a, wc, safe.signal, tr)
+			if err != nil {
+				return contract.PreparedTurn{}, "brain", err
+			}
+			degraded = degraded || brainDegraded
+			objective, plan = output.Decision.Decision.Primary, output.Decision.Plan
+			vettedBrain = &output.Decision
 		} else {
-			// No Policy Gate, clinical Skills or Protocol Engine in WP-05.
-			// Only conservative, non-interventional objectives are admissible.
-			switch output.Decision.Decision.Primary {
-			case contract.ObjReflect, contract.ObjValidateSupport, contract.ObjClarify:
-				objective = output.Decision.Decision.Primary
-				if o.integration != nil {
-					vettedBrain = &output.Decision
+			started = time.Now()
+			brainCtx, cancel := context.WithTimeout(ctx, o.opts.BrainTimeout)
+			var e error
+			output, e = o.deps.Brain.Decide(brainCtx, ports.BrainInput{WCtx: wc, Safety: safe.signal, Bundle: o.bundleReference(ctx)})
+			cancel()
+			if tr != nil {
+				tr.AddUsage(output.Usage)
+			}
+			record(tr, "brain", started, e != nil)
+			if e != nil || output.Decision.SchemaVersion != "brain.v1" || !output.Decision.Decision.Primary.Valid() || output.Decision.Plan.Protocol != nil || output.Decision.Plan.VoiceHypothesisID != nil {
+				degraded = true // FB-001: restricted reflect plan, never unvetted intervention
+			} else {
+				// No Policy Gate, clinical Skills or Protocol Engine in WP-05.
+				// Only conservative, non-interventional objectives are admissible.
+				switch output.Decision.Decision.Primary {
+				case contract.ObjReflect, contract.ObjValidateSupport, contract.ObjClarify:
+					objective = output.Decision.Decision.Primary
+					if o.integration != nil {
+						vettedBrain = &output.Decision
+					}
+				default:
+					degraded = true
 				}
-			default:
-				degraded = true
 			}
 		}
 		// The Brain may only RAISE risk; re-route before generation.
@@ -522,6 +613,72 @@ func (o *Service) prepare(ctx context.Context, req contract.TurnRequest, a contr
 	default:
 		return contract.PreparedTurn{}, "route", coreError(contract.ErrValidation, "route", nil)
 	}
+	if vettedBrain != nil && decision.Route == contract.RouteNormal {
+		if vettedBrain.Plan.Protocol != nil && o.deps.Protocol == nil {
+			return contract.PreparedTurn{}, "brain_dependency", coreError(contract.ErrValidation, "brain_dependency", nil)
+		}
+		if target := vettedBrain.TurnAnalysis.CorrectionTarget; target != nil {
+			if err := o.correctMemory(ctx, a, *target); err != nil {
+				return contract.PreparedTurn{}, "memory_correction", err
+			}
+			// The already-built context is stale after the synchronous correction.
+			// Exclude the target from every generation surface, including hypotheses.
+			wc, plan = withoutCorrectedMemory(wc, plan, *target)
+			signals := vettedBrain.Understanding.Hypotheses[:0]
+			for _, signal := range vettedBrain.Understanding.Hypotheses {
+				if signal.ID == nil || *signal.ID != *target {
+					signals = append(signals, signal)
+				}
+			}
+			vettedBrain.Understanding.Hypotheses = signals
+		}
+	}
+
+	// Resolve from the persisted offered/active instance, never from the
+	// model's assumed state. ResolveTurn verifies ownership and consent evidence.
+	var resolvedSpec *contract.ProtocolStepSpec
+	var resolvedPatch *contract.ProtocolPatch
+	if decision.Route == contract.RouteNormal && plan.Protocol != nil && o.integration != nil && o.deps.Protocol != nil {
+		engine, ok := o.deps.Protocol.(interface {
+			ResolveTurn(context.Context, protocol.ResolveInput) (contract.ProtocolStepSpec, contract.ProtocolPatch, error)
+		})
+		if !ok {
+			return contract.PreparedTurn{}, "protocol_integration", coreError(contract.ErrValidation, "protocol_integration", nil)
+		}
+		spec, patch, resolveErr := engine.ResolveTurn(ctx, protocol.ResolveInput{
+			UserID: a.UserID, TurnID: a.TurnID, UserMessageID: a.UserMessageID, Bundle: o.bundleReference(ctx),
+			Plan: plan, Objective: objective, Active: stateSnapshot.Protocol, WCtx: wc, Shortlist: wc.Shortlist,
+			UserAffirmed: wc.Protocol != nil && (wc.Protocol.Status == contract.PIOffered || wc.Protocol.Status == contract.PIPaused) && protocol.AffirmedOffer(wc.Turn.Text), Risk: safe.signal.Level,
+		})
+		if resolveErr != nil {
+			// Invalid protocol decisions are never sent to the generator or committed.
+			degraded = true
+			plan = restrictedPlan()
+			objective = contract.ObjReflect
+		} else {
+			resolvedPatch = &patch
+			if spec.ProtocolID != "" {
+				resolvedSpec = &spec
+			}
+			if resolvedSpec == nil {
+				plan = restrictedPlan()
+				objective = contract.ObjCloseOrPause
+			}
+		}
+	}
+	if resolvedSpec != nil && plan.Protocol != nil {
+		resolver, ok := o.deps.Protocol.(interface {
+			RequiredText(contract.ProtocolStepSpec) (map[string]string, error)
+		})
+		if !ok {
+			return contract.PreparedTurn{}, "protocol_requirements", coreError(contract.ErrValidation, "protocol_requirements", nil)
+		}
+		required, e := resolver.RequiredText(*resolvedSpec)
+		if e != nil {
+			return contract.PreparedTurn{}, "protocol_requirements", e
+		}
+		ctx = validator.WithProtocolRequirements(ctx, resolvedSpec, required)
+	}
 	if decision.Route == contract.RouteCrisis {
 		if o.deps.Crisis == nil {
 			return contract.PreparedTurn{}, "route", coreError(contract.ErrSafetyDegraded, "crisis", nil)
@@ -539,22 +696,84 @@ func (o *Service) prepare(ctx context.Context, req contract.TurnRequest, a contr
 		objective = contract.ObjSafetySupport
 		plan = restrictedPlan()
 	}
-	reply, wasFallback, finalObjective, err := o.generateValidated(ctx, wc, plan, objective, safe.signal.Level, crisis, decision.Route, req.Locale, tr)
+	// An elevated-risk turn must terminate an outstanding offer even when the
+	// Brain is bypassed (crisis route) or its protocol directive is removed by
+	// the safety gate. This status-only patch is independent of reply delivery.
+	safetyInterruption := false
+	if o.integration != nil && o.deps.Protocol != nil && stateSnapshot.Protocol != nil &&
+		stateSnapshot.Protocol.Status == contract.PIOffered &&
+		(riskRank(safe.signal.Level) >= riskRank(contract.RiskElevated) || wc.Risk.FollowUpActive) {
+		engine, ok := o.deps.Protocol.(interface {
+			ResolveTurn(context.Context, protocol.ResolveInput) (contract.ProtocolStepSpec, contract.ProtocolPatch, error)
+		})
+		if !ok {
+			return contract.PreparedTurn{}, "protocol_safety", coreError(contract.ErrValidation, "protocol_safety", nil)
+		}
+		_, patch, e := engine.ResolveTurn(ctx, protocol.ResolveInput{
+			UserID: a.UserID, TurnID: a.TurnID, UserMessageID: a.UserMessageID,
+			Bundle: o.bundleReference(ctx), Active: stateSnapshot.Protocol, WCtx: wc,
+			Plan: contract.ResponsePlan{Protocol: &contract.ProtocolDirective{Action: contract.PAStop}}, Risk: safe.signal.Level,
+		})
+		if e != nil || patch.NewStatus == nil || *patch.NewStatus != contract.PIStopped {
+			return contract.PreparedTurn{}, "protocol_safety", coreError(contract.ErrStateConflict, "protocol_safety", e)
+		}
+		resolvedPatch = &patch
+		resolvedSpec = nil
+		safetyInterruption = true
+	}
+	reply, wasFallback, finalObjective, validationReport, usedTemplate, outageCrisis, err := o.generateValidated(ctx, wc, plan, objective, resolvedSpec, safe.signal.Level, crisis, decision.Route, req.Locale, tr)
 	objective = finalObjective
 	if err != nil {
 		return contract.PreparedTurn{}, "validator", err
 	}
 	degraded = degraded || wasFallback
+	if outageCrisis != nil {
+		crisis = outageCrisis
+		banner = &contract.SafetyBanner{Level: safe.signal.Level, Resources: crisis.Resources}
+		decision.Route = contract.RouteCrisis
+		plan = restrictedPlan()
+		if tr != nil {
+			tr.SetRoute(decision.Route)
+		}
+	}
+	if usedTemplate || wasFallback || outageCrisis != nil {
+		vettedBrain = nil
+		if !safetyInterruption {
+			resolvedPatch = nil // never commit an offer/step the user did not receive
+		}
+	}
 	delta := contract.StateDelta{TurnID: a.TurnID, UserID: a.UserID, ExpectedVersions: a.Versions,
 		Session: contract.SessionPatch{LastObjective: objective, TurnCountInc: 1}}
 	if o.integration != nil {
 		delta.ExpectedVersions = stateSnapshot.Versions
 		delta.Session.ConsecutiveQuestions = wc.Session.ConsecutiveQuestions
-		// Only conservative, evidence-bearing updates for the current focus
-		// thread are admitted. No new thread, protocol, memory, or hypothesis
-		// is invented while WP-07/WP-10/WP-13 remain unimplemented.
-		if vettedBrain != nil && decision.Route == contract.RouteNormal && riskRank(safe.signal.Level) < riskRank(contract.RiskElevated) {
-			o.integrateBrainDelta(&delta, *vettedBrain, wc, stateSnapshot)
+		if validationReport.Extracted.QuestionText != nil && validationReport.Extracted.QuestionCount == 1 {
+			delta.Session.PendingQuestion = &contract.PendingQuestion{Text: *validationReport.Extracted.QuestionText, Slot: plan.Question.Slot, AskedAt: o.integration.now().UTC()}
+			delta.Session.ConsecutiveQuestions++
+		} else {
+			delta.Session.ConsecutiveQuestions = 0
+		}
+		// WP-10 proposes creation/shift/extraction only after decision gates.
+		// WP-08 validates ownership, readiness and transitions again; the
+		// isolated WP-05 path retains its original restricted state bridge.
+		if vettedBrain != nil && decision.Route == contract.RouteNormal {
+			if _, wp10 := o.deps.Brain.(turnBrain); wp10 {
+				brain.ProposeDelta(&delta, *vettedBrain, wc, stateSnapshot)
+			} else if riskRank(safe.signal.Level) < riskRank(contract.RiskElevated) {
+				o.integrateBrainDelta(&delta, *vettedBrain, wc, stateSnapshot)
+			}
+		}
+		if resolvedPatch != nil {
+			delta.Protocol = resolvedPatch
+			if resolvedPatch.NewStatus != nil {
+				switch *resolvedPatch.NewStatus {
+				case contract.PICompleted, contract.PIStopped, contract.PIDeclined:
+					if stateSnapshot.Protocol != nil {
+						outcome := string(*resolvedPatch.NewStatus)
+						delta.User.ProtocolHistoryAdd = &contract.ProtocolHistoryBrief{ProtocolID: stateSnapshot.Protocol.ProtocolID, Outcome: outcome, At: o.integration.now().UTC()}
+					}
+				}
+			}
 		}
 		if riskChange.Transition != nil && !riskChange.AddToDelta(&delta, safe.signal.Categories) {
 			return contract.PreparedTurn{}, "risk_delta", coreError(contract.ErrValidation, "risk_delta", nil)
@@ -564,6 +783,9 @@ func (o *Service) prepare(ctx context.Context, req contract.TurnRequest, a contr
 		record(tr, "state_validate", started, validationErr != nil || len(rejected) != 0)
 		if validationErr != nil {
 			return contract.PreparedTurn{}, "state_validate", validationErr
+		}
+		if resolvedPatch != nil && (checked.Protocol == nil || !reflect.DeepEqual(*checked.Protocol, *resolvedPatch)) {
+			return contract.PreparedTurn{}, "protocol_commit", coreError(contract.ErrStateConflict, "protocol_commit", nil)
 		}
 		if riskChange.Transition != nil && (checked.User.Risk == nil || *checked.User.Risk != *riskChange.Transition || !hasRiskEvent(checked.Events)) {
 			// Never complete a turn while silently dropping an escalation.
@@ -581,12 +803,33 @@ func (o *Service) prepare(ctx context.Context, req contract.TurnRequest, a contr
 			degraded = true
 		}
 	}
+	var jobs []contract.AsyncJobProposal
+	if o.deps.Memory != nil && vettedBrain != nil && decision.Route == contract.RouteNormal {
+		jobCtx := o.memoryJobContext(ctx, a, delta, wc, validationReport.Extracted)
+		job, err := o.deps.Memory.PlanJob(jobCtx, a, *vettedBrain, validationReport.Extracted.ClaimsAboutUser)
+		if err != nil {
+			// Extraction is off the reply's critical path. An approved response
+			// can complete; a later explicit sweep may recover the persisted turn.
+			degraded = true
+			record(tr, "memory_schedule", time.Now(), true)
+			job = nil
+		}
+		if job != nil {
+			jobs = append(jobs, *job)
+		}
+	}
+	if o.deps.Reflection != nil && vettedBrain != nil && decision.Route == contract.RouteNormal {
+		if job := o.deps.Reflection.PlanJob(a, *vettedBrain, delta); job != nil {
+			jobs = append(jobs, *job)
+		}
+	}
 	return contract.PreparedTurn{
 		TurnID: a.TurnID, UserMessageID: a.UserMessageID, Text: reply,
 		Route: decision.Route, Objective: objective, Degraded: degraded,
 		State:  delta,
 		Trace:  contract.TurnTraceSummary{TurnID: a.TurnID, BundleVersion: o.bundleReference(ctx).Version, Route: decision.Route, Objective: objective},
 		Safety: banner,
+		Jobs:   jobs,
 	}, "finalizer", nil
 }
 
@@ -601,25 +844,51 @@ func restrictedPlan() contract.ResponsePlan {
 // The provider stream is never exposed to HTTP or persisted before acceptance.
 // A PLAN_UNSAFE sentinel chooses the approved reflect fallback rather than
 // executing a plan which the Generator has flagged unsafe.
-func (o *Service) generateValidated(ctx context.Context, wc contract.WorkingContext, plan contract.ResponsePlan, objective contract.Objective, risk contract.RiskLevel, crisis *contract.CrisisPlan, route contract.Route, locale string, tr ports.TurnTrace) (string, bool, contract.Objective, error) {
+func (o *Service) generateValidated(ctx context.Context, wc contract.WorkingContext, plan contract.ResponsePlan, objective contract.Objective, spec *contract.ProtocolStepSpec, risk contract.RiskLevel, crisis *contract.CrisisPlan, route contract.Route, locale string, tr ports.TurnTrace) (string, bool, contract.Objective, contract.ValidationReport, bool, *contract.CrisisPlan, error) {
 	var regenNote *string
 	var lastErr error
+	var outageCrisis *contract.CrisisPlan
+	providersUnavailable := false
 	lastAction := contract.VARegenerate
+	maxAttempts := 2
+	stageTimeout := o.opts.GeneratorTimeout
+	if g, ok := o.deps.Generator.(interface {
+		WP11()
+		GenerationTimeout() time.Duration
+		MaxRegenerations() int
+	}); ok {
+		maxAttempts = 1 + g.MaxRegenerations()
+		if g.GenerationTimeout() < stageTimeout {
+			stageTimeout = g.GenerationTimeout()
+		}
+		pinned, exists := ctx.Value(pinnedBundleKey{}).(pinnedBundle)
+		if o.integration == nil || !exists {
+			return "", false, objective, contract.ValidationReport{}, false, nil, coreError(contract.ErrBundle, "generator_integration", nil)
+		}
+		ctx = generator.WithCallMeta(ctx, contract.CallMeta{UserID: pinned.user, TurnID: wc.Turn.TurnID, Bundle: o.bundleReference(ctx), Route: route})
+	}
+	// ONE stage deadline covers both attempts. Fallback validation retains the
+	// outer turn deadline, so an expired provider cannot consume its reserve.
+	stageCtx, stageCancel := context.WithTimeout(ctx, stageTimeout)
+	defer stageCancel()
 	// No generation work can escape the turn deadline. The existing WP-04
 	// client independently enforces provider/stream timeouts and no retry
 	// after a token is exposed to its own provider stream.
-	for attempt := 0; attempt < 2 && ctx.Err() == nil; attempt++ {
+	for attempt := 0; attempt < maxAttempts && stageCtx.Err() == nil; attempt++ {
 		started := time.Now()
-		genCtx, cancel := context.WithTimeout(ctx, o.opts.GeneratorTimeout)
+		genCtx, cancel := context.WithCancel(stageCtx)
 		guard := o.deps.Validator.StreamGuard(plan, risk)
 		sink := &bufferedSink{guard: guard, guardFactory: func() ports.StreamGuard { return o.deps.Validator.StreamGuard(plan, risk) }}
 		out, err := o.deps.Generator.Generate(genCtx, ports.GenInput{
-			Turn: wc.Turn, Plan: plan, Objective: objective, Recent: wc.Recent, Permitted: nil,
+			Turn: wc.Turn, Plan: plan, Objective: objective, Spec: spec, Recent: wc.Recent, Permitted: permittedContext(wc, plan),
 			Prefs: wc.Prefs, Risk: risk, Crisis: crisis, Bundle: o.bundleReference(ctx), RegenNote: regenNote,
 		}, sink)
 		cancel()
 		if tr != nil {
 			tr.AddUsage(out.Usage)
+		}
+		if generator.Fatal(err) {
+			return "", false, objective, contract.ValidationReport{}, false, nil, err
 		}
 		text := strings.TrimSpace(out.Text)
 		// A structured sentinel has exactly the same escape-hatch semantics as
@@ -631,7 +900,7 @@ func (o *Service) generateValidated(ctx context.Context, wc contract.WorkingCont
 			}
 			break
 		}
-		if out.Sentinel != "" || out.Aborted || sink.blocked {
+		if err == nil && (out.Sentinel != "" || out.Aborted || sink.blocked) {
 			err = coreError(contract.ErrValidation, "generator", nil)
 		}
 		if err == nil && sink.used {
@@ -647,6 +916,12 @@ func (o *Service) generateValidated(ctx context.Context, wc contract.WorkingCont
 		record(tr, "generator", started, err != nil)
 		if err != nil {
 			lastErr = err
+			var providerError *contract.Error
+			if errors.As(err, &providerError) && providerError.Code == contract.ErrProvider {
+				providersUnavailable = true
+			} else if !errors.As(err, &providerError) || providerError.Code != contract.ErrBudget {
+				providersUnavailable = false
+			}
 			if sink.violation != nil && tr != nil {
 				tr.Record("validator", trace.Observation{RuleID: sink.violation.Code, Count: 1, Degraded: true})
 			}
@@ -654,7 +929,7 @@ func (o *Service) generateValidated(ctx context.Context, wc contract.WorkingCont
 				lastAction = contract.VACrisis
 				break // escape hatch: do not regenerate the unsafe plan
 			}
-			if errors.Is(ctx.Err(), context.Canceled) || ctx.Err() != nil {
+			if stageCtx.Err() != nil {
 				break
 			}
 			if attempt == 0 {
@@ -668,7 +943,8 @@ func (o *Service) generateValidated(ctx context.Context, wc contract.WorkingCont
 			break
 		}
 		started = time.Now()
-		report, valErr := o.deps.Validator.Finalize(validator.WithFinishReason(ctx, out.Usage.FinishReason), text, plan, wc, risk, crisis)
+		providersUnavailable = false
+		report, valErr := o.deps.Validator.Finalize(validator.WithFinishReason(stageCtx, out.Usage.FinishReason), text, plan, wc, risk, crisis)
 		record(tr, "validator", started, valErr != nil || !report.Passed || report.Action != contract.VAAccept)
 		if tr != nil && len(report.Violations) > 0 {
 			tr.Record("validator", trace.Observation{RuleID: report.Violations[0].Code, Count: len(report.Violations), Degraded: true})
@@ -676,7 +952,7 @@ func (o *Service) generateValidated(ctx context.Context, wc contract.WorkingCont
 		if valErr == nil && report.Passed && report.Action == contract.VAAccept {
 			// Even successful regeneration is a degraded turn, and is eligible
 			// for clinician sampling under the approved release workflow.
-			return text, attempt > 0, objective, nil
+			return text, attempt > 0, objective, report, false, nil, nil
 		}
 		lastErr, lastAction = valErr, report.Action
 		if valErr != nil || report.Action == contract.VAFallback || report.Action == contract.VACrisis || attempt != 0 || ctx.Err() != nil {
@@ -697,7 +973,7 @@ func (o *Service) generateValidated(ctx context.Context, wc contract.WorkingCont
 		regenNote = &note
 	}
 	if err := ctx.Err(); err != nil {
-		return "", false, objective, err
+		return "", false, objective, contract.ValidationReport{}, false, nil, err
 	}
 	// A sentinel asks for rerouting. Use the existing approved reflective
 	// fallback on non-crisis turns; crisis keeps its mandatory static script.
@@ -707,6 +983,28 @@ func (o *Service) generateValidated(ctx context.Context, wc contract.WorkingCont
 		fallbackObjective = contract.ObjReflect
 		fallbackPlan = restrictedPlan()
 	}
+	// FB-006: after all generation providers fail, elevated/follow-up turns
+	// use a reviewed crisis script with curated resources. This changes the
+	// response route, never the persisted risk level. No approved generic
+	// family means fail closed rather than inventing clinical wording.
+	if route != contract.RouteCrisis && (risk.Rank() >= contract.RiskElevated.Rank() || wc.Risk.FollowUpActive) && providersUnavailable {
+		if g, ok := o.deps.Generator.(interface {
+			OutagePlan(context.Context, string) (contract.CrisisPlan, error)
+		}); ok {
+			cp, e := g.OutagePlan(ctx, locale)
+			if e != nil {
+				return "", false, objective, contract.ValidationReport{}, false, nil, coreError(contract.ErrSafetyDegraded, "outage_fallback", nil)
+			}
+			outageCrisis = &cp
+			crisis = &cp
+			route = contract.RouteCrisis
+			fallbackObjective = contract.ObjSafetySupport
+			fallbackPlan = restrictedPlan()
+			if tr != nil {
+				tr.Record("fallback", trace.Observation{RuleID: "FB-006", Count: 1, Degraded: true})
+			}
+		}
+	}
 	fallback := ""
 	found := false
 	if route == contract.RouteCrisis && crisis != nil {
@@ -715,11 +1013,11 @@ func (o *Service) generateValidated(ctx context.Context, wc contract.WorkingCont
 		fallback, found = o.opts.Fallback(route, fallbackObjective, locale)
 	}
 	if !found || strings.TrimSpace(fallback) == "" {
-		return "", false, fallbackObjective, coreError(contract.ErrGenFailed, "fallback", lastErr)
+		return "", false, fallbackObjective, contract.ValidationReport{}, false, nil, coreError(contract.ErrGenFailed, "fallback", lastErr)
 	}
 	fallback = strings.TrimSpace(fallback)
 	if len(utf16.Encode([]rune(fallback))) > 20000 {
-		return "", false, fallbackObjective, coreError(contract.ErrValidation, "fallback", nil)
+		return "", false, fallbackObjective, contract.ValidationReport{}, false, nil, coreError(contract.ErrValidation, "fallback", nil)
 	}
 	started := time.Now()
 	report, checkErr := o.deps.Validator.Finalize(ctx, fallback, fallbackPlan, wc, risk, crisis)
@@ -728,9 +1026,9 @@ func (o *Service) generateValidated(ctx context.Context, wc contract.WorkingCont
 		tr.Record("fallback", trace.Observation{RuleID: report.Violations[0].Code, Count: len(report.Violations), Degraded: true})
 	}
 	if checkErr != nil || !report.Passed || report.Action != contract.VAAccept {
-		return "", false, fallbackObjective, coreError(contract.ErrValidation, "fallback", checkErr)
+		return "", false, fallbackObjective, contract.ValidationReport{}, false, nil, coreError(contract.ErrValidation, "fallback", checkErr)
 	}
-	return fallback, true, fallbackObjective, nil
+	return fallback, true, fallbackObjective, report, true, outageCrisis, nil
 }
 
 type bufferedSink struct {

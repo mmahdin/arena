@@ -137,6 +137,15 @@ func (s *Snapshot) Version() string {
 }
 func (s *Snapshot) SyntheticOnly() bool { return s != nil && s.manifest.SyntheticOnly }
 
+// ArtifactNames enumerates the immutable runtime catalog without exposing bytes
+// or mutable maps. WP-10 uses it to load skill descriptors and schema vocabulary.
+func (s *Snapshot) ArtifactNames() []string {
+	if s == nil {
+		return nil
+	}
+	return sortedKeys(s.artifacts)
+}
+
 // Fingerprint identifies the exact immutable bytes of the pinned snapshot.
 func (s *Snapshot) Fingerprint() string {
 	if s == nil {

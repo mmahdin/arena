@@ -80,17 +80,19 @@ func (t *turnTrace) update(fn func(*Snapshot)) {
 }
 func validStep(name string) bool {
 	switch name {
-	case "admit", "recent", "safety", "retrieval", "assembler", "route", "brain", "generator", "validator", "fallback", "finalizer", "recovery", "cancel":
+	case "policy_gate", "retrieval_hop", "state_validate", "admit", "recent", "safety", "retrieval", "assembler", "route", "brain", "generator", "validator", "fallback", "finalizer", "recovery", "cancel":
 		return true
 	default:
 		return false
 	}
 }
 
+var brainRule = regexp.MustCompile(`^(BR-(00[1-9]|01[0-9]|02[0-4])|FB-00[1-6]|SF-00[1-9]|ST-007|PR-004)$`)
+
 var outputRule = regexp.MustCompile(`^OV-(00[1-9]|01[0-7]|02[01]|030|031)$`)
 
 func approvedRule(rule string) bool {
-	if outputRule.MatchString(rule) {
+	if outputRule.MatchString(rule) || brainRule.MatchString(rule) {
 		return true
 	}
 	switch rule {

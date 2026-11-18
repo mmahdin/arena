@@ -99,7 +99,10 @@ func (s *Service) ValidateDelta(ctx context.Context, proposed c.StateDelta) (c.S
 		id := *out.Session.FocusThread
 		t, ok := contextstate.FindThread(snapshot, id)
 		isNew := out.Thread != nil && out.Thread.ThreadID == id && out.Thread.Create != nil
-		if !isNew && (!ok || t.Phase == c.PhaseResolved || t.Phase == c.PhasePaused || t.Phase == c.PhaseDormant) {
+		resuming := ok && out.Thread != nil && out.Thread.ThreadID == id && out.Thread.Phase != nil &&
+			*out.Thread.Phase == t.PrevPhase && isActiveThread(t.PrevPhase) &&
+			(t.Phase == c.PhasePaused || t.Phase == c.PhaseDormant)
+		if !isNew && (!ok || t.Phase == c.PhaseResolved || (t.Phase == c.PhasePaused || t.Phase == c.PhaseDormant) && !resuming) {
 			// SessionPatch has no ClearFocus flag and SQL uses COALESCE.
 			// Drop the invalid assignment rather than pretend it was cleared.
 			out.Session.FocusThread = nil
@@ -225,7 +228,7 @@ func (f *ValidatedFinalizer) Complete(ctx context.Context, admission c.Admission
 	if err != nil {
 		return c.TurnResult{}, err
 	}
-	if hasQuestion(p.Text) {
+	if hasQuestion(p.Text) || sanitized.Session.PendingQuestion != nil {
 		pol, err := contextstate.LoadPolicy(ctx, f.committer.bundles, admission.UserID)
 		if err != nil {
 			return c.TurnResult{}, stateErr(c.ErrBundle, err)

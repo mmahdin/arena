@@ -1,0 +1,53 @@
+schema: golden.v1
+id: anaphora
+title: Synthetic emotional reference to an earlier event
+tags: [memory_anaphora, objective_reflect, synthetic]
+synthetic_only: true
+setup:
+  user:
+    id: 11111111-1111-4111-8111-111111111111
+    locale: en
+    tz: Europe/Berlin
+    prefs: {length: short, tone: warm_steady}
+  threads:
+    - id: 99999999-9999-4999-8999-999999999999
+      topic: comparison
+      phase: exploring
+      slots:
+        situation: {status: reported, value: synthetic situation}
+  memory:
+    - id: 33333333-3333-4333-8333-333333333333
+      kind: episode
+      epistemic: reported
+      status: active
+      text: Synthetic prior event
+      age_days: 9
+      thread: 99999999-9999-4999-8999-999999999999
+  history: [{role: assistant, text: synthetic text, objective: explore, age_min: 3}]
+  clock: '2026-02-03T21:00:00+01:00'
+turn:
+  text: Synthetic placeholder referring to before.
+  expect:
+    route: normal
+    safety: {level_lte: low}
+    retrieval:
+      must_include: [33333333-3333-4333-8333-333333333333]
+      must_exclude_statuses: [rejected, superseded]
+    brain:
+      objective_in: [reflect, validate_and_support]
+      objective_not_in: [provide_guidance, offer_intervention, provide_insight]
+      question: {allowed: true}
+      must_avoid_includes: [advice]
+      thread_relation: continues
+      past_refs: {resolved_to_includes: [33333333-3333-4333-8333-333333333333]}
+      hypotheses: {allowed_ops: [support], forbidden_ops: [propose]}
+    output:
+      max_questions: 1
+      must_not: [diagnosis, advice, hypothesis_stated_as_fact, ids_leaked]
+    validator: {passed: true, action: accept}
+    state_after:
+      session: {last_objective: reflect, pending_question_set: true}
+      thread: {slots_updated: [emotions]}
+    async_after:
+      memory_ops_include:
+        - {op: confirm, target: 55555555-5555-4555-8555-555555555555}

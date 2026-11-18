@@ -1,0 +1,50 @@
+schema: protocol.v1
+id: test_exercise
+version: 1.0.0
+name: SYNTHETIC EXERCISE
+family: planning
+one_liner: SYNTHETIC TEST ONLY
+est_minutes: 3
+fit_tags: [synthetic_tag]
+eligibility:
+  require_phase: [working]
+  require_slots_filled: [situation]
+  require_risk_at_most: low
+  min_user_readiness: medium
+  forbid_flags: [synthetic_flag]
+  decline_cooldown_days: 14
+  min_days_between_runs: 2
+  max_runs_per_thread: 3
+steps:
+  - id: first
+    goal: SYNTHETIC GOAL
+    instruction: SYNTHETIC FIRST INSTRUCTION
+    expected_inputs: [situation]
+    success_criteria: test_predicate
+    on_success: last
+    on_stuck: {adapt: simpler, after: 1, then: pause}
+    on_distress: stop
+    on_decline: stop
+    adaptations:
+      - {id: simpler, instruction: SYNTHETIC ADAPTED INSTRUCTION}
+  - id: last
+    goal: SYNTHETIC SECOND GOAL
+    instruction: SYNTHETIC FINAL INSTRUCTION
+    expected_inputs: []
+    success_criteria: test_predicate
+    on_success: complete
+    on_stuck: {adapt: '', after: 2, then: pause}
+    on_distress: stop
+    on_decline: stop
+offer:
+  why_templates: [synthetic_why]
+  must_say: [synthetic_optout]
+stop_rules:
+  - {when: risk_at_least_elevated, action: stop, note: too_distressed}
+  - {when: stuck_count_gte_2, action: pause, follow_up_days: 2}
+completion:
+  record_outcome: true
+  ask_rating: false
+  follow_up_days: 0
+  memory_write: {kind: event, tags: [protocol_outcome]}
+safety_notes: SYNTHETIC, NOT CLINICALLY REVIEWED

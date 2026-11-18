@@ -152,10 +152,10 @@ func (a *Service) Build(ctx context.Context, req c.TurnRequest, sig c.SafetySign
 				pv.AllowedActions = []c.ProtocolAction{c.PAAdvance, c.PARepeat, c.PAAdapt, c.PAPause, c.PAStop, c.PAComplete}
 			}
 			if p.Status == c.PIOffered {
-				pv.AllowedActions = []c.ProtocolAction{c.PADecline}
+				pv.AllowedActions = []c.ProtocolAction{c.PAAdvance, c.PADecline, c.PAStop}
 			}
 			if p.Status == c.PIPaused {
-				pv.AllowedActions = []c.ProtocolAction{c.PAStop}
+				pv.AllowedActions = []c.ProtocolAction{c.PAAdvance, c.PAStop}
 			}
 		} // missing or unapproved definition is never guessed
 		protocol = pv

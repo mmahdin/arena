@@ -111,9 +111,9 @@ func computeEligibility(s contextstate.Snapshot, focus *c.ThreadView, proto *c.P
 			break
 		}
 	}
-	// WP-10 supplies explicit, validated action cues. Never guess readiness
-	// from text at the context-assembly stage.
-	reasons = append(reasons, "no_action_cue")
+	// The Brain gates offers on its validated action cue; WP-13 independently
+	// requires explicit user readiness before producing any shortlist.
+	// A blanket no_action_cue here would make pre-Brain eligibility impossible.
 	if p.Synthetic {
 		reasons = append(reasons, "unreviewed_bundle")
 	}

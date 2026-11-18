@@ -102,7 +102,7 @@ func (s *managedStream) open() error {
 		}
 		model := chain[s.rung]
 		key := model.Provider + "\x00" + model.Name
-		if err := c.preflight(s.ctx, s.req.Meta.UserID, s.attempts); err != nil {
+		if err := c.preflight(s.ctx, s.req.Meta.UserID, s.attempts, s.req.Tier); err != nil {
 			return err
 		}
 		allowed, probe := c.breakers.allow(key, c.now())

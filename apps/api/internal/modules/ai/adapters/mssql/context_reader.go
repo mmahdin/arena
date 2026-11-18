@@ -57,9 +57,27 @@ func (r *ContextReader) Read(ctx context.Context, userID, conversationID c.ID) (
 	if err = loadFormulation(ctx, tx, userID, out.Session.FocusThreadID, &out.Formulation); err != nil {
 		return out, err
 	}
-	// dbo.ai_turn_context does not store per-thread message membership.
-	// Do not guess thread user-turn counts from conversation-wide turns.
+	// Immutable accepted state deltas carry thread membership. Count distinct
+	// completed user turns, never conversation/session-wide counts.
 	out.ThreadUserTurns = map[c.ID]int{}
+	rows, e := tx.QueryContext(ctx, `SELECT CONVERT(varchar(36),COALESCE(TRY_CONVERT(uniqueidentifier,JSON_VALUE(e.delta_json,'$.thread.thread_id')),TRY_CONVERT(uniqueidentifier,JSON_VALUE(e.delta_json,'$.session.focus_thread')))),COUNT(DISTINCT e.turn_id) FROM dbo.ai_turn_events e JOIN dbo.turns t ON t.id=e.turn_id AND t.user_id=e.user_id WHERE e.user_id=@p1 AND e.type=N'state_applied' AND t.status=N'completed' AND COALESCE(JSON_VALUE(e.delta_json,'$.thread.thread_id'),JSON_VALUE(e.delta_json,'$.session.focus_thread')) IS NOT NULL GROUP BY COALESCE(TRY_CONVERT(uniqueidentifier,JSON_VALUE(e.delta_json,'$.thread.thread_id')),TRY_CONVERT(uniqueidentifier,JSON_VALUE(e.delta_json,'$.session.focus_thread')))`, userID)
+	if e != nil {
+		return out, e
+	}
+	for rows.Next() {
+		var id c.ID
+		var count int
+		if e = rows.Scan(&id, &count); e != nil {
+			rows.Close()
+			return out, e
+		}
+		out.ThreadUserTurns[id] = count
+	}
+	e = rows.Err()
+	rows.Close()
+	if e != nil {
+		return out, e
+	}
 	if err = tx.Commit(); err != nil {
 		return contextstate.Snapshot{}, err
 	}

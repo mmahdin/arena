@@ -106,14 +106,20 @@ func (c *Client) begin(ctx context.Context, meta contract.CallMeta, timeout time
 	return bounded, cancel, nil
 }
 
-func (c *Client) preflight(ctx context.Context, user contract.ID, attempts int) error {
+func (c *Client) preflight(ctx context.Context, user contract.ID, attempts int, tier ports.ModelTier) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
 	if budget, ok := contract.BudgetFromContext(ctx); ok && budget.MaxLLMCalls > 0 && attempts >= budget.MaxLLMCalls {
 		return &contract.Error{Code: contract.ErrBudget}
 	}
-	return c.ledger.Check(ctx, user, c.config.DailyQuota)
+	if err := c.ledger.Check(ctx, user, c.config.DailyQuota); err != nil {
+		return err
+	}
+	if (tier == ports.TierSmall || tier == ports.TierStrong) && !contract.ReserveLLMCall(ctx) {
+		return &contract.Error{Code: contract.ErrBudget}
+	}
+	return nil
 }
 
 func (c *Client) configured(tier ports.ModelTier, embedding bool) bool {
@@ -242,8 +248,7 @@ func (c *Client) checkCost(ctx context.Context, cost int64) error {
 	return nil
 }
 
-func (c *Client) Structured(ctx context.Context, req ports.StructuredRequest) (ports.StructuredResponse, error) {
-	var out ports.StructuredResponse
+func (c *Client) Structured(ctx context.Context, req ports.StructuredRequest) (out ports.StructuredResponse, err error) {
 	if !c.configured(req.Tier, false) || !validMessages(req.System, req.Messages, req.MaxTokens) || !validTemperature(req.Temperature) || strings.TrimSpace(req.SchemaName) == "" {
 		return out, ErrConfig
 	}
@@ -259,13 +264,22 @@ func (c *Client) Structured(ctx context.Context, req ports.StructuredRequest) (p
 	req.Temperature = setTemperature(req.Tier, req.Temperature)
 	var usage contract.LLMUsage
 	var attempts int
+	// WP-10 must account for failed schema repairs/provider attempts before
+	// deciding whether another reasoning hop fits the turn's call budget.
+	defer func() {
+		if err != nil {
+			out.Usage = usage
+			out.Usage.Attempts = attempts
+			out.Attempts = attempts
+		}
+	}()
 	for rung, model := range c.config.Chains[req.Tier] {
 		key := model.Provider + "\x00" + model.Name
 		for retry := 0; retry <= c.config.MaxRetriesPerModel; retry++ {
 			if err := callCtx.Err(); err != nil {
 				return out, err
 			}
-			if err := c.preflight(callCtx, req.Meta.UserID, attempts); err != nil {
+			if err := c.preflight(callCtx, req.Meta.UserID, attempts, req.Tier); err != nil {
 				return out, err
 			}
 			allowed, probe := c.breakers.allow(key, c.now())
@@ -327,7 +341,7 @@ func (c *Client) Structured(ctx context.Context, req ports.StructuredRequest) (p
 			// Exactly one repair, ONLY for a JSON-object mode schema mismatch.
 			// The original request and schema are unchanged; the repair instruction
 			// forbids new interpretation or reasoning, and output is revalidated.
-			if err := c.preflight(callCtx, req.Meta.UserID, attempts); err != nil {
+			if err := c.preflight(callCtx, req.Meta.UserID, attempts, req.Tier); err != nil {
 				return out, err
 			}
 			repair := req
@@ -391,7 +405,7 @@ func (c *Client) Embed(ctx context.Context, req ports.EmbeddingRequest) (ports.E
 			if err := callCtx.Err(); err != nil {
 				return out, err
 			}
-			if err := c.preflight(callCtx, req.Meta.UserID, attempts); err != nil {
+			if err := c.preflight(callCtx, req.Meta.UserID, attempts, req.Tier); err != nil {
 				return out, err
 			}
 			allowed, probe := c.breakers.allow(key, c.now())

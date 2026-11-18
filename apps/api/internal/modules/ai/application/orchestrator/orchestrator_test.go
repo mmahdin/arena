@@ -601,8 +601,9 @@ func TestFailedUserOnlyReplayAndExplicitRetry(t *testing.T) {
 	if n != 1 {
 		t.Fatal("failed turn lost or duplicated user message")
 	}
+	callsBeforeReplay := len(h.client.history())
 	replay, replayErr := h.o.ProcessTurn(context.Background(), req)
-	if replayErr != nil || replay.Status != c.TurnFailed || len(h.client.history()) != 2 {
+	if replayErr != nil || replay.Status != c.TurnFailed || len(h.client.history()) != callsBeforeReplay {
 		t.Fatal("terminal failure replay invoked model")
 	}
 	h.client.failure = nil

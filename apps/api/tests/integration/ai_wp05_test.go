@@ -184,8 +184,9 @@ func TestWP05SQLServerFailureAndOriginalRequestRecovery(t *testing.T) {
 	if err == nil || failed.Status != c.TurnFailed || failed.AssistantMessageID != nil || aiCount(t, db, `SELECT COUNT(*) FROM dbo.messages WHERE turn_id=@p1`, failed.TurnID) != 1 {
 		t.Fatalf("failed turn exposed reply or removed source: %+v %v", failed, err)
 	}
+	callsBeforeReplay := len(provider.History())
 	replay, err := core.ProcessTurn(context.Background(), req)
-	if err != nil || replay.Status != c.TurnFailed || len(provider.History()) != 2 {
+	if err != nil || replay.Status != c.TurnFailed || callsBeforeReplay < 2 || len(provider.History()) != callsBeforeReplay {
 		t.Fatal("terminal failure was not idempotent")
 	}
 	if err = core.RetryFailed(context.Background(), f.a, req.ClientTurnID); err != nil {

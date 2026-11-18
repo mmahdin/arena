@@ -9,6 +9,8 @@ import (
 
 	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai/application/assembler"
 	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai/application/contextstate"
+	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai/application/generator"
+	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai/application/retrieval"
 	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai/application/state"
 	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai/contract"
 	"github.com/wellbeing-companion/wellbeing-server/apps/api/internal/modules/ai/ports"
@@ -38,6 +40,10 @@ type integration struct {
 	registry               ports.BundleRegistry
 	assets                 *safety.Assets
 	validator              ports.Validator
+	generator              ports.Generator
+	memory                 TurnMemory
+	reflection             TurnReflection
+	protocol               ports.ProtocolEngine
 	fsm                    *safety.FSM
 	committer              *state.Service
 	now                    func() time.Time
@@ -48,8 +54,8 @@ type integration struct {
 // Unlike the original WP-05 New, no caller may substitute a permissive Safety
 // Gate or a state-less assembler: they are constructed from the actual modules.
 // The one WP-02 TurnFinalizer is wrapped by WP-08's validating finalizer, not
-// replaced by another database writer. Brain/Generator/Validator still need
-// real reviewed implementations before production use (later work packages).
+// replaced by another database writer. Use the real WP-10 Brain, WP-11
+// Generator and WP-07 Validator with the same reviewed snapshot.
 func NewIntegrated(d Dependencies, opts Options, i IntegratedOptions) (*Service, error) {
 	if i.Reader == nil || i.Bundles == nil || i.Assets == nil || i.Classifier == nil || d.Store == nil || d.Finalizer == nil {
 		return nil, errors.New("integrated orchestrator requires WP-02 store/finalizer, WP-03 bundle, WP-06 assets/classifier and WP-08 reader")
@@ -101,7 +107,7 @@ func NewIntegrated(d Dependencies, opts Options, i IntegratedOptions) (*Service,
 		return nil, err
 	}
 	o.integration = &integration{reader: i.Reader, registry: i.Bundles, assets: i.Assets,
-		fsm: fsm, committer: committer, validator: d.Validator, now: now, allowSyntheticForTests: i.AllowSyntheticForTests}
+		fsm: fsm, committer: committer, validator: d.Validator, generator: d.Generator, memory: d.Memory, reflection: d.Reflection, protocol: d.Protocol, now: now, allowSyntheticForTests: i.AllowSyntheticForTests}
 	return o, nil
 }
 
@@ -146,9 +152,30 @@ func (i *integration) pin(ctx context.Context, a contract.Admission) (context.Co
 			return ctx, coreError(contract.ErrBundle, "validator_bundle", fmt.Errorf("validator bundle differs from safety bundle"))
 		}
 	}
+	if g, ok := i.generator.(interface{ Reference() contract.BundleRef }); ok {
+		if !reflect.DeepEqual(g.Reference(), ref) {
+			return ctx, coreError(contract.ErrBundle, "generator_bundle", nil)
+		}
+	} else if !i.allowSyntheticForTests {
+		return ctx, coreError(contract.ErrBundle, "generator_bundle", nil)
+	}
+	if p := i.protocol; p != nil {
+		pinned, ok := p.(interface{ Reference() contract.BundleRef })
+		if !ok || !reflect.DeepEqual(pinned.Reference(), ref) {
+			return ctx, coreError(contract.ErrBundle, "protocol_bundle", nil)
+		}
+	}
+	if i.reflection != nil && !reflect.DeepEqual(i.reflection.Reference(), ref) {
+		return ctx, coreError(contract.ErrBundle, "reflection_bundle", nil)
+	}
+	if i.memory != nil && !reflect.DeepEqual(i.memory.Reference(), ref) {
+		return ctx, coreError(contract.ErrBundle, "memory_bundle", nil)
+	}
 	ctx = context.WithValue(ctx, pinnedBundleKey{}, pinnedBundle{user: a.UserID, value: b})
 	ctx = safety.WithCallMeta(ctx, contract.CallMeta{UserID: a.UserID, TurnID: a.TurnID, Bundle: ref})
 	ctx = validator.WithCallMeta(ctx, contract.CallMeta{UserID: a.UserID, TurnID: a.TurnID, Bundle: ref})
+	ctx = generator.WithCallMeta(ctx, contract.CallMeta{UserID: a.UserID, TurnID: a.TurnID, Bundle: ref})
+	ctx = retrieval.PinBundle(ctx, a.UserID, b)
 	return ctx, nil
 }
 

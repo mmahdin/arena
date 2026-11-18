@@ -35,6 +35,25 @@ running experimental turn route; replacing that workflow is WP-05, so the old
 provider has not been silently installed as a fallback. See
 [WP-04 verification](../../../../../docs/quality/ai-core-wp04.md).
 
+## WP-11 Response Generator
+
+[`application/generator`](application/generator/README.md) realizes WP-10 plans
+through WP-04 internal streaming and the existing WP-07/Orchestrator validation,
+regeneration, reviewed fallback and atomic-delivery path. It loads selected
+Skill Cards and policies from the same pinned WP-03 snapshot and verifies source
+ownership before provider disclosure. See
+[WP-11 verification](../../../../../docs/quality/ai-core-wp11.md). Production
+activation remains blocked on reviewed clinical assets; no HTTP cutover or
+later work package is included.
+
+## WP-12 Memory System
+
+WP-12's independent [Memory System](application/memory/README.md) supplies
+structured extraction, evidence-preserving reconciliation, explicit controls,
+leased SQL jobs and retention-safe maintenance. Migration 0021 is additive;
+activation requires an approved bundle, consent/use policy and managed encryption
+keys. See [WP-12 verification](../../../../../docs/quality/ai-core-wp12.md).
+
 ## Historical prototype behavior
 
 - `policy/prompt.go`: versioned `supportive-v5`, five distinct conversational styles (plus legacy `guidance` alias) and explicitly **untrusted** profile preferences and onboarding answers. Uses relevant stated concerns, goals, interests, strengths, barriers and other explicit background on every turn; current messages/corrections take precedence. Declined disclosures are omitted at the profile port; mood is labeled a past snapshot, never a current assessment. Stored completed turns retain their original prompt version; do not rewrite prior records.
