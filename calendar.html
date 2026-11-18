@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" content="#f6f2ea" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#14130f" media="(prefers-color-scheme: dark)" />
+<title>Cadence — a quiet calendar</title>
+<meta name="description" content="A minimalist calendar for days and notes." />
+<style>
+  /* ---------------------------------------------------------------
+     Design tokens
+  --------------------------------------------------------------- */
+  :root {
+    --paper: #f6f2ea;
+    --card: #fffdf9;
+    --field: #f4eee4;
+    --note: #fbf7f0;
+    --ink: #201d19;
+    --ink-soft: #5f584e;
+    --ink-mute: #8f8779;
+    --line: rgba(32, 29, 25, 0.09);
+    --line-strong: rgba(32, 29, 25, 0.16);
+    --accent: #b4552d;
+    --accent-deep: #9a4522;
+    --accent-ink: #fff8f3;
+    --accent-soft: rgba(180, 85, 45, 0.09);
+    --accent-ring: rgba(180, 85, 45, 0.35);
+    --shadow-lg:
+      0 1px 2px rgba(48, 35, 20, 0.04),
+      0 18px 40px -24px rgba(48, 35, 20, 0.35),
+      0 48px 90px -56px rgba(48, 35, 20, 0.4);
+    --shadow-sm: 0 6px 16px -10px rgba(48, 35, 20, 0.4);
+    --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --radius-sm: 12px;
+    --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #14130f;
+      --card: #1c1a16;
+      --field: #24211b;
+      --note: #211e19;
+      --ink: #f2ede3;
+      --ink-soft: #bcb3a4;
+      --ink-mute: #8b8375;
+      --line: rgba(242, 237, 227, 0.1);
+      --line-strong: rgba(242, 237, 227, 0.2);
+      --accent: #e58a5c;
+      --accent-deep: #f0a077;
+      --accent-ink: #26150b;
+      --accent-soft: rgba(229, 138, 92, 0.13);
+      --accent-ring: rgba(229, 138, 92, 0.4);
+      --shadow-lg:
+        0 1px 2px rgba(0, 0, 0, 0.4),
+        0 24px 48px -28px rgba(0, 0, 0, 0.8);
+      --shadow-sm: 0 8px 18px -12px rgba(0, 0, 0, 0.9);
+    }
+  }
+
+  /* ---------------------------------------------------------------
+     Base
+  --------------------------------------------------------------- */
+  *,
+  *::before,
+  *::after { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--sans);
+    color: var(--ink);
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(60rem 34rem at 8% -10%, rgba(214, 150, 106, 0.16), transparent 62%),
+      radial-gradient(48rem 32rem at 105% 8%, rgba(143, 155, 129, 0.14), transparent 60%),
+      radial-gradient(40rem 30rem at 50% 120%, rgba(196, 128, 84, 0.08), transparent 60%);
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  button,
+  textarea { font: inherit; color: inherit; }
+
+  button {
+    border: 0;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1, h2, h3, p, ul { margin: 0; }
+  ul { list-style: none; padding: 0; }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ---------------------------------------------------------------
+     Shell / masthead
+  --------------------------------------------------------------- */
+  .shell {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: min(1080px, calc(100% - clamp(24px, 7vw, 64px)));
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: clamp(22px, 4vh, 44px) 0;
+  }
+
+  .masthead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: clamp(16px, 2.8vh, 28px);
+    padding: 0 2px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .brand-mark {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    color: var(--accent-ink);
+    background: linear-gradient(150deg, var(--accent), var(--accent-deep));
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.28) inset,
+      0 10px 20px -12px var(--accent);
+  }
+
+  .brand-mark svg { display: block; }
+
+  .brand-copy h1 {
+    font-family: var(--serif);
+    font-size: 1.32rem;
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    line-height: 1.15;
+  }
+
+  .brand-copy p {
+    margin-top: 2px;
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .masthead-date {
+    font-size: 0.8rem;
+    color: var(--ink-mute);
+    letter-spacing: 0.005em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------------------------------------------------------------
+     Layout
+  --------------------------------------------------------------- */
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
+    gap: clamp(16px, 2.4vw, 26px);
+    align-items: stretch;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* ---------------------------------------------------------------
+     Calendar
+  --------------------------------------------------------------- */
+  .calendar {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(16px, 2.2vw, 26px);
+    padding-bottom: clamp(14px, 2vw, 20px);
+  }
+
+  .calendar-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: clamp(12px, 1.8vw, 18px);
+  }
+
+  .month-label {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .month-label h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.32rem, 2.5vw, 1.62rem);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    white-space: nowrap;
+  }
+
+  .month-label .year {
+    font-family: var(--serif);
+    font-size: clamp(1.02rem, 2vw, 1.22rem);
+    font-weight: 400;
+    font-style: italic;
+    color: var(--ink-mute);
+  }
+
+  .head-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .icon-btn {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    color: var(--ink-soft);
+    border: 1px solid transparent;
+    transition:
+      background-color 0.18s var(--ease),
+      color 0.18s var(--ease),
+      border-color 0.18s var(--ease),
+      transform 0.18s var(--ease);
+  }
+
+  .icon-btn:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: var(--accent-ring);
+  }
+
+  .icon-btn:active { transform: scale(0.93); }
+
+  .icon-btn svg { display: block; }
+
+  .today-btn {
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+    border: 1px solid var(--line-strong);
+    background: transparent;
+    transition:
+      color 0.18s var(--ease),
+      border-color 0.18s var(--ease),
+      background-color 0.18s var(--ease),
+      transform 0.18s var(--ease);
+  }
+
+  .today-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent-ring);
+    background: var(--accent-soft);
+  }
+
+  .today-btn:active { transform: scale(0.96); }
+
+  .weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+
+  .weekdays span {
+    text-align: center;
+    padding: 4px 0 8px;
+    font-size: 0.64rem;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .weekdays span.is-weekend { color: var(--ink-soft); }
+
+  .grid {
+    display: grid;
+    flex: 1;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-auto-rows: minmax(44px, 1fr);
+    align-items: center;
+    gap: 6px;
+  }
+
+  .grid.slide-from-start { animation: slideFromStart 0.34s var(--ease) both; }
+  .grid.slide-from-end { animation: slideFromEnd 0.34s var(--ease) both; }
+
+  @keyframes slideFromStart {
+    from { opacity: 0; transform: translateX(-14px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes slideFromEnd {
+    from { opacity: 0; transform: translateX(14px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .day {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    max-width: 52px;
+    aspect-ratio: 1 / 1;
+    justify-self: center;
+    border-radius: 50%;
+    font-size: clamp(0.78rem, 1.45vw, 0.9rem);
+    font-weight: 500;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    transition:
+      background-color 0.16s var(--ease),
+      color 0.16s var(--ease),
+      box-shadow 0.16s var(--ease),
+      transform 0.16s var(--ease);
+  }
+
+  .day:hover {
+    background: var(--accent-soft);
+    transform: translateY(-1px);
+  }
+
+  .day:active { transform: scale(0.94); }
+
+  .day.outside { color: var(--ink-mute); opacity: 0.45; }
+  .day.outside:hover { opacity: 0.8; }
+
+  .day.today { box-shadow: inset 0 0 0 1.5px var(--accent-ring); }
+  .day.today:not(.selected) { color: var(--accent); font-weight: 600; }
+
+  .day.selected {
+    color: var(--accent-ink);
+    font-weight: 600;
+    background: linear-gradient(150deg, var(--accent), var(--accent-deep));
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.2) inset,
+      0 10px 18px -12px var(--accent);
+    transform: translateY(-1px);
+  }
+
+  .day.selected:hover { transform: translateY(-2px); }
+  .day.selected.today { box-shadow: 0 10px 18px -12px var(--accent); }
+
+  .day .dot {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    transform: translateX(-50%);
+  }
+
+  .day.selected .dot { background: var(--accent-ink); opacity: 0.9; }
+  .day.outside .dot { opacity: 0.5; }
+
+  .calendar-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    font-size: 0.72rem;
+    color: var(--ink-mute);
+  }
+
+  .legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .legend i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.75;
+  }
+
+  /* ---------------------------------------------------------------
+     Notes panel
+  --------------------------------------------------------------- */
+  .panel {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(18px, 2.2vw, 26px);
+    gap: 18px;
+  }
+
+  .panel-head { display: flex; flex-direction: column; gap: 4px; }
+
+  .panel-eyebrow {
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .panel-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .panel-title h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.55rem, 3vw, 1.95rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+
+  .panel-title .panel-year {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.02rem;
+    color: var(--ink-mute);
+  }
+
+  .relative-chip {
+    align-self: flex-start;
+    margin-top: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 22px;
+    padding: 0 9px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+    background: var(--accent-soft);
+    border: 1px solid transparent;
+  }
+
+  .relative-chip.strong { color: var(--accent); border-color: var(--accent-ring); }
+
+  /* Composer */
+  .composer {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--field);
+    transition:
+      border-color 0.2s var(--ease),
+      box-shadow 0.2s var(--ease),
+      background-color 0.2s var(--ease);
+  }
+
+  .composer:focus-within {
+    border-color: var(--accent-ring);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+    background: var(--card);
+  }
+
+  .composer textarea {
+    display: block;
+    width: 100%;
+    min-height: 62px;
+    max-height: 190px;
+    padding: 13px 14px 4px;
+    border: 0;
+    background: transparent;
+    resize: none;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--ink);
+    outline: none;
+  }
+
+  .composer textarea::placeholder { color: var(--ink-mute); }
+
+  .composer-foot {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 6px 8px 8px 14px;
+  }
+
+  .composer-hint {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.68rem;
+    color: var(--ink-mute);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s var(--ease);
+  }
+
+  .composer-hint.flash { color: var(--accent); font-weight: 500; }
+
+  .composer-hint.flash kbd { display: none; }
+
+  .composer-hint kbd {
+    font-family: inherit;
+    font-size: 0.66rem;
+    padding: 1px 4px;
+    border-radius: 4px;
+    border: 1px solid var(--line-strong);
+    background: var(--card);
+    color: var(--ink-soft);
+  }
+
+  .char-count {
+    font-size: 0.68rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-mute);
+    text-align: right;
+    opacity: 0;
+    transition: opacity 0.18s var(--ease), color 0.18s var(--ease);
+  }
+
+  .composer:focus-within .char-count,
+  .char-count.limit { opacity: 1; }
+
+  .char-count.limit { color: var(--accent); font-weight: 600; }
+
+  .add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px 0 12px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--accent-ink);
+    background: linear-gradient(150deg, var(--accent), var(--accent-deep));
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.22) inset, var(--shadow-sm);
+    transition:
+      transform 0.16s var(--ease),
+      opacity 0.16s var(--ease),
+      filter 0.16s var(--ease);
+  }
+
+  .add-btn:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+  .add-btn:active:not(:disabled) { transform: translateY(0) scale(0.97); }
+  .add-btn:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
+
+  .add-btn svg { display: block; }
+
+  /* Notes */
+  .notes-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .notes-head h3 {
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .notes-head .notes-total {
+    font-size: 0.7rem;
+    color: var(--ink-mute);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .notes-wrap {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+  }
+
+  .notes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: min(44vh, 420px);
+    overflow-y: auto;
+    padding: 2px;
+    margin: -2px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+
+  .notes::-webkit-scrollbar { width: 8px; }
+  .notes::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: 999px;
+    border: 3px solid var(--card);
+  }
+
+  .note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 12px 10px;
+    border-radius: var(--radius-sm);
+    background: var(--note);
+    border: 1px solid var(--line);
+    animation: noteIn 0.32s var(--ease) both;
+    animation-delay: calc(var(--i, 0) * 26ms);
+    transition: border-color 0.18s var(--ease), transform 0.18s var(--ease);
+  }
+
+  .note:hover { border-color: var(--line-strong); }
+
+  @keyframes noteIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .note-body { flex: 1; min-width: 0; }
+
+  .note-text {
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--ink);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .note-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    font-size: 0.66rem;
+    color: var(--ink-mute);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+
+  .note-meta i {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.6;
+  }
+
+  .note-del {
+    flex-shrink: 0;
+    align-self: center;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    color: var(--ink-mute);
+    opacity: 0;
+    transform: translateY(-1px);
+    transition:
+      opacity 0.16s var(--ease),
+      color 0.16s var(--ease),
+      background-color 0.16s var(--ease);
+  }
+
+  .note:hover .note-del,
+  .note:focus-within .note-del { opacity: 1; }
+
+  .note-del:hover {
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .note-del:focus-visible { opacity: 1; }
+
+  .note-del svg { display: block; }
+
+  /* Empty state */
+  .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    padding: 30px 16px 34px;
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius-md);
+    color: var(--ink-mute);
+    animation: fadeIn 0.34s var(--ease) both;
+  }
+
+  .empty svg { opacity: 0.55; margin-bottom: 2px; }
+
+  .empty strong {
+    font-family: var(--serif);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    letter-spacing: -0.005em;
+  }
+
+  .empty span { font-size: 0.76rem; max-width: 26ch; line-height: 1.5; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: clamp(18px, 4vh, 36px);
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 10px 10px 16px;
+    border-radius: 999px;
+    background: #241f1a;
+    color: #f7f1e7;
+    font-size: 0.79rem;
+    box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.6);
+    transform: translate(-50%, 140%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.34s var(--ease), opacity 0.28s var(--ease);
+  }
+
+  .toast.show {
+    transform: translate(-50%, 0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .toast button {
+    padding: 8px 15px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #1f150d;
+    background: #f0b48e;
+    transition: filter 0.16s var(--ease);
+  }
+
+  .toast button:hover { filter: brightness(1.07); }
+
+  @media (prefers-color-scheme: dark) {
+    .toast { background: #f2ede3; color: #201d19; }
+    .toast button { background: #b4552d; color: #fff8f3; }
+  }
+
+  /* ---------------------------------------------------------------
+     Responsive
+  --------------------------------------------------------------- */
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: minmax(0, 1fr); }
+    .notes { max-height: none; }
+    .panel { gap: 16px; }
+  }
+
+  @media (max-width: 480px) {
+    .shell { width: calc(100% - 24px); }
+    .calendar { padding: 16px 14px 12px; }
+    .panel { padding: 18px 16px 20px; }
+    .grid, .weekdays { gap: 4px; }
+    .day { max-width: 44px; }
+    .day .dot { bottom: 10%; }
+    .month-label h2 { font-size: 1.28rem; }
+    .masthead-date { display: none; }
+    .composer-hint { display: none; }
+    .composer-hint.flash { display: inline; }
+    .calendar-foot { font-size: 0.68rem; }
+    .today-btn { padding: 0 11px; }
+    .note-del { opacity: 1; }
+    .note { padding: 10px 8px 10px 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <header class="masthead">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.7"/>
+            <path d="M12 2.6v2M12 19.4v2M2.6 12h2M19.4 12h2M5.4 5.4l1.4 1.4M17.2 17.2l1.4 1.4M18.6 5.4l-1.4 1.4M6.8 17.2l-1.4 1.4"
+                  stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <div class="brand-copy">
+          <h1>Cadence</h1>
+          <p>Days &amp; notes</p>
+        </div>
+      </div>
+      <p class="masthead-date" id="mastheadDate"></p>
+    </header>
+
+    <main class="layout">
+      <!-- Calendar -->
+      <section class="card calendar" aria-label="Monthly calendar">
+        <div class="calendar-head">
+          <div class="month-label">
+            <h2 id="monthName" aria-live="polite">—</h2>
+            <span class="year" id="yearName"></span>
+          </div>
+          <div class="head-actions">
+            <button class="today-btn" id="todayBtn" type="button">Today</button>
+            <button class="icon-btn" id="prevBtn" type="button" aria-label="Previous month">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M14.5 5.5 8 12l6.5 6.5" stroke="currentColor" stroke-width="1.8"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="icon-btn" id="nextBtn" type="button" aria-label="Next month">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M9.5 5.5 16 12l-6.5 6.5" stroke="currentColor" stroke-width="1.8"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="weekdays" aria-hidden="true">
+          <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span>
+          <span>Fri</span><span class="is-weekend">Sat</span><span class="is-weekend">Sun</span>
+        </div>
+
+        <div class="grid" id="grid"></div>
+
+        <footer class="calendar-foot">
+          <span class="legend" id="legend"><i aria-hidden="true"></i>Has notes</span>
+          <span id="monthSummary"></span>
+        </footer>
+      </section>
+
+      <!-- Notes -->
+      <section class="card panel" aria-labelledby="panelHeading">
+        <div class="panel-head">
+          <p class="panel-eyebrow" id="panelWeekday">—</p>
+          <div class="panel-title">
+            <h2 id="panelHeading"><span id="panelMonthDay">—</span></h2>
+            <span class="panel-year" id="panelYear"></span>
+          </div>
+          <span class="relative-chip" id="relativeChip"></span>
+        </div>
+
+        <div class="composer">
+          <label class="sr-only" for="noteInput">Note for the selected day</label>
+          <textarea id="noteInput" rows="2" maxlength="600"
+                    placeholder="Write something about this day…"></textarea>
+          <div class="composer-foot">
+            <span class="composer-hint" id="composerHint" role="status" aria-live="polite"
+                  title="Enter saves · Shift+Enter adds a new line">
+              <kbd>Enter</kbd> saves
+            </span>
+            <span class="char-count" id="charCount">0/600</span>
+            <button class="add-btn" id="addBtn" type="button" disabled>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>
+              </svg>
+              Add note
+            </button>
+          </div>
+        </div>
+
+        <div class="notes-wrap">
+          <div class="notes-head">
+            <h3>Notes</h3>
+            <span class="notes-total" id="notesTotal"></span>
+          </div>
+          <ul class="notes" id="notesList"></ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <span id="toastText">Note deleted</span>
+    <button id="undoBtn" type="button">Undo</button>
+  </div>
+
+  <noscript>
+    <p style="text-align:center;padding:20px">This calendar needs JavaScript to work.</p>
+  </noscript>
+
+<script>
+(function () {
+  "use strict";
+
+  /* --------------------------------------------------------------
+     Constants & helpers
+  -------------------------------------------------------------- */
+  var STORAGE_KEY = "cadence.notes.v1";
+  var MAX_LEN = 600;
+  var DAY_MS = 86400000;
+
+  var MONTHS = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"];
+  var WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+  function pad2(n) { return n < 10 ? "0" + n : String(n); }
+
+  function dateKey(d) {
+    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+  }
+
+  function startOfDay(d) {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  function addDays(d, n) {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+  }
+
+  function addMonths(d, n) {
+    var target = new Date(d.getFullYear(), d.getMonth() + n, 1);
+    var lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+    target.setDate(Math.min(d.getDate(), lastDay));
+    return target;
+  }
+
+  function sameDay(a, b) {
+    return a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate();
+  }
+
+  /* Monday-first weekday index. */
+  function weekdayIndex(d) { return (d.getDay() + 6) % 7; }
+
+  /* Whole-day difference, immune to DST shifts. */
+  function dayDiff(a, b) {
+    var da = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+    var db = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+    return Math.round((db - da) / DAY_MS);
+  }
+
+  function plural(n, one, many) {
+    return n === 1 ? one : (many || one + "s");
+  }
+
+  function makeId() {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
+      return window.crypto.randomUUID();
+    }
+    return "n-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
+  }
+
+  /* --------------------------------------------------------------
+     Storage
+  -------------------------------------------------------------- */
+  function loadNotes() {
+    var raw;
+    try {
+      raw = window.localStorage.getItem(STORAGE_KEY);
+    } catch (err) {
+      return {};
+    }
+    if (!raw) return {};
+    var parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (err) {
+      return {};
+    }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+
+    var clean = {};
+    Object.keys(parsed).forEach(function (key) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) return;
+      var list = parsed[key];
+      if (!Array.isArray(list)) return;
+      var items = [];
+      list.forEach(function (item) {
+        if (!item || typeof item !== "object") return;
+        if (typeof item.text !== "string" || !item.text.trim()) return;
+        items.push({
+          id: typeof item.id === "string" && item.id ? item.id : makeId(),
+          text: item.text.slice(0, MAX_LEN),
+          at: typeof item.at === "string" ? item.at : new Date().toISOString()
+        });
+      });
+      if (items.length) clean[key] = items;
+    });
+    return clean;
+  }
+
+  function saveNotes() {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state.notes));
+    } catch (err) {
+      /* Storage can fail (private mode, quota). The app still works in-memory. */
+    }
+  }
+
+  /* --------------------------------------------------------------
+     State
+  -------------------------------------------------------------- */
+  var today = startOfDay(new Date());
+  var state = {
+    viewYear: today.getFullYear(),
+    viewMonth: today.getMonth(),
+    selected: today,
+    notes: loadNotes()
+  };
+
+  /* --------------------------------------------------------------
+     Element references
+  -------------------------------------------------------------- */
+  var el = {
+    mastheadDate: document.getElementById("mastheadDate"),
+    monthName: document.getElementById("monthName"),
+    yearName: document.getElementById("yearName"),
+    grid: document.getElementById("grid"),
+    prevBtn: document.getElementById("prevBtn"),
+    nextBtn: document.getElementById("nextBtn"),
+    todayBtn: document.getElementById("todayBtn"),
+    monthSummary: document.getElementById("monthSummary"),
+    legend: document.getElementById("legend"),
+    panelWeekday: document.getElementById("panelWeekday"),
+    panelMonthDay: document.getElementById("panelMonthDay"),
+    panelYear: document.getElementById("panelYear"),
+    relativeChip: document.getElementById("relativeChip"),
+    noteInput: document.getElementById("noteInput"),
+    charCount: document.getElementById("charCount"),
+    addBtn: document.getElementById("addBtn"),
+    composerHint: document.getElementById("composerHint"),
+    notesList: document.getElementById("notesList"),
+    notesTotal: document.getElementById("notesTotal"),
+    toast: document.getElementById("toast"),
+    toastText: document.getElementById("toastText"),
+    undoBtn: document.getElementById("undoBtn")
+  };
+
+  var statusTimer = null;
+  var toastTimer = null;
+  var undoAction = null;
+
+  /* --------------------------------------------------------------
+     Rendering: calendar grid
+  -------------------------------------------------------------- */
+  function renderGrid(options) {
+    var opts = options || {};
+    var year = state.viewYear;
+    var month = state.viewMonth;
+
+    el.monthName.textContent = MONTHS[month];
+    el.yearName.textContent = String(year);
+
+    var first = new Date(year, month, 1);
+    var offset = weekdayIndex(first);
+    var gridStart = addDays(first, -offset);
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var cells = Math.ceil((offset + daysInMonth) / 7) * 7;
+
+    var selectedKey = dateKey(state.selected);
+    var todayKey = dateKey(today);
+    var fragment = document.createDocumentFragment();
+    var tabTarget = null;
+
+    /* The grid is rebuilt from scratch, which destroys the focused button.
+       Remember whether focus was inside the grid so it can be restored. */
+    var hadGridFocus = el.grid.contains(document.activeElement);
+
+    /* When no cell matches the selection, the first visible day receives
+       the roving tab stop so the grid is always keyboard-reachable. */
+    for (var i = 0; i < cells; i++) {
+      var dayDate = addDays(gridStart, i);
+      var key = dateKey(dayDate);
+      var inMonth = dayDate.getMonth() === month;
+      var isToday = key === todayKey;
+      var isSelected = key === selectedKey;
+      var count = (state.notes[key] || []).length;
+
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "day";
+      if (!inMonth) btn.className += " outside";
+      if (isToday) btn.className += " today";
+      if (isSelected) btn.className += " selected";
+      btn.dataset.date = key;
+
+      var label = WEEKDAYS[weekdayIndex(dayDate)] + ", " + MONTHS[dayDate.getMonth()] +
+        " " + dayDate.getDate() + ", " + dayDate.getFullYear();
+      if (count) label += ", " + count + " " + plural(count, "note");
+      if (isToday) label += ", today";
+      btn.setAttribute("aria-label", label);
+      if (isToday) btn.setAttribute("aria-current", "date");
+      btn.setAttribute("aria-pressed", isSelected ? "true" : "false");
+
+      if (isSelected) {
+        btn.tabIndex = 0;
+        tabTarget = btn;
+      } else {
+        btn.tabIndex = -1;
+      }
+
+      var num = document.createElement("span");
+      num.className = "d-num";
+      num.textContent = String(dayDate.getDate());
+      btn.appendChild(num);
+
+      if (count) {
+        var dot = document.createElement("span");
+        dot.className = "dot";
+        dot.setAttribute("aria-hidden", "true");
+        btn.appendChild(dot);
+      }
+
+      fragment.appendChild(btn);
+    }
+
+    /* Fall back to the first visible day for keyboard entry. */
+    if (!tabTarget) {
+      var firstCell = fragment.firstChild;
+      if (firstCell) firstCell.tabIndex = 0;
+    }
+
+    el.grid.innerHTML = "";
+    el.grid.appendChild(fragment);
+
+    if (opts.animate) {
+      el.grid.classList.remove("slide-from-start", "slide-from-end");
+      void el.grid.offsetWidth; /* restart the keyframes */
+      el.grid.classList.add(opts.direction === "prev" ? "slide-from-start" : "slide-from-end");
+    }
+
+    /* Explicit focus requests (keyboard navigation) win; otherwise restore
+       focus only if the user was already working inside the grid. */
+    var focusKey = opts.focusKey ? opts.focusKey : (hadGridFocus ? dateKey(state.selected) : null);
+
+    if (focusKey) {
+      var next = el.grid.querySelector('[data-date="' + focusKey + '"]');
+      if (next) next.focus({ preventScroll: true });
+    }
+  }
+
+  /* --------------------------------------------------------------
+     Rendering: month summary
+  -------------------------------------------------------------- */
+  function renderMonthSummary() {
+    var prefix = state.viewYear + "-" + pad2(state.viewMonth + 1);
+    var noteDays = 0;
+    var noteCount = 0;
+    Object.keys(state.notes).forEach(function (key) {
+      if (key.indexOf(prefix) !== 0) return;
+      noteDays += 1;
+      noteCount += state.notes[key].length;
+    });
+    el.legend.hidden = noteDays === 0;
+    if (!noteDays) {
+      el.monthSummary.textContent = "No notes this month";
+      return;
+    }
+    el.monthSummary.textContent = noteDays + " " + plural(noteDays, "day") + " · " +
+      noteCount + " " + plural(noteCount, "note");
+  }
+
+  /* --------------------------------------------------------------
+     Rendering: notes panel
+  -------------------------------------------------------------- */
+  function relativeLabel(date, from) {
+    var diff = dayDiff(from, date);
+    if (diff === 0) return "Today";
+    if (diff === 1) return "Tomorrow";
+    if (diff === -1) return "Yesterday";
+    if (diff > 1) return "In " + diff + " days";
+    return Math.abs(diff) + " days ago";
+  }
+
+  function formatTime(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    var h = d.getHours();
+    var m = pad2(d.getMinutes());
+    var suffix = h >= 12 ? "PM" : "AM";
+    var hour12 = h % 12 === 0 ? 12 : h % 12;
+    return hour12 + ":" + m + " " + suffix;
+  }
+
+  function renderPanel() {
+    var sel = state.selected;
+    var key = dateKey(sel);
+    var notes = (state.notes[key] || []).slice().reverse();
+
+    el.panelWeekday.textContent = WEEKDAYS[weekdayIndex(sel)];
+    el.panelMonthDay.textContent = MONTHS[sel.getMonth()] + " " + sel.getDate();
+    el.panelYear.textContent = String(sel.getFullYear());
+
+    var isToday = sameDay(sel, today);
+    el.relativeChip.textContent = relativeLabel(sel, today);
+    el.relativeChip.classList.toggle("strong", isToday);
+
+    /* Notes list */
+    el.notesList.innerHTML = "";
+    el.notesTotal.textContent = notes.length
+      ? notes.length + " " + plural(notes.length, "entry", "entries")
+      : "";
+
+    if (!notes.length) {
+      var empty = document.createElement("li");
+      empty.className = "empty";
+      empty.innerHTML =
+        '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+        '<path d="M7 4.5h7.5L19 9v10.5a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-14a1 1 0 0 1 1-1Z" ' +
+        'stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>' +
+        '<path d="M14 4.8V9h4.2M9 13.5h6M9 16.8h4" stroke="currentColor" ' +
+        'stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '<strong>A quiet page</strong>' +
+        '<span>No notes for this day yet. Capture a thought above.</span>';
+      el.notesList.appendChild(empty);
+    } else {
+      notes.forEach(function (note, index) {
+        var li = document.createElement("li");
+        li.className = "note";
+        li.style.setProperty("--i", String(Math.min(index, 8)));
+
+        var body = document.createElement("div");
+        body.className = "note-body";
+
+        var text = document.createElement("p");
+        text.className = "note-text";
+        text.textContent = note.text;
+
+        var meta = document.createElement("p");
+        meta.className = "note-meta";
+        var time = document.createElement("span");
+        time.textContent = formatTime(note.at);
+        meta.appendChild(time);
+        if (index === 0) {
+          var sep = document.createElement("i");
+          sep.setAttribute("aria-hidden", "true");
+          meta.appendChild(sep);
+          var latest = document.createElement("span");
+          latest.textContent = "Latest";
+          meta.appendChild(latest);
+        }
+
+        body.appendChild(text);
+        body.appendChild(meta);
+
+        var del = document.createElement("button");
+        del.type = "button";
+        del.className = "note-del";
+        del.setAttribute("aria-label", "Delete note from " + MONTHS[sel.getMonth()] + " " + sel.getDate());
+        del.innerHTML =
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+          '<path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.7" ' +
+          'stroke-linecap="round"/></svg>';
+        del.addEventListener("click", function () {
+          deleteNote(key, note.id);
+        });
+
+        li.appendChild(body);
+        li.appendChild(del);
+        el.notesList.appendChild(li);
+      });
+    }
+
+    el.notesList.setAttribute("aria-label", "Notes for " + MONTHS[sel.getMonth()] + " " + sel.getDate());
+  }
+
+  function render(options) {
+    renderGrid(options);
+    renderMonthSummary();
+    renderPanel();
+    updateComposer();
+  }
+
+  /* --------------------------------------------------------------
+     Composer
+  -------------------------------------------------------------- */
+  function updateComposer() {
+    var len = el.noteInput.value.length;
+    el.charCount.textContent = len + "/" + MAX_LEN;
+    el.charCount.classList.toggle("limit", len >= MAX_LEN);
+    el.addBtn.disabled = el.noteInput.value.trim().length === 0;
+    el.noteInput.style.height = "auto";
+    el.noteInput.style.height = Math.min(el.noteInput.scrollHeight, 190) + "px";
+  }
+
+  var HINT_DEFAULT = "<kbd>Enter</kbd> saves";
+
+  function showStatus(message) {
+    el.composerHint.textContent = message;
+    el.composerHint.classList.add("flash");
+    if (statusTimer) window.clearTimeout(statusTimer);
+    statusTimer = window.setTimeout(function () {
+      el.composerHint.innerHTML = HINT_DEFAULT;
+      el.composerHint.classList.remove("flash");
+    }, 2200);
+  }
+
+  function addNote() {
+    var text = el.noteInput.value.trim();
+    if (!text) {
+      el.noteInput.focus();
+      return;
+    }
+    var key = dateKey(state.selected);
+    if (!state.notes[key]) state.notes[key] = [];
+    state.notes[key].push({
+      id: makeId(),
+      text: text,
+      at: new Date().toISOString()
+    });
+    saveNotes();
+    el.noteInput.value = "";
+    render();
+    showStatus("Added to " + MONTHS[state.selected.getMonth()] + " " + state.selected.getDate());
+    el.noteInput.focus();
+  }
+
+  function deleteNote(key, id) {
+    var list = state.notes[key];
+    if (!list) return;
+    var index = -1;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) { index = i; break; }
+    }
+    if (index === -1) return;
+
+    var removed = list.splice(index, 1)[0];
+    if (!list.length) delete state.notes[key];
+    saveNotes();
+    render();
+
+    showToast("Note deleted", function () {
+      if (!state.notes[key]) state.notes[key] = [];
+      var restored = state.notes[key];
+      restored.splice(Math.min(index, restored.length), 0, removed);
+      saveNotes();
+      render();
+      showStatus("Note restored");
+    });
+  }
+
+  /* --------------------------------------------------------------
+     Toast
+  -------------------------------------------------------------- */
+  function showToast(message, onUndo) {
+    el.toastText.textContent = message;
+    undoAction = typeof onUndo === "function" ? onUndo : null;
+    el.undoBtn.hidden = !undoAction;
+    el.toast.classList.add("show");
+
+    if (toastTimer) window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(hideToast, 5200);
+  }
+
+  function hideToast() {
+    el.toast.classList.remove("show");
+    undoAction = null;
+    if (toastTimer) window.clearTimeout(toastTimer);
+    toastTimer = null;
+  }
+
+  el.undoBtn.addEventListener("click", function () {
+    var action = undoAction;
+    hideToast();
+    if (action) action();
+  });
+
+  /* --------------------------------------------------------------
+     Navigation
+  -------------------------------------------------------------- */
+  function applyView(date) {
+    state.viewYear = date.getFullYear();
+    state.viewMonth = date.getMonth();
+  }
+
+  function goToMonth(delta, options) {
+    var opts = options || {};
+    var target = new Date(state.viewYear, state.viewMonth + delta, 1);
+    applyView(target);
+
+    /* Keep the selected date and the visible grid in agreement: rather than
+       leaving the selection stranded in another month, move it to the same
+       day-of-month (clamped) inside the month now on screen. */
+    if (!opts.keepSelection) {
+      var lastDay = new Date(state.viewYear, state.viewMonth + 1, 0).getDate();
+      state.selected = new Date(
+        state.viewYear,
+        state.viewMonth,
+        Math.min(state.selected.getDate(), lastDay)
+      );
+    }
+
+    render({ animate: true, direction: delta < 0 ? "prev" : "next" });
+  }
+
+  function selectDate(date, options) {
+    var opts = options || {};
+    state.selected = startOfDay(date);
+    var changedMonth = state.selected.getFullYear() !== state.viewYear ||
+      state.selected.getMonth() !== state.viewMonth;
+    if (changedMonth) applyView(state.selected);
+
+    render({
+      animate: changedMonth,
+      direction: opts.direction || (changedMonth ? "next" : undefined),
+      focusKey: opts.focus ? dateKey(state.selected) : null
+    });
+
+    if (!opts.inPlace) {
+      /* Keep the note composer visible on small screens. */
+      if (window.matchMedia && window.matchMedia("(max-width: 860px)").matches) {
+        el.noteInput.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+  }
+
+  function moveSelection(dayDelta, monthDelta) {
+    var target = state.selected;
+    if (dayDelta) target = addDays(target, dayDelta);
+    if (monthDelta) target = addMonths(target, monthDelta);
+    selectDate(target, {
+      focus: true,
+      direction: monthDelta < 0 || dayDelta < 0 ? "prev" : "next"
+    });
+  }
+
+  /* --------------------------------------------------------------
+     Events
+  -------------------------------------------------------------- */
+  el.prevBtn.addEventListener("click", function () { goToMonth(-1); });
+  el.nextBtn.addEventListener("click", function () { goToMonth(1); });
+
+  el.todayBtn.addEventListener("click", function () {
+    state.selected = today;
+    applyView(today);
+    render({ animate: true, direction: "next" });
+  });
+
+  el.grid.addEventListener("click", function (event) {
+    var btn = event.target.closest(".day");
+    if (!btn || !el.grid.contains(btn)) return;
+    var parts = btn.dataset.date.split("-");
+    var picked = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    selectDate(picked, { inPlace: true, focus: true });
+  });
+
+  el.grid.addEventListener("keydown", function (event) {
+    var key = event.key;
+    var handled = true;
+
+    switch (key) {
+      case "ArrowLeft": moveSelection(-1, 0); break;
+      case "ArrowRight": moveSelection(1, 0); break;
+      case "ArrowUp": moveSelection(-7, 0); break;
+      case "ArrowDown": moveSelection(7, 0); break;
+      case "Home": moveSelection(-weekdayIndex(state.selected), 0); break;
+      case "End": moveSelection(6 - weekdayIndex(state.selected), 0); break;
+      case "PageUp": moveSelection(0, -1); break;
+      case "PageDown": moveSelection(0, 1); break;
+      default: handled = false;
+    }
+
+    if (handled) event.preventDefault();
+  });
+
+  el.noteInput.addEventListener("input", updateComposer);
+
+  el.noteInput.addEventListener("keydown", function (event) {
+    if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+      event.preventDefault();
+      addNote();
+    }
+  });
+
+  el.addBtn.addEventListener("click", addNote);
+
+  /* Sync across tabs. */
+  window.addEventListener("storage", function (event) {
+    if (event.key !== STORAGE_KEY) return;
+    state.notes = loadNotes();
+    render();
+  });
+
+  /* --------------------------------------------------------------
+     Boot
+  -------------------------------------------------------------- */
+  function boot() {
+    var fmt = new Intl.DateTimeFormat("en-GB", {
+      weekday: "long", day: "numeric", month: "long", year: "numeric"
+    });
+    el.mastheadDate.textContent = fmt.format(today);
+
+    render();
+
+    /* Re-evaluate "today" when the tab regains focus after midnight. */
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState !== "visible") return;
+      var now = startOfDay(new Date());
+      if (!sameDay(now, today)) {
+        var wasToday = sameDay(state.selected, today);
+        today = now;
+        if (wasToday) {
+          state.selected = today;
+          state.viewYear = today.getFullYear();
+          state.viewMonth = today.getMonth();
+        }
+        render();
+      }
+    });
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
