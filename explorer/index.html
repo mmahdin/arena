@@ -1,0 +1,181 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Theia AI Execution Explorer</title><style>
+:root{--bg:#0c0f16;--pn:#141925;--p2:#1b2231;--bd:#2a3347;--tx:#e8ecf4;--mu:#8e9ab1;--ac:#7c9cff;--ok:#3ecf8e;--er:#ff5d6c;--sk:#8e9ab1;--rn:#f5b84a;--cn:#c084fc;color-scheme:dark}
+*{box-sizing:border-box}[hidden]{display:none!important}#sel{max-width:260px}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font:13px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;overflow:hidden}
+button,select{font:inherit;color:inherit;background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:5px 10px;cursor:pointer;max-width:100%}
+button:hover{border-color:var(--ac)}button:focus-visible,.nd:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+header{display:flex;gap:8px;align-items:center;padding:8px 12px;background:var(--pn);border-bottom:1px solid var(--bd);flex-wrap:wrap}
+.logo{font-weight:700}.logo span{color:var(--mu);font-weight:500}.sp{flex:1}#meta{color:var(--mu);font-size:12px}
+.seg{display:flex}.seg button{border-radius:0;margin-left:-1px}.seg button:first-child{border-radius:8px 0 0 8px;margin:0}.seg button:last-child{border-radius:0 8px 8px 0}.seg .on{background:var(--ac);color:#0b1020;border-color:var(--ac)}
+main{flex:1;display:flex;min-height:0;position:relative}
+#view{flex:1;position:relative;overflow:hidden;cursor:grab;background:radial-gradient(circle at 1px 1px,#222b3d 1px,transparent 0) 0 0/24px 24px;touch-action:none}
+#view.pan{cursor:grabbing}#world{position:absolute;left:0;top:0;transform-origin:0 0}
+#svg{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible}
+.ex{stroke:#3a4660;fill:none;stroke-width:1.5}.dt{fill:none;stroke-width:2;opacity:.92}.tr{--c:#b388ff}.dt.tr{stroke:#b388ff}.dt.cp{stroke:#5ec2ff}.dt.rg{stroke:#ffa94d;stroke-width:3}.dt.mt{stroke:#7d889e;stroke-dasharray:5 4}
+.st-success{--c:var(--ok)}.st-error{--c:var(--er)}.st-skipped{--c:var(--sk)}.st-running{--c:var(--rn)}.st-cancelled{--c:var(--cn)}
+.nd{position:absolute;width:252px;height:64px;padding:8px 42px 6px 12px;background:var(--pn);border:1px solid var(--bd);border-left:4px solid var(--c);border-radius:10px;box-shadow:0 2px 10px #0006;cursor:pointer;animation:in .2s}
+.nd.st-error{background:#2a1620}.nd.st-skipped{border-style:dashed;border-left-style:solid;opacity:.85}.nd.sel{box-shadow:0 0 0 2px var(--ac),0 6px 24px #0008}
+.nd b{display:block;font-size:12px;line-height:15px;max-height:30px;overflow:hidden;overflow-wrap:anywhere}
+.nd small{display:block;color:var(--mu);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.cv{position:absolute;right:8px;top:50%;margin-top:-13px;width:26px;height:26px;padding:0;border-radius:50%;font-size:11px}
+@keyframes in{from{opacity:0}}
+#zc{position:absolute;left:12px;bottom:12px;display:flex;gap:6px;align-items:center;z-index:3}#zc span{color:var(--mu);font-size:11px;min-width:38px}
+#hint{position:absolute;right:12px;bottom:10px;color:var(--mu);font-size:11px;pointer-events:none;text-align:right;max-width:60%}
+#empty{position:absolute;inset:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;text-align:center;color:var(--mu);padding:20px;z-index:2}#empty h2{color:var(--tx);margin:0}
+body.drop #view{outline:3px dashed var(--ac);outline-offset:-8px}
+#insp{width:480px;max-width:50%;background:var(--pn);border-left:1px solid var(--bd);display:flex;flex-direction:column;min-width:0}
+#ih{padding:10px 14px 6px;border-bottom:1px solid var(--bd)}#ih .row{display:flex;gap:8px;align-items:flex-start}#ih h3{margin:0;font-size:14px;overflow-wrap:anywhere;flex:1}
+.x{padding:0 8px;line-height:22px}.cr{color:var(--mu);font-size:11px;margin-bottom:3px;overflow-wrap:anywhere}.cr a,a.ch{color:var(--ac);cursor:pointer}
+#tabs{display:flex;gap:2px;padding:0 10px;border-bottom:1px solid var(--bd);overflow-x:auto}#tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:none;white-space:nowrap}#tabs .on{border-color:var(--ac);color:var(--ac)}
+#ib{flex:1;overflow:auto;padding:12px 14px 30px;min-height:0}#ib h4{margin:16px 0 6px;color:var(--mu);font-size:11px;text-transform:uppercase;letter-spacing:.06em}#ib h4:first-child{margin-top:0}
+.tr2,.trw{display:flex;flex-direction:column;gap:3px}.kv{display:flex;gap:10px;align-items:baseline}.kv>.k{flex:0 0 auto;min-width:90px;max-width:40%;color:var(--mu);overflow-wrap:anywhere}.vv{min-width:0;flex:1;overflow-wrap:anywhere}
+details{margin:2px 0}summary{cursor:pointer;list-style:none;color:var(--mu)}summary::-webkit-details-marker{display:none}summary::before{content:"▸ ";display:inline-block;width:1em}details[open]>summary::before{content:"▾ "}summary em{font-size:11px;margin-left:6px}
+details>div{margin-left:5px;border-left:1px solid var(--bd);padding-left:10px}
+.txt{white-space:pre-wrap;background:#0f131c;border:1px solid var(--bd);border-radius:8px;padding:8px 10px;max-height:300px;overflow:auto;overflow-wrap:anywhere;margin:2px 0}
+.pt{font:12px/1.55 ui-monospace,Menlo,Consolas,monospace;max-height:420px}.nt,.mu{color:var(--mu);font-size:11px}i.nl{color:var(--mu)}
+.bd{display:inline-block;padding:0 8px;border-radius:99px;background:var(--c,#445);color:#0b1020;font-size:11px;font-weight:600;line-height:18px}
+.r-cp{--c:#5ec2ff}.r-tr{--c:#b388ff}.r-rg{--c:#ffa94d}.r-mt{--c:#7d889e;color:#fff}.fl{animation:fl 1.8s}@keyframes fl{0%,60%{background:#f5b84a55}}
+.card{border:1px solid var(--bd);border-radius:10px;padding:8px 10px;margin:8px 0;background:var(--p2)}.card>.h{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.cmp{background:#7c9cff12;box-shadow:0 0 0 1px #7c9cff30;border-radius:3px;cursor:pointer}.cmp.on,.ol.on{background:#f5b84a44}.ol{cursor:pointer;display:block;text-align:left;width:100%;margin:1px 0;padding:2px 6px;border:0;background:none;border-radius:4px}
+.pcinfo{margin-top:6px;font-size:12px}.pcinfo button{display:block;margin:3px 0;font-size:11px;text-align:left;overflow-wrap:anywhere}
+table{border-collapse:collapse;width:100%;font-size:12px}td,th{border-bottom:1px solid var(--bd);padding:3px 6px;text-align:left}th{color:var(--mu);font-weight:500}code{font:11.5px ui-monospace,Menlo,monospace;overflow-wrap:anywhere}
+.df{display:block;text-align:left;margin:2px 0;width:100%;overflow-wrap:anywhere;font-size:11.5px}
+#toast{position:fixed;left:50%;top:64px;transform:translate(-50%,-40px);background:#3a1620;border:1px solid var(--er);padding:8px 14px;border-radius:10px;opacity:0;transition:.25s;z-index:20;max-width:90vw}#toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:820px){#insp{display:none;width:auto;position:absolute;left:0;right:0;bottom:0;height:56%;max-width:none;border-left:0;border-top:1px solid var(--bd);z-index:5;box-shadow:0 -8px 30px #000a}body.ip #insp{display:flex}#meta,#hint{display:none}header{gap:6px;padding:6px 8px}}
+</style></head><body>
+<header><b class="logo">Theia <span>Execution Explorer</span></b><select id="sel" aria-label="Trace" hidden></select><button id="open">Open traces…</button><input id="file" type="file" accept=".json,application/json" multiple hidden><span id="meta"></span><span class="sp"></span>
+<div class="seg" id="flow" role="group" aria-label="Data flow edges"><button data-m="key" class="on" title="Explicit instrumented bindings only">Key transfers</button><button data-m="sel" title="All data edges touching the selection">Selected</button><button data-m="all" title="Every data edge, including value matches">All</button></div>
+<button id="expAll">Expand all</button><button id="colAll">Collapse</button><button id="info" title="Trace summary">Summary</button></header>
+<main><div id="view"><div id="world"><svg id="svg"></svg><div id="nodes"></div></div>
+<div id="empty"><h2>Drop a local_ai_trace.v1 file</h2><div>Traces are read locally in your browser. Nothing is uploaded.</div><button id="open2">Open trace files…</button></div>
+<div id="zc"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="fit">Fit</button><span id="zp"></span></div>
+<div id="hint">Click ▸ to expand · Alt-click expands a subtree · Scroll to zoom · Drag to pan · Arrow keys navigate</div></div>
+<aside id="insp"><div id="ih"></div><div id="tabs"></div><div id="ib"></div></aside></main><div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fd=n=>n<1e3?n+' ns':n<1e6?(n/1e3).toFixed(1)+' µs':n<1e9?(n/1e6).toFixed(n<1e7?2:1)+' ms':(n/1e9).toFixed(2)+' s';
+const sn=o=>o.split('/').pop(),W=252,H=64,GX=70,GY=14,enc=new TextEncoder,dcd=new TextDecoder;
+let TR=[],cur=null,mode='key',tt;
+const ptr=(r,p)=>{let c=r;for(const s of p.split('/').slice(1))c=c[s.replace(/~1/g,'/').replace(/~0/g,'~')];return c},gp=(o,p)=>{try{return ptr(o,p)}catch{}};
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),4500)};
+function build(t,name){const N=new Map(),roots=[];t.edges=t.edges||[];t.diagnostics=t.diagnostics||[];
+ t.nodes.forEach(n=>{if(!n||typeof n.id!=='string')throw Error('node without id');n.artifacts=n.artifacts||[];n.provider_usage=n.provider_usage||[];n.estimates=n.estimates||[];N.set(n.id,{n,kids:[],p:null})});
+ N.forEach(o=>{const p=o.n.parent_id&&N.get(o.n.parent_id);if(p&&p!==o){o.p=p;p.kids.push(o)}else roots.push(o)});
+ const seen=new Set(),walk=o=>{seen.add(o);o.kids.forEach(walk)};roots.forEach(walk);N.forEach(o=>{if(!seen.has(o)){o.p.kids=o.p.kids.filter(k=>k!==o);o.p=null;roots.push(o);walk(o)}});
+ const by=(a,b)=>a.n.sequence-b.n.sequence;N.forEach(o=>o.kids.sort(by));roots.sort(by);
+ const c={t,name,N,roots,exp:new Set(roots.map(r=>r.n.id)),sel:null,tab:'ov',v:{x:0,y:0,k:1},vis:[]};
+ N.forEach(o=>{if(o.n.status==='error')for(let q=o.p;q;q=q.p)c.exp.add(q.n.id)});c.init=new Set(c.exp);return c}
+async function ingest(files){let last=null;for(const f of files){try{const t=JSON.parse(await f.text());if(!t||t.schema!=='local_ai_trace.v1'||!Array.isArray(t.nodes))throw Error('not a local_ai_trace.v1 trace');last=build(t,f.name);TR.push(last)}catch(e){toast(f.name+': '+e.message)}}
+ if(last){fillSel();show(last)}}
+function fillSel(){const s=$('#sel');s.hidden=TR.length<2;s.innerHTML=TR.map((c,i)=>`<option value="${i}">${esc(c.name)} · ${esc(c.t.kind||'trace')} · ${c.N.size} nodes</option>`).join('');s.value=TR.indexOf(cur)}
+function show(c){cur=c;$('#empty').hidden=true;$('#sel').value=TR.indexOf(c);draw();fit();meta();insp();document.body.classList.remove('ip')}
+function meta(){const c=cur,t=c.t,u=t.totals||{},r=c.roots[0];$('#meta').textContent=[t.status+(t.complete?'':' (incomplete)'),r?fd(r.n.duration_ns):'',c.N.size+' operations',u.provider_calls!=null&&u.provider_calls+' LLM calls',u.actual_input_tokens!=null&&`${u.actual_input_tokens}→${u.actual_output_tokens} tokens`+(u.unknown_usage_calls?` (+${u.unknown_usage_calls} calls with unknown usage)`:'')].filter(Boolean).join(' · ')}
+const sub=o=>{const n=o.n,p=[];if(n.status==='success')p.push(fd(n.duration_ns));else p.push(n.status+(n.reason?' · '+n.reason:n.error?' · '+n.error.type:''));
+ if(n.status==='success'){const u=n.provider_usage;if(u.length)p.push(u.reduce((a,x)=>a+x.input_tokens,0)+'→'+u.reduce((a,x)=>a+x.output_tokens,0)+' tok');if(n.artifacts.length)p.push(n.artifacts.length+' art.')}return p.join(' · ')};
+const P=(a,b)=>{const ay=a.y+H/2,by=b.y+H/2;if(b.x>a.x){const sx=a.x+W,d=Math.max(50,(b.x-sx)/2);return`M${sx} ${ay}C${sx+d} ${ay} ${b.x-d} ${by} ${b.x} ${by}`}
+ if(b.x===a.x){const sx=a.x+W;return`M${sx} ${ay}C${sx+80} ${ay} ${sx+80} ${by} ${sx} ${by}`}const tx=b.x+W,d=Math.max(30,(a.x-tx)/2);return`M${a.x} ${ay}C${a.x-d} ${ay} ${tx+d} ${by} ${tx} ${by}`};
+function draw(){const c=cur;c.vis=[];c.N.forEach(o=>o.vis=0);let y=0;
+ const go=(o,d)=>{o.vis=1;o.x=d*(W+GX);c.vis.push(o);const ks=c.exp.has(o.n.id)?o.kids:[];if(!ks.length){o.y=y;y+=H+GY}else{ks.forEach(k=>go(k,d+1));o.y=(ks[0].y+ks[ks.length-1].y)/2}};
+ c.roots.forEach(r=>go(r,0));
+ $('#nodes').innerHTML=c.vis.map(o=>{const n=o.n,e=c.exp.has(n.id);return`<div class="nd st-${n.status}${c.sel===n.id?' sel':''}" tabindex="0" data-id="${n.id}" style="left:${o.x}px;top:${o.y}px" title="${esc(n.operation)} · ${n.status}"><b>${esc(sn(n.operation))}</b><small>${esc(sub(o))}</small>${o.kids.length?`<button class="cv" title="${e?'Collapse':'Expand'} ${o.kids.length} child operation(s)" aria-expanded="${e}" aria-label="${e?'Collapse':'Expand'} ${o.kids.length} children">${e?'−':o.kids.length}</button>`:''}</div>`}).join('');edges()}
+function edges(){const c=cur;let h='<defs>'+Object.entries({tr:'#b388ff',cp:'#5ec2ff',rg:'#ffa94d',mt:'#7d889e',ex:'#3a4660'}).map(([k,v])=>`<marker id="a${k}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="${v}"/></marker>`).join('')+'</defs>';
+ c.vis.forEach(o=>{if(o.p&&o.p.vis&&c.exp.has(o.p.n.id))h+=`<path class="ex" data-e="x" d="${P(o.p,o)}" marker-end="url(#aex)"/>`});
+ const rep=id=>{let o=c.N.get(id);while(o&&!o.vis)o=o.p;return o},s=c.sel&&c.N.get(c.sel),sr=s&&rep(s.n.id),agg=new Map();
+ for(const e of c.t.edges){if(e.kind!=='data')continue;const ib=e.evidence==='instrumented_binding';if(mode==='key'&&!ib)continue;const a=rep(e.from),b=rep(e.to);if(!a||!b||a===b)continue;if(mode==='sel'&&a!==sr&&b!==sr)continue;
+  const k=ib?{copy:'cp',regeneration:'rg'}[e.relation]||'tr':'mt',key=a.n.id+'>'+b.n.id+k,g=agg.get(key)||{a,b,k,n:0};g.n++;agg.set(key,g)}
+ agg.forEach(g=>h+=`<path class="dt ${g.k}" data-e="d" d="${P(g.a,g.b)}" marker-end="url(#a${g.k})"><title>${g.n} ${g.k==='mt'?'matching value(s) (evidence only)':{cp:'copy',tr:'transform',rg:'regeneration'}[g.k]+' binding(s)'}</title></path>`);
+ $('#svg').innerHTML=h}
+function apply(){const v=cur.v;$('#world').style.transform=`translate(${v.x}px,${v.y}px) scale(${v.k})`;$('#zp').textContent=Math.round(v.k*100)+'%'}
+function fit(){const c=cur,r=$('#view').getBoundingClientRect();let w=1,h=1;c.vis.forEach(o=>{w=Math.max(w,o.x+W);h=Math.max(h,o.y+H)});const k=Math.max(.12,Math.min(1,(r.width-60)/w,(r.height-60)/h));c.v={k,x:Math.max(20,(r.width-w*k)/2),y:Math.max(20,(r.height-h*k)/2)};apply()}
+function zoom(px,py,f){const v=cur.v,k=Math.min(2.5,Math.max(.1,v.k*f)),r=k/v.k;v.x=px-(px-v.x)*r;v.y=py-(py-v.y)*r;v.k=k;apply()}
+function ensure(o){const v=cur.v,r=$('#view').getBoundingClientRect(),sx=o.x*v.k+v.x,sy=o.y*v.k+v.y,m=20;if(sx<m||sy<m||sx+W*v.k>r.width-m||sy+H*v.k>r.height*(innerWidth<=820?.4:1)-m){v.x=r.width/2-(o.x+W/2)*v.k;v.y=Math.min(r.height*(innerWidth<=820?.2:.5),r.height/2)-(o.y+H/2)*v.k;apply()}}
+function toggle(id,all){const c=cur,o=c.N.get(id),y0=o.y,sub=q=>{c.exp.add(q.n.id);q.kids.forEach(sub)};
+ if(all)sub(o);else if(c.exp.has(id)){c.exp.delete(id);for(let q=c.sel&&c.N.get(c.sel);q;q=q.p)if(q===o&&q.n.id!==c.sel){c.sel=id;break}}else c.exp.add(id);
+ draw();c.v.y-=(o.y-y0)*c.v.k;apply();insp()}
+function select(id,reveal,showIp){const c=cur;c.sel=id;c.tab=c.tab==='ov'||!id?'ov':c.tab;if(id&&reveal)for(let q=c.N.get(id).p;q;q=q.p)c.exp.add(q.n.id);draw();if(id&&(reveal||innerWidth<=820))ensure(c.N.get(id));insp();document.body.classList.toggle('ip',!!showIp||!!id)}
+// ---------- value rendering (readable text first, structure second)
+const tryJ=s=>{try{const j=JSON.parse(s);return j&&typeof j==='object'?j:null}catch{return null}};
+function b64(s){if(s.length<24||s.length%4||!/^[A-Za-z0-9+/]+={0,2}$/.test(s))return null;try{const t=dcd.decode(Uint8Array.from(atob(s),c=>c.charCodeAt(0)));return/[\x00-\x08\x0e-\x1f\ufffd]/.test(t)?null:t}catch{return null}}
+const S=(s,p)=>{if(!s)return'<i class="nl">empty string</i>';if(s.length<=70&&!s.includes('\n')&&!(s[0]==='{'||s[0]==='[')&&b64(s)===null)return`<span dir="auto">${esc(s)}</span>`;const j=(s[0]==='{'||s[0]==='[')&&tryJ(s);if(j)return'<div class="nt">JSON string, shown parsed</div>'+V(j,p);const d=b64(s);if(d!==null)return'<div class="nt">base64 bytes, decoded as text</div>'+S(d,p);return`<div class="txt" dir="auto">${esc(s)}</div>`};
+function V(v,p){if(v===null||v===undefined)return'<i class="nl">null</i>';if(typeof v==='string')return S(v,p);if(typeof v!=='object')return`<span>${esc(v)}</span>`;
+ const ent=Array.isArray(v)?v.map((x,i)=>[i,x]):Object.entries(v);if(!ent.length)return'<i class="nl">empty</i>';
+ return'<div class="trw">'+ent.map(([k,x])=>{const q=p+'/'+String(k).replace(/~/g,'~0').replace(/\//g,'~1'),cx=x!==null&&typeof x==='object'&&Object.keys(x).length,big=typeof x==='string'&&(x.length>70||x.includes('\n'));
+  if(cx||big)return`<details ${q.split('/').length<=6&&ent.length<=25&&(!cx||Object.keys(x).length<=25)?'open':''} data-p="${esc(q)}"><summary><span class="k">${esc(k)}</span>${cx?`<em>${Array.isArray(x)?x.length+(x.length===1?' item':' items'):Object.keys(x).length+' fields'}</em>`:''}</summary><div>${V(x,q)}</div></details>`;
+  return`<div class="kv" data-p="${esc(q)}"><span class="k">${esc(k)}</span><span class="vv">${V(x,q)}</span></div>`}).join('')+'</div>'}
+const hue=s=>[...s].reduce((a,c)=>(a*31+c.charCodeAt(0))%360,7);
+function PC(o,ai){const parts=o.n.artifacts[ai].value;if(!Array.isArray(parts))return V(parts,`/artifacts/${ai}/value`);
+ return parts.map((pt,pi)=>{const rn=cur.N.get(pt.rendered.node_id),s=rn&&gp(rn.n,pt.rendered.path);let body;
+  if(typeof s!=='string')body='<div class="nt">The rendered text reference could not be resolved in this trace.</div>';
+  else{const by=enc.encode(s),cs=pt.components,ok=cs.map(c=>c.start_byte<=c.end_byte&&c.end_byte<=by.length),dec=(a,b)=>dcd.decode(by.subarray(a,b)),
+   ch=i=>cs.map((c,j)=>[c,j]).filter(([c,j])=>ok[j]&&(c.parent==null?null:c.parent)===i),
+   R=(a,b,i)=>{let h='',pos=a;for(const[c,j]of ch(i)){if(c.start_byte<pos||c.end_byte>b)continue;h+=esc(dec(pos,c.start_byte))+`<span class="cmp" data-k="${ai}:${pi}:${j}" title="${esc(c.name)}">${R(c.start_byte,c.end_byte,j)}</span>`;pos=c.end_byte}return h+esc(dec(pos,b))},
+   dp=j=>{let d=0;for(let q=cs[j].parent;q!=null&&d<20;q=cs[q]&&cs[q].parent)d++;return d};
+   body=`<div class="txt pt" dir="auto">${R(0,by.length,null)}</div><details><summary>Structure: ${cs.length} component(s)${ok.includes(false)?' · '+ok.filter(x=>!x).length+' with invalid byte ranges (skipped)':''}</summary><div>${cs.map((c,j)=>ok[j]?`<button class="ol" data-ol="${ai}:${pi}:${j}" style="padding-left:${6+dp(j)*14}px">${esc(c.name)} <span class="mu">${c.end_byte-c.start_byte} B · ${c.sources.length} source(s)</span></button>`:'').join('')}</div></details><div class="pcinfo mu">Click a highlighted section to see its captured sources.</div>`}
+  return`<div class="card" data-part="${ai}:${pi}"><div class="h"><span class="bd" style="--c:hsl(${hue(pt.role)} 70% 72%)">${esc(pt.role)}</span><b>${esc(pt.name)}</b>${pt.source?`<span class="mu">source label: ${esc(pt.source)}</span>`:''}</div>${body}</div>`}).join('')}
+function actC(k){const[ai,pi,j]=k.split(':'),c=cur.N.get(cur.sel).n.artifacts[ai].value[pi].components[j],box=document.querySelector(`[data-part="${ai}:${pi}"]`);
+ box.querySelectorAll('.on').forEach(x=>x.classList.remove('on'));box.querySelectorAll(`[data-k="${k}"],[data-ol="${k}"]`).forEach(x=>x.classList.add('on'));
+ box.querySelector('.pcinfo').innerHTML=`<b>${esc(c.name)}</b> <span class="mu">bytes ${c.start_byte}–${c.end_byte}</span>`+(c.sources.length?c.sources.map(s=>`<button data-nv="${s.node_id}|${esc(s.path)}">${esc(s.node_id)} ${esc(cur.N.has(s.node_id)?sn(cur.N.get(s.node_id).n.operation):'')} ${esc(s.path)}</button>`).join(''):'<div class="mu">No finer captured source mapping is claimed.</div>')}
+function navPath(id,p){if(!cur.N.has(id))return toast('Node '+id+' is not part of this trace');cur.tab=p.startsWith('/input')?'in':p.startsWith('/output')?'out':'ar';select(id,1,1);flash(p)}
+function flash(p){let el;for(let q=p;q&&!el;q=q.slice(0,q.lastIndexOf('/')))el=$('#ib').querySelector(`[data-p="${CSS.escape(q)}"]`);if(!el)return;if(el.tagName==='DETAILS')el.open=true;for(let d=el.parentElement;d&&d.id!=='ib';d=d.parentElement)if(d.tagName==='DETAILS')d.open=true;el.scrollIntoView({block:'center'});el.classList.add('fl');setTimeout(()=>el.classList.remove('fl'),1800)}
+// ---------- inspector
+function strs(v,p,out){if(typeof v==='string'){if(v.length>=40&&b64(v)===null&&!/^[0-9a-f-]{32,}$/.test(v)&&!tryJ(v))out.push([p,v])}else if(v&&typeof v==='object')for(const k in v)strs(v[k],p+'/'+k.replace(/~/g,'~0').replace(/\//g,'~1'),out)}
+function OV(o){const n=o.n,t0=Date.parse(cur.t.started_at),kv=(k,v)=>`<div class="kv"><span class="k">${k}</span><span class="vv">${v}</span></div>`;
+ let h='<div class="trw">'+kv('Operation',esc(n.operation))+kv('Node',`${n.id} · sequence ${n.sequence}`)+kv('Status',`<span class="bd st-${n.status}">${n.status}</span>`+(n.reason?` reason <code>${esc(n.reason)}</code>`:''))
+ +kv('Duration',fd(n.duration_ns)+' <span class="mu">inclusive of children; do not add across nodes</span>')+kv('Started','+'+(Date.parse(n.started_at)-t0)+' ms into trace'+(n.ended_at?'':' · no end recorded'))
+ +(n.error?kv('Error',esc(['type','code','step'].map(k=>n.error[k]&&k+' '+n.error[k]).filter(Boolean).join(' · '))):'')+'</div>';
+ if(o.kids.length)h+=`<h4>Child operations (${o.kids.length})</h4>`+o.kids.map(k=>`<a class="ch" data-go="${k.n.id}">${esc(sn(k.n.operation))}</a>`).join(' · ');
+ const outS=[],inS=[];strs(n.output,'/output',outS);strs(n.input,'/input',inS);const seen=new Set(),pick=(a,m)=>a.sort((x,y)=>y[1].length-x[1].length).filter(([,s])=>!seen.has(s)&&seen.add(s)).slice(0,m);
+ const ks=[...pick(outS,3),...pick(inS,2)];if(ks.length)h+='<h4>Key text</h4>'+ks.map(([p,s])=>`<div class="mu"><a class="ch" data-nv="${n.id}|${esc(p)}">${esc(p)}</a></div><div class="txt" dir="auto">${esc(s)}</div>`).join('');
+ if(n.provider_usage.length)h+='<h4>Provider usage (reported)</h4><table><tr><th>Model</th><th>In</th><th>Out</th><th>Cached</th><th>Latency</th></tr>'+n.provider_usage.map(u=>`<tr><td>${esc(u.provider)}/${esc(u.model)}</td><td>${u.input_tokens}</td><td>${u.output_tokens}</td><td>${u.cached_tokens}</td><td>${fd(u.latency_ns)}${u.estimated_cost_micro_usd?' · '+u.estimated_cost_micro_usd+' µUSD':''}</td></tr>`).join('')+'</table>';
+ if(n.estimates.length){const m=n.estimates.filter(e=>!e.source.includes('/section/')),sc=n.estimates.filter(e=>e.source.includes('/section/')),row=e=>`<tr><td>${esc(e.source)}</td><td>${e.tokens}</td><td>${e.bytes} B</td></tr>`;
+  h+=`<h4>Estimated input tokens</h4><div class="mu">Heuristic ${esc(n.estimates[0].method.split(';')[0])}, not a tokenizer. Section rows overlap their block; never add them.</div><table><tr><th>Component</th><th>≈ tokens</th><th>Size</th></tr>${m.map(row).join('')}</table>${sc.length?`<details><summary>Section breakdown (overlapping)</summary><div><table>${sc.map(row).join('')}</table></div></details>`:''}`}
+ return h}
+function DF(o){const id=o.n.id,es=cur.t.edges.filter(e=>e.kind==='data'&&(e.from===id||e.to===id));if(!es.length)return'<p class="mu">No data edges involve this node in the trace.</p>';
+ const g=new Map();es.forEach(e=>{const out=e.from===id,oth=out?e.to:e.from,k=(out?'→':'←')+oth;(g.get(k)||g.set(k,{out,oth,l:[]}).get(k)).l.push(e)});
+ const ib=e=>e.evidence==='instrumented_binding',lab=e=>ib(e)?`<span class="bd r-${{copy:'cp',regeneration:'rg'}[e.relation]||'tr'}">${e.relation}</span>`:'<span class="bd r-mt">value match</span>';
+ return'<div class="mu">Instrumented bindings were observed at the call site. Value matches only show equal captured values; they are not proof that one operation used the other.</div>'+[...g.values()].sort((a,b)=>b.l.filter(ib).length-a.l.filter(ib).length||a.out-b.out).map(x=>{const on=cur.N.get(x.oth),nb=x.l.filter(ib).length;
+  return`<details ${nb?'open':''}><summary>${x.out?'sends to':'receives from'} <a class="ch" data-go="${x.oth}">${esc(on?sn(on.n.operation):x.oth)}</a> <em>${nb?nb+' binding(s) · ':''}${x.l.length-nb} value match(es)</em></summary><div>${x.l.sort((a,b)=>ib(b)-ib(a)).map(e=>`${lab(e)}<button class="df" data-nv="${e.from}|${esc(e.from_path||'')}">${esc(e.from_path||'')}</button><button class="df" data-nv="${e.to}|${esc(e.to_path||'')}">→ ${esc(e.to_path||'')}</button>`).join('')}</div></details>`}).join('')}
+function summary(){const c=cur,t=c.t,u=t.totals||{},r=c.roots[0]&&c.roots[0].n;let h='';const um=r&&(gp(r,'/input/request/text')??gp(r,'/input/text')),rp=r&&(gp(r,'/output/text')??gp(r,'/output/Text'));
+ if(typeof um==='string')h+=`<h4>User message</h4><div class="txt" dir="auto">${esc(um)}</div>`;if(typeof rp==='string')h+=`<h4>Final reply</h4><div class="txt" dir="auto">${esc(rp)}</div>`;if(!h)h='<p class="mu">This trace has no user message or reply at its root operation.</p>';
+ h+=`<h4>Trace</h4><div class="trw"><div class="kv"><span class="k">Kind</span><span class="vv">${esc(t.kind)} · ${t.status}${t.complete?'':' · incomplete'}</span></div><div class="kv"><span class="k">Trace</span><span class="vv">${esc(t.trace_id)}</span></div>${t.turn_id?`<div class="kv"><span class="k">Turn</span><span class="vv">${esc(t.turn_id)}</span></div>`:''}<div class="kv"><span class="k">Started</span><span class="vv">${esc(t.started_at)}</span></div></div>`;
+ if(t.totals)h+=`<h4>Provider usage</h4><div>${u.provider_calls} call(s), ${u.reported_calls} reported, <b>${u.unknown_usage_calls}</b> unknown (unknown is not zero). Tokens ${u.actual_input_tokens} in / ${u.actual_output_tokens} out / ${u.actual_cached_tokens} cached. Heuristic input estimate ${u.estimated_input_tokens}.</div>`+(Object.keys(u.by_stage||{}).length?'<table><tr><th>Stage</th><th>Calls</th><th>In</th><th>Out</th><th>≈ in est.</th></tr>'+Object.entries(u.by_stage).map(([k,s])=>`<tr><td>${esc(k)}</td><td>${s.calls}</td><td>${s.actual_input_tokens}</td><td>${s.actual_output_tokens}</td><td>${s.estimated_input_tokens}</td></tr>`).join('')+'</table>':'');
+ const st={};c.N.forEach(o=>st[o.n.status]=(st[o.n.status]||0)+1);h+='<h4>Operations</h4>'+Object.entries(st).map(([k,v])=>`<span class="bd st-${k}">${v} ${k}</span>`).join(' ');
+ const de=c.t.edges.filter(e=>e.kind==='data'),nb=de.filter(e=>e.evidence==='instrumented_binding').length;h+=`<p class="mu">${de.length} data edge(s): ${nb} instrumented binding(s), ${de.length-nb} value match(es). ${c.t.edges.length-de.length} execution edge(s).</p>`;
+ if(t.diagnostics.length)h+='<h4>Diagnostics</h4>'+t.diagnostics.map(d=>`<div class="txt">${esc(d)}</div>`).join('');return h}
+function insp(){const c=cur,ih=$('#ih'),tb=$('#tabs'),ib=$('#ib');if(!c){ih.innerHTML='<h3>Inspector</h3>';tb.innerHTML=ib.innerHTML='';return}const o=c.sel&&c.N.get(c.sel);
+ if(!o){ih.innerHTML='<div class="row"><h3>Trace summary</h3><button class="x" aria-label="Close inspector">×</button></div>';tb.innerHTML='';ib.innerHTML=summary();return}
+ const n=o.n,cr=[];for(let q=o.p;q;q=q.p)cr.unshift(`<a data-go="${q.n.id}">${esc(sn(q.n.operation))}</a>`);
+ ih.innerHTML=`<div class="cr">${cr.join(' › ')}</div><div class="row"><h3>${esc(sn(n.operation))} <span class="bd st-${n.status}">${n.status}</span></h3><button class="x" aria-label="Close inspector">×</button></div>`;
+ const dn=c.t.edges.filter(e=>e.kind==='data'&&(e.from===n.id||e.to===n.id)).length;
+ tb.innerHTML=[['ov','Overview'],['in','Input'],['out','Output'],['ar','Artifacts '+n.artifacts.length],['df','Data flow '+dn]].map(([k,l])=>`<button data-tab="${k}" class="${c.tab===k?'on':''}">${l}</button>`).join('');
+ const none=(v,w)=>v===null||v===undefined?`<p class="mu">No ${w} captured (${n.status==='running'?'still running':n.status==='skipped'?'operation was skipped':'null in the trace'}).</p>`:'';
+ ib.innerHTML=c.tab==='ov'?OV(o):c.tab==='in'?none(n.input,'input')||`<div data-p="/input">${V(n.input,'/input')}</div>`:c.tab==='out'?none(n.output,'output')||`<div data-p="/output">${V(n.output,'/output')}</div>`:c.tab==='df'?DF(o):
+  n.artifacts.length?n.artifacts.map((a,i)=>`<div class="card" data-p="/artifacts/${i}"><div class="h"><span class="bd" style="--c:hsl(${hue(a.kind)} 70% 72%)">${esc(a.kind)}</span><b>${esc(a.name)}</b>${a.source?`<span class="mu">source label: ${esc(a.source)}</span>`:''}<span class="mu">sha ${esc(a.sha256.slice(0,8))}</span></div><div data-p="/artifacts/${i}/value">${a.kind==='prompt_composition'?PC(o,i):V(a.value,`/artifacts/${i}/value`)}</div></div>`).join(''):'<p class="mu">This operation captured no artifacts.</p>'}
+// ---------- events
+$('#nodes').onclick=e=>{const d=e.target.closest('.nd');if(!d)return;if(e.target.closest('.cv'))toggle(d.dataset.id,e.altKey);else select(d.dataset.id,0,1)};
+$('#nodes').ondblclick=e=>{const d=e.target.closest('.nd');if(d&&!e.target.closest('.cv')&&cur.N.get(d.dataset.id).kids.length)toggle(d.dataset.id)};
+$('#insp').onclick=e=>{const t=e.target.closest('[data-tab],[data-go],[data-nv],[data-k],[data-ol],.x');if(!t)return;const d=t.dataset;
+ if(d.tab){cur.tab=d.tab;insp()}else if(d.go)select(d.go,1,1);else if(d.nv){const i=d.nv.indexOf('|');navPath(d.nv.slice(0,i),d.nv.slice(i+1))}else if(d.k||d.ol)actC(d.k||d.ol);else select(null,0,0)};
+const VW=$('#view');let drag=null;
+VW.onpointerdown=e=>{if(!cur||e.target.closest('.nd,#zc,#empty'))return;drag={x:e.clientX,y:e.clientY,vx:cur.v.x,vy:cur.v.y,m:0};VW.setPointerCapture(e.pointerId)};
+VW.onpointermove=e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>3){drag.m=1;VW.classList.add('pan')}if(drag.m){cur.v.x=drag.vx+dx;cur.v.y=drag.vy+dy;apply()}};
+VW.onpointerup=VW.onpointercancel=()=>{if(drag&&!drag.m&&cur)select(null,0,0);drag=null;VW.classList.remove('pan')};
+VW.addEventListener('wheel',e=>{if(!cur)return;e.preventDefault();const r=VW.getBoundingClientRect();zoom(e.clientX-r.left,e.clientY-r.top,Math.exp(-e.deltaY*(e.ctrlKey?.01:.0015)))},{passive:false});
+const zc=f=>{if(cur){const r=VW.getBoundingClientRect();zoom(r.width/2,r.height/2,f)}};$('#zi').onclick=()=>zc(1.25);$('#zo').onclick=()=>zc(.8);$('#fit').onclick=()=>cur&&fit();
+$('#expAll').onclick=()=>{if(cur){cur.N.forEach(o=>o.kids.length&&cur.exp.add(o.n.id));draw();fit()}};
+$('#colAll').onclick=()=>{if(cur){cur.exp=new Set(cur.init);cur.sel=null;draw();fit();insp()}};
+$('#info').onclick=()=>{if(cur)select(null,0,1)};
+$('#flow').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;mode=b.dataset.m;document.querySelectorAll('#flow button').forEach(x=>x.classList.toggle('on',x===b));if(cur)edges()};
+$('#sel').onchange=e=>show(TR[+e.target.value]);
+for(const b of['#open','#open2'])$(b).onclick=()=>$('#file').click();
+$('#file').onchange=e=>{ingest([...e.target.files]);e.target.value=''};
+addEventListener('dragover',e=>{e.preventDefault();document.body.classList.add('drop')});addEventListener('dragleave',e=>{if(!e.relatedTarget)document.body.classList.remove('drop')});
+addEventListener('drop',e=>{e.preventDefault();document.body.classList.remove('drop');ingest([...e.dataTransfer.files])});
+addEventListener('keydown',e=>{if(!cur||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||e.target.closest('#insp'))return;const o=cur.sel&&cur.N.get(cur.sel);if(e.key==='Escape'){select(null,0,0);return}if(!o)return;
+ const sib=o.p?o.p.kids:cur.roots,i=sib.indexOf(o);
+ if(e.key==='ArrowDown'&&sib[i+1])select(sib[i+1].n.id,1,1);else if(e.key==='ArrowUp'&&sib[i-1])select(sib[i-1].n.id,1,1);
+ else if(e.key==='ArrowRight'&&o.kids.length){if(!cur.exp.has(o.n.id))toggle(o.n.id);else select(o.kids[0].n.id,1,1)}
+ else if(e.key==='ArrowLeft'){if(cur.exp.has(o.n.id)&&o.kids.length)toggle(o.n.id);else if(o.p)select(o.p.n.id,1,1)}
+ else if(e.key==='Enter'&&o.kids.length)toggle(o.n.id);else return;e.preventDefault();const f=$(`.nd[data-id="${cur.sel}"]`);f&&f.focus({preventScroll:true})});
+addEventListener('resize',()=>{if(!cur)return;const v=VW.getBoundingClientRect();if(!cur.vis.some(o=>{const x=o.x*cur.v.k+cur.v.x,y=o.y*cur.v.k+cur.v.y;return x<v.width&&y<v.height&&x+W*cur.v.k>0&&y+H*cur.v.k>0}))fit()});insp();
+</script></body></html>
