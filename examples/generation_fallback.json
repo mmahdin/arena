@@ -1,0 +1,3275 @@
+{
+  "complete": true,
+  "schema": "local_ai_trace.v1",
+  "trace_id": "4cc2d6f2-2bfb-43fa-b121-33a20f1736be",
+  "kind": "turn",
+  "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+  "job_id": "00000000-0000-0000-0000-000000000000",
+  "started_at": "2026-11-18T17:44:31.788991255Z",
+  "ended_at": "2026-11-18T17:44:31.874503279Z",
+  "status": "success",
+  "nodes": [
+    {
+      "id": "n000001",
+      "operation": "orchestrator.ProcessTurn",
+      "sequence": 1,
+      "started_at": "2026-11-18T17:44:31.788991899Z",
+      "ended_at": "2026-11-18T17:44:31.874503279Z",
+      "duration_ns": 85511453,
+      "status": "success",
+      "input": {
+        "request": {
+          "channel": "app_chat",
+          "client_turn_id": "09990c40-46d9-4e99-a522-2387f1ea4b50",
+          "conversation_id": "3e1e381a-8a8c-4f51-adea-e9c6c65fa138",
+          "locale": "en",
+          "origin": "user",
+          "text": "ordinary synthetic content for inspector",
+          "tz": "UTC",
+          "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7"
+        }
+      },
+      "output": {
+        "assistant_message_id": "2359bb7d-8c07-4f2b-a207-61d4b3001026",
+        "degraded": true,
+        "route": "normal",
+        "status": "completed",
+        "text": "SYNTHETIC NORMAL FALLBACK",
+        "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+        "user_message_id": "d455854b-497e-41cc-b787-5212dac8c4ff"
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000002",
+      "operation": "gateway.Admit",
+      "parent_id": "n000001",
+      "sequence": 2,
+      "started_at": "2026-11-18T17:44:31.79015598Z",
+      "ended_at": "2026-11-18T17:44:31.791438206Z",
+      "duration_ns": 1282378,
+      "status": "success",
+      "input": {
+        "channel": "app_chat",
+        "client_turn_id": "09990c40-46d9-4e99-a522-2387f1ea4b50",
+        "conversation_id": "3e1e381a-8a8c-4f51-adea-e9c6c65fa138",
+        "locale": "en",
+        "origin": "user",
+        "text": "ordinary synthetic content for inspector",
+        "tz": "UTC",
+        "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7"
+      },
+      "output": {
+        "conversation_id": "3e1e381a-8a8c-4f51-adea-e9c6c65fa138",
+        "lease_token": "[authentication secret omitted]",
+        "queued": false,
+        "recent": [],
+        "session_id": "f0d83a24-fc7a-4f12-9f60-5d1cec458141",
+        "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+        "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7",
+        "user_message_id": "d455854b-497e-41cc-b787-5212dac8c4ff",
+        "versions": {
+          "protocol": 0,
+          "session": 1,
+          "thread": 0,
+          "user": 1
+        }
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000003",
+      "operation": "application/orchestrator/orchestrator.prepare",
+      "parent_id": "n000001",
+      "sequence": 3,
+      "started_at": "2026-11-18T17:44:31.792647222Z",
+      "ended_at": "2026-11-18T17:44:31.854754309Z",
+      "duration_ns": 62107215,
+      "status": "success",
+      "input": {
+        "a": {
+          "conversation_id": "3e1e381a-8a8c-4f51-adea-e9c6c65fa138",
+          "lease_token": "[authentication secret omitted]",
+          "queued": false,
+          "recent": [],
+          "session_id": "f0d83a24-fc7a-4f12-9f60-5d1cec458141",
+          "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+          "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7",
+          "user_message_id": "d455854b-497e-41cc-b787-5212dac8c4ff",
+          "versions": {
+            "protocol": 0,
+            "session": 1,
+            "thread": 0,
+            "user": 1
+          }
+        },
+        "req": {
+          "channel": "app_chat",
+          "client_turn_id": "09990c40-46d9-4e99-a522-2387f1ea4b50",
+          "conversation_id": "3e1e381a-8a8c-4f51-adea-e9c6c65fa138",
+          "locale": "en",
+          "origin": "user",
+          "text": "ordinary synthetic content for inspector",
+          "tz": "UTC",
+          "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7"
+        }
+      },
+      "output": {
+        "failedStage": "finalizer",
+        "preparedResult": {
+          "degraded": true,
+          "objective": "reflect",
+          "route": "normal",
+          "state": {
+            "events": [],
+            "expected_versions": {
+              "protocol": 0,
+              "session": 1,
+              "thread": 0,
+              "user": 1
+            },
+            "follow_ups": [],
+            "open_loops": [],
+            "session": {
+              "clear_pending": false,
+              "consecutive_questions": 0,
+              "emotion_labels": [],
+              "last_objective": "reflect",
+              "turn_count_inc": 1
+            },
+            "thread_ops": [],
+            "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+            "user": {
+              "engagement_delta": null
+            },
+            "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7"
+          },
+          "text": "SYNTHETIC NORMAL FALLBACK",
+          "trace": {
+            "bundle_version": "kb@0.9.0",
+            "objective": "reflect",
+            "route": "normal",
+            "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff"
+          },
+          "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+          "user_message_id": "d455854b-497e-41cc-b787-5212dac8c4ff"
+        }
+      },
+      "artifacts": [
+        {
+          "name": "risk_transition",
+          "kind": "state_change",
+          "value": {
+            "after": {
+              "FollowUpActive": false,
+              "RiskConstraints": false,
+              "State": {
+                "level": "none",
+                "since": "0001-01-01T00:00:00Z"
+              },
+              "Transition": null
+            },
+            "before": {
+              "level": "none",
+              "since": "0001-01-01T00:00:00Z"
+            },
+            "signal": {
+              "categories": [],
+              "classifier_version": "test-l1",
+              "confidence": 0.99,
+              "degraded": false,
+              "level": "none",
+              "lexicon_version": "synthetic-0.9.0",
+              "source": "max(l0,l1)",
+              "triggers": []
+            }
+          },
+          "sha256": "b9b3333a9da1e5dcd3fe5046d674affea482a2d78ec6add0e918cc85e7bdee62",
+          "source": "safety.FSM.Advance"
+        },
+        {
+          "name": "state_proposal",
+          "kind": "state_change",
+          "value": {
+            "before": {
+              "Focus": null,
+              "Protocol": null,
+              "Session": {
+                "consecutive_questions": 0,
+                "conversation_id": "3e1e381a-8a8c-4f51-adea-e9c6c65fa138",
+                "emotion_trajectory": [],
+                "id": "f0d83a24-fc7a-4f12-9f60-5d1cec458141",
+                "last_activity_at": "0001-01-01T00:00:00Z",
+                "mode": "exploring",
+                "started_at": "0001-01-01T00:00:00Z",
+                "summary": "",
+                "turn_count": 0,
+                "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7",
+                "version": 1
+              },
+              "Threads": null,
+              "User": {
+                "comfort_budget": 0.8,
+                "consent": null,
+                "dependency_watch": false,
+                "engagement": null,
+                "locale": "en",
+                "memory_paused": false,
+                "prefs": {
+                  "language": "",
+                  "length": "",
+                  "tone": ""
+                },
+                "prefs_version": 0,
+                "proactive_opt_in": false,
+                "protocol_history": [],
+                "risk": {
+                  "level": "none",
+                  "since": "0001-01-01T00:00:00Z"
+                },
+                "tz": "UTC",
+                "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7",
+                "version": 1
+              },
+              "Versions": {
+                "protocol": 0,
+                "session": 1,
+                "thread": 0,
+                "user": 1
+              }
+            },
+            "delta": {
+              "events": [],
+              "expected_versions": {
+                "protocol": 0,
+                "session": 1,
+                "thread": 0,
+                "user": 1
+              },
+              "follow_ups": [],
+              "open_loops": [],
+              "session": {
+                "clear_pending": false,
+                "consecutive_questions": 0,
+                "emotion_labels": [],
+                "last_objective": "reflect",
+                "turn_count_inc": 1
+              },
+              "thread_ops": [],
+              "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+              "user": {
+                "engagement_delta": null
+              },
+              "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7"
+            }
+          },
+          "sha256": "8a3fde2a062e850561817816ad93a9184845e66352999ec00cede5703be3ab72",
+          "source": "state.ValidateDelta"
+        }
+      ],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000004",
+      "operation": "retrieval",
+      "parent_id": "n000003",
+      "sequence": 4,
+      "started_at": "2026-11-18T17:44:31.79399104Z",
+      "ended_at": "2026-11-18T17:44:31.795430829Z",
+      "duration_ns": 1439985,
+      "status": "skipped",
+      "reason": "dependency_unavailable",
+      "input": null,
+      "output": null,
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000005",
+      "operation": "safety.Assess",
+      "parent_id": "n000003",
+      "sequence": 5,
+      "started_at": "2026-11-18T17:44:31.79400766Z",
+      "ended_at": "2026-11-18T17:44:31.801708294Z",
+      "duration_ns": 7700740,
+      "status": "success",
+      "input": {
+        "Lang": "en",
+        "Recent": [],
+        "Risk": {
+          "level": "none",
+          "since": "0001-01-01T00:00:00Z"
+        },
+        "Text": "ordinary synthetic content for inspector"
+      },
+      "output": {
+        "categories": [],
+        "classifier_version": "test-l1",
+        "confidence": 0.99,
+        "degraded": false,
+        "level": "none",
+        "lexicon_version": "synthetic-0.9.0",
+        "source": "max(l0,l1)",
+        "triggers": []
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000006",
+      "operation": "safety/gate.Assess",
+      "parent_id": "n000005",
+      "sequence": 6,
+      "started_at": "2026-11-18T17:44:31.797867132Z",
+      "ended_at": "2026-11-18T17:44:31.800436901Z",
+      "duration_ns": 2569924,
+      "status": "success",
+      "input": {
+        "in": {
+          "Lang": "en",
+          "Recent": [],
+          "Risk": {
+            "level": "none",
+            "since": "0001-01-01T00:00:00Z"
+          },
+          "Text": "ordinary synthetic content for inspector"
+        }
+      },
+      "output": {
+        "signalResult": {
+          "categories": [],
+          "classifier_version": "test-l1",
+          "confidence": 0.99,
+          "degraded": false,
+          "level": "none",
+          "lexicon_version": "synthetic-0.9.0",
+          "source": "max(l0,l1)",
+          "triggers": []
+        }
+      },
+      "artifacts": [
+        {
+          "name": "safety_policy",
+          "kind": "knowledge",
+          "value": {
+            "Categories": {
+              "other": {
+                "EscalateTo": "high",
+                "TemplateFamily": "synthetic_case"
+              }
+            },
+            "RiskFSM": {
+              "Deescalate": {
+                "FromElevatedToLow": {
+                  "MinHoursSinceSignal": 24,
+                  "Require": [
+                    "no_new_signals",
+                    "user_statement_safe_or_topic_neutral_3_turns"
+                  ]
+                },
+                "FromHighToElevated": {
+                  "MinHoursSinceSignal": 12,
+                  "Require": [
+                    "no_new_signals"
+                  ]
+                }
+              },
+              "FollowUpHours": 24
+            },
+            "Schema": "safety_policy.v1",
+            "SecondLook": {
+              "Downgrade": {
+                "From": "high",
+                "NeverWhen": [
+                  "first_person_present_tense"
+                ],
+                "To": "elevated",
+                "WhenContextFlagsAny": [
+                  "quoted",
+                  "fictional"
+                ]
+              }
+            },
+            "TemplateFamilies": {
+              "synthetic_case": {
+                "Forbidden": [
+                  "method_details",
+                  "promises"
+                ],
+                "RequiredElements": [
+                  "acknowledge",
+                  "care",
+                  "ask_safety",
+                  "resources",
+                  "invite_continue"
+                ]
+              }
+            }
+          },
+          "sha256": "915c7a92fb776462902ff782d4f80200c97d30ad90342b5da950865fe2fbc14f",
+          "source": "policy/safety_policy.yaml"
+        }
+      ],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000007",
+      "operation": "assembler.Build",
+      "parent_id": "n000003",
+      "sequence": 7,
+      "started_at": "2026-11-18T17:44:31.803027477Z",
+      "ended_at": "2026-11-18T17:44:31.811116696Z",
+      "duration_ns": 8089414,
+      "status": "success",
+      "input": {
+        "request": {
+          "channel": "app_chat",
+          "client_turn_id": "09990c40-46d9-4e99-a522-2387f1ea4b50",
+          "conversation_id": "3e1e381a-8a8c-4f51-adea-e9c6c65fa138",
+          "locale": "en",
+          "origin": "user",
+          "text": "ordinary synthetic content for inspector",
+          "tz": "UTC",
+          "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7"
+        },
+        "retrieval": {
+          "items": [],
+          "meta": {
+            "ambiguous_reference": false,
+            "degraded": true,
+            "hops": 0,
+            "strategies": []
+          },
+          "took": 0
+        },
+        "safety": {
+          "categories": [],
+          "classifier_version": "test-l1",
+          "confidence": 0.99,
+          "degraded": false,
+          "level": "none",
+          "lexicon_version": "synthetic-0.9.0",
+          "source": "max(l0,l1)",
+          "triggers": []
+        }
+      },
+      "output": {
+        "context": {
+          "eligibility": {
+            "may_voice_hypothesis": false,
+            "memory_available": false,
+            "protocols_possible": false,
+            "question_allowed": true,
+            "reasons_blocked": [
+              "phase_too_early",
+              "unreviewed_bundle"
+            ]
+          },
+          "prefs": {
+            "language": "en",
+            "length": "short",
+            "tone": "warm_steady"
+          },
+          "recent": [],
+          "retrieval_meta": {
+            "ambiguous_reference": false,
+            "degraded": true,
+            "hops": 0,
+            "strategies": []
+          },
+          "risk": {
+            "current": "none",
+            "dependency_watch": false,
+            "follow_up_active": false
+          },
+          "schema_version": "wctx.v1",
+          "session": {
+            "consecutive_questions": 0,
+            "mode": "exploring",
+            "resumed": false,
+            "session_id": "f0d83a24-fc7a-4f12-9f60-5d1cec458141",
+            "turn_count": 0
+          },
+          "token_estimate": 216,
+          "turn": {
+            "lang": "en",
+            "local_time": "Mon 12:00",
+            "message_id": "d455854b-497e-41cc-b787-5212dac8c4ff",
+            "origin": "user",
+            "reply_to_pending": false,
+            "since_last_msg": 0,
+            "text": "ordinary synthetic content for inspector",
+            "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff"
+          }
+        },
+        "snapshot": {
+          "Focus": null,
+          "Protocol": null,
+          "Session": {
+            "consecutive_questions": 0,
+            "conversation_id": "3e1e381a-8a8c-4f51-adea-e9c6c65fa138",
+            "emotion_trajectory": [],
+            "id": "f0d83a24-fc7a-4f12-9f60-5d1cec458141",
+            "last_activity_at": "0001-01-01T00:00:00Z",
+            "mode": "exploring",
+            "started_at": "0001-01-01T00:00:00Z",
+            "summary": "",
+            "turn_count": 0,
+            "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7",
+            "version": 1
+          },
+          "Threads": null,
+          "User": {
+            "comfort_budget": 0.8,
+            "consent": null,
+            "dependency_watch": false,
+            "engagement": null,
+            "locale": "en",
+            "memory_paused": false,
+            "prefs": {
+              "language": "",
+              "length": "",
+              "tone": ""
+            },
+            "prefs_version": 0,
+            "proactive_opt_in": false,
+            "protocol_history": [],
+            "risk": {
+              "level": "none",
+              "since": "0001-01-01T00:00:00Z"
+            },
+            "tz": "UTC",
+            "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7",
+            "version": 1
+          },
+          "Versions": {
+            "protocol": 0,
+            "session": 1,
+            "thread": 0,
+            "user": 1
+          }
+        }
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000008",
+      "operation": "application/assembler/assembler.Build",
+      "parent_id": "n000007",
+      "sequence": 8,
+      "started_at": "2026-11-18T17:44:31.804412175Z",
+      "ended_at": "2026-11-18T17:44:31.8094071Z",
+      "duration_ns": 4995062,
+      "status": "success",
+      "input": {
+        "req": {
+          "channel": "app_chat",
+          "client_turn_id": "09990c40-46d9-4e99-a522-2387f1ea4b50",
+          "conversation_id": "3e1e381a-8a8c-4f51-adea-e9c6c65fa138",
+          "locale": "en",
+          "origin": "user",
+          "text": "ordinary synthetic content for inspector",
+          "tz": "UTC",
+          "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7"
+        },
+        "retr": {
+          "items": [],
+          "meta": {
+            "ambiguous_reference": false,
+            "degraded": true,
+            "hops": 0,
+            "strategies": []
+          },
+          "took": 0
+        },
+        "sig": {
+          "categories": [],
+          "classifier_version": "test-l1",
+          "confidence": 0.99,
+          "degraded": false,
+          "level": "none",
+          "lexicon_version": "synthetic-0.9.0",
+          "source": "max(l0,l1)",
+          "triggers": []
+        }
+      },
+      "output": {
+        "contextResult": {
+          "eligibility": {
+            "may_voice_hypothesis": false,
+            "memory_available": false,
+            "protocols_possible": false,
+            "question_allowed": true,
+            "reasons_blocked": [
+              "phase_too_early",
+              "unreviewed_bundle"
+            ]
+          },
+          "prefs": {
+            "language": "en",
+            "length": "short",
+            "tone": "warm_steady"
+          },
+          "recent": [],
+          "retrieval_meta": {
+            "ambiguous_reference": false,
+            "degraded": true,
+            "hops": 0,
+            "strategies": []
+          },
+          "risk": {
+            "current": "none",
+            "dependency_watch": false,
+            "follow_up_active": false
+          },
+          "schema_version": "wctx.v1",
+          "session": {
+            "consecutive_questions": 0,
+            "mode": "exploring",
+            "resumed": false,
+            "session_id": "f0d83a24-fc7a-4f12-9f60-5d1cec458141",
+            "turn_count": 0
+          },
+          "token_estimate": 216,
+          "turn": {
+            "lang": "en",
+            "local_time": "Mon 12:00",
+            "message_id": "d455854b-497e-41cc-b787-5212dac8c4ff",
+            "origin": "user",
+            "reply_to_pending": false,
+            "since_last_msg": 0,
+            "text": "ordinary synthetic content for inspector",
+            "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff"
+          }
+        },
+        "stateResult": {
+          "Focus": null,
+          "Protocol": null,
+          "Session": {
+            "consecutive_questions": 0,
+            "conversation_id": "3e1e381a-8a8c-4f51-adea-e9c6c65fa138",
+            "emotion_trajectory": [],
+            "id": "f0d83a24-fc7a-4f12-9f60-5d1cec458141",
+            "last_activity_at": "0001-01-01T00:00:00Z",
+            "mode": "exploring",
+            "started_at": "0001-01-01T00:00:00Z",
+            "summary": "",
+            "turn_count": 0,
+            "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7",
+            "version": 1
+          },
+          "Threads": null,
+          "User": {
+            "comfort_budget": 0.8,
+            "consent": null,
+            "dependency_watch": false,
+            "engagement": null,
+            "locale": "en",
+            "memory_paused": false,
+            "prefs": {
+              "language": "",
+              "length": "",
+              "tone": ""
+            },
+            "prefs_version": 0,
+            "proactive_opt_in": false,
+            "protocol_history": [],
+            "risk": {
+              "level": "none",
+              "since": "0001-01-01T00:00:00Z"
+            },
+            "tz": "UTC",
+            "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7",
+            "version": 1
+          },
+          "Versions": {
+            "protocol": 0,
+            "session": 1,
+            "thread": 0,
+            "user": 1
+          }
+        }
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000009",
+      "operation": "application/contextstate/bundle.LoadPolicy",
+      "parent_id": "n000008",
+      "sequence": 9,
+      "started_at": "2026-11-18T17:44:31.80583506Z",
+      "ended_at": "2026-11-18T17:44:31.807664954Z",
+      "duration_ns": 1830038,
+      "status": "success",
+      "input": {
+        "userID": "aa1d1077-2847-4d81-b413-a46007d25ac7"
+      },
+      "output": {
+        "result0": {
+          "Budgets": {
+            "Limits": {
+              "MaxBrainHops": 1,
+              "MaxRegenerations": 1,
+              "MaxSyncLLMCalls": 3
+            },
+            "Quotas": {
+              "MemoryWriterPerUserPerHour": 30,
+              "ReflectionPerUserPerDay": 4,
+              "UserMsgsPerMinute": 12
+            },
+            "Schema": "budgets.v1",
+            "Tokens": {
+              "BrainIn": 3500,
+              "BrainOut": 700,
+              "GenIn": 4500,
+              "GenOut": 600,
+              "WCtxTarget": 1500
+            },
+            "Turn": {
+              "BrainMS": 2500,
+              "GenFirstTokenMS": 3000,
+              "GenTotalMS": 12000,
+              "RetrievalMS": 300,
+              "SafetyMS": 400,
+              "TotalMS": 20000
+            }
+          },
+          "Gate": {
+            "Hypotheses": {
+              "VoiceMaxPerSession": 1,
+              "VoiceMinGapHours": 24,
+              "VoiceRequiresStatus": "supported"
+            },
+            "Protocols": {
+              "MaxOffersPerSession": 1,
+              "OfferMinTurnsSinceLastOffer": 6
+            },
+            "Questions": {
+              "MaxConsecutiveQuestionTurns": 2,
+              "MaxPerReply": 1
+            },
+            "Repairs": {
+              "OnInvalidObjective": "reflect",
+              "OnMissingEvidence": "downgrade_to_inferred_or_drop",
+              "OnUnknownSkill": "default_skill_for_objective"
+            },
+            "Risk": {
+              "BrainMayLower": false,
+              "BrainMayRaise": true
+            },
+            "Schema": "policy_gate.v1"
+          },
+          "Handle": {},
+          "Problem": {
+            "InformationNeeds": {
+              "MaxReturned": 2,
+              "RecentlyAskedHours": 24,
+              "SuppressIf": [
+                "mode_venting",
+                "risk_gte_elevated",
+                "user_declined_slot"
+              ],
+              "VMin": 0.45
+            },
+            "ReadinessRule": {
+              "AndAnyOf": [
+                "goal"
+              ],
+              "MinUserTurnsInThread": 3,
+              "RequireFilled": [
+                "situation",
+                "emotions"
+              ]
+            },
+            "Schema": "problem.v1",
+            "Slots": [
+              {
+                "AskCost": 0.2,
+                "AskHint": "SYNTHETIC PLACEHOLDER",
+                "ID": "situation",
+                "Importance": {
+                  "exploring": 0.9
+                }
+              },
+              {
+                "AskCost": 0.2,
+                "AskHint": "SYNTHETIC PLACEHOLDER",
+                "ID": "emotions",
+                "Importance": {
+                  "exploring": 0.8
+                }
+              },
+              {
+                "AskCost": 0.2,
+                "AskHint": "SYNTHETIC PLACEHOLDER",
+                "ID": "goal",
+                "Importance": {
+                  "working": 0.8
+                }
+              }
+            ]
+          },
+          "Ref": {
+            "prompt_shas": {
+              "prompts/safety_l1.system.tmpl": "synthetic-sha"
+            },
+            "version": "kb@0.9.0"
+          },
+          "Synthetic": true,
+          "Thresholds": {
+            "Engagement": {
+              "DependencyWatchIf": {
+                "LateNightSessions7DGTE": 4,
+                "OrAvgDailyMinutesGTE": 120
+              },
+              "LateNightWindow": "01:00-05:00"
+            },
+            "Hypothesis": {
+              "ContestedWhen": {
+                "AndContradictGTESupport": true,
+                "ContradictGTE": 1
+              },
+              "RejectionCooldownDays": 21,
+              "StaleAfterDays": 90,
+              "SupportedMinSessions": 2,
+              "SupportedMinSupport": 2
+            },
+            "Memory": {
+              "ContradictionRequiresUserConfirmation": true,
+              "DedupeCosineGTE": 0.9,
+              "HotSetMaxItems": 150,
+              "StaleAfterDays": 90,
+              "StaleImportanceLT": 0.3
+            },
+            "Reflection": {
+              "MinEvidenceForFormulation": {
+                "Sessions": 2,
+                "Situations": 3
+              },
+              "Triggers": {
+                "ContradictionEventsGTE": 2,
+                "MinNewItems": 3,
+                "SessionClosed": true,
+                "ThreadTurnsGTE": 8
+              }
+            },
+            "ResumptionBands": {
+              "DayDays": 7,
+              "SameMin": 30,
+              "ShortHours": 24
+            },
+            "Safety": {
+              "Deescalate": {
+                "MinHoursSinceSignal": 24,
+                "RequireUserStatement": true,
+                "ThenLevel": "low"
+              },
+              "L1MinConfidenceForHigh": 0.55
+            },
+            "Schema": "thresholds.v1",
+            "Session": {
+              "IdleTimeoutMin": 30
+            },
+            "Thread": {
+              "DormantAfterDays": 30,
+              "MaxActive": 3
+            },
+            "Validator": null
+          }
+        }
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000010",
+      "operation": "router.Select",
+      "parent_id": "n000003",
+      "sequence": 10,
+      "started_at": "2026-11-18T17:44:31.81280448Z",
+      "ended_at": "2026-11-18T17:44:31.814897386Z",
+      "duration_ns": 2093111,
+      "status": "success",
+      "input": {
+        "Config": {
+          "DeclineCooldown": 0,
+          "Rules": null,
+          "ShortlistMaxItems": 0,
+          "TrivialMaxChars": 0,
+          "TrivialPatterns": null
+        },
+        "Origin": "user",
+        "Safety": {
+          "categories": [],
+          "classifier_version": "test-l1",
+          "confidence": 0.99,
+          "degraded": false,
+          "level": "none",
+          "lexicon_version": "synthetic-0.9.0",
+          "source": "max(l0,l1)",
+          "triggers": []
+        },
+        "WCtx": {
+          "eligibility": {
+            "may_voice_hypothesis": false,
+            "memory_available": false,
+            "protocols_possible": false,
+            "question_allowed": true,
+            "reasons_blocked": [
+              "phase_too_early",
+              "unreviewed_bundle"
+            ]
+          },
+          "prefs": {
+            "language": "en",
+            "length": "short",
+            "tone": "warm_steady"
+          },
+          "recent": [],
+          "retrieval_meta": {
+            "ambiguous_reference": false,
+            "degraded": true,
+            "hops": 0,
+            "strategies": []
+          },
+          "risk": {
+            "current": "none",
+            "dependency_watch": false,
+            "follow_up_active": false
+          },
+          "schema_version": "wctx.v1",
+          "session": {
+            "consecutive_questions": 0,
+            "mode": "exploring",
+            "resumed": false,
+            "session_id": "f0d83a24-fc7a-4f12-9f60-5d1cec458141",
+            "turn_count": 0
+          },
+          "token_estimate": 216,
+          "turn": {
+            "lang": "en",
+            "local_time": "Mon 12:00",
+            "message_id": "d455854b-497e-41cc-b787-5212dac8c4ff",
+            "origin": "user",
+            "reply_to_pending": false,
+            "since_last_msg": 0,
+            "text": "ordinary synthetic content for inspector",
+            "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff"
+          }
+        }
+      },
+      "output": {
+        "BrainShortlist": false,
+        "ForceBufferedOutput": false,
+        "Reason": "RT-099",
+        "RiskConstraints": false,
+        "Route": "normal"
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000011",
+      "operation": "protocol.planned_resolution",
+      "parent_id": "n000003",
+      "sequence": 11,
+      "started_at": "2026-11-18T17:44:31.816389898Z",
+      "ended_at": "2026-11-18T17:44:31.81781994Z",
+      "duration_ns": 1430159,
+      "status": "skipped",
+      "reason": "dependency_unavailable",
+      "input": null,
+      "output": null,
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000012",
+      "operation": "application/orchestrator/orchestrator.generateValidated",
+      "parent_id": "n000003",
+      "sequence": 12,
+      "started_at": "2026-11-18T17:44:31.820750471Z",
+      "ended_at": "2026-11-18T17:44:31.832966652Z",
+      "duration_ns": 12216254,
+      "status": "success",
+      "reason": "generation_or_validation_exhausted",
+      "input": {
+        "crisis": null,
+        "locale": "en",
+        "objective": "reflect",
+        "plan": {
+          "length": "",
+          "must_avoid": [],
+          "permitted_context_ids": [],
+          "question": {
+            "allowed": false,
+            "max_count": 0
+          },
+          "skills": {
+            "primary": "",
+            "secondary": []
+          },
+          "tone": ""
+        },
+        "risk": "none",
+        "route": "normal",
+        "spec": null,
+        "wc": {
+          "eligibility": {
+            "may_voice_hypothesis": false,
+            "memory_available": false,
+            "protocols_possible": false,
+            "question_allowed": true,
+            "reasons_blocked": [
+              "phase_too_early",
+              "unreviewed_bundle"
+            ]
+          },
+          "prefs": {
+            "language": "en",
+            "length": "short",
+            "tone": "warm_steady"
+          },
+          "recent": [],
+          "retrieval_meta": {
+            "ambiguous_reference": false,
+            "degraded": true,
+            "hops": 0,
+            "strategies": []
+          },
+          "risk": {
+            "current": "none",
+            "dependency_watch": false,
+            "follow_up_active": false
+          },
+          "schema_version": "wctx.v1",
+          "session": {
+            "consecutive_questions": 0,
+            "mode": "exploring",
+            "resumed": false,
+            "session_id": "f0d83a24-fc7a-4f12-9f60-5d1cec458141",
+            "turn_count": 0
+          },
+          "token_estimate": 216,
+          "turn": {
+            "lang": "en",
+            "local_time": "Mon 12:00",
+            "message_id": "d455854b-497e-41cc-b787-5212dac8c4ff",
+            "origin": "user",
+            "reply_to_pending": false,
+            "since_last_msg": 0,
+            "text": "ordinary synthetic content for inspector",
+            "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff"
+          }
+        }
+      },
+      "output": {
+        "fallbackUsed": true,
+        "objectiveResult": "reflect",
+        "outageResult": null,
+        "replyResult": "SYNTHETIC NORMAL FALLBACK",
+        "templateUsed": true,
+        "validationResult": {
+          "action": "accept",
+          "extracted": {
+            "question_count": 0
+          },
+          "passed": true,
+          "violations": []
+        }
+      },
+      "artifacts": [
+        {
+          "name": "decision",
+          "kind": "control_flow",
+          "value": {
+            "reason": "generation_or_validation_exhausted",
+            "status": "fallback"
+          },
+          "sha256": "6768c0007e473cf99afbdc702c13577b797768a868ebd302aec6ae0b708b34a7"
+        },
+        {
+          "name": "fallback_selection",
+          "kind": "fallback",
+          "value": {
+            "found": true,
+            "objective": "reflect",
+            "plan": {
+              "length": "",
+              "must_avoid": [],
+              "permitted_context_ids": [],
+              "question": {
+                "allowed": false,
+                "max_count": 0
+              },
+              "skills": {
+                "primary": "",
+                "secondary": []
+              },
+              "tone": ""
+            },
+            "route": "normal",
+            "text": "SYNTHETIC NORMAL FALLBACK"
+          },
+          "sha256": "009568f7760bbdf348847c7311ad798e19040c3cef40af844ee8c85ca61c35e9",
+          "source": "knowledge_bundle"
+        }
+      ],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000013",
+      "operation": "generator.Generate",
+      "parent_id": "n000012",
+      "sequence": 13,
+      "started_at": "2026-11-18T17:44:31.822576675Z",
+      "ended_at": "2026-11-18T17:44:31.824267961Z",
+      "duration_ns": 1691418,
+      "status": "error",
+      "input": {
+        "Bundle": {
+          "prompt_shas": {
+            "prompts/safety_l1.system.tmpl": "synthetic-sha"
+          },
+          "version": "kb@0.9.0"
+        },
+        "Crisis": null,
+        "Objective": "reflect",
+        "Permitted": [],
+        "Plan": {
+          "length": "",
+          "must_avoid": [],
+          "permitted_context_ids": [],
+          "question": {
+            "allowed": false,
+            "max_count": 0
+          },
+          "skills": {
+            "primary": "",
+            "secondary": []
+          },
+          "tone": ""
+        },
+        "Prefs": {
+          "language": "en",
+          "length": "short",
+          "tone": "warm_steady"
+        },
+        "Recent": [],
+        "RegenNote": null,
+        "Risk": "none",
+        "Spec": null,
+        "Turn": {
+          "lang": "en",
+          "local_time": "Mon 12:00",
+          "message_id": "d455854b-497e-41cc-b787-5212dac8c4ff",
+          "origin": "user",
+          "reply_to_pending": false,
+          "since_last_msg": 0,
+          "text": "ordinary synthetic content for inspector",
+          "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff"
+        }
+      },
+      "output": {
+        "Aborted": false,
+        "Sentinel": "",
+        "Text": "",
+        "Usage": {
+          "attempts": 0,
+          "cached_tokens": 0,
+          "cost_micro_usd": 0,
+          "finish_reason": "",
+          "in_tokens": 0,
+          "latency": 0,
+          "model": "",
+          "out_tokens": 0,
+          "provider": ""
+        }
+      },
+      "artifacts": [],
+      "error": {
+        "type": "*errors.errorString"
+      },
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000014",
+      "operation": "generator.Generate",
+      "parent_id": "n000012",
+      "sequence": 14,
+      "started_at": "2026-11-18T17:44:31.825904849Z",
+      "ended_at": "2026-11-18T17:44:31.8277652Z",
+      "duration_ns": 1860495,
+      "status": "error",
+      "input": {
+        "Bundle": {
+          "prompt_shas": {
+            "prompts/safety_l1.system.tmpl": "synthetic-sha"
+          },
+          "version": "kb@0.9.0"
+        },
+        "Crisis": null,
+        "Objective": "reflect",
+        "Permitted": [],
+        "Plan": {
+          "length": "",
+          "must_avoid": [],
+          "permitted_context_ids": [],
+          "question": {
+            "allowed": false,
+            "max_count": 0
+          },
+          "skills": {
+            "primary": "",
+            "secondary": []
+          },
+          "tone": ""
+        },
+        "Prefs": {
+          "language": "en",
+          "length": "short",
+          "tone": "warm_steady"
+        },
+        "Recent": [],
+        "RegenNote": "OV-031: provide a complete response within the approved plan",
+        "Risk": "none",
+        "Spec": null,
+        "Turn": {
+          "lang": "en",
+          "local_time": "Mon 12:00",
+          "message_id": "d455854b-497e-41cc-b787-5212dac8c4ff",
+          "origin": "user",
+          "reply_to_pending": false,
+          "since_last_msg": 0,
+          "text": "ordinary synthetic content for inspector",
+          "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff"
+        }
+      },
+      "output": {
+        "Aborted": false,
+        "Sentinel": "",
+        "Text": "",
+        "Usage": {
+          "attempts": 0,
+          "cached_tokens": 0,
+          "cost_micro_usd": 0,
+          "finish_reason": "",
+          "in_tokens": 0,
+          "latency": 0,
+          "model": "",
+          "out_tokens": 0,
+          "provider": ""
+        }
+      },
+      "artifacts": [],
+      "error": {
+        "type": "*errors.errorString"
+      },
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000015",
+      "operation": "validator.Fallback",
+      "parent_id": "n000012",
+      "sequence": 15,
+      "started_at": "2026-11-18T17:44:31.829476543Z",
+      "ended_at": "2026-11-18T17:44:31.83126924Z",
+      "duration_ns": 1792839,
+      "status": "success",
+      "input": {
+        "context": {
+          "eligibility": {
+            "may_voice_hypothesis": false,
+            "memory_available": false,
+            "protocols_possible": false,
+            "question_allowed": true,
+            "reasons_blocked": [
+              "phase_too_early",
+              "unreviewed_bundle"
+            ]
+          },
+          "prefs": {
+            "language": "en",
+            "length": "short",
+            "tone": "warm_steady"
+          },
+          "recent": [],
+          "retrieval_meta": {
+            "ambiguous_reference": false,
+            "degraded": true,
+            "hops": 0,
+            "strategies": []
+          },
+          "risk": {
+            "current": "none",
+            "dependency_watch": false,
+            "follow_up_active": false
+          },
+          "schema_version": "wctx.v1",
+          "session": {
+            "consecutive_questions": 0,
+            "mode": "exploring",
+            "resumed": false,
+            "session_id": "f0d83a24-fc7a-4f12-9f60-5d1cec458141",
+            "turn_count": 0
+          },
+          "token_estimate": 216,
+          "turn": {
+            "lang": "en",
+            "local_time": "Mon 12:00",
+            "message_id": "d455854b-497e-41cc-b787-5212dac8c4ff",
+            "origin": "user",
+            "reply_to_pending": false,
+            "since_last_msg": 0,
+            "text": "ordinary synthetic content for inspector",
+            "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff"
+          }
+        },
+        "crisis": null,
+        "plan": {
+          "length": "",
+          "must_avoid": [],
+          "permitted_context_ids": [],
+          "question": {
+            "allowed": false,
+            "max_count": 0
+          },
+          "skills": {
+            "primary": "",
+            "secondary": []
+          },
+          "tone": ""
+        },
+        "risk": "none",
+        "text": "SYNTHETIC NORMAL FALLBACK"
+      },
+      "output": {
+        "action": "accept",
+        "extracted": {
+          "question_count": 0
+        },
+        "passed": true,
+        "violations": []
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000016",
+      "operation": "application/state/committer.ValidateDelta",
+      "parent_id": "n000003",
+      "sequence": 16,
+      "started_at": "2026-11-18T17:44:31.834614716Z",
+      "ended_at": "2026-11-18T17:44:31.841158989Z",
+      "duration_ns": 6544406,
+      "status": "success",
+      "input": {
+        "proposed": {
+          "events": [],
+          "expected_versions": {
+            "protocol": 0,
+            "session": 1,
+            "thread": 0,
+            "user": 1
+          },
+          "follow_ups": [],
+          "open_loops": [],
+          "session": {
+            "clear_pending": false,
+            "consecutive_questions": 0,
+            "emotion_labels": [],
+            "last_objective": "reflect",
+            "turn_count_inc": 1
+          },
+          "thread_ops": [],
+          "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+          "user": {
+            "engagement_delta": null
+          },
+          "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7"
+        }
+      },
+      "output": {
+        "result0": {
+          "events": [],
+          "expected_versions": {
+            "protocol": 0,
+            "session": 1,
+            "thread": 0,
+            "user": 1
+          },
+          "follow_ups": [],
+          "open_loops": [],
+          "session": {
+            "clear_pending": false,
+            "consecutive_questions": 0,
+            "emotion_labels": [],
+            "last_objective": "reflect",
+            "turn_count_inc": 1
+          },
+          "thread_ops": [],
+          "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+          "user": {
+            "engagement_delta": null
+          },
+          "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7"
+        },
+        "result1": []
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000017",
+      "operation": "application/contextstate/bundle.LoadPolicy",
+      "parent_id": "n000016",
+      "sequence": 17,
+      "started_at": "2026-11-18T17:44:31.836894923Z",
+      "ended_at": "2026-11-18T17:44:31.83913014Z",
+      "duration_ns": 2235423,
+      "status": "success",
+      "input": {
+        "userID": "aa1d1077-2847-4d81-b413-a46007d25ac7"
+      },
+      "output": {
+        "result0": {
+          "Budgets": {
+            "Limits": {
+              "MaxBrainHops": 1,
+              "MaxRegenerations": 1,
+              "MaxSyncLLMCalls": 3
+            },
+            "Quotas": {
+              "MemoryWriterPerUserPerHour": 30,
+              "ReflectionPerUserPerDay": 4,
+              "UserMsgsPerMinute": 12
+            },
+            "Schema": "budgets.v1",
+            "Tokens": {
+              "BrainIn": 3500,
+              "BrainOut": 700,
+              "GenIn": 4500,
+              "GenOut": 600,
+              "WCtxTarget": 1500
+            },
+            "Turn": {
+              "BrainMS": 2500,
+              "GenFirstTokenMS": 3000,
+              "GenTotalMS": 12000,
+              "RetrievalMS": 300,
+              "SafetyMS": 400,
+              "TotalMS": 20000
+            }
+          },
+          "Gate": {
+            "Hypotheses": {
+              "VoiceMaxPerSession": 1,
+              "VoiceMinGapHours": 24,
+              "VoiceRequiresStatus": "supported"
+            },
+            "Protocols": {
+              "MaxOffersPerSession": 1,
+              "OfferMinTurnsSinceLastOffer": 6
+            },
+            "Questions": {
+              "MaxConsecutiveQuestionTurns": 2,
+              "MaxPerReply": 1
+            },
+            "Repairs": {
+              "OnInvalidObjective": "reflect",
+              "OnMissingEvidence": "downgrade_to_inferred_or_drop",
+              "OnUnknownSkill": "default_skill_for_objective"
+            },
+            "Risk": {
+              "BrainMayLower": false,
+              "BrainMayRaise": true
+            },
+            "Schema": "policy_gate.v1"
+          },
+          "Handle": {},
+          "Problem": {
+            "InformationNeeds": {
+              "MaxReturned": 2,
+              "RecentlyAskedHours": 24,
+              "SuppressIf": [
+                "mode_venting",
+                "risk_gte_elevated",
+                "user_declined_slot"
+              ],
+              "VMin": 0.45
+            },
+            "ReadinessRule": {
+              "AndAnyOf": [
+                "goal"
+              ],
+              "MinUserTurnsInThread": 3,
+              "RequireFilled": [
+                "situation",
+                "emotions"
+              ]
+            },
+            "Schema": "problem.v1",
+            "Slots": [
+              {
+                "AskCost": 0.2,
+                "AskHint": "SYNTHETIC PLACEHOLDER",
+                "ID": "situation",
+                "Importance": {
+                  "exploring": 0.9
+                }
+              },
+              {
+                "AskCost": 0.2,
+                "AskHint": "SYNTHETIC PLACEHOLDER",
+                "ID": "emotions",
+                "Importance": {
+                  "exploring": 0.8
+                }
+              },
+              {
+                "AskCost": 0.2,
+                "AskHint": "SYNTHETIC PLACEHOLDER",
+                "ID": "goal",
+                "Importance": {
+                  "working": 0.8
+                }
+              }
+            ]
+          },
+          "Ref": {
+            "prompt_shas": {
+              "prompts/safety_l1.system.tmpl": "synthetic-sha"
+            },
+            "version": "kb@0.9.0"
+          },
+          "Synthetic": true,
+          "Thresholds": {
+            "Engagement": {
+              "DependencyWatchIf": {
+                "LateNightSessions7DGTE": 4,
+                "OrAvgDailyMinutesGTE": 120
+              },
+              "LateNightWindow": "01:00-05:00"
+            },
+            "Hypothesis": {
+              "ContestedWhen": {
+                "AndContradictGTESupport": true,
+                "ContradictGTE": 1
+              },
+              "RejectionCooldownDays": 21,
+              "StaleAfterDays": 90,
+              "SupportedMinSessions": 2,
+              "SupportedMinSupport": 2
+            },
+            "Memory": {
+              "ContradictionRequiresUserConfirmation": true,
+              "DedupeCosineGTE": 0.9,
+              "HotSetMaxItems": 150,
+              "StaleAfterDays": 90,
+              "StaleImportanceLT": 0.3
+            },
+            "Reflection": {
+              "MinEvidenceForFormulation": {
+                "Sessions": 2,
+                "Situations": 3
+              },
+              "Triggers": {
+                "ContradictionEventsGTE": 2,
+                "MinNewItems": 3,
+                "SessionClosed": true,
+                "ThreadTurnsGTE": 8
+              }
+            },
+            "ResumptionBands": {
+              "DayDays": 7,
+              "SameMin": 30,
+              "ShortHours": 24
+            },
+            "Safety": {
+              "Deescalate": {
+                "MinHoursSinceSignal": 24,
+                "RequireUserStatement": true,
+                "ThenLevel": "low"
+              },
+              "L1MinConfidenceForHigh": 0.55
+            },
+            "Schema": "thresholds.v1",
+            "Session": {
+              "IdleTimeoutMin": 30
+            },
+            "Thread": {
+              "DormantAfterDays": 30,
+              "MaxActive": 3
+            },
+            "Validator": null
+          }
+        }
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000018",
+      "operation": "memory.PlanJob",
+      "parent_id": "n000003",
+      "sequence": 18,
+      "started_at": "2026-11-18T17:44:31.843828366Z",
+      "ended_at": "2026-11-18T17:44:31.845760483Z",
+      "duration_ns": 1932268,
+      "status": "skipped",
+      "reason": "dependency_unavailable",
+      "input": null,
+      "output": null,
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000019",
+      "operation": "reflection.PlanJob",
+      "parent_id": "n000003",
+      "sequence": 19,
+      "started_at": "2026-11-18T17:44:31.849403219Z",
+      "ended_at": "2026-11-18T17:44:31.851146676Z",
+      "duration_ns": 1743559,
+      "status": "skipped",
+      "reason": "dependency_unavailable",
+      "input": null,
+      "output": null,
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000020",
+      "operation": "finalizer.Complete",
+      "parent_id": "n000001",
+      "sequence": 20,
+      "started_at": "2026-11-18T17:44:31.857069725Z",
+      "ended_at": "2026-11-18T17:44:31.872028322Z",
+      "duration_ns": 14958700,
+      "status": "success",
+      "input": {
+        "admission": {
+          "conversation_id": "3e1e381a-8a8c-4f51-adea-e9c6c65fa138",
+          "lease_token": "[authentication secret omitted]",
+          "queued": false,
+          "recent": [],
+          "session_id": "f0d83a24-fc7a-4f12-9f60-5d1cec458141",
+          "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+          "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7",
+          "user_message_id": "d455854b-497e-41cc-b787-5212dac8c4ff",
+          "versions": {
+            "protocol": 0,
+            "session": 1,
+            "thread": 0,
+            "user": 1
+          }
+        },
+        "prepared": {
+          "degraded": true,
+          "objective": "reflect",
+          "route": "normal",
+          "state": {
+            "events": [],
+            "expected_versions": {
+              "protocol": 0,
+              "session": 1,
+              "thread": 0,
+              "user": 1
+            },
+            "follow_ups": [],
+            "open_loops": [],
+            "session": {
+              "clear_pending": false,
+              "consecutive_questions": 0,
+              "emotion_labels": [],
+              "last_objective": "reflect",
+              "turn_count_inc": 1
+            },
+            "thread_ops": [],
+            "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+            "user": {
+              "engagement_delta": null
+            },
+            "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7"
+          },
+          "text": "SYNTHETIC NORMAL FALLBACK",
+          "trace": {
+            "bundle_version": "kb@0.9.0",
+            "objective": "reflect",
+            "route": "normal",
+            "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff"
+          },
+          "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+          "user_message_id": "d455854b-497e-41cc-b787-5212dac8c4ff"
+        }
+      },
+      "output": {
+        "assistant_message_id": "2359bb7d-8c07-4f2b-a207-61d4b3001026",
+        "degraded": true,
+        "route": "normal",
+        "status": "completed",
+        "text": "SYNTHETIC NORMAL FALLBACK",
+        "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+        "user_message_id": "d455854b-497e-41cc-b787-5212dac8c4ff"
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000021",
+      "operation": "application/state/committer.Complete",
+      "parent_id": "n000020",
+      "sequence": 21,
+      "started_at": "2026-11-18T17:44:31.859081356Z",
+      "ended_at": "2026-11-18T17:44:31.870031285Z",
+      "duration_ns": 10950038,
+      "status": "success",
+      "input": {
+        "admission": {
+          "conversation_id": "3e1e381a-8a8c-4f51-adea-e9c6c65fa138",
+          "lease_token": "[authentication secret omitted]",
+          "queued": false,
+          "recent": [],
+          "session_id": "f0d83a24-fc7a-4f12-9f60-5d1cec458141",
+          "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+          "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7",
+          "user_message_id": "d455854b-497e-41cc-b787-5212dac8c4ff",
+          "versions": {
+            "protocol": 0,
+            "session": 1,
+            "thread": 0,
+            "user": 1
+          }
+        },
+        "p": {
+          "degraded": true,
+          "objective": "reflect",
+          "route": "normal",
+          "state": {
+            "events": [],
+            "expected_versions": {
+              "protocol": 0,
+              "session": 1,
+              "thread": 0,
+              "user": 1
+            },
+            "follow_ups": [],
+            "open_loops": [],
+            "session": {
+              "clear_pending": false,
+              "consecutive_questions": 0,
+              "emotion_labels": [],
+              "last_objective": "reflect",
+              "turn_count_inc": 1
+            },
+            "thread_ops": [],
+            "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+            "user": {
+              "engagement_delta": null
+            },
+            "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7"
+          },
+          "text": "SYNTHETIC NORMAL FALLBACK",
+          "trace": {
+            "bundle_version": "kb@0.9.0",
+            "objective": "reflect",
+            "route": "normal",
+            "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff"
+          },
+          "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+          "user_message_id": "d455854b-497e-41cc-b787-5212dac8c4ff"
+        }
+      },
+      "output": {
+        "result0": {
+          "assistant_message_id": "2359bb7d-8c07-4f2b-a207-61d4b3001026",
+          "degraded": true,
+          "route": "normal",
+          "status": "completed",
+          "text": "SYNTHETIC NORMAL FALLBACK",
+          "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+          "user_message_id": "d455854b-497e-41cc-b787-5212dac8c4ff"
+        }
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000022",
+      "operation": "application/state/committer.ValidateDelta",
+      "parent_id": "n000021",
+      "sequence": 22,
+      "started_at": "2026-11-18T17:44:31.861136654Z",
+      "ended_at": "2026-11-18T17:44:31.867901345Z",
+      "duration_ns": 6764827,
+      "status": "success",
+      "input": {
+        "proposed": {
+          "events": [],
+          "expected_versions": {
+            "protocol": 0,
+            "session": 1,
+            "thread": 0,
+            "user": 1
+          },
+          "follow_ups": [],
+          "open_loops": [],
+          "session": {
+            "clear_pending": false,
+            "consecutive_questions": 0,
+            "emotion_labels": [],
+            "last_objective": "reflect",
+            "turn_count_inc": 1
+          },
+          "thread_ops": [],
+          "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+          "user": {
+            "engagement_delta": null
+          },
+          "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7"
+        }
+      },
+      "output": {
+        "result0": {
+          "events": [],
+          "expected_versions": {
+            "protocol": 0,
+            "session": 1,
+            "thread": 0,
+            "user": 1
+          },
+          "follow_ups": [],
+          "open_loops": [],
+          "session": {
+            "clear_pending": false,
+            "consecutive_questions": 0,
+            "emotion_labels": [],
+            "last_objective": "reflect",
+            "turn_count_inc": 1
+          },
+          "thread_ops": [],
+          "turn_id": "af895b3e-59d6-4bd7-a4e0-5cb9acccd0ff",
+          "user": {
+            "engagement_delta": null
+          },
+          "user_id": "aa1d1077-2847-4d81-b413-a46007d25ac7"
+        },
+        "result1": []
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000023",
+      "operation": "application/contextstate/bundle.LoadPolicy",
+      "parent_id": "n000022",
+      "sequence": 23,
+      "started_at": "2026-11-18T17:44:31.863152676Z",
+      "ended_at": "2026-11-18T17:44:31.865525832Z",
+      "duration_ns": 2373379,
+      "status": "success",
+      "input": {
+        "userID": "aa1d1077-2847-4d81-b413-a46007d25ac7"
+      },
+      "output": {
+        "result0": {
+          "Budgets": {
+            "Limits": {
+              "MaxBrainHops": 1,
+              "MaxRegenerations": 1,
+              "MaxSyncLLMCalls": 3
+            },
+            "Quotas": {
+              "MemoryWriterPerUserPerHour": 30,
+              "ReflectionPerUserPerDay": 4,
+              "UserMsgsPerMinute": 12
+            },
+            "Schema": "budgets.v1",
+            "Tokens": {
+              "BrainIn": 3500,
+              "BrainOut": 700,
+              "GenIn": 4500,
+              "GenOut": 600,
+              "WCtxTarget": 1500
+            },
+            "Turn": {
+              "BrainMS": 2500,
+              "GenFirstTokenMS": 3000,
+              "GenTotalMS": 12000,
+              "RetrievalMS": 300,
+              "SafetyMS": 400,
+              "TotalMS": 20000
+            }
+          },
+          "Gate": {
+            "Hypotheses": {
+              "VoiceMaxPerSession": 1,
+              "VoiceMinGapHours": 24,
+              "VoiceRequiresStatus": "supported"
+            },
+            "Protocols": {
+              "MaxOffersPerSession": 1,
+              "OfferMinTurnsSinceLastOffer": 6
+            },
+            "Questions": {
+              "MaxConsecutiveQuestionTurns": 2,
+              "MaxPerReply": 1
+            },
+            "Repairs": {
+              "OnInvalidObjective": "reflect",
+              "OnMissingEvidence": "downgrade_to_inferred_or_drop",
+              "OnUnknownSkill": "default_skill_for_objective"
+            },
+            "Risk": {
+              "BrainMayLower": false,
+              "BrainMayRaise": true
+            },
+            "Schema": "policy_gate.v1"
+          },
+          "Handle": {},
+          "Problem": {
+            "InformationNeeds": {
+              "MaxReturned": 2,
+              "RecentlyAskedHours": 24,
+              "SuppressIf": [
+                "mode_venting",
+                "risk_gte_elevated",
+                "user_declined_slot"
+              ],
+              "VMin": 0.45
+            },
+            "ReadinessRule": {
+              "AndAnyOf": [
+                "goal"
+              ],
+              "MinUserTurnsInThread": 3,
+              "RequireFilled": [
+                "situation",
+                "emotions"
+              ]
+            },
+            "Schema": "problem.v1",
+            "Slots": [
+              {
+                "AskCost": 0.2,
+                "AskHint": "SYNTHETIC PLACEHOLDER",
+                "ID": "situation",
+                "Importance": {
+                  "exploring": 0.9
+                }
+              },
+              {
+                "AskCost": 0.2,
+                "AskHint": "SYNTHETIC PLACEHOLDER",
+                "ID": "emotions",
+                "Importance": {
+                  "exploring": 0.8
+                }
+              },
+              {
+                "AskCost": 0.2,
+                "AskHint": "SYNTHETIC PLACEHOLDER",
+                "ID": "goal",
+                "Importance": {
+                  "working": 0.8
+                }
+              }
+            ]
+          },
+          "Ref": {
+            "prompt_shas": {
+              "prompts/safety_l1.system.tmpl": "synthetic-sha"
+            },
+            "version": "kb@0.9.0"
+          },
+          "Synthetic": true,
+          "Thresholds": {
+            "Engagement": {
+              "DependencyWatchIf": {
+                "LateNightSessions7DGTE": 4,
+                "OrAvgDailyMinutesGTE": 120
+              },
+              "LateNightWindow": "01:00-05:00"
+            },
+            "Hypothesis": {
+              "ContestedWhen": {
+                "AndContradictGTESupport": true,
+                "ContradictGTE": 1
+              },
+              "RejectionCooldownDays": 21,
+              "StaleAfterDays": 90,
+              "SupportedMinSessions": 2,
+              "SupportedMinSupport": 2
+            },
+            "Memory": {
+              "ContradictionRequiresUserConfirmation": true,
+              "DedupeCosineGTE": 0.9,
+              "HotSetMaxItems": 150,
+              "StaleAfterDays": 90,
+              "StaleImportanceLT": 0.3
+            },
+            "Reflection": {
+              "MinEvidenceForFormulation": {
+                "Sessions": 2,
+                "Situations": 3
+              },
+              "Triggers": {
+                "ContradictionEventsGTE": 2,
+                "MinNewItems": 3,
+                "SessionClosed": true,
+                "ThreadTurnsGTE": 8
+              }
+            },
+            "ResumptionBands": {
+              "DayDays": 7,
+              "SameMin": 30,
+              "ShortHours": 24
+            },
+            "Safety": {
+              "Deescalate": {
+                "MinHoursSinceSignal": 24,
+                "RequireUserStatement": true,
+                "ThenLevel": "low"
+              },
+              "L1MinConfidenceForHigh": 0.55
+            },
+            "Schema": "thresholds.v1",
+            "Session": {
+              "IdleTimeoutMin": 30
+            },
+            "Thread": {
+              "DormantAfterDays": 30,
+              "MaxActive": 3
+            },
+            "Validator": null
+          }
+        }
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    }
+  ],
+  "edges": [
+    {
+      "from": "n000001",
+      "to": "n000002",
+      "kind": "execution"
+    },
+    {
+      "from": "n000001",
+      "to": "n000003",
+      "kind": "execution"
+    },
+    {
+      "from": "n000002",
+      "to": "n000003",
+      "kind": "data",
+      "from_path": "/output",
+      "to_path": "/input/a",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000002",
+      "to": "n000003",
+      "kind": "data",
+      "from_path": "/output/session_id",
+      "to_path": "/input/a/session_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000002",
+      "to": "n000003",
+      "kind": "data",
+      "from_path": "/output/turn_id",
+      "to_path": "/input/a/turn_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000002",
+      "to": "n000003",
+      "kind": "data",
+      "from_path": "/output/user_id",
+      "to_path": "/input/a/user_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000002",
+      "to": "n000003",
+      "kind": "data",
+      "from_path": "/output/user_message_id",
+      "to_path": "/input/a/user_message_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000002",
+      "to": "n000003",
+      "kind": "data",
+      "from_path": "/output/conversation_id",
+      "to_path": "/input/a/conversation_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000002",
+      "to": "n000003",
+      "kind": "data",
+      "from_path": "/output/versions",
+      "to_path": "/input/a/versions",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000002",
+      "to": "n000003",
+      "kind": "data",
+      "from_path": "/output/lease_token",
+      "to_path": "/input/a/lease_token",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000002",
+      "to": "n000003",
+      "kind": "data",
+      "from_path": "/output/conversation_id",
+      "to_path": "/input/req/conversation_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000002",
+      "to": "n000003",
+      "kind": "data",
+      "from_path": "/output/user_id",
+      "to_path": "/input/req/user_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000004",
+      "kind": "execution"
+    },
+    {
+      "from": "n000003",
+      "to": "n000005",
+      "kind": "execution"
+    },
+    {
+      "from": "n000005",
+      "to": "n000006",
+      "kind": "execution"
+    },
+    {
+      "from": "n000003",
+      "to": "n000007",
+      "kind": "execution"
+    },
+    {
+      "from": "n000002",
+      "to": "n000007",
+      "kind": "data",
+      "from_path": "/output/user_id",
+      "to_path": "/input/request/user_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000002",
+      "to": "n000007",
+      "kind": "data",
+      "from_path": "/output/conversation_id",
+      "to_path": "/input/request/conversation_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000005",
+      "to": "n000007",
+      "kind": "data",
+      "from_path": "/output",
+      "to_path": "/input/safety",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000005",
+      "to": "n000007",
+      "kind": "data",
+      "from_path": "/output/lexicon_version",
+      "to_path": "/input/safety/lexicon_version",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000008",
+      "kind": "execution"
+    },
+    {
+      "from": "n000002",
+      "to": "n000008",
+      "kind": "data",
+      "from_path": "/output/user_id",
+      "to_path": "/input/req/user_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000002",
+      "to": "n000008",
+      "kind": "data",
+      "from_path": "/output/conversation_id",
+      "to_path": "/input/req/conversation_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000005",
+      "to": "n000008",
+      "kind": "data",
+      "from_path": "/output",
+      "to_path": "/input/sig",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000005",
+      "to": "n000008",
+      "kind": "data",
+      "from_path": "/output/lexicon_version",
+      "to_path": "/input/sig/lexicon_version",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000008",
+      "to": "n000009",
+      "kind": "execution"
+    },
+    {
+      "from": "n000002",
+      "to": "n000009",
+      "kind": "data",
+      "from_path": "/output/user_id",
+      "to_path": "/input/userID",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000010",
+      "kind": "execution"
+    },
+    {
+      "from": "n000003",
+      "to": "n000010",
+      "kind": "data",
+      "from_path": "/artifacts/0/value/signal",
+      "to_path": "/input/Safety",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000010",
+      "kind": "data",
+      "from_path": "/artifacts/0/value/signal/lexicon_version",
+      "to_path": "/input/Safety/lexicon_version",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000010",
+      "kind": "data",
+      "from_path": "/output/context",
+      "to_path": "/input/WCtx",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000010",
+      "kind": "data",
+      "from_path": "/output/context/prefs",
+      "to_path": "/input/WCtx/prefs",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000010",
+      "kind": "data",
+      "from_path": "/output/context/retrieval_meta",
+      "to_path": "/input/WCtx/retrieval_meta",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000010",
+      "kind": "data",
+      "from_path": "/output/context/session",
+      "to_path": "/input/WCtx/session",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000010",
+      "kind": "data",
+      "from_path": "/output/snapshot/Session/id",
+      "to_path": "/input/WCtx/session/session_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000010",
+      "kind": "data",
+      "from_path": "/output/context/turn",
+      "to_path": "/input/WCtx/turn",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000010",
+      "kind": "data",
+      "from_path": "/output/context/turn/text",
+      "to_path": "/input/WCtx/turn/text",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000010",
+      "kind": "data",
+      "from_path": "/output/context/turn/turn_id",
+      "to_path": "/input/WCtx/turn/turn_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000010",
+      "kind": "data",
+      "from_path": "/output/context/turn/message_id",
+      "to_path": "/input/WCtx/turn/message_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000010",
+      "kind": "data",
+      "from_path": "/output/context/eligibility",
+      "to_path": "/input/WCtx/eligibility",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000010",
+      "kind": "data",
+      "from_path": "/output/context/eligibility/reasons_blocked",
+      "to_path": "/input/WCtx/eligibility/reasons_blocked",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000010",
+      "kind": "data",
+      "from_path": "/output/context/eligibility/reasons_blocked/0",
+      "to_path": "/input/WCtx/eligibility/reasons_blocked/0",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000010",
+      "kind": "data",
+      "from_path": "/output/context/eligibility/reasons_blocked/1",
+      "to_path": "/input/WCtx/eligibility/reasons_blocked/1",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000010",
+      "kind": "data",
+      "from_path": "/output/context/risk",
+      "to_path": "/input/WCtx/risk",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000011",
+      "kind": "execution"
+    },
+    {
+      "from": "n000003",
+      "to": "n000012",
+      "kind": "execution"
+    },
+    {
+      "from": "n000007",
+      "to": "n000012",
+      "kind": "data",
+      "from_path": "/output/context",
+      "to_path": "/input/wc",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000012",
+      "kind": "data",
+      "from_path": "/output/context/eligibility",
+      "to_path": "/input/wc/eligibility",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000012",
+      "kind": "data",
+      "from_path": "/output/context/eligibility/reasons_blocked",
+      "to_path": "/input/wc/eligibility/reasons_blocked",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000012",
+      "kind": "data",
+      "from_path": "/output/context/eligibility/reasons_blocked/0",
+      "to_path": "/input/wc/eligibility/reasons_blocked/0",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000012",
+      "kind": "data",
+      "from_path": "/output/context/eligibility/reasons_blocked/1",
+      "to_path": "/input/wc/eligibility/reasons_blocked/1",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000012",
+      "kind": "data",
+      "from_path": "/output/context/session",
+      "to_path": "/input/wc/session",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000012",
+      "kind": "data",
+      "from_path": "/output/snapshot/Session/id",
+      "to_path": "/input/wc/session/session_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000012",
+      "kind": "data",
+      "from_path": "/output/context/prefs",
+      "to_path": "/input/wc/prefs",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000012",
+      "kind": "data",
+      "from_path": "/output/context/retrieval_meta",
+      "to_path": "/input/wc/retrieval_meta",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000012",
+      "kind": "data",
+      "from_path": "/output/context/risk",
+      "to_path": "/input/wc/risk",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000012",
+      "kind": "data",
+      "from_path": "/output/context/turn",
+      "to_path": "/input/wc/turn",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000012",
+      "kind": "data",
+      "from_path": "/output/context/turn/message_id",
+      "to_path": "/input/wc/turn/message_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000012",
+      "kind": "data",
+      "from_path": "/output/context/turn/text",
+      "to_path": "/input/wc/turn/text",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000012",
+      "kind": "data",
+      "from_path": "/output/context/turn/turn_id",
+      "to_path": "/input/wc/turn/turn_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000012",
+      "to": "n000013",
+      "kind": "execution"
+    },
+    {
+      "from": "n000007",
+      "to": "n000013",
+      "kind": "data",
+      "from_path": "/output/context/prefs",
+      "to_path": "/input/Prefs",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000013",
+      "kind": "data",
+      "from_path": "/output/context/turn",
+      "to_path": "/input/Turn",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000013",
+      "kind": "data",
+      "from_path": "/output/context/turn/text",
+      "to_path": "/input/Turn/text",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000013",
+      "kind": "data",
+      "from_path": "/output/context/turn/turn_id",
+      "to_path": "/input/Turn/turn_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000013",
+      "kind": "data",
+      "from_path": "/output/context/turn/message_id",
+      "to_path": "/input/Turn/message_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000009",
+      "to": "n000013",
+      "kind": "data",
+      "from_path": "/output/result0/Ref",
+      "to_path": "/input/Bundle",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000009",
+      "to": "n000013",
+      "kind": "data",
+      "from_path": "/output/result0/Ref/prompt_shas",
+      "to_path": "/input/Bundle/prompt_shas",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000009",
+      "to": "n000013",
+      "kind": "data",
+      "from_path": "/output/result0/Ref/prompt_shas/prompts~1safety_l1.system.tmpl",
+      "to_path": "/input/Bundle/prompt_shas/prompts~1safety_l1.system.tmpl",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000012",
+      "to": "n000014",
+      "kind": "execution"
+    },
+    {
+      "from": "n000009",
+      "to": "n000014",
+      "kind": "data",
+      "from_path": "/output/result0/Ref",
+      "to_path": "/input/Bundle",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000009",
+      "to": "n000014",
+      "kind": "data",
+      "from_path": "/output/result0/Ref/prompt_shas",
+      "to_path": "/input/Bundle/prompt_shas",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000009",
+      "to": "n000014",
+      "kind": "data",
+      "from_path": "/output/result0/Ref/prompt_shas/prompts~1safety_l1.system.tmpl",
+      "to_path": "/input/Bundle/prompt_shas/prompts~1safety_l1.system.tmpl",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000014",
+      "kind": "data",
+      "from_path": "/output/context/prefs",
+      "to_path": "/input/Prefs",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000014",
+      "kind": "data",
+      "from_path": "/output/context/turn",
+      "to_path": "/input/Turn",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000014",
+      "kind": "data",
+      "from_path": "/output/context/turn/turn_id",
+      "to_path": "/input/Turn/turn_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000014",
+      "kind": "data",
+      "from_path": "/output/context/turn/message_id",
+      "to_path": "/input/Turn/message_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000014",
+      "kind": "data",
+      "from_path": "/output/context/turn/text",
+      "to_path": "/input/Turn/text",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000012",
+      "to": "n000015",
+      "kind": "execution"
+    },
+    {
+      "from": "n000007",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/output/context",
+      "to_path": "/input/context",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/output/context/retrieval_meta",
+      "to_path": "/input/context/retrieval_meta",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/output/context/risk",
+      "to_path": "/input/context/risk",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/output/context/prefs",
+      "to_path": "/input/context/prefs",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/output/context/session",
+      "to_path": "/input/context/session",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/output/snapshot/Session/id",
+      "to_path": "/input/context/session/session_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/output/context/turn",
+      "to_path": "/input/context/turn",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/output/context/turn/turn_id",
+      "to_path": "/input/context/turn/turn_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/output/context/turn/message_id",
+      "to_path": "/input/context/turn/message_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/output/context/turn/text",
+      "to_path": "/input/context/turn/text",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/output/context/eligibility",
+      "to_path": "/input/context/eligibility",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/output/context/eligibility/reasons_blocked",
+      "to_path": "/input/context/eligibility/reasons_blocked",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/output/context/eligibility/reasons_blocked/0",
+      "to_path": "/input/context/eligibility/reasons_blocked/0",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/output/context/eligibility/reasons_blocked/1",
+      "to_path": "/input/context/eligibility/reasons_blocked/1",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000012",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/artifacts/1/value/plan",
+      "to_path": "/input/plan",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000012",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/artifacts/1/value/plan/question",
+      "to_path": "/input/plan/question",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000012",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/artifacts/1/value/plan/skills",
+      "to_path": "/input/plan/skills",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000012",
+      "to": "n000015",
+      "kind": "data",
+      "from_path": "/artifacts/1/value/text",
+      "to_path": "/input/text",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000016",
+      "kind": "execution"
+    },
+    {
+      "from": "n000007",
+      "to": "n000016",
+      "kind": "data",
+      "from_path": "/output/context/turn/turn_id",
+      "to_path": "/input/proposed/turn_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000016",
+      "kind": "data",
+      "from_path": "/output/snapshot/Session/user_id",
+      "to_path": "/input/proposed/user_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000007",
+      "to": "n000016",
+      "kind": "data",
+      "from_path": "/output/snapshot/Versions",
+      "to_path": "/input/proposed/expected_versions",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000016",
+      "to": "n000017",
+      "kind": "execution"
+    },
+    {
+      "from": "n000007",
+      "to": "n000017",
+      "kind": "data",
+      "from_path": "/output/snapshot/Session/user_id",
+      "to_path": "/input/userID",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000018",
+      "kind": "execution"
+    },
+    {
+      "from": "n000003",
+      "to": "n000019",
+      "kind": "execution"
+    },
+    {
+      "from": "n000001",
+      "to": "n000020",
+      "kind": "execution"
+    },
+    {
+      "from": "n000002",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output",
+      "to_path": "/input/admission",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/artifacts/1/value/before/Session/conversation_id",
+      "to_path": "/input/admission/conversation_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000002",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/lease_token",
+      "to_path": "/input/admission/lease_token",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/user_id",
+      "to_path": "/input/admission/user_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/preparedResult/user_message_id",
+      "to_path": "/input/admission/user_message_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/expected_versions",
+      "to_path": "/input/admission/versions",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/artifacts/1/value/before/Session/id",
+      "to_path": "/input/admission/session_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/preparedResult/turn_id",
+      "to_path": "/input/admission/turn_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/preparedResult",
+      "to_path": "/input/prepared",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state",
+      "to_path": "/input/prepared/state",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/session",
+      "to_path": "/input/prepared/state/session",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/user",
+      "to_path": "/input/prepared/state/user",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/expected_versions",
+      "to_path": "/input/prepared/state/expected_versions",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/preparedResult/turn_id",
+      "to_path": "/input/prepared/state/turn_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/user_id",
+      "to_path": "/input/prepared/state/user_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/preparedResult/text",
+      "to_path": "/input/prepared/text",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/preparedResult/trace",
+      "to_path": "/input/prepared/trace",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/preparedResult/turn_id",
+      "to_path": "/input/prepared/trace/turn_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/preparedResult/turn_id",
+      "to_path": "/input/prepared/turn_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000020",
+      "kind": "data",
+      "from_path": "/output/preparedResult/user_message_id",
+      "to_path": "/input/prepared/user_message_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000020",
+      "to": "n000021",
+      "kind": "execution"
+    },
+    {
+      "from": "n000002",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output",
+      "to_path": "/input/admission",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/preparedResult/turn_id",
+      "to_path": "/input/admission/turn_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/user_id",
+      "to_path": "/input/admission/user_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/preparedResult/user_message_id",
+      "to_path": "/input/admission/user_message_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/artifacts/1/value/before/Session/conversation_id",
+      "to_path": "/input/admission/conversation_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000002",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/lease_token",
+      "to_path": "/input/admission/lease_token",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/expected_versions",
+      "to_path": "/input/admission/versions",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/artifacts/1/value/before/Session/id",
+      "to_path": "/input/admission/session_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/preparedResult",
+      "to_path": "/input/p",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/preparedResult/turn_id",
+      "to_path": "/input/p/turn_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/preparedResult/user_message_id",
+      "to_path": "/input/p/user_message_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state",
+      "to_path": "/input/p/state",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/expected_versions",
+      "to_path": "/input/p/state/expected_versions",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/user",
+      "to_path": "/input/p/state/user",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/session",
+      "to_path": "/input/p/state/session",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/preparedResult/turn_id",
+      "to_path": "/input/p/state/turn_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/user_id",
+      "to_path": "/input/p/state/user_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/preparedResult/text",
+      "to_path": "/input/p/text",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/preparedResult/trace",
+      "to_path": "/input/p/trace",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000021",
+      "kind": "data",
+      "from_path": "/output/preparedResult/turn_id",
+      "to_path": "/input/p/trace/turn_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000021",
+      "to": "n000022",
+      "kind": "execution"
+    },
+    {
+      "from": "n000003",
+      "to": "n000022",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state",
+      "to_path": "/input/proposed",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000022",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/session",
+      "to_path": "/input/proposed/session",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000022",
+      "kind": "data",
+      "from_path": "/output/preparedResult/turn_id",
+      "to_path": "/input/proposed/turn_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000022",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/user",
+      "to_path": "/input/proposed/user",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000022",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/user_id",
+      "to_path": "/input/proposed/user_id",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000022",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/expected_versions",
+      "to_path": "/input/proposed/expected_versions",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000022",
+      "to": "n000023",
+      "kind": "execution"
+    },
+    {
+      "from": "n000003",
+      "to": "n000023",
+      "kind": "data",
+      "from_path": "/output/preparedResult/state/user_id",
+      "to_path": "/input/userID",
+      "evidence": "exact_json_value_match"
+    }
+  ],
+  "totals": {
+    "estimated_input_tokens": 0,
+    "provider_calls": 0,
+    "reported_calls": 0,
+    "unknown_usage_calls": 0,
+    "actual_input_tokens": 0,
+    "actual_output_tokens": 0,
+    "actual_cached_tokens": 0,
+    "estimated_cost_micro_usd": 0,
+    "by_stage": {}
+  },
+  "diagnostics": []
+}
