@@ -1,181 +1,980 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Theia AI Execution Explorer</title><style>
-:root{--bg:#0c0f16;--pn:#141925;--p2:#1b2231;--bd:#2a3347;--tx:#e8ecf4;--mu:#8e9ab1;--ac:#7c9cff;--ok:#3ecf8e;--er:#ff5d6c;--sk:#8e9ab1;--rn:#f5b84a;--cn:#c084fc;color-scheme:dark}
-*{box-sizing:border-box}[hidden]{display:none!important}#sel{max-width:260px}html,body{height:100%;margin:0}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Theia AI Execution Explorer</title>
+<style>
+/* ===== theme ===== */
+:root{--bg:#0c0f16;--pn:#141925;--p2:#1b2231;--bd:#2a3347;--tx:#e8ecf4;--mu:#8e9ab1;--ac:#7c9cff;--ok:#3ecf8e;--er:#ff5d6c;--sk:#8e9ab1;--rn:#f5b84a;--cn:#c084fc;--wn:#f5b84a;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--tx);font:13px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;overflow:hidden}
-button,select{font:inherit;color:inherit;background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:5px 10px;cursor:pointer;max-width:100%}
-button:hover{border-color:var(--ac)}button:focus-visible,.nd:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+button,select,input{font:inherit;color:inherit;background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:5px 10px;max-width:100%}
+button,select{cursor:pointer}
+button:disabled{opacity:.4;cursor:not-allowed}button:disabled:hover{border-color:var(--bd)}
+button:hover{border-color:var(--ac)}
+button[aria-pressed=true],button.on{background:var(--ac);color:#0b1020;border-color:var(--ac)}
+button:focus-visible,.nd:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible,.wr:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+a.ch,.cr a{color:var(--ac);cursor:pointer;text-decoration:none}a.ch:hover,.cr a:hover{text-decoration:underline}
+code{font:11.5px ui-monospace,Menlo,monospace;overflow-wrap:anywhere}
+.mu,.nt{color:var(--mu);font-size:11px}i.nl{color:var(--mu)}
+
+/* ===== header ===== */
 header{display:flex;gap:8px;align-items:center;padding:8px 12px;background:var(--pn);border-bottom:1px solid var(--bd);flex-wrap:wrap}
-.logo{font-weight:700}.logo span{color:var(--mu);font-weight:500}.sp{flex:1}#meta{color:var(--mu);font-size:12px}
-.seg{display:flex}.seg button{border-radius:0;margin-left:-1px}.seg button:first-child{border-radius:8px 0 0 8px;margin:0}.seg button:last-child{border-radius:0 8px 8px 0}.seg .on{background:var(--ac);color:#0b1020;border-color:var(--ac)}
+.logo{font-weight:700}.logo span{color:var(--mu);font-weight:500}.sp{flex:1}
+#sel{max-width:260px}
+#find{width:170px;padding:5px 9px}
+.seg{display:flex}.seg button{border-radius:0;margin-left:-1px}.seg button:first-child{border-radius:8px 0 0 8px;margin:0}.seg button:last-child{border-radius:0 8px 8px 0}
+.seg button.zero{opacity:.6}
+#metaBar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:5px 12px;background:var(--pn);border-bottom:1px solid var(--bd);font-size:12px;color:var(--mu)}
+#metaBar:empty{display:none}
+.chip{display:inline-flex;gap:4px;align-items:center;border:1px solid var(--bd);border-radius:99px;padding:0 9px;line-height:20px;background:var(--p2);color:var(--tx);font-size:11.5px}
+button.chip{cursor:pointer}.chip.er{border-color:var(--er);color:var(--er)}.chip.wn{border-color:var(--wn);color:var(--wn)}.chip.ok{border-color:var(--ok);color:var(--ok)}
+
+/* ===== canvas ===== */
 main{flex:1;display:flex;min-height:0;position:relative}
 #view{flex:1;position:relative;overflow:hidden;cursor:grab;background:radial-gradient(circle at 1px 1px,#222b3d 1px,transparent 0) 0 0/24px 24px;touch-action:none}
-#view.pan{cursor:grabbing}#world{position:absolute;left:0;top:0;transform-origin:0 0}
+#view,#view *{-webkit-user-select:none;user-select:none}
+#view.pan,#view.pan *{cursor:grabbing!important}
+#world{position:absolute;left:0;top:0;transform-origin:0 0}
 #svg{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible}
-.ex{stroke:#3a4660;fill:none;stroke-width:1.5}.dt{fill:none;stroke-width:2;opacity:.92}.tr{--c:#b388ff}.dt.tr{stroke:#b388ff}.dt.cp{stroke:#5ec2ff}.dt.rg{stroke:#ffa94d;stroke-width:3}.dt.mt{stroke:#7d889e;stroke-dasharray:5 4}
-.st-success{--c:var(--ok)}.st-error{--c:var(--er)}.st-skipped{--c:var(--sk)}.st-running{--c:var(--rn)}.st-cancelled{--c:var(--cn)}
-.nd{position:absolute;width:252px;height:64px;padding:8px 42px 6px 12px;background:var(--pn);border:1px solid var(--bd);border-left:4px solid var(--c);border-radius:10px;box-shadow:0 2px 10px #0006;cursor:pointer;animation:in .2s}
-.nd.st-error{background:#2a1620}.nd.st-skipped{border-style:dashed;border-left-style:solid;opacity:.85}.nd.sel{box-shadow:0 0 0 2px var(--ac),0 6px 24px #0008}
+.ex{stroke:#3a4660;fill:none;stroke-width:1.5}
+.dt{fill:none;stroke-width:2;opacity:.92}.dt.tr{stroke:#b388ff}.dt.cp{stroke:#5ec2ff}.dt.rg{stroke:#ffa94d;stroke-width:3}.dt.mt{stroke:#7d889e;stroke-dasharray:5 4}
+.st-success{--c:var(--ok)}.st-error{--c:var(--er)}.st-skipped{--c:var(--sk)}.st-running{--c:var(--rn)}.st-cancelled{--c:var(--cn)}.st-unknown{--c:#c9a227}
+.nd{position:absolute;width:252px;height:64px;padding:8px 42px 6px 12px;background:var(--pn);border:1px solid var(--bd);border-left:4px solid var(--c,#667);border-radius:10px;box-shadow:0 2px 10px #0006;cursor:pointer;animation:in .2s}
+.nd.st-error{background:#2a1620}
+.nd.deg{box-shadow:0 2px 10px #0006,inset 0 0 0 1px #f5b84a66}
+.nd.st-skipped{border-style:dashed;border-left-style:solid;opacity:.85}
+.nd.sel{box-shadow:0 0 0 2px var(--ac),0 6px 24px #0008}
 .nd b{display:block;font-size:12px;line-height:15px;max-height:30px;overflow:hidden;overflow-wrap:anywhere}
 .nd small{display:block;color:var(--mu);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
-.cv{position:absolute;right:8px;top:50%;margin-top:-13px;width:26px;height:26px;padding:0;border-radius:50%;font-size:11px}
+.nd .bg{position:absolute;right:6px;top:3px;display:flex;gap:3px}
+.pl{font-size:10px;line-height:14px;padding:0 5px;border-radius:99px;background:#0006;border:1px solid currentColor;white-space:nowrap}
+.pl.er{color:var(--er)}.pl.wn{color:var(--wn)}
+.cv{position:absolute;right:8px;top:50%;margin-top:-10px;width:26px;height:26px;padding:0;border-radius:50%;font-size:11px}
 @keyframes in{from{opacity:0}}
 #zc{position:absolute;left:12px;bottom:12px;display:flex;gap:6px;align-items:center;z-index:3}#zc span{color:var(--mu);font-size:11px;min-width:38px}
+#nomatch{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mu);pointer-events:none;z-index:1;text-align:center;padding:20px}
 #hint{position:absolute;right:12px;bottom:10px;color:var(--mu);font-size:11px;pointer-events:none;text-align:right;max-width:60%}
 #empty{position:absolute;inset:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;text-align:center;color:var(--mu);padding:20px;z-index:2}#empty h2{color:var(--tx);margin:0}
 body.drop #view{outline:3px dashed var(--ac);outline-offset:-8px}
-#insp{width:480px;max-width:50%;background:var(--pn);border-left:1px solid var(--bd);display:flex;flex-direction:column;min-width:0}
-#ih{padding:10px 14px 6px;border-bottom:1px solid var(--bd)}#ih .row{display:flex;gap:8px;align-items:flex-start}#ih h3{margin:0;font-size:14px;overflow-wrap:anywhere;flex:1}
-.x{padding:0 8px;line-height:22px}.cr{color:var(--mu);font-size:11px;margin-bottom:3px;overflow-wrap:anywhere}.cr a,a.ch{color:var(--ac);cursor:pointer}
-#tabs{display:flex;gap:2px;padding:0 10px;border-bottom:1px solid var(--bd);overflow-x:auto}#tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:none;white-space:nowrap}#tabs .on{border-color:var(--ac);color:var(--ac)}
-#ib{flex:1;overflow:auto;padding:12px 14px 30px;min-height:0}#ib h4{margin:16px 0 6px;color:var(--mu);font-size:11px;text-transform:uppercase;letter-spacing:.06em}#ib h4:first-child{margin-top:0}
-.tr2,.trw{display:flex;flex-direction:column;gap:3px}.kv{display:flex;gap:10px;align-items:baseline}.kv>.k{flex:0 0 auto;min-width:90px;max-width:40%;color:var(--mu);overflow-wrap:anywhere}.vv{min-width:0;flex:1;overflow-wrap:anywhere}
-details{margin:2px 0}summary{cursor:pointer;list-style:none;color:var(--mu)}summary::-webkit-details-marker{display:none}summary::before{content:"▸ ";display:inline-block;width:1em}details[open]>summary::before{content:"▾ "}summary em{font-size:11px;margin-left:6px}
+
+/* ===== inspector ===== */
+#insp{width:500px;max-width:50%;background:var(--pn);border-left:1px solid var(--bd);display:none;flex-direction:column;min-width:0}
+body.has.ip #insp{display:flex}
+#ih{padding:10px 14px 6px;border-bottom:1px solid var(--bd)}
+#ih .row{display:flex;gap:8px;align-items:flex-start}#ih h3{margin:0;font-size:14px;overflow-wrap:anywhere;flex:1}
+.hb{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}.hb button{font-size:11px;padding:2px 8px}
+.x{padding:0 8px;line-height:22px}
+.cr{color:var(--mu);font-size:11px;margin-bottom:3px;overflow-wrap:anywhere}
+#tabs{display:flex;gap:2px;padding:0 10px;border-bottom:1px solid var(--bd);overflow-x:auto}
+#tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:none;white-space:nowrap}
+#tabs button.on{border-color:var(--ac);color:var(--ac);background:none}
+#tabs .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:5px;background:var(--er)}#tabs .dot.w{background:var(--wn)}
+#ib{flex:1;overflow:auto;padding:12px 14px 30px;min-height:0}
+#ib h4{margin:16px 0 6px;color:var(--mu);font-size:11px;text-transform:uppercase;letter-spacing:.06em}#ib h4:first-child{margin-top:0}
+.trw{display:flex;flex-direction:column;gap:3px}
+.kv{display:flex;gap:10px;align-items:baseline}.kv>.k{flex:0 0 auto;min-width:90px;max-width:40%;color:var(--mu);overflow-wrap:anywhere}.vv{min-width:0;flex:1;overflow-wrap:anywhere}
+details{margin:2px 0}summary{cursor:pointer;list-style:none;color:var(--mu)}summary::-webkit-details-marker{display:none}
+summary::before{content:"▸ ";display:inline-block;width:1em}details[open]>summary::before{content:"▾ "}summary em{font-size:11px;margin-left:6px}
 details>div{margin-left:5px;border-left:1px solid var(--bd);padding-left:10px}
-.txt{white-space:pre-wrap;background:#0f131c;border:1px solid var(--bd);border-radius:8px;padding:8px 10px;max-height:300px;overflow:auto;overflow-wrap:anywhere;margin:2px 0}
-.pt{font:12px/1.55 ui-monospace,Menlo,Consolas,monospace;max-height:420px}.nt,.mu{color:var(--mu);font-size:11px}i.nl{color:var(--mu)}
+.tb{position:relative;margin:2px 0}
+.tbt{position:absolute;right:6px;top:6px;display:flex;gap:4px;opacity:0;transition:opacity .12s}
+.tb:hover .tbt,.tb:focus-within .tbt{opacity:1}.tbt button{font-size:10.5px;padding:0 6px;background:#0f131ccc}
+@media(hover:none){.tbt{opacity:1}}
+.txt{white-space:pre-wrap;background:#0f131c;border:1px solid var(--bd);border-radius:8px;padding:8px 10px;max-height:300px;overflow:auto;overflow-wrap:anywhere}
+.txt.grown{max-height:none}
+.pt{font:12px/1.55 ui-monospace,Menlo,Consolas,monospace;max-height:420px}
+.bar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}.bar button{font-size:11px;padding:2px 9px}
 .bd{display:inline-block;padding:0 8px;border-radius:99px;background:var(--c,#445);color:#0b1020;font-size:11px;font-weight:600;line-height:18px}
 .r-cp{--c:#5ec2ff}.r-tr{--c:#b388ff}.r-rg{--c:#ffa94d}.r-mt{--c:#7d889e;color:#fff}.fl{animation:fl 1.8s}@keyframes fl{0%,60%{background:#f5b84a55}}
-.card{border:1px solid var(--bd);border-radius:10px;padding:8px 10px;margin:8px 0;background:var(--p2)}.card>.h{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
-.cmp{background:#7c9cff12;box-shadow:0 0 0 1px #7c9cff30;border-radius:3px;cursor:pointer}.cmp.on,.ol.on{background:#f5b84a44}.ol{cursor:pointer;display:block;text-align:left;width:100%;margin:1px 0;padding:2px 6px;border:0;background:none;border-radius:4px}
+.card{border:1px solid var(--bd);border-radius:10px;padding:8px 10px;margin:8px 0;background:var(--p2)}.card>.h,.card>summary>.h{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.card>.h{margin-bottom:6px}
+details.card>summary{color:var(--tx)}details.card>div{margin-top:6px}
+.alert{border:1px solid var(--bd);border-left-width:4px;border-radius:8px;padding:8px 10px;margin:0 0 10px;background:var(--p2)}
+.alert.er{border-color:var(--er);background:#2a1620}.alert.wn{border-color:var(--wn);background:#2a2314}.alert.ok{border-color:var(--ok);background:#12281f}.alert.in{border-color:var(--ac)}
+.alert>b{display:block;margin-bottom:3px}
+ul.il{margin:4px 0 0;padding:0;list-style:none}ul.il li{padding:2px 0 2px 16px;position:relative;overflow-wrap:anywhere}ul.il li::before{content:"•";position:absolute;left:4px}
+ul.il li.er::before{content:"✕";color:var(--er);left:2px}ul.il li.wn::before{content:"⚠";color:var(--wn);left:0}ul.il li.in::before{content:"i";color:var(--mu);left:4px}
+.cmp{background:#7c9cff12;box-shadow:0 0 0 1px #7c9cff30;border-radius:3px;cursor:pointer}.cmp.on,.ol.on{background:#f5b84a44}
+.ol{cursor:pointer;display:block;text-align:left;width:100%;margin:1px 0;padding:2px 6px;border:0;background:none;border-radius:4px}
 .pcinfo{margin-top:6px;font-size:12px}.pcinfo button{display:block;margin:3px 0;font-size:11px;text-align:left;overflow-wrap:anywhere}
-table{border-collapse:collapse;width:100%;font-size:12px}td,th{border-bottom:1px solid var(--bd);padding:3px 6px;text-align:left}th{color:var(--mu);font-weight:500}code{font:11.5px ui-monospace,Menlo,monospace;overflow-wrap:anywhere}
+table{border-collapse:collapse;width:100%;font-size:12px}td,th{border-bottom:1px solid var(--bd);padding:3px 6px;text-align:left}th{color:var(--mu);font-weight:500}
+tr.go{cursor:pointer}tr.go:hover td{background:#7c9cff14}
 .df{display:block;text-align:left;margin:2px 0;width:100%;overflow-wrap:anywhere;font-size:11.5px}
-#toast{position:fixed;left:50%;top:64px;transform:translate(-50%,-40px);background:#3a1620;border:1px solid var(--er);padding:8px 14px;border-radius:10px;opacity:0;transition:.25s;z-index:20;max-width:90vw}#toast.show{opacity:1;transform:translate(-50%,0)}
-@media(max-width:820px){#insp{display:none;width:auto;position:absolute;left:0;right:0;bottom:0;height:56%;max-width:none;border-left:0;border-top:1px solid var(--bd);z-index:5;box-shadow:0 -8px 30px #000a}body.ip #insp{display:flex}#meta,#hint{display:none}header{gap:6px;padding:6px 8px}}
-</style></head><body>
-<header><b class="logo">Theia <span>Execution Explorer</span></b><select id="sel" aria-label="Trace" hidden></select><button id="open">Open traces…</button><input id="file" type="file" accept=".json,application/json" multiple hidden><span id="meta"></span><span class="sp"></span>
-<div class="seg" id="flow" role="group" aria-label="Data flow edges"><button data-m="key" class="on" title="Explicit instrumented bindings only">Key transfers</button><button data-m="sel" title="All data edges touching the selection">Selected</button><button data-m="all" title="Every data edge, including value matches">All</button></div>
-<button id="expAll">Expand all</button><button id="colAll">Collapse</button><button id="info" title="Trace summary">Summary</button></header>
-<main><div id="view"><div id="world"><svg id="svg"></svg><div id="nodes"></div></div>
-<div id="empty"><h2>Drop a local_ai_trace.v1 file</h2><div>Traces are read locally in your browser. Nothing is uploaded.</div><button id="open2">Open trace files…</button></div>
-<div id="zc"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="fit">Fit</button><span id="zp"></span></div>
-<div id="hint">Click ▸ to expand · Alt-click expands a subtree · Scroll to zoom · Drag to pan · Arrow keys navigate</div></div>
-<aside id="insp"><div id="ih"></div><div id="tabs"></div><div id="ib"></div></aside></main><div id="toast" role="status"></div>
+.msg{border:1px solid var(--bd);border-radius:10px;margin:6px 0;overflow:hidden}.msg>.mh{display:flex;gap:6px;align-items:center;padding:3px 8px;background:#0f131c;font-size:11px;color:var(--mu)}.msg>.tb .txt{border:0;border-radius:0}
+.msg.system{border-color:#5ec2ff55}.msg.user{border-color:#7c9cff66}.msg.assistant{border-color:#3ecf8e55}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.att{display:flex;gap:8px;align-items:baseline;padding:3px 0;border-bottom:1px solid var(--bd);overflow-wrap:anywhere}.att.rt{color:var(--mu);font-size:11px;padding-left:20px}
+.wf{display:flex;flex-direction:column}
+.wr{display:grid;grid-template-columns:minmax(110px,38%) 1fr;gap:8px;align-items:center;text-align:left;border-radius:4px;padding:1px 4px;width:100%;cursor:pointer}
+.wtg{display:inline-block;width:1.3em;text-align:center;color:var(--mu);border-radius:3px;cursor:pointer}.wtg:hover{background:#7c9cff33;color:var(--tx)}.wtg.leaf{cursor:default;visibility:hidden}
+.wr:hover,.wr.sel{background:#7c9cff1c}
+.wn1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11.5px}
+.wt{position:relative;height:10px;background:#0f131c;border-radius:3px}.wb{position:absolute;top:1px;bottom:1px;border-radius:2px;background:var(--c,#667);min-width:2px}
+#toast{position:fixed;left:50%;top:64px;transform:translate(-50%,-40px);background:#1b2231;border:1px solid var(--ac);padding:8px 14px;border-radius:10px;opacity:0;pointer-events:none;transition:.25s;z-index:20;max-width:90vw;cursor:pointer}
+#toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}#toast.er{background:#3a1620;border-color:var(--er)}
+@media(max-width:820px){
+ #insp{width:auto;position:absolute;left:0;right:0;bottom:0;height:56%;max-width:none;border-left:0;border-top:1px solid var(--bd);z-index:5;box-shadow:0 -8px 30px #000a}
+ #hint{display:none}header{gap:6px;padding:6px 8px}#find{width:120px}
+}
+</style>
+</head>
+<body>
+<header>
+  <b class="logo">Theia <span>Execution Explorer</span></b>
+  <select id="sel" aria-label="Trace" hidden></select>
+  <button id="rm" title="Close the selected trace" aria-label="Close the selected trace" hidden>Close trace</button>
+  <button id="open">Open traces…</button>
+  <input id="file" type="file" accept=".json,application/json" multiple hidden>
+  <input id="find" type="search" placeholder="Filter by name… ( / )" aria-label="Show only operations whose name contains this text" title="Show only operations whose name contains this text. Enter / N = next match, Esc = clear" autocomplete="off">
+  <span id="fc" class="mu" aria-live="polite"></span>
+  <span class="sp"></span>
+  <div class="seg" id="flow" role="group" aria-label="Data flow edges">
+    <button data-m="key" class="on" title="Explicit instrumented bindings only">Key transfers</button>
+    <button data-m="sel" title="All data edges touching the selection">Selected</button>
+    <button data-m="all" title="Every data edge, including value matches">All</button>
+  </div>
+  <div class="seg" role="group" aria-label="Tree expansion">
+    <button id="expAll" title="Expand every operation (E)">Expand all</button>
+    <button id="colAll" title="Collapse everything down to the root operation(s) (C)">Collapse all</button>
+    <button id="prob" title="Expand only the paths that lead to errors or degraded operations (P)">Problems</button>
+  </div>
+  <button id="info" title="Trace summary: verdict, issues, LLM calls, timeline (S)" aria-pressed="false">Summary</button>
+</header>
+<div id="metaBar"></div>
+<main>
+  <div id="view">
+    <div id="world"><svg id="svg"></svg><div id="nodes"></div></div>
+    <div id="empty"><h2>Drop a local_ai_trace.v1 file</h2><div>Traces are read locally in your browser. Nothing is uploaded. You can also paste trace JSON with Ctrl/⌘+V.</div><button id="open2">Open trace files…</button></div>
+    <div id="nomatch" hidden></div>
+    <div id="zc"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="fit">Fit</button><span id="zp"></span></div>
+    <div id="hint">Click ▸ to expand · Shift-click ▾ collapses a subtree · Alt-click ▸ expands one · Scroll to zoom · Drag to pan · Arrow keys navigate</div>
+  </div>
+  <aside id="insp" aria-label="Inspector"><div id="ih"></div><div id="tabs" role="tablist"></div><div id="ib"></div></aside>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+
 <script>
-const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const fd=n=>n<1e3?n+' ns':n<1e6?(n/1e3).toFixed(1)+' µs':n<1e9?(n/1e6).toFixed(n<1e7?2:1)+' ms':(n/1e9).toFixed(2)+' s';
-const sn=o=>o.split('/').pop(),W=252,H=64,GX=70,GY=14,enc=new TextEncoder,dcd=new TextDecoder;
-let TR=[],cur=null,mode='key',tt;
-const ptr=(r,p)=>{let c=r;for(const s of p.split('/').slice(1))c=c[s.replace(/~1/g,'/').replace(/~0/g,'~')];return c},gp=(o,p)=>{try{return ptr(o,p)}catch{}};
-const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),4500)};
-function build(t,name){const N=new Map(),roots=[];t.edges=t.edges||[];t.diagnostics=t.diagnostics||[];
- t.nodes.forEach(n=>{if(!n||typeof n.id!=='string')throw Error('node without id');n.artifacts=n.artifacts||[];n.provider_usage=n.provider_usage||[];n.estimates=n.estimates||[];N.set(n.id,{n,kids:[],p:null})});
- N.forEach(o=>{const p=o.n.parent_id&&N.get(o.n.parent_id);if(p&&p!==o){o.p=p;p.kids.push(o)}else roots.push(o)});
- const seen=new Set(),walk=o=>{seen.add(o);o.kids.forEach(walk)};roots.forEach(walk);N.forEach(o=>{if(!seen.has(o)){o.p.kids=o.p.kids.filter(k=>k!==o);o.p=null;roots.push(o);walk(o)}});
- const by=(a,b)=>a.n.sequence-b.n.sequence;N.forEach(o=>o.kids.sort(by));roots.sort(by);
- const c={t,name,N,roots,exp:new Set(roots.map(r=>r.n.id)),sel:null,tab:'ov',v:{x:0,y:0,k:1},vis:[]};
- N.forEach(o=>{if(o.n.status==='error')for(let q=o.p;q;q=q.p)c.exp.add(q.n.id)});c.init=new Set(c.exp);return c}
-async function ingest(files){let last=null;for(const f of files){try{const t=JSON.parse(await f.text());if(!t||t.schema!=='local_ai_trace.v1'||!Array.isArray(t.nodes))throw Error('not a local_ai_trace.v1 trace');last=build(t,f.name);TR.push(last)}catch(e){toast(f.name+': '+e.message)}}
- if(last){fillSel();show(last)}}
-function fillSel(){const s=$('#sel');s.hidden=TR.length<2;s.innerHTML=TR.map((c,i)=>`<option value="${i}">${esc(c.name)} · ${esc(c.t.kind||'trace')} · ${c.N.size} nodes</option>`).join('');s.value=TR.indexOf(cur)}
-function show(c){cur=c;$('#empty').hidden=true;$('#sel').value=TR.indexOf(c);draw();fit();meta();insp();document.body.classList.remove('ip')}
-function meta(){const c=cur,t=c.t,u=t.totals||{},r=c.roots[0];$('#meta').textContent=[t.status+(t.complete?'':' (incomplete)'),r?fd(r.n.duration_ns):'',c.N.size+' operations',u.provider_calls!=null&&u.provider_calls+' LLM calls',u.actual_input_tokens!=null&&`${u.actual_input_tokens}→${u.actual_output_tokens} tokens`+(u.unknown_usage_calls?` (+${u.unknown_usage_calls} calls with unknown usage)`:'')].filter(Boolean).join(' · ')}
-const sub=o=>{const n=o.n,p=[];if(n.status==='success')p.push(fd(n.duration_ns));else p.push(n.status+(n.reason?' · '+n.reason:n.error?' · '+n.error.type:''));
- if(n.status==='success'){const u=n.provider_usage;if(u.length)p.push(u.reduce((a,x)=>a+x.input_tokens,0)+'→'+u.reduce((a,x)=>a+x.output_tokens,0)+' tok');if(n.artifacts.length)p.push(n.artifacts.length+' art.')}return p.join(' · ')};
-const P=(a,b)=>{const ay=a.y+H/2,by=b.y+H/2;if(b.x>a.x){const sx=a.x+W,d=Math.max(50,(b.x-sx)/2);return`M${sx} ${ay}C${sx+d} ${ay} ${b.x-d} ${by} ${b.x} ${by}`}
- if(b.x===a.x){const sx=a.x+W;return`M${sx} ${ay}C${sx+80} ${ay} ${sx+80} ${by} ${sx} ${by}`}const tx=b.x+W,d=Math.max(30,(a.x-tx)/2);return`M${a.x} ${ay}C${a.x-d} ${ay} ${tx+d} ${by} ${tx} ${by}`};
-function draw(){const c=cur;c.vis=[];c.N.forEach(o=>o.vis=0);let y=0;
- const go=(o,d)=>{o.vis=1;o.x=d*(W+GX);c.vis.push(o);const ks=c.exp.has(o.n.id)?o.kids:[];if(!ks.length){o.y=y;y+=H+GY}else{ks.forEach(k=>go(k,d+1));o.y=(ks[0].y+ks[ks.length-1].y)/2}};
- c.roots.forEach(r=>go(r,0));
- $('#nodes').innerHTML=c.vis.map(o=>{const n=o.n,e=c.exp.has(n.id);return`<div class="nd st-${n.status}${c.sel===n.id?' sel':''}" tabindex="0" data-id="${n.id}" style="left:${o.x}px;top:${o.y}px" title="${esc(n.operation)} · ${n.status}"><b>${esc(sn(n.operation))}</b><small>${esc(sub(o))}</small>${o.kids.length?`<button class="cv" title="${e?'Collapse':'Expand'} ${o.kids.length} child operation(s)" aria-expanded="${e}" aria-label="${e?'Collapse':'Expand'} ${o.kids.length} children">${e?'−':o.kids.length}</button>`:''}</div>`}).join('');edges()}
-function edges(){const c=cur;let h='<defs>'+Object.entries({tr:'#b388ff',cp:'#5ec2ff',rg:'#ffa94d',mt:'#7d889e',ex:'#3a4660'}).map(([k,v])=>`<marker id="a${k}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="${v}"/></marker>`).join('')+'</defs>';
- c.vis.forEach(o=>{if(o.p&&o.p.vis&&c.exp.has(o.p.n.id))h+=`<path class="ex" data-e="x" d="${P(o.p,o)}" marker-end="url(#aex)"/>`});
- const rep=id=>{let o=c.N.get(id);while(o&&!o.vis)o=o.p;return o},s=c.sel&&c.N.get(c.sel),sr=s&&rep(s.n.id),agg=new Map();
- for(const e of c.t.edges){if(e.kind!=='data')continue;const ib=e.evidence==='instrumented_binding';if(mode==='key'&&!ib)continue;const a=rep(e.from),b=rep(e.to);if(!a||!b||a===b)continue;if(mode==='sel'&&a!==sr&&b!==sr)continue;
-  const k=ib?{copy:'cp',regeneration:'rg'}[e.relation]||'tr':'mt',key=a.n.id+'>'+b.n.id+k,g=agg.get(key)||{a,b,k,n:0};g.n++;agg.set(key,g)}
- agg.forEach(g=>h+=`<path class="dt ${g.k}" data-e="d" d="${P(g.a,g.b)}" marker-end="url(#a${g.k})"><title>${g.n} ${g.k==='mt'?'matching value(s) (evidence only)':{cp:'copy',tr:'transform',rg:'regeneration'}[g.k]+' binding(s)'}</title></path>`);
- $('#svg').innerHTML=h}
-function apply(){const v=cur.v;$('#world').style.transform=`translate(${v.x}px,${v.y}px) scale(${v.k})`;$('#zp').textContent=Math.round(v.k*100)+'%'}
-function fit(){const c=cur,r=$('#view').getBoundingClientRect();let w=1,h=1;c.vis.forEach(o=>{w=Math.max(w,o.x+W);h=Math.max(h,o.y+H)});const k=Math.max(.12,Math.min(1,(r.width-60)/w,(r.height-60)/h));c.v={k,x:Math.max(20,(r.width-w*k)/2),y:Math.max(20,(r.height-h*k)/2)};apply()}
-function zoom(px,py,f){const v=cur.v,k=Math.min(2.5,Math.max(.1,v.k*f)),r=k/v.k;v.x=px-(px-v.x)*r;v.y=py-(py-v.y)*r;v.k=k;apply()}
-function ensure(o){const v=cur.v,r=$('#view').getBoundingClientRect(),sx=o.x*v.k+v.x,sy=o.y*v.k+v.y,m=20;if(sx<m||sy<m||sx+W*v.k>r.width-m||sy+H*v.k>r.height*(innerWidth<=820?.4:1)-m){v.x=r.width/2-(o.x+W/2)*v.k;v.y=Math.min(r.height*(innerWidth<=820?.2:.5),r.height/2)-(o.y+H/2)*v.k;apply()}}
-function toggle(id,all){const c=cur,o=c.N.get(id),y0=o.y,sub=q=>{c.exp.add(q.n.id);q.kids.forEach(sub)};
- if(all)sub(o);else if(c.exp.has(id)){c.exp.delete(id);for(let q=c.sel&&c.N.get(c.sel);q;q=q.p)if(q===o&&q.n.id!==c.sel){c.sel=id;break}}else c.exp.add(id);
- draw();c.v.y-=(o.y-y0)*c.v.k;apply();insp()}
-function select(id,reveal,showIp){const c=cur;c.sel=id;c.tab=c.tab==='ov'||!id?'ov':c.tab;if(id&&reveal)for(let q=c.N.get(id).p;q;q=q.p)c.exp.add(q.n.id);draw();if(id&&(reveal||innerWidth<=820))ensure(c.N.get(id));insp();document.body.classList.toggle('ip',!!showIp||!!id)}
+'use strict';
+/* =====================================================================
+   Theia AI Execution Explorer — standalone viewer for local_ai_trace.v1
+   Sections: helpers · loading · analysis · graph · renderers · inspector
+             · summary · events
+   ===================================================================== */
+
+// ---------- helpers
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const isObj = v => v !== null && typeof v === 'object';
+const num = v => (typeof v === 'number' && isFinite(v)) ? v : null;
+const fd = n => { n = num(n); if (n === null) return '—'; n = Math.max(0, n);
+  return n < 1e3 ? Math.round(n) + ' ns' : n < 1e6 ? (n / 1e3).toFixed(1) + ' µs' : n < 1e9 ? (n / 1e6).toFixed(n < 1e7 ? 2 : 1) + ' ms' : (n / 1e9).toFixed(2) + ' s'; };
+const usd = u => num(u) === null ? '—' : u < 1000 ? u + ' µUSD' : '$' + (u / 1e6).toFixed(u < 1e4 ? 5 : 4);
+const sn = o => String(o).split('/').pop();
+const plural = (n, a, b) => n + ' ' + (n === 1 ? a : b || a + 's');
+/** case-insensitive property getter; first matching name wins */
+const ci = (o, ...names) => {
+  if (!isObj(o) || Array.isArray(o)) return undefined;
+  for (const nm of names) {
+    if (nm in o) return o[nm];
+    const k = Object.keys(o).find(k => k.toLowerCase() === nm.toLowerCase());
+    if (k !== undefined) return o[k];
+  }
+  return undefined;
+};
+/** ISO-8601 (possibly nanosecond precision) -> milliseconds, with sub-ms fraction kept */
+function tms(s) {
+  if (typeof s !== 'string') return null;
+  const t = Date.parse(s.replace(/(\.\d{3})\d+/, '$1'));
+  if (isNaN(t)) return null;
+  const f = /\.(\d+)/.exec(s);
+  return t + (f && f[1].length > 3 ? Number('0.' + f[1].slice(3)) : 0);
+}
+const jp = p => String(p).replace(/~/g, '~0').replace(/\//g, '~1');
+const ptr = (r, p) => { let c = r; for (const s of String(p).split('/').slice(1)) c = c[s.replace(/~1/g, '/').replace(/~0/g, '~')]; return c; };
+const gp = (o, p) => { try { return ptr(o, p); } catch { return undefined; } };
+const enc = new TextEncoder(), dcd = new TextDecoder(), fdcd = new TextDecoder('utf-8', { fatal: true });
+const tryJ = s => { try { const j = JSON.parse(s); return j && typeof j === 'object' ? j : null; } catch { return null; } };
+const json = v => { try { return JSON.stringify(v, null, 2); } catch { return String(v); } };
+function b64(s) { // decode base64 that holds readable UTF-8 text, else null
+  if (typeof s !== 'string' || s.length < 16 || s.length % 4 || !/^[A-Za-z0-9+/]+={0,2}$/.test(s) || /^[0-9a-f]+$/i.test(s)) return null;
+  try { const t = fdcd.decode(Uint8Array.from(atob(s), c => c.charCodeAt(0))); return /[\x00-\x08\x0e-\x1f]/.test(t) ? null : t; } catch { return null; }
+}
+function copyText(t) {
+  const done = () => toast('Copied to clipboard');
+  const fb = () => { const a = document.createElement('textarea'); a.value = t; a.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); done(); } catch { toast('Copy failed', 'er'); } a.remove(); };
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(done, fb); else fb();
+}
+let toastT;
+function toast(m, kind) {
+  const t = $('#toast'); t.textContent = m; t.className = 'show' + (kind ? ' ' + kind : '');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), kind === 'er' ? 9000 : 2500);
+}
+
+const W = 252, H = 64, GX = 70, GY = 14, KNOWN = new Set(['success', 'error', 'skipped', 'running', 'cancelled']);
+let TR = [], cur = null, mode = 'key', ipOpen = !matchMedia('(max-width:820px)').matches;
+const isMobile = () => matchMedia('(max-width:820px)').matches;
+
+// ---------- loading & normalisation
+/** Make an untrusted trace safe to render. Never throws for merely sloppy data. */
+function build(t, name) {
+  if (!isObj(t) || Array.isArray(t)) throw Error('not a JSON object');
+  if (!Array.isArray(t.nodes)) throw Error('no "nodes" array — not a local_ai_trace');
+  const notes = [];
+  if (t.schema !== 'local_ai_trace.v1') notes.push(t.schema ? `schema is “${t.schema}”, this viewer targets local_ai_trace.v1; rendering best-effort` : 'no "schema" field; assuming local_ai_trace.v1');
+  t.edges = (Array.isArray(t.edges) ? t.edges : []).filter(e => isObj(e) && e.from != null && e.to != null);
+  t.diagnostics = Array.isArray(t.diagnostics) ? t.diagnostics : (t.diagnostics ? [t.diagnostics] : []);
+  const N = new Map(), roots = [], seenIds = new Set();
+  t.nodes.forEach((n, i) => {
+    if (!isObj(n) || Array.isArray(n)) { notes.push(`node #${i} is not an object; skipped`); return; }
+    let id = n.id == null || n.id === '' ? 'node#' + i : String(n.id);
+    if (n.id == null || n.id === '') notes.push(`node #${i} had no id; using “${id}”`);
+    if (seenIds.has(id)) { const o = id; id = id + '~' + i; notes.push(`duplicate node id “${o}”; renamed second one to “${id}”`); }
+    seenIds.add(id); n.id = id;
+    n.operation = typeof n.operation === 'string' && n.operation ? n.operation : '(unnamed operation)';
+    n.status = typeof n.status === 'string' && n.status ? n.status : 'unknown';
+    n.sequence = num(n.sequence) ?? i;
+    if (n.input === undefined) n.input = null;
+    if (n.output === undefined) n.output = null;
+    n.artifacts = (Array.isArray(n.artifacts) ? n.artifacts : []).filter(isObj).map(a => { a.kind = String(a.kind || 'artifact'); a.name = String(a.name || a.kind); a.sha256 = typeof a.sha256 === 'string' ? a.sha256 : ''; return a; });
+    n.provider_usage = (Array.isArray(n.provider_usage) ? n.provider_usage : []).filter(isObj);
+    n.estimates = (Array.isArray(n.estimates) ? n.estimates : []).filter(isObj).map(e => { e.source = String(e.source ?? ''); e.method = String(e.method ?? ''); return e; });
+    N.set(id, { n, kids: [], p: null, dp: null, fk: [], fp: null, vis: false, x: 0, y: 0, issues: [], roll: { err: 0, warn: 0 }, _llm: undefined });
+  });
+  if (!N.size) throw Error('the trace contains no operations');
+  N.forEach(o => { const p = o.n.parent_id != null && N.get(String(o.n.parent_id)); if (p && p !== o) { o.p = p; p.kids.push(o); } else roots.push(o); });
+  const seen = new Set(), walk = o => { seen.add(o); o.kids.forEach(walk); };
+  roots.forEach(walk);
+  N.forEach(o => { if (!seen.has(o)) { notes.push(`parent cycle at “${o.n.id}”; promoted to a root`); o.p.kids = o.p.kids.filter(k => k !== o); o.p = null; roots.push(o); walk(o); } });
+  const by = (a, b) => a.n.sequence - b.n.sequence;
+  N.forEach(o => o.kids.sort(by)); roots.sort(by);
+  const c = { t, name, N, roots, notes, exp: new Set(), sel: null, tab: 'ov', raw: false, v: { x: 0, y: 0, k: 1 }, vis: [], hits: [], hitSet: new Set(), hi: -1, q: '', filtering: false, fr: [], vSaved: null, wfCol: new Set() };
+  analyze(c);
+  c.exp = defaultExp(c);
+  return c;
+}
+const dedupeKey = c => c.name + '|' + (c.t.trace_id || '');
+async function ingestText(text, name) {
+  try {
+    const c = build(JSON.parse(text.replace(/^﻿/, '')), name);
+    const i = TR.findIndex(x => dedupeKey(x) === dedupeKey(c));
+    if (i >= 0) TR[i] = c; else TR.push(c);
+    fillSel(c); show(c);
+    if (c.notes.length) toast(`${name}: ${c.notes[0]}${c.notes.length > 1 ? ` (+${c.notes.length - 1} more, see Summary)` : ''}`);
+    return true;
+  } catch (e) { toast(`${name}: ${e.message}`, 'er'); return false; }
+}
+async function ingest(files) { for (const f of files) await ingestText(await f.text(), f.name); }
+function fillSel(c) {
+  const s = $('#sel'); s.hidden = TR.length < 2; $('#rm').hidden = !TR.length;
+  s.innerHTML = TR.map((x, i) => `<option value="${i}">${esc(x.name)} · ${esc(x.t.kind || 'trace')} · ${x.N.size} nodes</option>`).join('');
+  if (c) s.value = TR.indexOf(c);
+}
+function closeTrace() {
+  if (!cur) return;
+  TR = TR.filter(x => x !== cur);
+  if (TR.length) { fillSel(TR[TR.length - 1]); show(TR[TR.length - 1]); return; }
+  cur = null; fillSel(); document.body.classList.remove('has', 'ip');
+  $('#empty').hidden = false; $('#nodes').innerHTML = ''; $('#svg').innerHTML = ''; $('#metaBar').innerHTML = ''; $('#zp').textContent = ''; $('#fc').textContent = '';
+  $('#find').value = ''; $('#nomatch').hidden = true; for (const x of ['#expAll', '#colAll', '#prob']) $(x).disabled = false; insp();
+}
+
+// ---------- analysis: issues, degraded states, roll-ups
+function errParts(e) {
+  if (e == null || e === '') return [];
+  if (typeof e === 'string') return [['message', e]];
+  if (!isObj(e)) return [['error', String(e)]];
+  return Object.entries(e).filter(([, v]) => v !== '' && v != null).map(([k, v]) => [k, typeof v === 'string' ? v : JSON.stringify(v)]);
+}
+function errLine(e) {
+  if (typeof e === 'string') return e;
+  if (!isObj(e)) return e == null ? '' : String(e);
+  const msg = ci(e, 'message', 'msg', 'detail', 'description', 'reason', 'error');
+  const head = ['type', 'code', 'step'].map(k => ci(e, k)).filter(v => v !== undefined && v !== '' && v !== null).join(' · ');
+  return [head, typeof msg === 'string' ? msg : (msg == null ? '' : JSON.stringify(msg))].filter(Boolean).join(' — ');
+}
+const attemptsOf = n => n.artifacts.filter(a => a.kind === 'attempt' && isObj(a.value));
+/** The wrapper's attempt log lines up 1:1 with its provider children when counts match (positional inference). */
+function attemptFor(o) {
+  if (!o.p || !isLLMNode(o)) return null;
+  const sib = o.p.kids.filter(isLLMNode), att = attemptsOf(o.p.n);
+  const i = sib.indexOf(o);
+  return att.length && att.length === sib.length && i >= 0 ? att[i].value : null;
+}
+function analyze(c) {
+  const t = c.t;
+  c.N.forEach(o => {
+    const n = o.n, out = o.issues = [];
+    const add = (sev, kind, text) => out.push({ sev, kind, text, id: n.id });
+    if (n.status === 'error') add('error', 'error', errLine(n.error) || n.reason || 'operation failed');
+    else if (n.status === 'skipped') add('info', 'skipped', n.reason ? 'Skipped: ' + n.reason : 'Skipped');
+    else if (n.status === 'cancelled') add('warn', 'cancelled', 'Cancelled' + (n.reason ? ': ' + n.reason : ''));
+    else if (n.status === 'running') add('warn', 'running', 'No result recorded (still running or trace cut off)');
+    else if (!KNOWN.has(n.status)) add('warn', 'status', `Unknown status “${n.status}”`);
+    if (n.reason && n.status !== 'skipped' && n.status !== 'cancelled' && n.status !== 'error') add('warn', 'reason', 'Reason recorded: ' + n.reason);
+    for (const k of ['degraded', 'degraded_reason', 'warnings', 'warning']) {
+      const v = n[k]; if (v === undefined || v === null || v === false || v === '' || (Array.isArray(v) && !v.length)) continue;
+      add('warn', 'degraded', k === 'degraded' && v === true ? 'Marked degraded by the backend' : `${k}: ${typeof v === 'string' ? v : JSON.stringify(v)}`);
+    }
+    if (isObj(n.output)) for (const k of Object.keys(n.output)) if (/^(degraded|fallback_used)$/i.test(k) && n.output[k] === true) add('warn', 'degraded', `output.${k} = true`);
+    attemptsOf(n).forEach(a => {
+      const v = a.value;
+      if (v.failure) add('warn', 'attempt', `Attempt ${v.attempt ?? '?'} failed (${v.failure})${ci(v.model, 'model') ? ' on ' + ci(v.model, 'model') : ''}`);
+      if (v.fallback) add('warn', 'fallback', `Fallback model used for attempt ${v.attempt ?? '?'}${ci(v.model, 'model') ? ': ' + ci(v.model, 'model') : ''}`);
+    });
+    if (n.status === 'success' && /^provider\./.test(n.operation) && !n.provider_usage.length) add('warn', 'usage', 'Provider call succeeded but reported no usage (unknown, not zero)');
+    if (n.status !== 'running' && !n.ended_at && t.complete !== false) add('info', 'noend', 'No end time recorded');
+  });
+  const roll = o => { let e = 0, w = 0; o.kids.forEach(k => { const r = roll(k); e += r.err + (k.n.status === 'error' ? 1 : 0); w += r.warn + (k.issues.some(i => i.sev === 'warn') ? 1 : 0); }); o.roll = { err: e, warn: w }; return o.roll; };
+  c.roots.forEach(roll);
+  const all = [...c.N.values()];
+  c.errors = all.filter(o => o.n.status === 'error');
+  c.degraded = all.filter(o => o.n.status !== 'error' && o.issues.some(i => i.sev === 'warn'));
+  c.llm = all.filter(isLLMNode);
+  c.tIssues = [];
+  if (t.complete === false) c.tIssues.push(['warn', 'Trace is marked incomplete (still recording, or the file was cut off). Operations may be missing.']);
+  if (t.status === 'error' || t.error) c.tIssues.push(['error', 'Trace failed' + (t.error ? ': ' + (errLine(t.error) || json(t.error)) : '')]);
+  for (const k of Object.keys(t)) if (/truncat|dropped|overflow/i.test(k) && t[k] && t[k] !== 0) c.tIssues.push(['warn', `${k} = ${typeof t[k] === 'string' ? t[k] : JSON.stringify(t[k])}`]);
+  t.diagnostics.forEach(d => c.tIssues.push(['warn', typeof d === 'string' ? d : (errLine(d) || json(d))]));
+}
+const isProblem = o => o.issues.some(i => i.sev !== 'info');
+function defaultExp(c) { // roots + every path that leads to a problem
+  const s = new Set(c.roots.map(r => r.n.id));
+  c.N.forEach(o => { if (isProblem(o)) for (let q = o.p; q; q = q.p) s.add(q.n.id); });
+  return s;
+}
+
+// ---------- LLM call model (works on both llm/client.* wrappers and provider.* calls)
+const hasPrompt = r => isObj(r) && !Array.isArray(r) && ['messages', 'system', 'input', 'prompt', 'schema'].some(k => ci(r, k) !== undefined);
+function isLLMNode(o) {
+  if (o._llm === undefined) o._llm = llmInfo(o);
+  return !!o._llm;
+}
+function llmInfo(o) {
+  const n = o.n, inp = n.input;
+  let req = null;
+  if (isObj(inp)) for (const cand of [ci(inp, 'request'), ci(inp, 'req'), inp]) if (hasPrompt(cand)) { req = cand; break; }
+  const nameHit = /^(provider|llm)\b|[/.](Structured|Stream|Embed)$/i.test(n.operation);
+  if (!req && !n.provider_usage.length && !nameHit) return null;
+  const L = { req, kind: /embed/i.test(n.operation) ? 'embed' : (/stream/i.test(n.operation) || n.artifacts.some(a => a.kind === 'stream_chunk')) ? 'stream' : /structured/i.test(n.operation) ? 'structured' : 'generate' };
+  L.model = ci(inp, 'model'); L.mode = ci(inp, 'mode');
+  // response container: unwrap {out:{…}} / {result0:{…}}
+  let R = n.output;
+  if (isObj(R)) for (const k of ['out', 'result', 'result0', 'response']) { const v = ci(R, k); if (isObj(v) && !Array.isArray(v)) { R = v; break; } }
+  L.R = isObj(R) ? R : null;
+  const rawJ = ci(R, 'json', 'text', 'content', 'output');
+  if (typeof rawJ === 'string' && rawJ !== '') { const d = b64(rawJ); L.text = d !== null ? d : rawJ; }
+  else if (isObj(rawJ)) L.text = json(rawJ);
+  L.vector = ci(R, 'vector', 'embedding'); if (!Array.isArray(L.vector)) L.vector = null;
+  L.usage = ci(R, 'usage'); if (!isObj(L.usage)) L.usage = null;
+  L.provider = ci(R, 'provider'); L.rmodel = ci(R, 'model');
+  L.chunks = n.artifacts.filter(a => a.kind === 'stream_chunk' && isObj(a.value));
+  if (L.chunks.length) {
+    L.streamText = L.chunks.map(a => { const x = ci(a.value, 'chunk'); const t = ci(x, 'text'); return typeof t === 'string' ? t : ''; }).join('');
+    for (const a of L.chunks) { const x = ci(a.value, 'chunk'), f = ci(x, 'finishreason', 'finish_reason'); if (f) L.finish = f; const u = ci(x, 'usage'); if (isObj(u)) L.usage = u; }
+    const first = L.chunks.find(a => { const t = ci(ci(a.value, 'chunk'), 'text'); return typeof t === 'string' && t; });
+    if (first) { const a0 = tms(n.started_at), a1 = tms(ci(first.value, 'at')); if (a0 !== null && a1 !== null) L.firstTokenMs = a1 - a0; }
+  }
+  if (!L.finish) L.finish = ci(L.usage, 'finish_reason') || ci(R, 'finish_reason') || '';
+  L.attempts = attemptsOf(n).map(a => a.value);
+  L.retries = n.artifacts.filter(a => a.kind === 'retry' && isObj(a.value));
+  return L;
+}
+/** token usage from provider_usage[] (preferred) or the response's own usage block */
+function usageOf(o) {
+  const n = o.n, L = o._llm;
+  if (n.provider_usage.length) return { inT: n.provider_usage.reduce((a, x) => a + (num(x.input_tokens) || 0), 0), outT: n.provider_usage.reduce((a, x) => a + (num(x.output_tokens) || 0), 0), cached: n.provider_usage.reduce((a, x) => a + (num(x.cached_tokens) || 0), 0), cost: n.provider_usage.reduce((a, x) => a + (num(x.estimated_cost_micro_usd) || 0), 0), lat: n.provider_usage.reduce((a, x) => a + (num(x.latency_ns) || 0), 0), model: n.provider_usage[0].model, provider: n.provider_usage[0].provider, reported: true };
+  const u = L && L.usage;
+  if (u && (num(ci(u, 'in_tokens', 'input_tokens')) || num(ci(u, 'out_tokens', 'output_tokens')))) return { inT: num(ci(u, 'in_tokens', 'input_tokens')) || 0, outT: num(ci(u, 'out_tokens', 'output_tokens')) || 0, cached: num(ci(u, 'cached_tokens')) || 0, cost: num(ci(u, 'cost_micro_usd')), lat: num(ci(u, 'latency')), model: ci(u, 'model'), provider: ci(u, 'provider'), reported: true };
+  return null;
+}
+const modelName = o => { const L = o._llm, u = usageOf(o); return (u && u.model) || (L && (ci(L.model, 'model') || L.rmodel)) || ''; };
+function schemaCheck(s, v, p = '$', out = []) { // tiny JSON-Schema subset, local sanity check only
+  if (!isObj(s) || out.length > 10) return out;
+  const ty = v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v === 'number' && Number.isInteger(v) ? 'integer' : typeof v;
+  if (s.type) { const ts = [].concat(s.type); if (!ts.some(x => x === ty || (x === 'number' && ty === 'integer'))) { out.push(`${p}: expected ${ts.join('|')}, got ${ty}`); return out; } }
+  if (Array.isArray(s.enum) && !s.enum.some(e => JSON.stringify(e) === JSON.stringify(v))) out.push(`${p}: value is not one of the allowed enum values`);
+  if (isObj(v) && !Array.isArray(v)) {
+    for (const r of s.required || []) if (!(r in v)) out.push(`${p}: missing required property “${r}”`);
+    const pr = isObj(s.properties) ? s.properties : {};
+    for (const k in v) { if (pr[k]) schemaCheck(pr[k], v[k], p + '.' + k, out); else if (s.additionalProperties === false) out.push(`${p}: unexpected property “${k}”`); }
+  }
+  if (Array.isArray(v) && isObj(s.items)) v.forEach((x, i) => schemaCheck(s.items, x, `${p}[${i}]`, out));
+  return out;
+}
+
+// ---------- graph
+// Worker roots live inside their originating user-turn file (v1 compatible).
+// Older standalone worker traces remain readable without special migration.
+const workerAttempts = c => [...c.N.values()].filter(o =>
+  /^(memory|reflection)\.RunOnce$/.test(o.n.operation) && isObj(o.n.input) && !Array.isArray(o.n.input));
+function show(c) {
+  cur = c; $('#empty').hidden = true; document.body.classList.add('has'); $('#sel').value = TR.indexOf(c);
+  $('#find').value = c.q; setHits(c.q, false);
+  setPanel(ipOpen); draw(); fit(); meta(); insp();
+}
+function meta() {
+  const c = cur, t = c.t, u = t.totals || {}, r = c.roots[0], bar = $('#metaBar');
+  const chip = (txt, cls = '', extra = '') => `<span class="chip ${cls}" ${extra}>${txt}</span>`;
+  const ok = t.status === 'success' && t.complete !== false && !c.errors.length;
+  let h = chip(esc(t.status || 'unknown') + (t.complete === false ? ' (incomplete)' : ''), t.status === 'error' || t.complete === false ? 'er' : ok && !c.degraded.length ? 'ok' : 'wn');
+  if (r) h += chip(fd(r.n.duration_ns));
+  h += chip(plural(c.N.size, 'operation'));
+  const workers = workerAttempts(c);
+  if (workers.length) h += chip(plural(workers.length, 'background job attempt'));
+  if (num(u.provider_calls) !== null) h += chip(plural(u.provider_calls, 'LLM call'));
+  if (num(u.actual_input_tokens) !== null) h += chip(`${u.actual_input_tokens}→${u.actual_output_tokens ?? '?'} tokens` + (u.unknown_usage_calls ? ` (+${u.unknown_usage_calls} call${u.unknown_usage_calls === 1 ? '' : 's'} with unknown usage)` : ''));
+  if (c.errors.length) h += `<button class="chip er" data-issues title="Show the issue list in the summary">✕ ${plural(c.errors.length, 'error')}</button>`;
+  if (c.degraded.length) h += `<button class="chip wn" data-issues title="Show the issue list in the summary">⚠ ${plural(c.degraded.length, 'degraded operation')}</button>`;
+  if (!c.errors.length && !c.degraded.length && ok) h += chip('no problems detected', 'ok');
+  bar.innerHTML = h;
+  const de = t.edges.filter(e => e.kind === 'data'), nb = de.filter(e => e.evidence === 'instrumented_binding').length;
+  $$('#flow button').forEach(b => { const m = b.dataset.m; b.classList.toggle('zero', m === 'key' && !nb); b.title = { key: `Explicit instrumented bindings only (${nb} in this trace)`, sel: 'All data edges touching the selection', all: `Every data edge, including value matches (${de.length} in this trace)` }[m]; });
+}
+const issueTitle = o => [o.n.operation + ' · ' + o.n.status, ...o.issues.filter(i => i.sev !== 'info').slice(0, 3).map(i => '• ' + i.text)].join('\n');
+function sub(o) {
+  const n = o.n, p = [];
+  if (n.status === 'success') p.push(fd(n.duration_ns));
+  else { p.push(n.status); const e = n.status === 'error' ? errLine(n.error) : ''; if (e) p.push(e); else if (n.reason) p.push(n.reason); }
+  if (isLLMNode(o)) { const m = modelName(o), u = usageOf(o); if (m) p.push(m); if (u) p.push(`${u.inT}→${u.outT} tok`); }
+  if (n.status === 'success' && !isLLMNode(o) && n.artifacts.length) p.push(n.artifacts.length + ' art.');
+  return p.join(' · ');
+}
+const P = (a, b) => {
+  const ay = a.y + H / 2, by = b.y + H / 2;
+  if (b.x > a.x) { const sx = a.x + W, d = Math.max(50, (b.x - sx) / 2); return `M${sx} ${ay}C${sx + d} ${ay} ${b.x - d} ${by} ${b.x} ${by}`; }
+  if (b.x === a.x) { const sx = a.x + W; return `M${sx} ${ay}C${sx + 80} ${ay} ${sx + 80} ${by} ${sx} ${by}`; }
+  const tx = b.x + W, d = Math.max(30, (a.x - tx) / 2); return `M${a.x} ${ay}C${a.x - d} ${ay} ${tx + d} ${by} ${tx} ${by}`;
+};
+const nodeEl = id => $(`#nodes .nd[data-id="${CSS.escape(id)}"]`);
+function snapFocus() { const a = document.activeElement, d = a && a.closest && a.closest('#nodes .nd'); return d ? { id: d.dataset.id, cv: a.classList.contains('cv') } : null; }
+function restoreFocus(s) { if (!s) return; const d = nodeEl(s.id); if (d) (s.cv && $('.cv', d) || d).focus({ preventScroll: true }); }
+function draw() {
+  const c = cur; if (!c) return;
+  const fs = snapFocus();
+  c.vis = []; c.N.forEach(o => o.vis = false);
+  let y = 0;
+  const go = (o, d, par) => {
+    o.vis = true; o.dp = par; o.x = d * (W + GX); c.vis.push(o);
+    const ks = c.filtering ? o.fk : (c.exp.has(o.n.id) ? o.kids : []);
+    if (!ks.length) { o.y = y; y += H + GY; } else { ks.forEach(k => go(k, d + 1, o)); o.y = (ks[0].y + ks[ks.length - 1].y) / 2; }
+  };
+  (c.filtering ? c.fr : c.roots).forEach(r => go(r, 0, null));
+  $('#nodes').innerHTML = c.vis.map(o => {
+    const n = o.n, e = c.filtering || c.exp.has(n.id), own = o.issues.filter(i => i.sev === 'warn').length;
+    const cls = ['nd', 'st-' + (KNOWN.has(n.status) ? n.status : 'unknown'), c.sel === n.id && 'sel', n.status !== 'error' && own && 'deg',].filter(Boolean).join(' ');
+    let pills = '';
+    if (n.status === 'error') pills += '<span class="pl er" title="This operation failed">✕</span>';
+    if (!e && o.roll.err) pills += `<span class="pl er" title="${plural(o.roll.err, 'hidden descendant')} failed">✕${o.roll.err} inside</span>`;
+    if (own || (!e && o.roll.warn && !o.roll.err)) pills += `<span class="pl wn" title="${own ? plural(own, 'degraded signal') + ' on this operation' : 'degraded operations inside'}">⚠${own || o.roll.warn}</span>`;
+    const lab = `${n.operation}, ${n.status}${isProblem(o) || o.roll.err ? ', has problems' : ''}`;
+    return `<div class="${cls}" role="button" aria-label="${esc(lab)}" tabindex="0" data-id="${esc(n.id)}" style="left:${o.x}px;top:${o.y}px" title="${esc(issueTitle(o))}"><div class="bg">${pills}</div><b>${esc(sn(n.operation))}</b><small>${esc(sub(o))}</small>${o.kids.length && !c.filtering ? `<button class="cv" title="${e ? 'Collapse' : 'Expand'} ${plural(o.kids.length, 'child operation')} (Shift-click collapses the whole subtree, Alt-click expands it)" aria-expanded="${e}" aria-label="${e ? 'Collapse' : 'Expand'} ${plural(o.kids.length, 'child')}">${e ? '−' : o.kids.length}</button>` : ''}</div>`;
+  }).join('');
+  edges(); restoreFocus(fs);
+}
+function paintSel() { const c = cur; $$('#nodes .nd.sel').forEach(d => d.classList.remove('sel')); const d = c.sel && nodeEl(c.sel); if (d) d.classList.add('sel'); if (mode === 'sel') edges(); }
+function edges() {
+  const c = cur; let h = '<defs>' + Object.entries({ tr: '#b388ff', cp: '#5ec2ff', rg: '#ffa94d', mt: '#7d889e', ex: '#3a4660' }).map(([k, v]) => `<marker id="a${k}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="${v}"/></marker>`).join('') + '</defs>';
+  c.vis.forEach(o => { if (o.dp) h += `<path class="ex" data-e="x" d="${P(o.dp, o)}" marker-end="url(#aex)"/>`; });
+  const rep = id => { let o = c.N.get(String(id)); if (c.filtering) return o && o.vis ? o : null; while (o && !o.vis) o = o.p; return o; };
+  const s = c.sel && c.N.get(c.sel), sr = s && rep(s.n.id), agg = new Map();
+  for (const e of c.t.edges) {
+    if (e.kind !== 'data') continue;
+    const ib = e.evidence === 'instrumented_binding'; if (mode === 'key' && !ib) continue;
+    const a = rep(e.from), b = rep(e.to); if (!a || !b || a === b) continue;
+    if (mode === 'sel' && a !== sr && b !== sr) continue;
+    const k = ib ? { copy: 'cp', regeneration: 'rg' }[e.relation] || 'tr' : 'mt', key = a.n.id + '>' + b.n.id + k, g = agg.get(key) || { a, b, k, n: 0 };
+    g.n++; agg.set(key, g);
+  }
+  agg.forEach(g => h += `<path class="dt ${g.k}" data-e="d" d="${P(g.a, g.b)}" marker-end="url(#a${g.k})"><title>${g.n} ${g.k === 'mt' ? 'matching value(s) (evidence only)' : { cp: 'copy', tr: 'transform', rg: 'regeneration' }[g.k] + ' binding(s)'}</title></path>`);
+  $('#svg').innerHTML = h;
+}
+function apply() { const v = cur.v; $('#world').style.transform = `translate(${v.x}px,${v.y}px) scale(${v.k})`; $('#zp').textContent = Math.round(v.k * 100) + '%'; }
+function fit() {
+  const c = cur; if (!c) return; const r = $('#view').getBoundingClientRect();
+  let w = 1, h = 1; c.vis.forEach(o => { w = Math.max(w, o.x + W); h = Math.max(h, o.y + H); });
+  const k = Math.max(.12, Math.min(1, (r.width - 60) / w, (r.height - 60) / h));
+  c.v = { k, x: Math.max(20, (r.width - w * k) / 2), y: Math.max(20, (r.height - h * k) / 2) }; apply();
+}
+function zoom(px, py, f) { const v = cur.v, k = Math.min(2.5, Math.max(.1, v.k * f)), r = k / v.k; v.x = px - (px - v.x) * r; v.y = py - (py - v.y) * r; v.k = k; apply(); }
+function ensure(o) {
+  const v = cur.v, r = $('#view').getBoundingClientRect(), m = 20, lim = r.height * (isMobile() && ipOpen ? .4 : 1);
+  const sx = o.x * v.k + v.x, sy = o.y * v.k + v.y;
+  if (sx < m || sy < m || sx + W * v.k > r.width - m || sy + H * v.k > lim - m) {
+    v.x = r.width / 2 - (o.x + W / 2) * v.k; v.y = Math.min(r.height * (isMobile() && ipOpen ? .2 : .5), r.height / 2) - (o.y + H / 2) * v.k; apply();
+  }
+}
+/** nearest ancestor-or-self that is actually drawn given the current expansion state */
+function visibleRep(o) { let top = o; for (let q = o.p; q; q = q.p) if (!cur.exp.has(q.n.id)) top = q; return top; }
+function setExp(o, on, deep) { const f = q => { on ? cur.exp.add(q.n.id) : cur.exp.delete(q.n.id); if (deep) q.kids.forEach(f); }; f(o); }
+function toggle(id, opt = {}) {
+  const c = cur, o = c.N.get(id); if (!o || !o.kids.length || c.filtering) return;
+  const y0 = o.y, on = opt.deep ? !opt.collapse : !c.exp.has(id);
+  setExp(o, on, !!opt.deep);
+  const moved = !on && c.sel && visibleRep(c.N.get(c.sel)) !== c.N.get(c.sel);
+  if (moved) c.sel = visibleRep(c.N.get(c.sel)).n.id;
+  draw(); c.v.y -= (o.y - y0) * c.v.k; apply();
+  if (moved) insp();
+}
+function setView(kind) {
+  const c = cur; if (!c || c.filtering) return;
+  if (kind === 'expand') { c.N.forEach(o => { if (o.kids.length) c.exp.add(o.n.id); }); }
+  else if (kind === 'collapse') c.exp = new Set();
+  else { c.exp = defaultExp(c); if (!c.errors.length && !c.degraded.length) toast('No errors or degraded operations in this trace.'); }
+  let moved = false;
+  if (c.sel && c.N.has(c.sel)) { const o = c.N.get(c.sel), r = visibleRep(o); if (r !== o) { c.sel = r.n.id; moved = true; } }
+  draw(); fit(); if (moved) insp();
+}
+function select(id, opt = {}) {
+  const c = cur; if (!c) return;
+  if (id && !c.N.has(id)) return toast('Node ' + id + ' is not part of this trace', 'er');
+  if (id && c.filtering && !c.hitSet.has(id)) clearFilter(); // target is hidden by the filter: show everything again
+  const changed = c.sel !== id; c.sel = id;
+  if (id && opt.reveal && !c.filtering) { const before = c.exp.size; for (let q = c.N.get(id).p; q; q = q.p) c.exp.add(q.n.id); if (c.exp.size !== before) draw(); }
+  if (id && opt.tab) c.tab = opt.tab;
+  if (id && opt.open) setPanel(true);
+  paintSel();
+  if (id && (opt.reveal || (isMobile() && opt.open)) && c.N.get(id).vis) ensure(c.N.get(id));
+  if (changed || opt.tab || opt.open || opt.force) insp();
+}
+function setPanel(open) {
+  ipOpen = open; document.body.classList.toggle('ip', open && !!cur);
+  $('#info').setAttribute('aria-pressed', String(open && !!cur && !cur.sel));
+}
+
 // ---------- value rendering (readable text first, structure second)
-const tryJ=s=>{try{const j=JSON.parse(s);return j&&typeof j==='object'?j:null}catch{return null}};
-function b64(s){if(s.length<24||s.length%4||!/^[A-Za-z0-9+/]+={0,2}$/.test(s))return null;try{const t=dcd.decode(Uint8Array.from(atob(s),c=>c.charCodeAt(0)));return/[\x00-\x08\x0e-\x1f\ufffd]/.test(t)?null:t}catch{return null}}
-const S=(s,p)=>{if(!s)return'<i class="nl">empty string</i>';if(s.length<=70&&!s.includes('\n')&&!(s[0]==='{'||s[0]==='[')&&b64(s)===null)return`<span dir="auto">${esc(s)}</span>`;const j=(s[0]==='{'||s[0]==='[')&&tryJ(s);if(j)return'<div class="nt">JSON string, shown parsed</div>'+V(j,p);const d=b64(s);if(d!==null)return'<div class="nt">base64 bytes, decoded as text</div>'+S(d,p);return`<div class="txt" dir="auto">${esc(s)}</div>`};
-function V(v,p){if(v===null||v===undefined)return'<i class="nl">null</i>';if(typeof v==='string')return S(v,p);if(typeof v!=='object')return`<span>${esc(v)}</span>`;
- const ent=Array.isArray(v)?v.map((x,i)=>[i,x]):Object.entries(v);if(!ent.length)return'<i class="nl">empty</i>';
- return'<div class="trw">'+ent.map(([k,x])=>{const q=p+'/'+String(k).replace(/~/g,'~0').replace(/\//g,'~1'),cx=x!==null&&typeof x==='object'&&Object.keys(x).length,big=typeof x==='string'&&(x.length>70||x.includes('\n'));
-  if(cx||big)return`<details ${q.split('/').length<=6&&ent.length<=25&&(!cx||Object.keys(x).length<=25)?'open':''} data-p="${esc(q)}"><summary><span class="k">${esc(k)}</span>${cx?`<em>${Array.isArray(x)?x.length+(x.length===1?' item':' items'):Object.keys(x).length+' fields'}</em>`:''}</summary><div>${V(x,q)}</div></details>`;
-  return`<div class="kv" data-p="${esc(q)}"><span class="k">${esc(k)}</span><span class="vv">${V(x,q)}</span></div>`}).join('')+'</div>'}
-const hue=s=>[...s].reduce((a,c)=>(a*31+c.charCodeAt(0))%360,7);
-function PC(o,ai){const parts=o.n.artifacts[ai].value;if(!Array.isArray(parts))return V(parts,`/artifacts/${ai}/value`);
- return parts.map((pt,pi)=>{const rn=cur.N.get(pt.rendered.node_id),s=rn&&gp(rn.n,pt.rendered.path);let body;
-  if(typeof s!=='string')body='<div class="nt">The rendered text reference could not be resolved in this trace.</div>';
-  else{const by=enc.encode(s),cs=pt.components,ok=cs.map(c=>c.start_byte<=c.end_byte&&c.end_byte<=by.length),dec=(a,b)=>dcd.decode(by.subarray(a,b)),
-   ch=i=>cs.map((c,j)=>[c,j]).filter(([c,j])=>ok[j]&&(c.parent==null?null:c.parent)===i),
-   R=(a,b,i)=>{let h='',pos=a;for(const[c,j]of ch(i)){if(c.start_byte<pos||c.end_byte>b)continue;h+=esc(dec(pos,c.start_byte))+`<span class="cmp" data-k="${ai}:${pi}:${j}" title="${esc(c.name)}">${R(c.start_byte,c.end_byte,j)}</span>`;pos=c.end_byte}return h+esc(dec(pos,b))},
-   dp=j=>{let d=0;for(let q=cs[j].parent;q!=null&&d<20;q=cs[q]&&cs[q].parent)d++;return d};
-   body=`<div class="txt pt" dir="auto">${R(0,by.length,null)}</div><details><summary>Structure: ${cs.length} component(s)${ok.includes(false)?' · '+ok.filter(x=>!x).length+' with invalid byte ranges (skipped)':''}</summary><div>${cs.map((c,j)=>ok[j]?`<button class="ol" data-ol="${ai}:${pi}:${j}" style="padding-left:${6+dp(j)*14}px">${esc(c.name)} <span class="mu">${c.end_byte-c.start_byte} B · ${c.sources.length} source(s)</span></button>`:'').join('')}</div></details><div class="pcinfo mu">Click a highlighted section to see its captured sources.</div>`}
-  return`<div class="card" data-part="${ai}:${pi}"><div class="h"><span class="bd" style="--c:hsl(${hue(pt.role)} 70% 72%)">${esc(pt.role)}</span><b>${esc(pt.name)}</b>${pt.source?`<span class="mu">source label: ${esc(pt.source)}</span>`:''}</div>${body}</div>`}).join('')}
-function actC(k){const[ai,pi,j]=k.split(':'),c=cur.N.get(cur.sel).n.artifacts[ai].value[pi].components[j],box=document.querySelector(`[data-part="${ai}:${pi}"]`);
- box.querySelectorAll('.on').forEach(x=>x.classList.remove('on'));box.querySelectorAll(`[data-k="${k}"],[data-ol="${k}"]`).forEach(x=>x.classList.add('on'));
- box.querySelector('.pcinfo').innerHTML=`<b>${esc(c.name)}</b> <span class="mu">bytes ${c.start_byte}–${c.end_byte}</span>`+(c.sources.length?c.sources.map(s=>`<button data-nv="${s.node_id}|${esc(s.path)}">${esc(s.node_id)} ${esc(cur.N.has(s.node_id)?sn(cur.N.get(s.node_id).n.operation):'')} ${esc(s.path)}</button>`).join(''):'<div class="mu">No finer captured source mapping is claimed.</div>')}
-function navPath(id,p){if(!cur.N.has(id))return toast('Node '+id+' is not part of this trace');cur.tab=p.startsWith('/input')?'in':p.startsWith('/output')?'out':'ar';select(id,1,1);flash(p)}
-function flash(p){let el;for(let q=p;q&&!el;q=q.slice(0,q.lastIndexOf('/')))el=$('#ib').querySelector(`[data-p="${CSS.escape(q)}"]`);if(!el)return;if(el.tagName==='DETAILS')el.open=true;for(let d=el.parentElement;d&&d.id!=='ib';d=d.parentElement)if(d.tagName==='DETAILS')d.open=true;el.scrollIntoView({block:'center'});el.classList.add('fl');setTimeout(()=>el.classList.remove('fl'),1800)}
-// ---------- inspector
-function strs(v,p,out){if(typeof v==='string'){if(v.length>=40&&b64(v)===null&&!/^[0-9a-f-]{32,}$/.test(v)&&!tryJ(v))out.push([p,v])}else if(v&&typeof v==='object')for(const k in v)strs(v[k],p+'/'+k.replace(/~/g,'~0').replace(/\//g,'~1'),out)}
-function OV(o){const n=o.n,t0=Date.parse(cur.t.started_at),kv=(k,v)=>`<div class="kv"><span class="k">${k}</span><span class="vv">${v}</span></div>`;
- let h='<div class="trw">'+kv('Operation',esc(n.operation))+kv('Node',`${n.id} · sequence ${n.sequence}`)+kv('Status',`<span class="bd st-${n.status}">${n.status}</span>`+(n.reason?` reason <code>${esc(n.reason)}</code>`:''))
- +kv('Duration',fd(n.duration_ns)+' <span class="mu">inclusive of children; do not add across nodes</span>')+kv('Started','+'+(Date.parse(n.started_at)-t0)+' ms into trace'+(n.ended_at?'':' · no end recorded'))
- +(n.error?kv('Error',esc(['type','code','step'].map(k=>n.error[k]&&k+' '+n.error[k]).filter(Boolean).join(' · '))):'')+'</div>';
- if(o.kids.length)h+=`<h4>Child operations (${o.kids.length})</h4>`+o.kids.map(k=>`<a class="ch" data-go="${k.n.id}">${esc(sn(k.n.operation))}</a>`).join(' · ');
- const outS=[],inS=[];strs(n.output,'/output',outS);strs(n.input,'/input',inS);const seen=new Set(),pick=(a,m)=>a.sort((x,y)=>y[1].length-x[1].length).filter(([,s])=>!seen.has(s)&&seen.add(s)).slice(0,m);
- const ks=[...pick(outS,3),...pick(inS,2)];if(ks.length)h+='<h4>Key text</h4>'+ks.map(([p,s])=>`<div class="mu"><a class="ch" data-nv="${n.id}|${esc(p)}">${esc(p)}</a></div><div class="txt" dir="auto">${esc(s)}</div>`).join('');
- if(n.provider_usage.length)h+='<h4>Provider usage (reported)</h4><table><tr><th>Model</th><th>In</th><th>Out</th><th>Cached</th><th>Latency</th></tr>'+n.provider_usage.map(u=>`<tr><td>${esc(u.provider)}/${esc(u.model)}</td><td>${u.input_tokens}</td><td>${u.output_tokens}</td><td>${u.cached_tokens}</td><td>${fd(u.latency_ns)}${u.estimated_cost_micro_usd?' · '+u.estimated_cost_micro_usd+' µUSD':''}</td></tr>`).join('')+'</table>';
- if(n.estimates.length){const m=n.estimates.filter(e=>!e.source.includes('/section/')),sc=n.estimates.filter(e=>e.source.includes('/section/')),row=e=>`<tr><td>${esc(e.source)}</td><td>${e.tokens}</td><td>${e.bytes} B</td></tr>`;
-  h+=`<h4>Estimated input tokens</h4><div class="mu">Heuristic ${esc(n.estimates[0].method.split(';')[0])}, not a tokenizer. Section rows overlap their block; never add them.</div><table><tr><th>Component</th><th>≈ tokens</th><th>Size</th></tr>${m.map(row).join('')}</table>${sc.length?`<details><summary>Section breakdown (overlapping)</summary><div><table>${sc.map(row).join('')}</table></div></details>`:''}`}
- return h}
-function DF(o){const id=o.n.id,es=cur.t.edges.filter(e=>e.kind==='data'&&(e.from===id||e.to===id));if(!es.length)return'<p class="mu">No data edges involve this node in the trace.</p>';
- const g=new Map();es.forEach(e=>{const out=e.from===id,oth=out?e.to:e.from,k=(out?'→':'←')+oth;(g.get(k)||g.set(k,{out,oth,l:[]}).get(k)).l.push(e)});
- const ib=e=>e.evidence==='instrumented_binding',lab=e=>ib(e)?`<span class="bd r-${{copy:'cp',regeneration:'rg'}[e.relation]||'tr'}">${e.relation}</span>`:'<span class="bd r-mt">value match</span>';
- return'<div class="mu">Instrumented bindings were observed at the call site. Value matches only show equal captured values; they are not proof that one operation used the other.</div>'+[...g.values()].sort((a,b)=>b.l.filter(ib).length-a.l.filter(ib).length||a.out-b.out).map(x=>{const on=cur.N.get(x.oth),nb=x.l.filter(ib).length;
-  return`<details ${nb?'open':''}><summary>${x.out?'sends to':'receives from'} <a class="ch" data-go="${x.oth}">${esc(on?sn(on.n.operation):x.oth)}</a> <em>${nb?nb+' binding(s) · ':''}${x.l.length-nb} value match(es)</em></summary><div>${x.l.sort((a,b)=>ib(b)-ib(a)).map(e=>`${lab(e)}<button class="df" data-nv="${e.from}|${esc(e.from_path||'')}">${esc(e.from_path||'')}</button><button class="df" data-nv="${e.to}|${esc(e.to_path||'')}">→ ${esc(e.to_path||'')}</button>`).join('')}</div></details>`}).join('')}
-function summary(){const c=cur,t=c.t,u=t.totals||{},r=c.roots[0]&&c.roots[0].n;let h='';const um=r&&(gp(r,'/input/request/text')??gp(r,'/input/text')),rp=r&&(gp(r,'/output/text')??gp(r,'/output/Text'));
- if(typeof um==='string')h+=`<h4>User message</h4><div class="txt" dir="auto">${esc(um)}</div>`;if(typeof rp==='string')h+=`<h4>Final reply</h4><div class="txt" dir="auto">${esc(rp)}</div>`;if(!h)h='<p class="mu">This trace has no user message or reply at its root operation.</p>';
- h+=`<h4>Trace</h4><div class="trw"><div class="kv"><span class="k">Kind</span><span class="vv">${esc(t.kind)} · ${t.status}${t.complete?'':' · incomplete'}</span></div><div class="kv"><span class="k">Trace</span><span class="vv">${esc(t.trace_id)}</span></div>${t.turn_id?`<div class="kv"><span class="k">Turn</span><span class="vv">${esc(t.turn_id)}</span></div>`:''}<div class="kv"><span class="k">Started</span><span class="vv">${esc(t.started_at)}</span></div></div>`;
- if(t.totals)h+=`<h4>Provider usage</h4><div>${u.provider_calls} call(s), ${u.reported_calls} reported, <b>${u.unknown_usage_calls}</b> unknown (unknown is not zero). Tokens ${u.actual_input_tokens} in / ${u.actual_output_tokens} out / ${u.actual_cached_tokens} cached. Heuristic input estimate ${u.estimated_input_tokens}.</div>`+(Object.keys(u.by_stage||{}).length?'<table><tr><th>Stage</th><th>Calls</th><th>In</th><th>Out</th><th>≈ in est.</th></tr>'+Object.entries(u.by_stage).map(([k,s])=>`<tr><td>${esc(k)}</td><td>${s.calls}</td><td>${s.actual_input_tokens}</td><td>${s.actual_output_tokens}</td><td>${s.estimated_input_tokens}</td></tr>`).join('')+'</table>':'');
- const st={};c.N.forEach(o=>st[o.n.status]=(st[o.n.status]||0)+1);h+='<h4>Operations</h4>'+Object.entries(st).map(([k,v])=>`<span class="bd st-${k}">${v} ${k}</span>`).join(' ');
- const de=c.t.edges.filter(e=>e.kind==='data'),nb=de.filter(e=>e.evidence==='instrumented_binding').length;h+=`<p class="mu">${de.length} data edge(s): ${nb} instrumented binding(s), ${de.length-nb} value match(es). ${c.t.edges.length-de.length} execution edge(s).</p>`;
- if(t.diagnostics.length)h+='<h4>Diagnostics</h4>'+t.diagnostics.map(d=>`<div class="txt">${esc(d)}</div>`).join('');return h}
-function insp(){const c=cur,ih=$('#ih'),tb=$('#tabs'),ib=$('#ib');if(!c){ih.innerHTML='<h3>Inspector</h3>';tb.innerHTML=ib.innerHTML='';return}const o=c.sel&&c.N.get(c.sel);
- if(!o){ih.innerHTML='<div class="row"><h3>Trace summary</h3><button class="x" aria-label="Close inspector">×</button></div>';tb.innerHTML='';ib.innerHTML=summary();return}
- const n=o.n,cr=[];for(let q=o.p;q;q=q.p)cr.unshift(`<a data-go="${q.n.id}">${esc(sn(q.n.operation))}</a>`);
- ih.innerHTML=`<div class="cr">${cr.join(' › ')}</div><div class="row"><h3>${esc(sn(n.operation))} <span class="bd st-${n.status}">${n.status}</span></h3><button class="x" aria-label="Close inspector">×</button></div>`;
- const dn=c.t.edges.filter(e=>e.kind==='data'&&(e.from===n.id||e.to===n.id)).length;
- tb.innerHTML=[['ov','Overview'],['in','Input'],['out','Output'],['ar','Artifacts '+n.artifacts.length],['df','Data flow '+dn]].map(([k,l])=>`<button data-tab="${k}" class="${c.tab===k?'on':''}">${l}</button>`).join('');
- const none=(v,w)=>v===null||v===undefined?`<p class="mu">No ${w} captured (${n.status==='running'?'still running':n.status==='skipped'?'operation was skipped':'null in the trace'}).</p>`:'';
- ib.innerHTML=c.tab==='ov'?OV(o):c.tab==='in'?none(n.input,'input')||`<div data-p="/input">${V(n.input,'/input')}</div>`:c.tab==='out'?none(n.output,'output')||`<div data-p="/output">${V(n.output,'/output')}</div>`:c.tab==='df'?DF(o):
-  n.artifacts.length?n.artifacts.map((a,i)=>`<div class="card" data-p="/artifacts/${i}"><div class="h"><span class="bd" style="--c:hsl(${hue(a.kind)} 70% 72%)">${esc(a.kind)}</span><b>${esc(a.name)}</b>${a.source?`<span class="mu">source label: ${esc(a.source)}</span>`:''}<span class="mu">sha ${esc(a.sha256.slice(0,8))}</span></div><div data-p="/artifacts/${i}/value">${a.kind==='prompt_composition'?PC(o,i):V(a.value,`/artifacts/${i}/value`)}</div></div>`).join(''):'<p class="mu">This operation captured no artifacts.</p>'}
+const txt = (s, cls = '') => `<div class="tb"><div class="txt ${cls}" dir="auto">${esc(s)}</div><div class="tbt"><button data-act="copy" title="Copy this text">Copy</button><button data-act="grow" title="Show the full text">Expand</button></div></div>`;
+function S(s, p) {
+  if (!s) return '<i class="nl">empty string</i>';
+  const j = (s[0] === '{' || s[0] === '[') && tryJ(s);
+  if (j) return '<div class="nt">JSON string, shown parsed</div>' + V(j, p);
+  const d = b64(s); if (d !== null) return '<div class="nt">base64 bytes, decoded as text</div>' + S(d, p);
+  if (s.length <= 70 && !s.includes('\n')) return `<span dir="auto">${esc(s)}</span>`;
+  return txt(s);
+}
+function V(v, p) {
+  if (v === null || v === undefined) return '<i class="nl">null</i>';
+  if (typeof v === 'string') return S(v, p);
+  if (typeof v !== 'object') return `<span>${esc(v)}</span>`;
+  const ent = Array.isArray(v) ? v.map((x, i) => [i, x]) : Object.entries(v);
+  if (!ent.length) return '<i class="nl">empty</i>';
+  return '<div class="trw">' + ent.map(([k, x]) => {
+    const q = p + '/' + jp(k), cx = x !== null && typeof x === 'object' && Object.keys(x).length, big = typeof x === 'string' && (x.length > 70 || x.includes('\n'));
+    if (cx || big) return `<details ${q.split('/').length <= 6 && ent.length <= 25 && (!cx || Object.keys(x).length <= 25) ? 'open' : ''} data-p="${esc(q)}"><summary><span class="k">${esc(k)}</span>${cx ? `<em>${Array.isArray(x) ? plural(x.length, 'item') : plural(Object.keys(x).length, 'field')}</em>` : ''}</summary><div>${V(x, q)}</div></details>`;
+    return `<div class="kv" data-p="${esc(q)}"><span class="k">${esc(k)}</span><span class="vv">${V(x, q)}</span></div>`;
+  }).join('') + '</div>';
+}
+const hue = s => [...String(s)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
+const kvr = (k, v) => `<div class="kv"><span class="k">${k}</span><span class="vv">${v}</span></div>`;
+const goLink = (o, extra = '') => `<a class="ch" data-go="${esc(o.n.id)}" ${extra}>${esc(sn(o.n.operation))}</a>`;
+
+// ----- prompt_composition artifacts (byte-range components over a rendered text)
+function PC(o, ai) {
+  const parts = o.n.artifacts[ai].value;
+  if (!Array.isArray(parts)) return V(parts, `/artifacts/${ai}/value`);
+  return parts.map((pt, pi) => {
+    if (!isObj(pt)) return V(pt, `/artifacts/${ai}/value/${pi}`);
+    const rn = isObj(pt.rendered) && cur.N.get(String(pt.rendered.node_id)), s = rn && gp(rn.n, pt.rendered.path);
+    let body;
+    if (typeof s !== 'string') body = '<div class="nt">The rendered text reference could not be resolved in this trace.</div>';
+    else {
+      const by = enc.encode(s), cs = (Array.isArray(pt.components) ? pt.components : []).filter(isObj);
+      const ok = cs.map(c => Number.isInteger(c.start_byte) && Number.isInteger(c.end_byte) && c.start_byte >= 0 && c.start_byte <= c.end_byte && c.end_byte <= by.length);
+      const dec = (a, b) => dcd.decode(by.subarray(a, b));
+      const ch = i => cs.map((c, j) => [c, j]).filter(([c, j]) => ok[j] && (c.parent == null ? null : c.parent) === i).sort((a, b) => a[0].start_byte - b[0].start_byte);
+      const R = (a, b, i, depth) => { let h = '', pos = a; if (depth > 30) return esc(dec(a, b)); for (const [c, j] of ch(i)) { if (c.start_byte < pos || c.end_byte > b) continue; h += esc(dec(pos, c.start_byte)) + `<span class="cmp" data-k="${ai}:${pi}:${j}" title="${esc(c.name)}">${R(c.start_byte, c.end_byte, j, depth + 1)}</span>`; pos = c.end_byte; } return h + esc(dec(pos, b)); };
+      const dp = j => { let d = 0; for (let q = cs[j].parent; q != null && d < 20; q = cs[q] && cs[q].parent) d++; return d; };
+      const srcN = c => Array.isArray(c.sources) ? c.sources.length : 0;
+      body = `<div class="tb"><div class="txt pt" dir="auto">${R(0, by.length, null, 0)}</div><div class="tbt"><button data-act="copy">Copy</button><button data-act="grow">Expand</button></div></div><details><summary>Structure: ${plural(cs.length, 'component')}${ok.includes(false) ? ' · ' + ok.filter(x => !x).length + ' with invalid byte ranges (skipped)' : ''}</summary><div>${cs.map((c, j) => ok[j] ? `<button class="ol" data-ol="${ai}:${pi}:${j}" style="padding-left:${6 + dp(j) * 14}px">${esc(c.name)} <span class="mu">${c.end_byte - c.start_byte} B · ${srcN(c)} source(s)</span></button>` : '').join('')}</div></details><div class="pcinfo mu">Click a highlighted section to see its captured sources.</div>`;
+    }
+    return `<div class="card" data-part="${ai}:${pi}"><div class="h"><span class="bd" style="--c:hsl(${hue(pt.role)} 70% 72%)">${esc(pt.role)}</span><b>${esc(pt.name)}</b>${pt.source ? `<span class="mu">source label: ${esc(pt.source)}</span>` : ''}</div>${body}</div>`;
+  }).join('');
+}
+function actC(k) {
+  const [ai, pi, j] = k.split(':'), c = cur.N.get(cur.sel).n.artifacts[ai].value[pi].components[j], box = $(`[data-part="${ai}:${pi}"]`); if (!box) return;
+  $$('.on', box).forEach(x => x.classList.remove('on')); $$(`[data-k="${k}"],[data-ol="${k}"]`, box).forEach(x => x.classList.add('on'));
+  const srcs = Array.isArray(c.sources) ? c.sources : [];
+  $('.pcinfo', box).innerHTML = `<b>${esc(c.name)}</b> <span class="mu">bytes ${c.start_byte}–${c.end_byte}</span>` + (srcs.length ? srcs.map(s => `<button data-nv="${esc(s.node_id + '|' + (s.path || ''))}">${esc(s.node_id)} ${esc(cur.N.has(String(s.node_id)) ? sn(cur.N.get(String(s.node_id)).n.operation) : '')} ${esc(s.path || '')}</button>`).join('') : '<div class="mu">No finer captured source mapping is claimed.</div>');
+}
+function navPath(id, p) {
+  if (!cur.N.has(id)) return toast('Node ' + id + ' is not part of this trace', 'er');
+  cur.raw = false; select(id, { reveal: true, open: true, tab: p.startsWith('/input') ? 'in' : p.startsWith('/output') ? 'out' : p.startsWith('/artifacts') ? 'ar' : cur.tab, force: true }); flash(p);
+}
+function flash(p) {
+  let el; for (let q = p; q && !el; q = q.slice(0, q.lastIndexOf('/'))) el = $('#ib').querySelector(`[data-p="${CSS.escape(q)}"]`);
+  if (!el) return; if (el.tagName === 'DETAILS') el.open = true;
+  for (let d = el.parentElement; d && d.id !== 'ib'; d = d.parentElement) if (d.tagName === 'DETAILS') d.open = true;
+  el.scrollIntoView({ block: 'center' }); el.classList.add('fl'); setTimeout(() => el.classList.remove('fl'), 1800);
+}
+
+// ---------- inspector: issues & overview
+const issueList = (items, withNode) => items.length ? '<ul class="il">' + items.map(i => `<li class="${i.sev === 'error' ? 'er' : i.sev === 'warn' ? 'wn' : 'in'}">${withNode ? goLink(cur.N.get(i.id)) + ' ' : ''}${esc(i.text)}</li>`).join('') + '</ul>' : '';
+function errBox(n, o) {
+  const parts = errParts(n.error), at = o && attemptFor(o);
+  let h = `<div class="alert er"><b>✕ This operation failed</b>`;
+  if (parts.length) h += '<div class="trw">' + parts.map(([k, v]) => kvr(esc(k), /^(message|msg|detail|error|reason|cause)$/i.test(k) ? txt(v) : `<code>${esc(v)}</code>`)).join('') + '</div>';
+  else h += '<div class="mu">The trace records status “error” but no error details.</div>';
+  if (n.reason) h += kvr('reason', `<code>${esc(n.reason)}</code>`);
+  if (at && at.failure) h += `<div style="margin-top:4px">Failure reason from the caller’s attempt log (attempt ${esc(at.attempt ?? '?')}, matched by position): <b>${esc(at.failure)}</b></div>`;
+  const out = n.output, outErr = isObj(out) && ci(out, 'error', 'err');
+  if (outErr) h += `<details><summary>error in output</summary><div>${V(outErr, '/output/error')}</div></details>`;
+  return h + '</div>';
+}
+function OV(o) {
+  const n = o.n, t0 = tms(cur.t.started_at), ns = tms(n.started_at); let h = '';
+  if (n.status === 'error') h += errBox(n, o);
+  else if (n.status === 'skipped') h += `<div class="alert in"><b>Skipped</b>${n.reason ? 'Reason: <code>' + esc(n.reason) + '</code>' : 'No reason was recorded.'}</div>`;
+  else if (n.status === 'cancelled') h += `<div class="alert wn"><b>Cancelled</b>${n.reason ? 'Reason: <code>' + esc(n.reason) + '</code>' : 'No reason was recorded.'}</div>`;
+  else if (n.status === 'running') h += '<div class="alert wn"><b>No result recorded</b>This operation was still running, or the trace was cut off before it finished.</div>';
+  else if (!KNOWN.has(n.status)) h += `<div class="alert wn"><b>Unknown status “${esc(n.status)}”</b>This viewer does not recognise it; data is shown as captured.</div>`;
+  const warn = o.issues.filter(i => i.sev === 'warn' && !['cancelled', 'running', 'status'].includes(i.kind));
+  if (warn.length) h += `<div class="alert wn"><b>⚠ Degraded signals</b>${issueList(warn)}</div>`;
+  const bad = [], walk = q => q.kids.forEach(k => { if (k.n.status === 'error' || k.issues.some(i => i.sev === 'warn')) bad.push(k); walk(k); }); walk(o);
+  if (bad.length) h += `<div class="alert ${bad.some(k => k.n.status === 'error') ? 'er' : 'wn'}"><b>${o.roll.err ? `${plural(o.roll.err, 'descendant operation')} failed` : 'Degraded descendants'}${n.status === 'success' && o.roll.err ? ' — this operation still succeeded (recovered)' : ''}</b><ul class="il">${bad.slice(0, 12).map(k => `<li class="${k.n.status === 'error' ? 'er' : 'wn'}">${goLink(k)} ${esc(k.issues.find(i => i.sev !== 'info')?.text || '')}</li>`).join('')}${bad.length > 12 ? `<li class="in">…and ${bad.length - 12} more (see Summary)</li>` : ''}</ul></div>`;
+  h += '<div class="trw">' + kvr('Operation', esc(n.operation)) + kvr('Node', `${esc(n.id)} · sequence ${n.sequence}`) + kvr('Status', `<span class="bd st-${KNOWN.has(n.status) ? n.status : 'unknown'}">${esc(n.status)}</span>` + (n.reason ? ` reason <code>${esc(n.reason)}</code>` : ''))
+    + kvr('Duration', fd(n.duration_ns) + ' <span class="mu">inclusive of children; do not add across nodes</span>')
+    + kvr('Started', (ns !== null && t0 !== null ? '+' + fd((ns - t0) * 1e6) + ' into trace' : esc(n.started_at || '—')) + (n.ended_at ? '' : ' · no end recorded')) + '</div>';
+  if (isLLMNode(o)) {
+    const u = usageOf(o), L = o._llm;
+    h += `<h4>LLM call</h4><div class="trw">${kvr('Model', esc([u && u.provider, modelName(o)].filter(Boolean).join('/') || 'not recorded'))}${u ? kvr('Tokens', `${u.inT} in → ${u.outT} out${u.cached ? ` · ${u.cached} cached` : ''}`) : kvr('Tokens', '<span class="mu">usage not reported (unknown, not zero)</span>')}</div><p><a class="ch" data-tab="llm">Open the LLM view for prompts, response and attempts →</a></p>`;
+    const um = L.req && ci(L.req, 'messages'); if (Array.isArray(um)) { const last = [...um].reverse().find(m => ci(m, 'role') === 'user'); const c = last && ci(last, 'content'); if (typeof c === 'string') h += `<h4>Last user message</h4>${txt(c)}`; }
+    const rt = L.streamText || L.text; if (rt) h += `<h4>Response</h4>${txt(rt)}`;
+  }
+  if (o.kids.length) h += `<h4>Child operations (${o.kids.length})</h4>` + o.kids.map(k => `<div>${goLink(k)} <span class="bd st-${KNOWN.has(k.n.status) ? k.n.status : 'unknown'}">${esc(k.n.status)}</span> <span class="mu">${esc(sub(k).split(' · ').slice(1).join(' · '))}</span></div>`).join('');
+  if (!isLLMNode(o)) {
+    const outS = [], inS = []; strs(n.output, '/output', outS); strs(n.input, '/input', inS);
+    const seen = new Set(), pick = (a, m) => a.sort((x, y) => y[1].length - x[1].length).filter(([, s]) => !seen.has(s) && seen.add(s)).slice(0, m), ks = [...pick(outS, 3), ...pick(inS, 2)];
+    if (ks.length) h += '<h4>Key text</h4>' + ks.map(([p, s]) => `<div class="mu"><a class="ch" data-nv="${esc(n.id + '|' + p)}">${esc(p)}</a></div>${txt(s)}`).join('');
+  }
+  if (n.provider_usage.length) h += '<h4>Provider usage (reported)</h4><table><tr><th>Model</th><th>In</th><th>Out</th><th>Cached</th><th>Latency</th></tr>' + n.provider_usage.map(u => `<tr><td>${esc(u.provider)}/${esc(u.model)}</td><td>${esc(u.input_tokens ?? '—')}</td><td>${esc(u.output_tokens ?? '—')}</td><td>${esc(u.cached_tokens ?? '—')}</td><td>${fd(u.latency_ns)}${u.estimated_cost_micro_usd ? ' · ' + esc(usd(u.estimated_cost_micro_usd)) : ''}</td></tr>`).join('') + '</table>';
+  if (n.estimates.length) {
+    const m = n.estimates.filter(e => !e.source.includes('/section/')), sc = n.estimates.filter(e => e.source.includes('/section/')), row = e => `<tr><td>${esc(e.source)}</td><td>${esc(e.tokens ?? '—')}</td><td>${esc(e.bytes ?? '—')} B</td></tr>`;
+    h += `<h4>Estimated input tokens</h4><div class="mu">Heuristic ${esc(n.estimates[0].method.split(';')[0])}, not a tokenizer. Section rows overlap their block; never add them.</div><table><tr><th>Component</th><th>≈ tokens</th><th>Size</th></tr>${m.map(row).join('')}</table>${sc.length ? `<details><summary>Section breakdown (overlapping)</summary><div><table>${sc.map(row).join('')}</table></div></details>` : ''}`;
+  }
+  return h;
+}
+function strs(v, p, out) {
+  if (typeof v === 'string') { if (v.length >= 40 && b64(v) === null && !/^[0-9a-f-]{32,}$/.test(v) && !tryJ(v)) out.push([p, v]); }
+  else if (v && typeof v === 'object') for (const k in v) strs(v[k], p + '/' + jp(k), out);
+}
+
+// ---------- inspector: LLM view
+function LLM(o) {
+  const L = o._llm, n = o.n, u = usageOf(o); let h = '';
+  const mdl = L.model, chips = [`<span class="chip">${{ structured: 'Structured output', stream: 'Streaming', embed: 'Embedding', generate: 'Generation' }[L.kind]}</span>`];
+  const mname = modelName(o); if (mname) chips.push(`<span class="chip">${esc([u && u.provider || ci(mdl, 'provider'), mname].filter(Boolean).join('/'))}</span>`);
+  if (L.mode) chips.push(`<span class="chip">mode: ${esc(L.mode)}</span>`);
+  const tier = ci(L.req, 'tier'); if (tier) chips.push(`<span class="chip">tier: ${esc(tier)}</span>`);
+  if (isObj(mdl) && ci(mdl, 'native_json_schema') !== undefined) chips.push(`<span class="chip">native JSON schema: ${esc(ci(mdl, 'native_json_schema'))}</span>`);
+  h += `<div class="chips">${chips.join('')}</div>`;
+  if (n.status === 'error') h += errBox(n, o);
+  // attempts (client-level calls)
+  if (L.attempts.length) {
+    const kids = o.kids.filter(isLLMNode), link = kids.length === L.attempts.length;
+    h += `<h4>Attempts (${L.attempts.length})</h4><div>`;
+    L.attempts.forEach((a, i) => {
+      const fail = a.failure, m = ci(a.model, 'model'), k = link ? kids[i] : null;
+      h += `<div class="att"><span class="bd ${fail ? 'st-error' : 'st-success'}">${fail ? '✕' : '✓'} #${esc(a.attempt ?? i + 1)}</span><span>${fail ? `failed: <b>${esc(fail)}</b>` : 'completed'}${m ? ` · <code>${esc(m)}</code>` : ''}${a.fallback ? ' · <span class="pl wn">fallback model</span>' : ''}${a.first_token ? ' · first token received' : ''} · ${fd(a.elapsed_ns)}${k ? ` · ${goLink(k, 'data-tabto="llm"')}` : ''}</span></div>`;
+      const r = L.retries.find(x => x.value.retry_index === i); if (r) h += `<div class="att rt">↻ retry after ${fd(r.value.delay_ns)} delay</div>`;
+    });
+    h += '</div>' + (!link && kids.length ? `<div class="mu">The ${kids.length} provider call(s) below could not be matched 1:1 to attempts.</div>` : '');
+  }
+  const kids = o.kids.filter(isLLMNode);
+  if (kids.length && !L.attempts.length) h += `<h4>Provider calls</h4>` + kids.map(k => `<div>${goLink(k, 'data-tabto="llm"')} <span class="bd st-${KNOWN.has(k.n.status) ? k.n.status : 'unknown'}">${esc(k.n.status)}</span> <span class="mu">${esc(modelName(k))}</span></div>`).join('');
+  // request
+  const req = L.req;
+  if (req) {
+    h += '<h4>Request</h4>';
+    const par = Object.entries(req).filter(([k, v]) => !/^(messages|system|schema|input|meta|prompt)$/i.test(k) && v !== '' && v !== null && typeof v !== 'object');
+    if (par.length) h += '<div class="trw">' + par.map(([k, v]) => kvr(esc(k), `<code>${esc(v)}</code>`)).join('') + '</div>';
+    let sys = ci(req, 'system'); if (typeof sys === 'string') sys = [{ Text: sys }];
+    if (Array.isArray(sys)) sys.forEach(s => { if (!isObj(s)) return; h += `<div class="msg system"><div class="mh"><span class="bd" style="--c:#5ec2ff">system</span>${esc(ci(s, 'name') || '')}${ci(s, 'cache') ? ' <span class="pl wn">cache</span>' : ''}</div>${txt(String(ci(s, 'text', 'content') ?? ''))}</div>`; });
+    const msgs = ci(req, 'messages');
+    if (Array.isArray(msgs)) msgs.forEach(m => { const role = String(ci(m, 'role') ?? '?'), c = ci(m, 'content'); h += `<div class="msg ${esc(role)}"><div class="mh"><span class="bd" style="--c:hsl(${hue(role)} 70% 72%)">${esc(role)}</span></div>${typeof c === 'string' ? txt(c) : `<div style="padding:6px 8px">${V(c, '/llm/msg')}</div>`}</div>`; });
+    else if (msgs == null && L.kind !== 'embed') h += '<div class="mu">No messages captured for this call.</div>';
+    const ein = ci(req, 'input', 'prompt'); if (ein != null) h += `<div class="msg user"><div class="mh"><span class="bd" style="--c:#7c9cff">input</span></div>${typeof ein === 'string' ? txt(ein) : `<div style="padding:6px 8px">${V(ein, '/llm/input')}</div>`}</div>`;
+    const sch = ci(req, 'schema'); let schemaObj = null;
+    if (sch != null) { schemaObj = typeof sch === 'string' ? (tryJ(b64(sch) ?? sch) || null) : sch; h += `<details><summary>Output schema${ci(req, 'schemaname') ? ': ' + esc(ci(req, 'schemaname')) : ''}</summary><div>${schemaObj ? V(schemaObj, '/llm/schema') : txt(String(sch))}</div></details>`; }
+    const meta = ci(req, 'meta'); if (isObj(meta)) h += `<details><summary>Call metadata</summary><div>${V(meta, '/llm/meta')}</div></details>`;
+    L.schemaObj = schemaObj;
+  }
+  // response
+  h += '<h4>Response</h4>';
+  const rt = L.kind === 'stream' ? L.streamText : L.text;
+  if (L.kind === 'embed' || L.vector) {
+    if (L.vector) { const v = L.vector, norm = Math.sqrt(v.reduce((a, x) => a + (num(x) || 0) ** 2, 0)); h += `<div class="trw">${kvr('Dimensions', v.length)}${kvr('L2 norm', norm.toFixed(4))}${kvr('First values', `<code>${esc(v.slice(0, 8).map(x => typeof x === 'number' ? +x.toFixed(5) : x).join(', '))}${v.length > 8 ? ', …' : ''}</code>`)}</div>`; }
+    else h += `<div class="mu">${n.status === 'error' ? 'No vector — the call failed.' : 'No vector captured.'}</div>`;
+  } else if (rt) {
+    const parsed = L.kind === 'stream' ? null : tryJ(rt);
+    if (L.kind === 'stream') h += `<div class="chips"><span class="chip">${plural(L.chunks.length, 'chunk')}</span>${L.firstTokenMs != null ? `<span class="chip">first text +${fd(L.firstTokenMs * 1e6)}</span>` : ''}${L.finish ? `<span class="chip">finish: ${esc(L.finish)}</span>` : '<span class="chip wn">no finish reason</span>'}</div>`;
+    if (parsed) {
+      h += `<div class="chips"><span class="chip ok">valid JSON</span></div>`;
+      const probs = L.schemaObj ? schemaCheck(L.schemaObj, parsed) : [];
+      if (probs.length) h += `<div class="alert er"><b>✕ Response does not satisfy the request schema</b><span class="mu">local check of type/required/properties; this is likely why the caller retried</span><ul class="il">${probs.map(p => `<li class="er">${esc(p)}</li>`).join('')}</ul></div>`;
+      else if (L.schemaObj) h += '<div class="chips"><span class="chip ok">matches schema (basic check)</span></div>';
+      h += V(parsed, '/llm/response') + `<details><summary>Raw response text</summary><div>${txt(rt)}</div></details>`;
+    } else {
+      if (L.kind === 'structured') h += '<div class="alert wn"><b>⚠ Response is not valid JSON</b>A structured call should return JSON.</div>';
+      h += txt(rt);
+    }
+  } else h += `<div class="mu">${n.status === 'error' ? 'No response — the call failed before returning content.' : L.kind === 'stream' ? 'No streamed text captured.' : 'No response content captured.'}</div>`;
+  if (L.kind === 'stream' && L.chunks.length) h += `<details><summary>Chunk timeline (${L.chunks.length})</summary><div>${L.chunks.map((a, i) => { const x = ci(a.value, 'chunk'), tx = ci(x, 'text'), f = ci(x, 'finishreason', 'finish_reason'); return `<div class="att"><span class="mu">#${i}</span><span>${typeof tx === 'string' && tx ? `<code>${esc(tx)}</code>` : '<span class="mu">no text</span>'}${f ? ` · finish: <b>${esc(f)}</b>` : ''}${isObj(ci(x, 'usage')) ? ' · usage' : ''}</span></div>`; }).join('')}</div></details>`;
+  // usage
+  h += '<h4>Usage</h4>';
+  if (u) h += `<table><tr><th>Input</th><th>Output</th><th>Cached</th><th>Cost</th><th>Latency</th></tr><tr><td>${u.inT}</td><td>${u.outT}</td><td>${u.cached}</td><td>${esc(usd(u.cost))}</td><td>${fd(u.lat)}</td></tr></table>`;
+  else h += '<div class="mu">Usage was not reported for this call — treat it as unknown, not zero.</div>';
+  if (L.finish && L.kind !== 'stream') h += `<div class="mu">finish reason: ${esc(L.finish)}</div>`;
+  const est = n.estimates.filter(e => !e.source.includes('/section/')).reduce((a, e) => a + (num(e.tokens) || 0), 0);
+  if (est) h += `<div class="mu">Heuristic input estimate ≈ ${est} tokens (not a tokenizer).</div>`;
+  return h;
+}
+
+// ---------- inspector: data flow
+function DF(o) {
+  const id = o.n.id, es = cur.t.edges.filter(e => e.kind === 'data' && (String(e.from) === id || String(e.to) === id));
+  if (!es.length) return '<p class="mu">No data edges involve this node in the trace.</p>';
+  const g = new Map();
+  es.forEach(e => { const out = String(e.from) === id, oth = String(out ? e.to : e.from), k = (out ? '→' : '←') + oth; (g.get(k) || g.set(k, { out, oth, l: [] }).get(k)).l.push(e); });
+  const ib = e => e.evidence === 'instrumented_binding', lab = e => ib(e) ? `<span class="bd r-${{ copy: 'cp', regeneration: 'rg' }[e.relation] || 'tr'}">${esc(e.relation || 'binding')}</span>` : '<span class="bd r-mt">value match</span>';
+  return '<div class="mu">Instrumented bindings were observed at the call site. Value matches only show equal captured values; they are not proof that one operation used the other.</div>' + [...g.values()].sort((a, b) => b.l.filter(ib).length - a.l.filter(ib).length || a.out - b.out).map(x => {
+    const on = cur.N.get(x.oth), nb = x.l.filter(ib).length;
+    return `<details ${nb ? 'open' : ''}><summary>${x.out ? 'sends to' : 'receives from'} <a class="ch" data-go="${esc(x.oth)}">${esc(on ? sn(on.n.operation) : x.oth)}</a> <em>${nb ? nb + ' binding(s) · ' : ''}${x.l.length - nb} value match(es)</em></summary><div>${[...x.l].sort((a, b) => ib(b) - ib(a)).map(e => `${lab(e)}<button class="df" data-nv="${esc(e.from + '|' + (e.from_path || ''))}">${esc(e.from_path || '(whole value)')}</button><button class="df" data-nv="${esc(e.to + '|' + (e.to_path || ''))}">→ ${esc(e.to_path || '(whole value)')}</button>`).join('')}</div></details>`;
+  }).join('');
+}
+
+// ---------- summary
+function summary() {
+  const c = cur, t = c.t, u = t.totals || {}, r = c.roots[0] && c.roots[0].n; let h = '';
+  // verdict
+  const nErr = c.errors.length, nDeg = c.degraded.length, failed = t.status === 'error' || (r && r.status === 'error'), inc = t.complete === false;
+  if (failed) h += `<div class="alert er"><b>✕ This ${esc(t.kind || 'trace')} failed</b>${plural(nErr, 'operation')} ended in error${r && r.error ? ': ' + esc(errLine(r.error)) : ''}.</div>`;
+  else if (inc) h += '<div class="alert wn"><b>⚠ Incomplete trace</b>The trace is marked incomplete, so later operations may be missing.</div>';
+  else if (nErr || nDeg) h += `<div class="alert wn"><b>⚠ Completed, but degraded</b>${nErr ? `${plural(nErr, 'operation')} failed and the run recovered. ` : ''}${nDeg ? `${plural(nDeg, 'operation')} ${nDeg === 1 ? 'shows' : 'show'} retries, fallbacks or other degraded signals.` : ''}</div>`;
+  else h += '<div class="alert ok"><b>✓ Completed without detected problems</b>No errors, retries, fallbacks or diagnostics were recorded.</div>';
+  // conversation
+  const um = r && (gp(r, '/input/request/text') ?? gp(r, '/input/text')), rp = r && (gp(r, '/output/text') ?? gp(r, '/output/Text') ?? gp(r, '/output/reply'));
+  if (typeof um === 'string') h += `<h4>User message</h4>${txt(um)}`;
+  if (typeof rp === 'string') h += `<h4>Final reply</h4>${txt(rp)}`;
+  else { const st = [...c.llm].reverse().find(o => o._llm.streamText); if (st) h += `<h4>Streamed reply <span class="mu">(assembled from ${esc(sn(st.n.operation))} chunks)</span></h4>${txt(st._llm.streamText)}`; }
+  if (typeof um !== 'string' && typeof rp !== 'string' && !h.includes('Streamed')) h += '<p class="mu">This trace has no user message or reply at its root operation.</p>';
+  // issues
+  h += `<h4 id="sum-issues">Issues (${c.tIssues.length + c.errors.length + c.degraded.length})</h4>`;
+  const items = [...c.tIssues.map(([s, tx]) => `<li class="${s === 'error' ? 'er' : 'wn'}">${esc(tx)}</li>`)];
+  c.N.forEach(o => o.issues.filter(i => i.sev !== 'info' || i.kind === 'skipped').forEach(i => items.push(`<li class="${i.sev === 'error' ? 'er' : i.sev === 'warn' ? 'wn' : 'in'}">${goLink(o)} ${esc(i.text)}</li>`)));
+  h += items.length ? `<ul class="il">${items.join('')}</ul>` : '<p class="mu">None.</p>';
+  // One JSON can hold the turn plus multiple asynchronous worker attempts.
+  const jobs = workerAttempts(c);
+  if (jobs.length) h += `<h4>Background jobs (${jobs.length} attempts)</h4>` +
+    `<table><tr><th>Worker</th><th>Job ID</th><th>Attempt</th><th>Status</th></tr>${jobs.map(o => {
+      const n = o.n, v = n.input;
+      return `<tr class="go" data-go="${esc(n.id)}"><td>${esc(n.operation)}</td><td><code>${esc(v.job_id || '—')}</code></td><td>${esc(v.attempt ?? '?')}</td><td><span class="bd st-${KNOWN.has(n.status) ? n.status : 'unknown'}">${esc(n.status)}</span></td></tr>`;
+    }).join('')}</table>`;
+  // LLM calls
+  const calls = c.llm.filter(o => /^provider\./.test(o.n.operation) || o.n.provider_usage.length), list = calls.length ? calls : c.llm;
+  if (list.length) h += `<h4>LLM calls (${list.length})</h4><table><tr><th>Call</th><th>Status</th><th>Model</th><th>In→Out</th><th>Latency</th></tr>${list.map(o => { const us = usageOf(o); return `<tr class="go" data-go="${esc(o.n.id)}" data-tabto="llm"><td>${esc(sn(o.n.operation))}</td><td><span class="bd st-${KNOWN.has(o.n.status) ? o.n.status : 'unknown'}">${esc(o.n.status)}</span></td><td>${esc(modelName(o) || '—')}</td><td>${us ? us.inT + '→' + us.outT : '<span class="mu">unknown</span>'}</td><td>${us && us.lat ? fd(us.lat) : fd(o.n.duration_ns)}</td></tr>`; }).join('')}</table>`;
+  // timeline
+  h += '<h4>Timeline</h4>' + waterfall(c);
+  // facts
+  h += `<h4>Trace</h4><div class="trw">${kvr('Kind', esc(t.kind) + ' · ' + esc(t.status) + (t.complete === false ? ' · incomplete' : ''))}${kvr('Trace', esc(t.trace_id))}${t.turn_id ? kvr('Turn', esc(t.turn_id)) : ''}${t.job_id ? kvr('Job', esc(t.job_id)) : ''}${kvr('Started', esc(t.started_at))}${t.ended_at ? kvr('Ended', esc(t.ended_at)) : ''}${kvr('File', esc(c.name))}</div>`;
+  if (t.totals) h += `<h4>Provider usage</h4><div>${esc(u.provider_calls)} call(s), ${esc(u.reported_calls)} reported, <b>${esc(u.unknown_usage_calls)}</b> unknown (unknown is not zero). Tokens ${esc(u.actual_input_tokens)} in / ${esc(u.actual_output_tokens)} out / ${esc(u.actual_cached_tokens)} cached. Heuristic input estimate ${esc(u.estimated_input_tokens)}.${num(u.estimated_cost_micro_usd) ? ' Estimated cost ' + esc(usd(u.estimated_cost_micro_usd)) + '.' : ''}</div>` + (isObj(u.by_stage) && Object.keys(u.by_stage).length ? '<table><tr><th>Stage</th><th>Calls</th><th>In</th><th>Out</th><th>≈ in est.</th></tr>' + Object.entries(u.by_stage).map(([k, s]) => `<tr><td>${esc(k)}</td><td>${esc(s.calls)}</td><td>${esc(s.actual_input_tokens)}</td><td>${esc(s.actual_output_tokens)}</td><td>${esc(s.estimated_input_tokens)}</td></tr>`).join('') + '</table>' : '');
+  const st = {}; c.N.forEach(o => st[o.n.status] = (st[o.n.status] || 0) + 1);
+  h += '<h4>Operations</h4>' + Object.entries(st).map(([k, v]) => `<span class="bd st-${KNOWN.has(k) ? k : 'unknown'}">${v} ${esc(k)}</span>`).join(' ');
+  const de = t.edges.filter(e => e.kind === 'data'), nb = de.filter(e => e.evidence === 'instrumented_binding').length;
+  h += `<p class="mu">${plural(de.length, 'data edge')}: ${nb} instrumented binding(s), ${de.length - nb} value match(es). ${plural(t.edges.length - de.length, 'execution edge')}.</p>`;
+  if (c.notes.length) h += '<h4>Loader notes</h4><ul class="il">' + c.notes.map(x => `<li class="in">${esc(x)}</li>`).join('') + '</ul>';
+  return h;
+}
+function waterfall(c) {
+  const t0 = tms(c.t.started_at) ?? Math.min(...[...c.N.values()].map(o => tms(o.n.started_at)).filter(x => x !== null));
+  const rows = [], walk = (o, d) => { rows.push([o, d]); if (!c.wfCol.has(o.n.id)) o.kids.forEach(k => walk(k, d + 1)); }; c.roots.forEach(r => walk(r, 0));
+  const span = o => { const s = tms(o.n.started_at); if (s === null || !isFinite(t0)) return null; const e = tms(o.n.ended_at) ?? (num(o.n.duration_ns) !== null ? s + o.n.duration_ns / 1e6 : s); return [s - t0, Math.max(e - t0, s - t0)]; };
+  const sp = rows.map(([o]) => span(o)), total = Math.max(1e-9, ...[...c.N.values()].map(span).filter(Boolean).map(x => x[1]));
+  const shown = rows.slice(0, 300);
+  return `<div class="wf" role="list">${shown.map(([o, d], i) => { const s = sp[i], col = c.wfCol.has(o.n.id); return `<div class="wr${cur.sel === o.n.id ? ' sel' : ''}" role="listitem" tabindex="0" data-go="${esc(o.n.id)}" title="${esc(o.n.operation + ' · ' + o.n.status + ' · ' + fd(o.n.duration_ns))}"><span class="wn1" style="padding-left:${d * 12}px">${o.kids.length ? `<span class="wtg" role="button" tabindex="0" data-wt="${esc(o.n.id)}" aria-expanded="${!col}" aria-label="${col ? 'Expand' : 'Collapse'} ${esc(sn(o.n.operation))} in timeline" title="${col ? 'Show' : 'Hide'} ${plural(o.kids.length, 'child operation')}">${col ? '▸' : '▾'}</span>` : '<span class="wtg leaf"></span>'}${esc(sn(o.n.operation))}${col ? ` <span class="mu">(+${plural(o.kids.length, 'child', 'children')} hidden)</span>` : ''}</span><span class="wt"><span class="wb st-${KNOWN.has(o.n.status) ? o.n.status : 'unknown'}" style="${s ? `left:${(s[0] / total * 100).toFixed(2)}%;width:${Math.max(.4, (s[1] - s[0]) / total * 100).toFixed(2)}%` : 'display:none'}"></span></span></div>`; }).join('')}${rows.length > shown.length ? `<div class="mu">…${rows.length - shown.length} more operations not drawn</div>` : ''}</div><div class="mu">Bars show wall-clock start/end relative to trace start; total ${fd(total * 1e6)}.</div>`;
+}
+
+// ---------- inspector shell
+function insp() {
+  const c = cur, ih = $('#ih'), tb = $('#tabs'), ib = $('#ib');
+  $('#info').setAttribute('aria-pressed', String(ipOpen && !!c && !c.sel));
+  if (!c) { ih.innerHTML = '<h3>Inspector</h3>'; tb.innerHTML = ib.innerHTML = ''; return; }
+  const o = c.sel && c.N.get(c.sel), keep = ib.scrollTop;
+  if (!o) {
+    ih.innerHTML = '<div class="row"><h3>Trace summary</h3><button class="x" data-act="close" aria-label="Close inspector" title="Close (Esc)">×</button></div>'; tb.innerHTML = '';
+    try { ib.innerHTML = summary(); } catch (e) { ib.innerHTML = `<div class="alert er"><b>Could not render the summary</b>${esc(e.message)}</div>`; }
+    return;
+  }
+  const n = o.n, cr = []; for (let q = o.p; q; q = q.p) cr.unshift(`<a data-go="${esc(q.n.id)}">${esc(sn(q.n.operation))}</a>`);
+  ih.innerHTML = `<div class="cr">${cr.join(' › ')}</div><div class="row"><h3>${esc(sn(n.operation))} <span class="bd st-${KNOWN.has(n.status) ? n.status : 'unknown'}">${esc(n.status)}</span></h3><div class="hb">${o.kids.length ? '<button data-act="subExp" title="Expand this operation and everything below it">Expand subtree</button><button data-act="subCol" title="Collapse this operation and everything below it">Collapse subtree</button>' : ''}<button data-act="copyNode" title="Copy this node as JSON">Copy node</button><button class="x" data-act="close" aria-label="Close inspector" title="Close (Esc)">×</button></div></div>`;
+  const llm = isLLMNode(o), dn = c.t.edges.filter(e => e.kind === 'data' && (String(e.from) === n.id || String(e.to) === n.id)).length;
+  const tabs = [['ov', 'Overview', n.status === 'error' ? 'dot' : isProblem(o) ? 'dot w' : ''], ...(llm ? [['llm', 'LLM', n.status === 'error' ? 'dot' : '']] : []), ['in', 'Input'], ['out', 'Output'], ['ar', 'Artifacts ' + n.artifacts.length], ['df', 'Data flow ' + dn]];
+  if (!tabs.some(t => t[0] === c.tab)) c.tab = 'ov';
+  tb.innerHTML = tabs.map(([k, l, d]) => `<button role="tab" aria-selected="${c.tab === k}" data-tab="${k}" class="${c.tab === k ? 'on' : ''}">${l}${d ? `<span class="${d}"></span>` : ''}</button>`).join('');
+  const none = (v, w) => v === null || v === undefined ? `<p class="mu">No ${w} captured (${n.status === 'running' ? 'still running' : n.status === 'skipped' ? 'operation was skipped' : 'null in the trace'}).</p>` : '';
+  const bar = (val, kind) => `<div class="bar"><button data-act="expandAll">Expand all</button><button data-act="collapseAll">Collapse all</button><button data-act="raw" aria-pressed="${c.raw}">Raw JSON</button><button data-act="copyJson" data-which="${kind}">Copy JSON</button></div>`;
+  const pane = (val, kind, p) => c.raw ? bar(val, kind) + txt(json(val), 'pt') : bar(val, kind) + `<div data-p="${p}">${V(val, p)}</div>`;
+  let html;
+  try {
+    html = c.tab === 'ov' ? OV(o) : c.tab === 'llm' ? LLM(o) : c.tab === 'in' ? none(n.input, 'input') || pane(n.input, 'in', '/input') : c.tab === 'out' ? none(n.output, 'output') || pane(n.output, 'out', '/output') : c.tab === 'df' ? DF(o) :
+      !n.artifacts.length ? '<p class="mu">This operation captured no artifacts.</p> ' : bar(n.artifacts, 'ar') + (c.raw ? txt(json(n.artifacts), 'pt') : n.artifacts.map((a, i) => `<details class="card" ${n.artifacts.length <= 6 ? 'open' : ''} data-p="/artifacts/${i}"><summary><span class="h"><span class="bd" style="--c:hsl(${hue(a.kind)} 70% 72%)">${esc(a.kind)}</span><b>${esc(a.name)}</b>${a.source ? `<span class="mu">source label: ${esc(a.source)}</span>` : ''}${a.sha256 ? `<span class="mu">sha ${esc(a.sha256.slice(0, 8))}</span>` : ''}</span></summary><div data-p="/artifacts/${i}/value">${a.kind === 'prompt_composition' ? PC(o, i) : V(a.value, `/artifacts/${i}/value`)}</div></details>`).join(''));
+  } catch (e) { html = `<div class="alert er"><b>Could not render this view</b>${esc(e.message)}</div>` + txt(json(n), 'pt'); }
+  ib.innerHTML = html; ib.scrollTop = ib._k === n.id + c.tab ? keep : 0; ib._k = n.id + c.tab;
+}
+function openSummary(anchor) {
+  if (!cur) return;
+  cur.sel = null; paintSel(); setPanel(true); insp();
+  if (anchor) { const el = $('#' + anchor, $('#ib')); if (el) el.scrollIntoView({ block: 'start' }); }
+}
+
+// ---------- filter (strictly by operation name)
+function setHits(q, redraw = true) {
+  const c = cur; if (!c) return; c.q = q; q = q.trim().toLowerCase();
+  const was = c.filtering; c.filtering = !!q; c.hits = []; c.hi = -1;
+  const walk = o => { if (!q || o.n.operation.toLowerCase().includes(q)) c.hits.push(o.n.id); o.kids.forEach(walk); };
+  c.roots.forEach(walk); c.hitSet = new Set(c.hits);
+  if (q) { // nearest matching ancestor becomes the display parent
+    c.N.forEach(o => { o.fk = []; o.fp = null; }); c.fr = [];
+    const link = (o, par) => { if (c.hitSet.has(o.n.id)) { o.fp = par; (par ? par.fk : c.fr).push(o); o.kids.forEach(k => link(k, o)); } else o.kids.forEach(k => link(k, par)); };
+    c.roots.forEach(r => link(r, null));
+  }
+  $('#fc').textContent = q ? (c.hits.length ? plural(c.hits.length, 'matching operation') : 'no matches') : '';
+  const nm = $('#nomatch'); nm.hidden = !(q && !c.hits.length); nm.textContent = q && !c.hits.length ? `No operation name contains “${c.q.trim()}”.` : '';
+  for (const b of ['#expAll', '#colAll', '#prob']) { $(b).disabled = !!q; $(b).title = q ? 'Not available while filtering — clear the filter first' : { '#expAll': 'Expand every operation (E)', '#colAll': 'Collapse everything down to the root operation(s) (C)', '#prob': 'Expand only the paths that lead to errors or degraded operations (P)' }[b]; }
+  if (!redraw) return;
+  if (!was && c.filtering) c.vSaved = { ...c.v };
+  draw();
+  if (c.filtering) fit(); else if (was && c.vSaved) { c.v = c.vSaved; c.vSaved = null; apply(); }
+}
+function clearFilter() { $('#find').value = ''; setHits(''); }
+function stepHit(d) {
+  const c = cur; if (!c || !c.filtering || !c.hits.length) return;
+  c.hi = (c.hi + d + c.hits.length) % c.hits.length;
+  select(c.hits[c.hi], { reveal: true, open: ipOpen, force: true });
+  $('#fc').textContent = `${c.hi + 1}/${c.hits.length}`;
+}
+
 // ---------- events
-$('#nodes').onclick=e=>{const d=e.target.closest('.nd');if(!d)return;if(e.target.closest('.cv'))toggle(d.dataset.id,e.altKey);else select(d.dataset.id,0,1)};
-$('#nodes').ondblclick=e=>{const d=e.target.closest('.nd');if(d&&!e.target.closest('.cv')&&cur.N.get(d.dataset.id).kids.length)toggle(d.dataset.id)};
-$('#insp').onclick=e=>{const t=e.target.closest('[data-tab],[data-go],[data-nv],[data-k],[data-ol],.x');if(!t)return;const d=t.dataset;
- if(d.tab){cur.tab=d.tab;insp()}else if(d.go)select(d.go,1,1);else if(d.nv){const i=d.nv.indexOf('|');navPath(d.nv.slice(0,i),d.nv.slice(i+1))}else if(d.k||d.ol)actC(d.k||d.ol);else select(null,0,0)};
-const VW=$('#view');let drag=null;
-VW.onpointerdown=e=>{if(!cur||e.target.closest('.nd,#zc,#empty'))return;drag={x:e.clientX,y:e.clientY,vx:cur.v.x,vy:cur.v.y,m:0};VW.setPointerCapture(e.pointerId)};
-VW.onpointermove=e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>3){drag.m=1;VW.classList.add('pan')}if(drag.m){cur.v.x=drag.vx+dx;cur.v.y=drag.vy+dy;apply()}};
-VW.onpointerup=VW.onpointercancel=()=>{if(drag&&!drag.m&&cur)select(null,0,0);drag=null;VW.classList.remove('pan')};
-VW.addEventListener('wheel',e=>{if(!cur)return;e.preventDefault();const r=VW.getBoundingClientRect();zoom(e.clientX-r.left,e.clientY-r.top,Math.exp(-e.deltaY*(e.ctrlKey?.01:.0015)))},{passive:false});
-const zc=f=>{if(cur){const r=VW.getBoundingClientRect();zoom(r.width/2,r.height/2,f)}};$('#zi').onclick=()=>zc(1.25);$('#zo').onclick=()=>zc(.8);$('#fit').onclick=()=>cur&&fit();
-$('#expAll').onclick=()=>{if(cur){cur.N.forEach(o=>o.kids.length&&cur.exp.add(o.n.id));draw();fit()}};
-$('#colAll').onclick=()=>{if(cur){cur.exp=new Set(cur.init);cur.sel=null;draw();fit();insp()}};
-$('#info').onclick=()=>{if(cur)select(null,0,1)};
-$('#flow').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;mode=b.dataset.m;document.querySelectorAll('#flow button').forEach(x=>x.classList.toggle('on',x===b));if(cur)edges()};
-$('#sel').onchange=e=>show(TR[+e.target.value]);
-for(const b of['#open','#open2'])$(b).onclick=()=>$('#file').click();
-$('#file').onchange=e=>{ingest([...e.target.files]);e.target.value=''};
-addEventListener('dragover',e=>{e.preventDefault();document.body.classList.add('drop')});addEventListener('dragleave',e=>{if(!e.relatedTarget)document.body.classList.remove('drop')});
-addEventListener('drop',e=>{e.preventDefault();document.body.classList.remove('drop');ingest([...e.dataTransfer.files])});
-addEventListener('keydown',e=>{if(!cur||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||e.target.closest('#insp'))return;const o=cur.sel&&cur.N.get(cur.sel);if(e.key==='Escape'){select(null,0,0);return}if(!o)return;
- const sib=o.p?o.p.kids:cur.roots,i=sib.indexOf(o);
- if(e.key==='ArrowDown'&&sib[i+1])select(sib[i+1].n.id,1,1);else if(e.key==='ArrowUp'&&sib[i-1])select(sib[i-1].n.id,1,1);
- else if(e.key==='ArrowRight'&&o.kids.length){if(!cur.exp.has(o.n.id))toggle(o.n.id);else select(o.kids[0].n.id,1,1)}
- else if(e.key==='ArrowLeft'){if(cur.exp.has(o.n.id)&&o.kids.length)toggle(o.n.id);else if(o.p)select(o.p.n.id,1,1)}
- else if(e.key==='Enter'&&o.kids.length)toggle(o.n.id);else return;e.preventDefault();const f=$(`.nd[data-id="${cur.sel}"]`);f&&f.focus({preventScroll:true})});
-addEventListener('resize',()=>{if(!cur)return;const v=VW.getBoundingClientRect();if(!cur.vis.some(o=>{const x=o.x*cur.v.k+cur.v.x,y=o.y*cur.v.k+cur.v.y;return x<v.width&&y<v.height&&x+W*cur.v.k>0&&y+H*cur.v.k>0}))fit()});insp();
-</script></body></html>
+$('#nodes').addEventListener('click', e => {
+  const d = e.target.closest('.nd'); if (!d) return; const id = d.dataset.id, cv = e.target.closest('.cv');
+  if (cv) toggle(id, { deep: e.altKey || e.shiftKey, collapse: e.shiftKey && !e.altKey }); else select(id, { open: true, force: true });
+});
+$('#nodes').addEventListener('dblclick', e => { const d = e.target.closest('.nd'); if (d && !e.target.closest('.cv')) toggle(d.dataset.id); });
+$('#nodes').addEventListener('keydown', e => {
+  const d = e.target.closest('.nd'); if (!d || e.target.classList.contains('cv') || e.ctrlKey || e.metaKey || e.altKey) return;
+  const o = cur.N.get(d.dataset.id); if (!o) return;
+  const f = cur.filtering, par = f ? o.fp : o.p, kids = f ? o.fk : o.kids, sib = par ? (f ? par.fk : par.kids) : (f ? cur.fr : cur.roots), i = sib.indexOf(o), go = t => { if (t) { select(t.n.id, { reveal: true, open: false, force: true }); const f = nodeEl(t.n.id); f && f.focus({ preventScroll: true }); } };
+  switch (e.key) {
+    case 'Enter': select(o.n.id, { open: true, force: true }); if (o.kids.length && !f) toggle(o.n.id); break;
+    case ' ': select(o.n.id, { open: true, force: true }); break;
+    case 'ArrowDown': go(sib[i + 1]); break;
+    case 'ArrowUp': go(sib[i - 1]); break;
+    case 'ArrowRight': if (!f && o.kids.length && !cur.exp.has(o.n.id)) toggle(o.n.id); else go(kids[0]); break;
+    case 'ArrowLeft': if (!f && cur.exp.has(o.n.id) && o.kids.length) toggle(o.n.id); else go(par); break;
+    case '*': toggle(o.n.id, { deep: true }); break;
+    default: return;
+  }
+  e.preventDefault();
+});
+const tabbed = el => { const t = el.dataset.tabto; return t ? { tab: t } : {}; };
+$('#insp').addEventListener('click', e => {
+  const t = e.target.closest('[data-tab],[data-go],[data-nv],[data-k],[data-ol],[data-act],[data-wt]'); if (!t || !cur) return; const d = t.dataset, c = cur;
+  if (d.wt) { const ib = $('#ib'), top = ib.scrollTop; c.wfCol.has(d.wt) ? c.wfCol.delete(d.wt) : c.wfCol.add(d.wt); insp(); ib.scrollTop = top; const f = $(`[data-wt="${CSS.escape(d.wt)}"]`, ib); if (f) f.focus({ preventScroll: true }); return; }
+  if (d.tab) { c.tab = d.tab; insp(); }
+  else if (d.go) select(d.go, { reveal: true, open: true, force: true, ...tabbed(t) });
+  else if (d.nv) { const i = d.nv.indexOf('|'); navPath(d.nv.slice(0, i), d.nv.slice(i + 1)); }
+  else if (d.k || d.ol) actC(d.k || d.ol);
+  else if (d.act) {
+    const a = d.act, o = c.sel && c.N.get(c.sel);
+    if (a === 'close') { setPanel(false); }
+    else if (a === 'copy') { const x = $('.txt', t.closest('.tb')); if (x) copyText(x.textContent); }
+    else if (a === 'grow') { const x = $('.txt', t.closest('.tb')); if (x) { x.classList.toggle('grown'); t.textContent = x.classList.contains('grown') ? 'Collapse' : 'Expand'; } }
+    else if (a === 'expandAll' || a === 'collapseAll') $$('#ib details').forEach(x => x.open = a === 'expandAll');
+    else if (a === 'raw') { c.raw = !c.raw; insp(); }
+    else if (a === 'copyJson' && o) copyText(json(d.which === 'in' ? o.n.input : d.which === 'out' ? o.n.output : o.n.artifacts));
+    else if (a === 'copyNode' && o) copyText(json(o.n));
+    else if ((a === 'subExp' || a === 'subCol') && o) toggle(o.n.id, { deep: true, collapse: a === 'subCol' });
+  }
+});
+$('#insp').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.wr,.wtg')) { e.preventDefault(); e.target.click(); } });
+$('#metaBar').addEventListener('click', e => { if (e.target.closest('[data-issues]')) openSummary('sum-issues'); });
+const VW = $('#view'); let drag = null;
+VW.addEventListener('pointerdown', e => {
+  if (!cur || e.button > 0 || e.target.closest('#zc,#empty,.cv')) return;
+  drag = { x: e.clientX, y: e.clientY, vx: cur.v.x, vy: cur.v.y, m: 0, id: e.pointerId, onNode: !!e.target.closest('.nd') };
+  // no preventDefault here: it would stop clicks from focusing nodes (breaks keyboard navigation). Selection is blocked by CSS + selectstart/dragstart.
+});
+VW.addEventListener('pointermove', e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (!drag.m && Math.abs(dx) + Math.abs(dy) > 3) {
+    drag.m = 1; VW.classList.add('pan');
+    try { VW.setPointerCapture(e.pointerId); } catch { /* pointer already gone */ }
+    const sl = getSelection(); if (sl && sl.rangeCount) sl.removeAllRanges();
+  }
+  if (drag.m) { cur.v.x = drag.vx + dx; cur.v.y = drag.vy + dy; apply(); }
+});
+const endDrag = e => {
+  const d = drag; drag = null; VW.classList.remove('pan');
+  if (!d || (e && e.pointerId !== d.id)) return;
+  if (d.m) { if (d.onNode) { swallowClick = true; setTimeout(() => swallowClick = false, 0); } }
+  else if (!d.onNode && cur && e && e.type === 'pointerup') select(null);
+};
+let swallowClick = false;
+VW.addEventListener('pointerup', endDrag); VW.addEventListener('pointercancel', endDrag); VW.addEventListener('lostpointercapture', () => { if (drag && drag.m) endDrag(); });
+VW.addEventListener('click', e => { if (swallowClick) { e.stopPropagation(); e.preventDefault(); swallowClick = false; } }, true);
+VW.addEventListener('selectstart', e => { if (drag) e.preventDefault(); });
+VW.addEventListener('dragstart', e => e.preventDefault());
+VW.addEventListener('wheel', e => { if (!cur) return; e.preventDefault(); const r = VW.getBoundingClientRect(); zoom(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * (e.ctrlKey ? .01 : .0015))); }, { passive: false });
+const zc = f => { if (cur) { const r = VW.getBoundingClientRect(); zoom(r.width / 2, r.height / 2, f); } };
+$('#zi').onclick = () => zc(1.25); $('#zo').onclick = () => zc(.8); $('#fit').onclick = () => fit();
+$('#expAll').onclick = () => setView('expand');
+$('#colAll').onclick = () => setView('collapse');
+$('#prob').onclick = () => setView('problems');
+$('#info').onclick = () => { if (!cur) return; if (ipOpen && !cur.sel) setPanel(false); else openSummary(); };
+$('#flow').onclick = e => { const b = e.target.closest('[data-m]'); if (!b) return; mode = b.dataset.m; $$('#flow button').forEach(x => x.classList.toggle('on', x === b)); if (cur) edges(); };
+$('#sel').onchange = e => show(TR[+e.target.value]);
+$('#rm').onclick = closeTrace;
+for (const b of ['#open', '#open2']) $(b).onclick = () => $('#file').click();
+$('#file').onchange = e => { ingest([...e.target.files]); e.target.value = ''; };
+$('#find').addEventListener('input', e => setHits(e.target.value));
+$('#find').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); stepHit(e.shiftKey ? -1 : 1); }
+  else if (e.key === 'Escape') { clearFilter(); e.target.blur(); e.stopPropagation(); }
+});
+$('#toast').onclick = () => $('#toast').classList.remove('show');
+addEventListener('dragover', e => { e.preventDefault(); document.body.classList.add('drop'); });
+addEventListener('dragleave', e => { if (!e.relatedTarget) document.body.classList.remove('drop'); });
+addEventListener('drop', e => { e.preventDefault(); document.body.classList.remove('drop'); ingest([...e.dataTransfer.files]); });
+addEventListener('paste', e => {
+  if (/INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  const t = (e.clipboardData && e.clipboardData.getData('text') || '').trim();
+  if (t[0] === '{') { e.preventDefault(); ingestText(t, `pasted-${TR.length + 1}.json`); }
+});
+addEventListener('keydown', e => {
+  if (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey || e.target.closest('#nodes .nd') && ['Enter', ' ', 'ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', '*'].includes(e.key)) return;
+  if (e.key === '/') { e.preventDefault(); $('#find').focus(); $('#find').select(); return; }
+  if (!cur) return;
+  const k = e.key.toLowerCase();
+  if (e.key === 'Escape') { if (cur.filtering) clearFilter(); else if (cur.sel) select(null); else if (ipOpen) setPanel(false); }
+  else if (k === 'e') setView('expand'); else if (k === 'c') setView('collapse'); else if (k === 'p') setView('problems');
+  else if (k === 'f') fit(); else if (k === 's') $('#info').click();
+  else if (e.key === '+' || e.key === '=') zc(1.25); else if (e.key === '-') zc(.8);
+  else if (e.key === 'n' || e.key === 'N') stepHit(e.shiftKey ? -1 : 1);
+  else return;
+  e.preventDefault();
+});
+new ResizeObserver(() => {
+  if (!cur) return; const v = VW.getBoundingClientRect();
+  if (!cur.vis.some(o => { const x = o.x * cur.v.k + cur.v.x, y = o.y * cur.v.k + cur.v.y; return x < v.width && y < v.height && x + W * cur.v.k > 0 && y + H * cur.v.k > 0; })) fit();
+}).observe(VW);
+addEventListener('error', e => toast('Unexpected error: ' + e.message, 'er'));
+addEventListener('unhandledrejection', e => toast('Unexpected error: ' + (e.reason && e.reason.message || e.reason), 'er'));
+insp();
+// optional: ?trace=<url> (repeatable) loads traces from the same origin or any CORS-enabled URL
+for (const u of new URLSearchParams(location.search).getAll('trace')) fetch(u).then(r => { if (!r.ok) throw Error('HTTP ' + r.status); return r.text(); }).then(t => ingestText(t, u.split('/').pop() || u)).catch(e => toast(`${u}: ${e.message}`, 'er'));
+</script>
+</body>
+</html>

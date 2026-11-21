@@ -1,0 +1,1033 @@
+{
+  "complete": true,
+  "schema": "local_ai_trace.v1",
+  "trace_id": "59dff61c-0fb0-4661-932b-16d324730bef",
+  "kind": "turn",
+  "turn_id": "c621ca02-e2e0-46a0-93f0-b8b180c51217",
+  "job_id": "00000000-0000-0000-0000-000000000000",
+  "started_at": "2026-11-18T17:44:31.450850322Z",
+  "ended_at": "2026-11-18T17:44:36Z",
+  "status": "success",
+  "nodes": [
+    {
+      "id": "n000001",
+      "operation": "orchestrator.ProcessTurn",
+      "sequence": 1,
+      "started_at": "2026-11-18T17:44:31.450852289Z",
+      "ended_at": "2026-11-18T17:44:31.492343558Z",
+      "duration_ns": 41491453,
+      "status": "success",
+      "input": {
+        "request": {
+          "channel": "",
+          "client_turn_id": "00000000-0000-0000-0000-000000000000",
+          "conversation_id": "00000000-0000-0000-0000-000000000000",
+          "locale": "",
+          "origin": "",
+          "text": "synthetic model operations",
+          "tz": "",
+          "user_id": "00000000-0000-0000-0000-000000000000"
+        }
+      },
+      "output": null,
+      "artifacts": [
+        {
+          "name": "attempt_result",
+          "kind": "attempt",
+          "value": {
+            "attempt": 1,
+            "elapsed_ns": 4952955,
+            "failure": "",
+            "fallback": false,
+            "first_token": true,
+            "model": {
+              "cached_micro_usd_per_m": 500000,
+              "input_micro_usd_per_m": 2000000,
+              "model": "strong-primary",
+              "native_json_schema": false,
+              "output_micro_usd_per_m": 4000000,
+              "provider": "p"
+            },
+            "tier": "strong"
+          },
+          "sha256": "5a36dac610088c8f65af07d1d88e67b5513fe4a72fa11de871d677717340221b",
+          "source": "llm.Client"
+        }
+      ],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000002",
+      "operation": "llm/client.Structured",
+      "parent_id": "n000001",
+      "sequence": 2,
+      "started_at": "2026-11-18T17:44:31.458438701Z",
+      "ended_at": "2026-11-18T17:44:31.477038473Z",
+      "duration_ns": 18599972,
+      "status": "success",
+      "input": {
+        "req": {
+          "IdempotencyKey": "",
+          "MaxTokens": 100,
+          "Messages": [
+            {
+              "Content": "synthetic",
+              "Role": "user"
+            }
+          ],
+          "Meta": {
+            "bundle": {
+              "prompt_shas": null,
+              "version": ""
+            },
+            "route": "",
+            "trace_flags": 0,
+            "turn_id": "c621ca02-e2e0-46a0-93f0-b8b180c51217",
+            "user_id": "2765b5cc-ab09-4573-9f3b-3740fdd19019"
+          },
+          "Schema": "eyIkc2NoZW1hIjoiaHR0cHM6Ly9qc29uLXNjaGVtYS5vcmcvZHJhZnQvMjAyMC0xMi9zY2hlbWEiLCJ0eXBlIjoib2JqZWN0IiwicmVxdWlyZWQiOlsib2siXSwiYWRkaXRpb25hbFByb3BlcnRpZXMiOmZhbHNlLCJwcm9wZXJ0aWVzIjp7Im9rIjp7InR5cGUiOiJib29sZWFuIn19fQ==",
+          "SchemaName": "test.v1",
+          "System": [
+            {
+              "Cache": true,
+              "Name": "policy",
+              "Text": "synthetic"
+            }
+          ],
+          "Temperature": 0,
+          "Tier": "small",
+          "Timeout": 0
+        }
+      },
+      "output": {
+        "out": {
+          "Attempts": 4,
+          "JSON": "eyJvayI6dHJ1ZX0=",
+          "Model": "small-secondary",
+          "Provider": "p",
+          "Usage": {
+            "attempts": 4,
+            "cached_tokens": 0,
+            "cost_micro_usd": 50,
+            "finish_reason": "",
+            "in_tokens": 15,
+            "latency": 7986151,
+            "model": "small-secondary",
+            "out_tokens": 5,
+            "provider": "p"
+          }
+        }
+      },
+      "artifacts": [
+        {
+          "name": "attempt_result",
+          "kind": "attempt",
+          "value": {
+            "attempt": 1,
+            "elapsed_ns": 3927173,
+            "failure": "server",
+            "fallback": false,
+            "first_token": false,
+            "model": {
+              "cached_micro_usd_per_m": 500000,
+              "input_micro_usd_per_m": 2000000,
+              "model": "small-primary",
+              "native_json_schema": true,
+              "output_micro_usd_per_m": 4000000,
+              "provider": "p"
+            },
+            "tier": "small"
+          },
+          "sha256": "9114d4ab9c471c8c6f722b814de756aa5ee354b32b9475f290cd43ec0d80f6af",
+          "source": "llm.Client"
+        },
+        {
+          "name": "retry_delay",
+          "kind": "retry",
+          "value": {
+            "delay_ns": 0,
+            "retry_index": 0
+          },
+          "sha256": "0b7ebb73166ea071577d445ba31ca1a032f976c2ebcf0b9be3980c6b53c51038",
+          "source": "llm.Client.delay"
+        },
+        {
+          "name": "attempt_result",
+          "kind": "attempt",
+          "value": {
+            "attempt": 2,
+            "elapsed_ns": 4090792,
+            "failure": "server",
+            "fallback": false,
+            "first_token": false,
+            "model": {
+              "cached_micro_usd_per_m": 500000,
+              "input_micro_usd_per_m": 2000000,
+              "model": "small-primary",
+              "native_json_schema": true,
+              "output_micro_usd_per_m": 4000000,
+              "provider": "p"
+            },
+            "tier": "small"
+          },
+          "sha256": "c5ceee203f1c1c65955b4168dc0dfb68625b8d6f928ce1e28aef172e2f6283be",
+          "source": "llm.Client"
+        },
+        {
+          "name": "attempt_result",
+          "kind": "attempt",
+          "value": {
+            "attempt": 3,
+            "elapsed_ns": 3572085,
+            "failure": "",
+            "fallback": true,
+            "first_token": false,
+            "model": {
+              "cached_micro_usd_per_m": 500000,
+              "input_micro_usd_per_m": 2000000,
+              "model": "small-secondary",
+              "native_json_schema": false,
+              "output_micro_usd_per_m": 4000000,
+              "provider": "p"
+            },
+            "tier": "small"
+          },
+          "sha256": "9608b6c6fef31efe600ffb26ae9ce6da5e49ce36882825f9dfba3f0552caf485",
+          "source": "llm.Client"
+        },
+        {
+          "name": "attempt_result",
+          "kind": "attempt",
+          "value": {
+            "attempt": 4,
+            "elapsed_ns": 4414066,
+            "failure": "",
+            "fallback": true,
+            "first_token": false,
+            "model": {
+              "cached_micro_usd_per_m": 500000,
+              "input_micro_usd_per_m": 2000000,
+              "model": "small-secondary",
+              "native_json_schema": false,
+              "output_micro_usd_per_m": 4000000,
+              "provider": "p"
+            },
+            "tier": "small"
+          },
+          "sha256": "9476526bab1c755688a82224c4d6e2c5187ae7716743d5c6c05356702f88117d",
+          "source": "llm.Client"
+        }
+      ],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000003",
+      "operation": "provider.Structured",
+      "parent_id": "n000002",
+      "sequence": 3,
+      "started_at": "2026-11-18T17:44:31.460552459Z",
+      "ended_at": "2026-11-18T17:44:31.46255318Z",
+      "duration_ns": 2001046,
+      "status": "error",
+      "input": {
+        "mode": "native_schema",
+        "model": {
+          "cached_micro_usd_per_m": 500000,
+          "input_micro_usd_per_m": 2000000,
+          "model": "small-primary",
+          "native_json_schema": true,
+          "output_micro_usd_per_m": 4000000,
+          "provider": "p"
+        },
+        "request": {
+          "IdempotencyKey": "",
+          "MaxTokens": 100,
+          "Messages": [
+            {
+              "Content": "synthetic",
+              "Role": "user"
+            }
+          ],
+          "Meta": {
+            "bundle": {
+              "prompt_shas": null,
+              "version": ""
+            },
+            "route": "",
+            "trace_flags": 0,
+            "turn_id": "c621ca02-e2e0-46a0-93f0-b8b180c51217",
+            "user_id": "2765b5cc-ab09-4573-9f3b-3740fdd19019"
+          },
+          "Schema": "eyIkc2NoZW1hIjoiaHR0cHM6Ly9qc29uLXNjaGVtYS5vcmcvZHJhZnQvMjAyMC0xMi9zY2hlbWEiLCJ0eXBlIjoib2JqZWN0IiwicmVxdWlyZWQiOlsib2siXSwiYWRkaXRpb25hbFByb3BlcnRpZXMiOmZhbHNlLCJwcm9wZXJ0aWVzIjp7Im9rIjp7InR5cGUiOiJib29sZWFuIn19fQ==",
+          "SchemaName": "test.v1",
+          "System": [
+            {
+              "Cache": true,
+              "Name": "policy",
+              "Text": "synthetic"
+            }
+          ],
+          "Temperature": 0.2,
+          "Tier": "small",
+          "Timeout": 0
+        }
+      },
+      "output": {
+        "json": "",
+        "usage": {
+          "attempts": 0,
+          "cached_tokens": 0,
+          "cost_micro_usd": 0,
+          "finish_reason": "",
+          "in_tokens": 0,
+          "latency": 0,
+          "model": "",
+          "out_tokens": 0,
+          "provider": ""
+        }
+      },
+      "artifacts": [],
+      "error": {
+        "type": "*llm.Failure"
+      },
+      "provider_usage": [],
+      "estimates": [
+        {
+          "source": "system/policy",
+          "tokens": 3,
+          "method": "ceil_unicode_codepoints_div_3; excludes provider framing; not a tokenizer",
+          "bytes": 9
+        },
+        {
+          "source": "message/user",
+          "tokens": 3,
+          "method": "ceil_unicode_codepoints_div_3; excludes provider framing; not a tokenizer",
+          "bytes": 9
+        }
+      ]
+    },
+    {
+      "id": "n000004",
+      "operation": "provider.Structured",
+      "parent_id": "n000002",
+      "sequence": 4,
+      "started_at": "2026-11-18T17:44:31.464653705Z",
+      "ended_at": "2026-11-18T17:44:31.46679731Z",
+      "duration_ns": 2143790,
+      "status": "error",
+      "input": {
+        "mode": "native_schema",
+        "model": {
+          "cached_micro_usd_per_m": 500000,
+          "input_micro_usd_per_m": 2000000,
+          "model": "small-primary",
+          "native_json_schema": true,
+          "output_micro_usd_per_m": 4000000,
+          "provider": "p"
+        },
+        "request": {
+          "IdempotencyKey": "",
+          "MaxTokens": 100,
+          "Messages": [
+            {
+              "Content": "synthetic",
+              "Role": "user"
+            }
+          ],
+          "Meta": {
+            "bundle": {
+              "prompt_shas": null,
+              "version": ""
+            },
+            "route": "",
+            "trace_flags": 0,
+            "turn_id": "c621ca02-e2e0-46a0-93f0-b8b180c51217",
+            "user_id": "2765b5cc-ab09-4573-9f3b-3740fdd19019"
+          },
+          "Schema": "eyIkc2NoZW1hIjoiaHR0cHM6Ly9qc29uLXNjaGVtYS5vcmcvZHJhZnQvMjAyMC0xMi9zY2hlbWEiLCJ0eXBlIjoib2JqZWN0IiwicmVxdWlyZWQiOlsib2siXSwiYWRkaXRpb25hbFByb3BlcnRpZXMiOmZhbHNlLCJwcm9wZXJ0aWVzIjp7Im9rIjp7InR5cGUiOiJib29sZWFuIn19fQ==",
+          "SchemaName": "test.v1",
+          "System": [
+            {
+              "Cache": true,
+              "Name": "policy",
+              "Text": "synthetic"
+            }
+          ],
+          "Temperature": 0.2,
+          "Tier": "small",
+          "Timeout": 0
+        }
+      },
+      "output": {
+        "json": "",
+        "usage": {
+          "attempts": 0,
+          "cached_tokens": 0,
+          "cost_micro_usd": 0,
+          "finish_reason": "",
+          "in_tokens": 0,
+          "latency": 0,
+          "model": "",
+          "out_tokens": 0,
+          "provider": ""
+        }
+      },
+      "artifacts": [],
+      "error": {
+        "type": "*llm.Failure"
+      },
+      "provider_usage": [],
+      "estimates": [
+        {
+          "source": "system/policy",
+          "tokens": 3,
+          "method": "ceil_unicode_codepoints_div_3; excludes provider framing; not a tokenizer",
+          "bytes": 9
+        },
+        {
+          "source": "message/user",
+          "tokens": 3,
+          "method": "ceil_unicode_codepoints_div_3; excludes provider framing; not a tokenizer",
+          "bytes": 9
+        }
+      ]
+    },
+    {
+      "id": "n000005",
+      "operation": "provider.Structured",
+      "parent_id": "n000002",
+      "sequence": 5,
+      "started_at": "2026-11-18T17:44:31.468837852Z",
+      "ended_at": "2026-11-18T17:44:31.470836993Z",
+      "duration_ns": 1999263,
+      "status": "success",
+      "input": {
+        "mode": "json_object",
+        "model": {
+          "cached_micro_usd_per_m": 500000,
+          "input_micro_usd_per_m": 2000000,
+          "model": "small-secondary",
+          "native_json_schema": false,
+          "output_micro_usd_per_m": 4000000,
+          "provider": "p"
+        },
+        "request": {
+          "IdempotencyKey": "",
+          "MaxTokens": 100,
+          "Messages": [
+            {
+              "Content": "synthetic",
+              "Role": "user"
+            }
+          ],
+          "Meta": {
+            "bundle": {
+              "prompt_shas": null,
+              "version": ""
+            },
+            "route": "",
+            "trace_flags": 0,
+            "turn_id": "c621ca02-e2e0-46a0-93f0-b8b180c51217",
+            "user_id": "2765b5cc-ab09-4573-9f3b-3740fdd19019"
+          },
+          "Schema": "eyIkc2NoZW1hIjoiaHR0cHM6Ly9qc29uLXNjaGVtYS5vcmcvZHJhZnQvMjAyMC0xMi9zY2hlbWEiLCJ0eXBlIjoib2JqZWN0IiwicmVxdWlyZWQiOlsib2siXSwiYWRkaXRpb25hbFByb3BlcnRpZXMiOmZhbHNlLCJwcm9wZXJ0aWVzIjp7Im9rIjp7InR5cGUiOiJib29sZWFuIn19fQ==",
+          "SchemaName": "test.v1",
+          "System": [
+            {
+              "Cache": true,
+              "Name": "policy",
+              "Text": "synthetic"
+            }
+          ],
+          "Temperature": 0.2,
+          "Tier": "small",
+          "Timeout": 0
+        }
+      },
+      "output": {
+        "json": "{\"ok\":\"invalid\"}",
+        "usage": {
+          "attempts": 0,
+          "cached_tokens": 0,
+          "cost_micro_usd": 0,
+          "finish_reason": "",
+          "in_tokens": 7,
+          "latency": 0,
+          "model": "",
+          "out_tokens": 2,
+          "provider": ""
+        }
+      },
+      "artifacts": [],
+      "provider_usage": [
+        {
+          "provider": "p",
+          "model": "small-secondary",
+          "input_tokens": 7,
+          "output_tokens": 2,
+          "cached_tokens": 0,
+          "estimated_cost_micro_usd": 22,
+          "latency_ns": 7053
+        }
+      ],
+      "estimates": [
+        {
+          "source": "system/policy",
+          "tokens": 3,
+          "method": "ceil_unicode_codepoints_div_3; excludes provider framing; not a tokenizer",
+          "bytes": 9
+        },
+        {
+          "source": "message/user",
+          "tokens": 3,
+          "method": "ceil_unicode_codepoints_div_3; excludes provider framing; not a tokenizer",
+          "bytes": 9
+        }
+      ]
+    },
+    {
+      "id": "n000006",
+      "operation": "provider.Structured",
+      "parent_id": "n000002",
+      "sequence": 6,
+      "started_at": "2026-11-18T17:44:31.472490788Z",
+      "ended_at": "2026-11-18T17:44:31.475010822Z",
+      "duration_ns": 2520148,
+      "status": "success",
+      "input": {
+        "mode": "json_object",
+        "model": {
+          "cached_micro_usd_per_m": 500000,
+          "input_micro_usd_per_m": 2000000,
+          "model": "small-secondary",
+          "native_json_schema": false,
+          "output_micro_usd_per_m": 4000000,
+          "provider": "p"
+        },
+        "request": {
+          "IdempotencyKey": "",
+          "MaxTokens": 100,
+          "Messages": [
+            {
+              "Content": "synthetic",
+              "Role": "user"
+            },
+            {
+              "Content": "{\"ok\":\"invalid\"}",
+              "Role": "assistant"
+            },
+            {
+              "Content": "Fix ONLY the preceding JSON to match the supplied JSON schema. Preserve its meaning; do not re-reason, add facts or commentary. Return the corrected JSON object only.",
+              "Role": "user"
+            }
+          ],
+          "Meta": {
+            "bundle": {
+              "prompt_shas": null,
+              "version": ""
+            },
+            "route": "",
+            "trace_flags": 0,
+            "turn_id": "c621ca02-e2e0-46a0-93f0-b8b180c51217",
+            "user_id": "2765b5cc-ab09-4573-9f3b-3740fdd19019"
+          },
+          "Schema": "eyIkc2NoZW1hIjoiaHR0cHM6Ly9qc29uLXNjaGVtYS5vcmcvZHJhZnQvMjAyMC0xMi9zY2hlbWEiLCJ0eXBlIjoib2JqZWN0IiwicmVxdWlyZWQiOlsib2siXSwiYWRkaXRpb25hbFByb3BlcnRpZXMiOmZhbHNlLCJwcm9wZXJ0aWVzIjp7Im9rIjp7InR5cGUiOiJib29sZWFuIn19fQ==",
+          "SchemaName": "test.v1",
+          "System": [
+            {
+              "Cache": true,
+              "Name": "policy",
+              "Text": "synthetic"
+            }
+          ],
+          "Temperature": 0.2,
+          "Tier": "small",
+          "Timeout": 0
+        }
+      },
+      "output": {
+        "json": "{\"ok\":true}",
+        "usage": {
+          "attempts": 0,
+          "cached_tokens": 0,
+          "cost_micro_usd": 0,
+          "finish_reason": "",
+          "in_tokens": 8,
+          "latency": 0,
+          "model": "",
+          "out_tokens": 3,
+          "provider": ""
+        }
+      },
+      "artifacts": [],
+      "provider_usage": [
+        {
+          "provider": "p",
+          "model": "small-secondary",
+          "input_tokens": 8,
+          "output_tokens": 3,
+          "cached_tokens": 0,
+          "estimated_cost_micro_usd": 28,
+          "latency_ns": 16431
+        }
+      ],
+      "estimates": [
+        {
+          "source": "system/policy",
+          "tokens": 3,
+          "method": "ceil_unicode_codepoints_div_3; excludes provider framing; not a tokenizer",
+          "bytes": 9
+        },
+        {
+          "source": "message/user",
+          "tokens": 3,
+          "method": "ceil_unicode_codepoints_div_3; excludes provider framing; not a tokenizer",
+          "bytes": 9
+        },
+        {
+          "source": "message/assistant",
+          "tokens": 6,
+          "method": "ceil_unicode_codepoints_div_3; excludes provider framing; not a tokenizer",
+          "bytes": 16
+        },
+        {
+          "source": "message/user",
+          "tokens": 56,
+          "method": "ceil_unicode_codepoints_div_3; excludes provider framing; not a tokenizer",
+          "bytes": 166
+        }
+      ]
+    },
+    {
+      "id": "n000007",
+      "operation": "llm/client.Embed",
+      "parent_id": "n000001",
+      "sequence": 7,
+      "started_at": "2026-11-18T17:44:31.479419466Z",
+      "ended_at": "2026-11-18T17:44:31.48525754Z",
+      "duration_ns": 5838241,
+      "status": "success",
+      "input": {
+        "req": {
+          "Input": "synthetic embedding",
+          "Meta": {
+            "bundle": {
+              "prompt_shas": null,
+              "version": ""
+            },
+            "route": "",
+            "trace_flags": 0,
+            "turn_id": "c621ca02-e2e0-46a0-93f0-b8b180c51217",
+            "user_id": "2765b5cc-ab09-4573-9f3b-3740fdd19019"
+          },
+          "Tier": "embedding",
+          "Timeout": 0
+        }
+      },
+      "output": {
+        "result0": {
+          "Model": "embedding",
+          "Usage": {
+            "attempts": 1,
+            "cached_tokens": 0,
+            "cost_micro_usd": 1,
+            "finish_reason": "",
+            "in_tokens": 4,
+            "latency": 3830418,
+            "model": "embedding",
+            "out_tokens": 0,
+            "provider": "p"
+          },
+          "Vector": [
+            1,
+            0,
+            0
+          ]
+        }
+      },
+      "artifacts": [
+        {
+          "name": "attempt_result",
+          "kind": "attempt",
+          "value": {
+            "attempt": 1,
+            "elapsed_ns": 3830418,
+            "failure": "",
+            "fallback": false,
+            "first_token": false,
+            "model": {
+              "cached_micro_usd_per_m": 0,
+              "dimensions": 3,
+              "input_micro_usd_per_m": 100000,
+              "model": "embedding",
+              "native_json_schema": false,
+              "output_micro_usd_per_m": 0,
+              "provider": "p"
+            },
+            "tier": "embedding"
+          },
+          "sha256": "bed4985074a400ba6d6248e7cd627a9c57e046b5d379433c5700301c6cfccffe",
+          "source": "llm.Client"
+        }
+      ],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000008",
+      "operation": "provider.Embed",
+      "parent_id": "n000007",
+      "sequence": 8,
+      "started_at": "2026-11-18T17:44:31.48134072Z",
+      "ended_at": "2026-11-18T17:44:31.483284062Z",
+      "duration_ns": 1943435,
+      "status": "success",
+      "input": {
+        "model": {
+          "cached_micro_usd_per_m": 0,
+          "dimensions": 3,
+          "input_micro_usd_per_m": 100000,
+          "model": "embedding",
+          "native_json_schema": false,
+          "output_micro_usd_per_m": 0,
+          "provider": "p"
+        },
+        "request": {
+          "Input": "synthetic embedding",
+          "Meta": {
+            "bundle": {
+              "prompt_shas": null,
+              "version": ""
+            },
+            "route": "",
+            "trace_flags": 0,
+            "turn_id": "c621ca02-e2e0-46a0-93f0-b8b180c51217",
+            "user_id": "2765b5cc-ab09-4573-9f3b-3740fdd19019"
+          },
+          "Tier": "embedding",
+          "Timeout": 0
+        }
+      },
+      "output": {
+        "Usage": {
+          "attempts": 0,
+          "cached_tokens": 0,
+          "cost_micro_usd": 0,
+          "finish_reason": "",
+          "in_tokens": 4,
+          "latency": 0,
+          "model": "",
+          "out_tokens": 0,
+          "provider": ""
+        },
+        "Vector": [
+          1,
+          0,
+          0
+        ]
+      },
+      "artifacts": [],
+      "provider_usage": [
+        {
+          "provider": "p",
+          "model": "embedding",
+          "input_tokens": 4,
+          "output_tokens": 0,
+          "cached_tokens": 0,
+          "estimated_cost_micro_usd": 1,
+          "latency_ns": 1999
+        }
+      ],
+      "estimates": [
+        {
+          "source": "embedding_input",
+          "tokens": 7,
+          "method": "ceil_unicode_codepoints_div_3; excludes provider framing; not a tokenizer",
+          "bytes": 19
+        }
+      ]
+    },
+    {
+      "id": "n000009",
+      "operation": "provider.Stream",
+      "parent_id": "n000001",
+      "sequence": 9,
+      "started_at": "2026-11-18T17:44:31.487321098Z",
+      "ended_at": "2026-11-18T17:44:31.490447437Z",
+      "duration_ns": 3126426,
+      "status": "success",
+      "input": {
+        "model": {
+          "cached_micro_usd_per_m": 500000,
+          "input_micro_usd_per_m": 2000000,
+          "model": "strong-primary",
+          "native_json_schema": false,
+          "output_micro_usd_per_m": 4000000,
+          "provider": "p"
+        },
+        "request": {
+          "FirstToken": 3000000000,
+          "MaxTokens": 100,
+          "Messages": null,
+          "Meta": {
+            "bundle": {
+              "prompt_shas": null,
+              "version": ""
+            },
+            "route": "",
+            "trace_flags": 0,
+            "turn_id": "c621ca02-e2e0-46a0-93f0-b8b180c51217",
+            "user_id": "2765b5cc-ab09-4573-9f3b-3740fdd19019"
+          },
+          "Stop": null,
+          "System": null,
+          "Temperature": 0.7,
+          "Tier": "strong",
+          "Timeout": 0
+        }
+      },
+      "output": {
+        "eof": true
+      },
+      "artifacts": [
+        {
+          "name": "chunk",
+          "kind": "stream_chunk",
+          "value": {
+            "at": "2026-11-18T17:44:31.49031958Z",
+            "chunk": {
+              "FinishReason": "",
+              "Text": "unredacted synthetic streamed answer",
+              "Usage": null
+            }
+          },
+          "sha256": "51afba5bc499adca3dfe95a01c14c4e807b7c8cc9caad1e1aa66ca3f74f17d3b",
+          "source": "provider"
+        },
+        {
+          "name": "chunk",
+          "kind": "stream_chunk",
+          "value": {
+            "at": "2026-11-18T17:44:31.490366614Z",
+            "chunk": {
+              "FinishReason": "stop",
+              "Text": "",
+              "Usage": null
+            }
+          },
+          "sha256": "2fdf73a1ef533c4719295d8f7c03eb29a339449a7cf6b27c903b4c91a0c49ee3",
+          "source": "provider"
+        },
+        {
+          "name": "chunk",
+          "kind": "stream_chunk",
+          "value": {
+            "at": "2026-11-18T17:44:31.490386768Z",
+            "chunk": {
+              "FinishReason": "",
+              "Text": "",
+              "Usage": {
+                "attempts": 0,
+                "cached_tokens": 0,
+                "cost_micro_usd": 0,
+                "finish_reason": "",
+                "in_tokens": 20,
+                "latency": 0,
+                "model": "",
+                "out_tokens": 5,
+                "provider": ""
+              }
+            }
+          },
+          "sha256": "f6194f4a9c77245fc062e4ad9937e0423a827b9ccc3dae2717c5ef4109b27fbd",
+          "source": "provider"
+        },
+        {
+          "name": "chunk",
+          "kind": "stream_chunk",
+          "value": {
+            "at": "2026-11-18T17:44:31.490428851Z",
+            "chunk": {
+              "FinishReason": "",
+              "Text": "",
+              "Usage": null
+            }
+          },
+          "sha256": "b58760a9a042397e38610bb253d193c7c6c34229df26f729d9d9f98dcf5a9433",
+          "source": "provider"
+        }
+      ],
+      "provider_usage": [
+        {
+          "provider": "p",
+          "model": "strong-primary",
+          "input_tokens": 20,
+          "output_tokens": 5,
+          "cached_tokens": 0,
+          "estimated_cost_micro_usd": 60,
+          "latency_ns": 108607
+        }
+      ],
+      "estimates": []
+    },
+    {
+      "id": "n000010",
+      "operation": "memory.RunOnce",
+      "parent_id": "n000001",
+      "sequence": 10,
+      "started_at": "2026-11-18T17:44:33Z",
+      "ended_at": "2026-11-18T17:44:34Z",
+      "duration_ns": 1000000000,
+      "status": "success",
+      "input": {
+        "kind": "memory",
+        "turn_id": "c621ca02-e2e0-46a0-93f0-b8b180c51217",
+        "job_id": "f62d037a-edcf-4c6a-8a6b-ab065666ed74",
+        "attempt": 1
+      },
+      "output": {
+        "worked": true
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000011",
+      "operation": "reflection.RunOnce",
+      "parent_id": "n000001",
+      "sequence": 11,
+      "started_at": "2026-11-18T17:44:35Z",
+      "ended_at": "2026-11-18T17:44:36Z",
+      "duration_ns": 1000000000,
+      "status": "success",
+      "input": {
+        "kind": "reflection",
+        "turn_id": "c621ca02-e2e0-46a0-93f0-b8b180c51217",
+        "job_id": "d9f561e8-62c7-4a19-b7d6-5493bb2589ba",
+        "attempt": 2
+      },
+      "output": {
+        "worked": true
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    }
+  ],
+  "edges": [
+    {
+      "from": "n000001",
+      "to": "n000002",
+      "kind": "execution"
+    },
+    {
+      "from": "n000002",
+      "to": "n000003",
+      "kind": "execution"
+    },
+    {
+      "from": "n000002",
+      "to": "n000004",
+      "kind": "execution"
+    },
+    {
+      "from": "n000002",
+      "to": "n000004",
+      "kind": "data",
+      "from_path": "/artifacts/0/value/model",
+      "to_path": "/input/model",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000002",
+      "to": "n000004",
+      "kind": "data",
+      "from_path": "/artifacts/0/value/model/model",
+      "to_path": "/input/model/model",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000002",
+      "to": "n000005",
+      "kind": "execution"
+    },
+    {
+      "from": "n000002",
+      "to": "n000006",
+      "kind": "execution"
+    },
+    {
+      "from": "n000002",
+      "to": "n000006",
+      "kind": "data",
+      "from_path": "/artifacts/3/value/model",
+      "to_path": "/input/model",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000002",
+      "to": "n000006",
+      "kind": "data",
+      "from_path": "/artifacts/3/value/model/model",
+      "to_path": "/input/model/model",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000005",
+      "to": "n000006",
+      "kind": "data",
+      "from_path": "/output/json",
+      "to_path": "/input/request/Messages/1/Content",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000001",
+      "to": "n000007",
+      "kind": "execution"
+    },
+    {
+      "from": "n000007",
+      "to": "n000008",
+      "kind": "execution"
+    },
+    {
+      "from": "n000001",
+      "to": "n000009",
+      "kind": "execution"
+    },
+    {
+      "from": "n000001",
+      "to": "n000010",
+      "kind": "execution"
+    },
+    {
+      "from": "n000001",
+      "to": "n000011",
+      "kind": "execution"
+    }
+  ],
+  "totals": {
+    "estimated_input_tokens": 93,
+    "provider_calls": 6,
+    "reported_calls": 4,
+    "unknown_usage_calls": 2,
+    "actual_input_tokens": 39,
+    "actual_output_tokens": 10,
+    "actual_cached_tokens": 0,
+    "estimated_cost_micro_usd": 111,
+    "by_stage": {
+      "orchestrator.ProcessTurn": {
+        "estimated_input_tokens": 93,
+        "calls": 6,
+        "actual_input_tokens": 39,
+        "actual_output_tokens": 10,
+        "actual_cached_tokens": 0,
+        "estimated_cost_micro_usd": 111
+      }
+    }
+  },
+  "diagnostics": []
+}
