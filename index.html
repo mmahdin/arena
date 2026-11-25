@@ -123,6 +123,32 @@ tr.go{cursor:pointer}tr.go:hover td{background:#7c9cff14}
  #insp{width:auto;position:absolute;left:0;right:0;bottom:0;height:56%;max-width:none;border-left:0;border-top:1px solid var(--bd);z-index:5;box-shadow:0 -8px 30px #000a}
  #hint{display:none}header{gap:6px;padding:6px 8px}#find{width:120px}
 }
+
+/* ===== jobs / embeddings / job graph ===== */
+.stats.s5{grid-template-columns:repeat(auto-fit,minmax(82px,1fr))}.stats.s5 .stat{padding:6px 8px}.stats.s5 .sv{font-size:17px}
+.sb{display:flex;height:8px;border-radius:99px;overflow:hidden;background:#0f131c;margin:2px 0 8px}.sb i{display:block;background:var(--c)}
+.lg{display:flex;gap:10px;flex-wrap:wrap;color:var(--mu);font-size:11px;margin-bottom:8px}.lg b{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c);margin-right:4px}
+.stat.go{cursor:pointer}.stat.go:hover{border-color:var(--ac)}
+.jc{border:1px solid var(--bd);border-left:4px solid var(--c,#667);border-radius:10px;background:var(--p2);margin:6px 0}
+.jc>.jh{display:grid;grid-template-columns:1fr auto;gap:1px 10px;padding:7px 10px;cursor:pointer;align-items:center}
+.jc>.jh:hover{background:#7c9cff10}.jc.open>.jh{border-bottom:1px solid var(--bd)}
+.jc .jb{padding:8px 10px 10px}.jc .jb h5{margin:10px 0 4px;color:var(--mu);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em}.jc .jb h5:first-child{margin-top:0}
+.dots i{display:inline-block;width:8px;height:8px;border-radius:50%;border:1px solid var(--mu);margin-left:3px;vertical-align:-1px}.dots i.u{background:var(--c);border-color:var(--c)}
+.mk{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--tx);opacity:.7}
+.lane{position:relative;height:14px;background:#0f131c;border-radius:4px;margin:3px 0}.lane .wb{top:2px;bottom:2px}
+.fl2{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.fl2 button{font-size:11px;padding:2px 9px}
+.hl{background:#7c9cff14;border-radius:6px;padding:6px 8px;margin:6px 0;font-size:12px}
+#jview{display:none;flex:1;position:relative;overflow:hidden;cursor:grab;background:radial-gradient(circle at 1px 1px,#222b3d 1px,transparent 0) 0 0/24px 24px;touch-action:none}
+body.jm #jview{display:block}body.jm #view{display:none}body.jm #flow,body.jm #expg,body.jm #find,body.jm #fc{display:none}
+#jview.pan{cursor:grabbing}#jview *{-webkit-user-select:none;user-select:none}
+#jworld{position:absolute;left:0;top:0;transform-origin:0 0}#jsvg{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible}
+.jn{position:absolute;width:210px;height:62px;padding:7px 10px;background:var(--pn);border:1px solid var(--bd);border-left:4px solid var(--c,#667);border-radius:10px;box-shadow:0 2px 10px #0006;cursor:pointer;transition:opacity .15s}
+.jn.ghost{border-style:dashed;border-left-style:solid;opacity:.8}.jn.sel{box-shadow:0 0 0 2px var(--ac),0 6px 24px #0008}.jn.dim{opacity:.28}
+.jn.cm{border-left-color:#b388ff;background:#1a1730}.jn b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jn small{display:block;color:var(--mu);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.je{fill:none;stroke:#3a4660;stroke-width:1.6}.je.org{stroke:#b388ff;stroke-width:2.2}.je.reu{stroke:#5ec2ff;stroke-width:2.2;stroke-dasharray:6 4}.je.dim{opacity:.15}
+#jleg{position:absolute;right:12px;bottom:10px;color:var(--mu);font-size:11px;pointer-events:none;text-align:right}
+#jzc{position:absolute;left:12px;bottom:12px;display:flex;gap:6px;align-items:center;z-index:3}
 </style>
 </head>
 <body>
@@ -135,12 +161,13 @@ tr.go{cursor:pointer}tr.go:hover td{background:#7c9cff14}
   <input id="find" type="search" placeholder="Filter by name… ( / )" aria-label="Show only operations whose name contains this text" title="Show only operations whose name contains this text. Enter / N = next match, Esc = clear" autocomplete="off">
   <span id="fc" class="mu" aria-live="polite"></span>
   <span class="sp"></span>
+  <div class="seg" id="vsw" role="group" aria-label="Graph view"><button data-v="t" class="on" title="Operation tree of this trace">Operations</button><button data-v="j" title="Background-job execution graph (J)">Jobs graph</button></div>
   <div class="seg" id="flow" role="group" aria-label="Data flow edges">
     <button data-m="key" class="on" title="Explicit instrumented bindings only">Key transfers</button>
     <button data-m="sel" title="All data edges touching the selection">Selected</button>
     <button data-m="all" title="Every data edge, including value matches">All</button>
   </div>
-  <div class="seg" role="group" aria-label="Tree expansion">
+  <div class="seg" id="expg" role="group" aria-label="Tree expansion">
     <button id="expAll" title="Expand every operation (E)">Expand all</button>
     <button id="colAll" title="Collapse everything down to the root operation(s) (C)">Collapse all</button>
     <button id="prob" title="Expand only the paths that lead to errors or degraded operations (P)">Problems</button>
@@ -156,6 +183,9 @@ tr.go{cursor:pointer}tr.go:hover td{background:#7c9cff14}
     <div id="zc"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="fit">Fit</button><span id="zp"></span></div>
     <div id="hint">Click ▸ to expand · Shift-click ▾ collapses a subtree · Alt-click ▸ expands one · Scroll to zoom · Drag to pan · Arrow keys navigate</div>
   </div>
+  <div id="jview" hidden><div id="jworld"><svg id="jsvg"></svg><div id="jnodes"></div></div>
+    <div id="jzc"><button id="jzi" aria-label="Zoom in">+</button><button id="jzo" aria-label="Zoom out">−</button><button id="jfit">Fit</button></div>
+    <div id="jleg">Click a node for details · drag to pan · scroll to zoom<br>solid purple: computed for · dashed blue: reused existing computation</div></div>
   <aside id="insp" aria-label="Inspector"><div id="ih"></div><div id="tabs" role="tablist"></div><div id="ib"></div></aside>
 </main>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -281,7 +311,7 @@ function closeTrace() {
   if (!cur) return;
   TR = TR.filter(x => x !== cur);
   if (TR.length) { fillSel(TR[TR.length - 1]); show(TR[TR.length - 1]); return; }
-  cur = null; fillSel(); document.body.classList.remove('has', 'ip');
+  cur = null; jmode = false; document.body.classList.remove('jm'); $('#jview').hidden = true; fillSel(); document.body.classList.remove('has', 'ip');
   $('#empty').hidden = false; $('#nodes').innerHTML = ''; $('#svg').innerHTML = ''; $('#metaBar').innerHTML = ''; $('#zp').textContent = ''; $('#fc').textContent = '';
   $('#find').value = ''; $('#nomatch').hidden = true; for (const x of ['#expAll', '#colAll', '#prob']) $(x).disabled = false; insp();
 }
@@ -430,6 +460,7 @@ function show(c) {
   cur = c; $('#empty').hidden = true; document.body.classList.add('has'); $('#sel').value = TR.indexOf(c);
   $('#find').value = c.q; setHits(c.q, false);
   setPanel(ipOpen); draw(); fit(); meta(); insp();
+  const hasJ = jobsModel(c).length > 0; $('#vsw [data-v=j]').disabled = !hasJ; $('#vsw').hidden = !hasJ; setJ(jmode && hasJ);
 }
 function meta() {
   const c = cur, t = c.t, u = t.totals || {}, r = c.roots[0], bar = $('#metaBar');
@@ -516,7 +547,7 @@ function edges() {
 }
 function apply() { const v = cur.v; $('#world').style.transform = `translate(${v.x}px,${v.y}px) scale(${v.k})`; $('#zp').textContent = Math.round(v.k * 100) + '%'; }
 function fit() {
-  const c = cur; if (!c) return; const r = $('#view').getBoundingClientRect();
+  const c = cur; if (!c) return; if (jmode) return jfit(); const r = $('#view').getBoundingClientRect();
   let w = 1, h = 1; c.vis.forEach(o => { w = Math.max(w, o.x + W); h = Math.max(h, o.y + H); });
   const k = Math.max(.12, Math.min(1, (r.width - 60) / w, (r.height - 60) / h));
   c.v = { k, x: Math.max(20, (r.width - w * k) / 2), y: Math.max(20, (r.height - h * k) / 2) }; apply();
@@ -566,6 +597,185 @@ function setPanel(open) {
   ipOpen = open; document.body.classList.toggle('ip', open && !!cur);
   $('#info').setAttribute('aria-pressed', String(open && !!cur && !cur.sel));
 }
+
+
+// ---------- background jobs & shared embeddings (model)
+const jcls = s => /complet|success|done/i.test(s) ? 'success' : /fail|dead|error/i.test(s) ? 'error' : /run|lease|progress/i.test(s) ? 'running' : /cancel/i.test(s) ? 'cancelled' : 'skipped';
+const bdg = (s, k) => `<span class="bd st-${k || jcls(s)}">${esc(s)}</span>`;
+const rel = s => { const a = tms(s), b = tms(cur.t.started_at); return a === null || b === null ? '' : '+' + fd((a - b) * 1e6); };
+const stk = s => KNOWN.has(s) ? s : 'unknown';
+const sumUsage = list => list.reduce((a, o) => { const u = usageOf(o); if (u) { a.cost += u.cost || 0; a.inT += u.inT; a.outT += u.outT; a.n++; } return a; }, { cost: 0, inT: 0, outT: 0, n: 0 });
+const billable = list => { const b = list.filter(o => /^provider\./.test(o.n.operation) || o.n.provider_usage.length); return b.length ? b : list.slice(0, 1); };
+/** Merge the durable queue snapshot (t.jobs) with worker attempts found in the node tree. */
+function jobsModel(c) {
+  if (c._jm) return c._jm;
+  const J = new Map();
+  (Array.isArray(c.t.jobs) ? c.t.jobs : []).filter(isObj).forEach(j => J.set(String(j.id), { j, id: String(j.id), kind: j.kind || 'job', status: String(j.status || 'unknown'), att: [] }));
+  workerAttempts(c).forEach(o => {
+    const id = String(o.n.input.job_id ?? o.n.id); let x = J.get(id);
+    if (!x) J.set(id, x = { j: {}, id, kind: o.n.input.kind || sn(o.n.operation), status: o.n.status === 'success' ? 'completed' : o.n.status, att: [] });
+    x.att.push(o);
+  });
+  J.forEach(x => {
+    x.att.sort((a, b) => (num(a.n.input.attempt) ?? 0) - (num(b.n.input.attempt) ?? 0));
+    x.desc = []; x.att.forEach(a => { const w = q => q.kids.forEach(k => { x.desc.push(k); w(k); }); w(a); });
+    x.dur = x.att.reduce((s, a) => s + (num(a.n.duration_ns) || 0), 0);
+    x.llm = billable(x.desc.filter(isLLMNode)); x.emb = x.desc.filter(o => o.n.operation === 'embedding.Embed' && isObj(o.n.embedding));
+    x.use = sumUsage(x.llm); x.max = num(x.j.max_attempts); x.tries = num(x.j.attempts) ?? x.att.length; x.k = jcls(x.status);
+    x.t0 = x.att.length ? tms(x.att[0].n.started_at) : null;
+  });
+  return c._jm = [...J.values()].sort((a, b) => (tms(a.j.created_at) ?? tms(a.att[0] && a.att[0].n.started_at) ?? 0) - (tms(b.j.created_at) ?? tms(b.att[0] && b.att[0].n.started_at) ?? 0));
+}
+/** Group embedding events by shared computation: who computed, who reused, at what cost. */
+function embModel(c) {
+  if (c._em) return c._em;
+  const G = new Map(), att = new Map(); jobsModel(c).forEach(x => x.att.forEach(a => att.set(a, x)));
+  c.N.forEach(o => { const e = o.n.embedding; if (!isObj(e) || !e.computation_id) return; const id = String(e.computation_id); (G.get(id) || G.set(id, { id, ev: [], cons: [] }).get(id)).ev.push(o); });
+  G.forEach(g => {
+    g.e = g.ev[0].n.embedding; g.compute = g.ev.find(o => o.n.operation === 'embedding.compute');
+    g.cons = g.ev.filter(o => o.n.operation === 'embedding.Embed').sort((a, b) => a.n.sequence - b.n.sequence).map(o => {
+      let q = o, job = null; for (; q && !job; q = q.p) if (att.has(q)) job = att.get(q);
+      const e = o.n.embedding, how = e.cache_outcome === 'hit' ? 'hit' : e.cache_outcome === 'inflight' ? 'join' : 'origin';
+      return { o, e, job, how, who: e.consumer || (job ? job.kind : 'turn') };
+    });
+    const calls = g.compute ? billable((() => { const r = []; const w = q => q.kids.forEach(k => { if (isLLMNode(k)) r.push(k); w(k); }); w(g.compute); return r; })()) : [];
+    g.use = sumUsage(calls); g.known = !!g.compute && g.use.n > 0;
+    g.reuse = g.cons.filter(k => k.how !== 'origin').length; g.attempts = num(g.compute && g.compute.n.embedding.provider_attempts) ?? num(g.e.provider_attempts);
+    g.saved = g.known ? g.reuse * g.use.cost : null; g.status = g.compute ? g.compute.n.status : (g.cons.some(k => k.how === 'hit') ? 'success' : 'unknown');
+    g.model = [g.e.provider, g.e.model].filter(Boolean).join(' / ') + (g.e.dimensions ? ' · ' + g.e.dimensions + 'd' : '');
+  });
+  return c._em = [...G.values()].sort((a, b) => a.ev[0].n.sequence - b.ev[0].n.sequence);
+}
+const tile = (v, l, s, go) => `<div class="stat${go ? ' go' : ''}" ${go ? `data-stab="${go}"` : ''}><span class="sv">${v}</span><span class="sl">${l}</span>${s ? `<span class="ss">${s}</span>` : ''}</div>`;
+const sbar = parts => { const t = parts.reduce((a, [n]) => a + n, 0) || 1; return `<div class="sb">${parts.filter(p => p[0]).map(([n, k, l]) => `<i class="st-${k}" style="width:${n / t * 100}%" title="${n} ${esc(l)}"></i>`).join('')}</div><div class="lg">${parts.filter(p => p[0]).map(([n, k, l]) => `<span class="st-${k}"><b></b>${n} ${esc(l)}</span>`).join('')}</div>`; };
+function bgTeaser(c) {
+  const J = jobsModel(c), E = embModel(c); let h = '';
+  if (J.length) { const d = J.filter(x => x.k === 'success').length, f = J.filter(x => x.k === 'error').length;
+    h += `<h4>Background</h4><div class="hl"><a class="ch" data-stab="jobs"><b>${plural(J.length, 'job')}</b></a> · ${d} done${J.length - d - f ? ' · ' + (J.length - d - f) + ' waiting/running' : ''}${f ? ' · <span style="color:var(--er)">' + f + ' failed</span>' : ''} — <a class="ch" data-jg>open job graph</a></div>`; }
+  if (E.length) { const cons = E.reduce((a, g) => a + g.cons.length, 0), re = E.reduce((a, g) => a + g.reuse, 0);
+    h += `${J.length ? '' : '<h4>Background</h4>'}<div class="hl"><a class="ch" data-stab="emb"><b>${plural(E.length, 'shared embedding')}</b></a> · ${plural(cons, 'consumer')}, ${re} served by reuse</div>`; }
+  return h;
+}
+function jobsTab() {
+  const c = cur, J = jobsModel(c); if (!J.length) return '<p class="mu">This trace contains no background jobs.</p>';
+  const cnt = k => J.filter(x => x.k === k).length, tries = J.reduce((a, x) => a + x.tries, 0), budget = J.reduce((a, x) => a + (x.max || 0), 0);
+  const retries = J.reduce((a, x) => a + Math.max(0, x.tries - 1), 0), time = J.reduce((a, x) => a + x.dur, 0), cost = J.reduce((a, x) => a + x.use.cost, 0), tok = J.reduce((a, x) => a + x.use.inT + x.use.outT, 0);
+  let h = `<div class="stats s5">${tile(J.length, 'jobs', plural(new Set(J.map(x => x.kind)).size, 'kind'))}${tile(cnt('success'), 'completed', cnt('skipped') ? cnt('skipped') + ' waiting' : '')}${tile(tries + (budget ? '/' + budget : ''), 'attempts used', retries ? retries + ' retried' : 'no retries')}${tile(tries ? fd(time) : '—', 'worker time', 'sum of attempts')}${tile(cost ? usd(cost) : '—', 'job cost', tok ? tok + ' tokens' : 'no provider usage')}</div>`;
+  h += sbar([[cnt('success'), 'success', 'completed'], [cnt('running'), 'running', 'running'], [cnt('skipped'), 'skipped', 'queued'], [cnt('cancelled'), 'cancelled', 'cancelled'], [cnt('error'), 'error', 'failed']]);
+  const kinds = [...new Set(J.map(x => x.kind))];
+  if (kinds.length > 1) h += '<table><tr><th>Kind</th><th>Jobs</th><th>Done</th><th>Attempts</th><th>Time</th><th>Cost</th></tr>' + kinds.map(k => { const q = J.filter(x => x.kind === k); return `<tr><td>${esc(k)}</td><td>${q.length}</td><td>${q.filter(x => x.k === 'success').length}</td><td>${q.reduce((a, x) => a + x.tries, 0)}</td><td>${q.some(x => x.att.length) ? fd(q.reduce((a, x) => a + x.dur, 0)) : '—'}</td><td>${q.some(x => x.use.n) ? usd(q.reduce((a, x) => a + x.use.cost, 0)) : '—'}</td></tr>`; }).join('') + '</table>';
+  h += `<div class="fl2"><button data-jg>Open job graph</button></div><h4>Jobs — click to expand</h4>` + J.map(x => jobCard(c, x)).join('');
+  if (c.t.background_status) h += `<p class="mu">Saved checkpoint — background is “${esc(c.t.background_status)}”. Re-import the file later to see further attempts.</p>`;
+  return h;
+}
+function jobCard(c, x) {
+  const open = c.jopen === x.id, tr = tms(c.t.response_ended_at), ra = tms(x.j.run_after), cr = tms(x.j.created_at), M = x.max || Math.max(x.tries, 1);
+  const dots = '<span class="dots">' + Array.from({ length: Math.min(M, 12) }, (_, i) => `<i class="${i < x.tries ? 'u' : ''}"></i>`).join('') + `</span> <span class="mu">${x.tries}${x.max ? '/' + x.max : ''}</span>`;
+  let h = `<div class="jc st-${x.k}${open ? ' open' : ''}" data-jid="${esc(x.id)}"><div class="jh" data-act="jtog" data-id="${esc(x.id)}"><span><b>${esc(x.kind)}</b> ${bdg(x.status)}</span><span>${dots}</span><span class="mu">${esc(x.id.slice(0, 8))} · ${x.att.length ? fd(x.dur) : 'not started'}${x.emb.length ? ' · ' + plural(x.emb.length, 'embedding') : ''}${x.llm.length ? ' · ' + plural(x.llm.length, 'LLM call') : ''}</span><span class="mu">${x.j.last_error_code ? '<span style="color:var(--er)">' + esc(x.j.last_error_code) + '</span>' : ''}</span></div>`;
+  if (!open) return h + '</div>';
+  h += '<div class="jb"><h5>Lifecycle</h5>';
+  const ts = [cr, ra, ...x.att.flatMap(a => [tms(a.n.started_at), tms(a.n.ended_at)]), tr].filter(v => v !== null), lo = Math.min(...ts), span = Math.max(1e-6, Math.max(...ts) - lo), pc = v => ((v - lo) / span * 100).toFixed(2);
+  h += `<div class="lane" title="created → run-after → attempts"><span class="mk" style="left:${pc(tr ?? lo)}%" title="response finished"></span>${cr !== null && ra !== null && ra > cr ? `<span class="wb st-skipped" style="left:${pc(cr)}%;width:${(ra - cr) / span * 100}%;opacity:.5" title="delayed by run_after"></span>` : ''}${x.att.map(a => { const s0 = tms(a.n.started_at), e0 = tms(a.n.ended_at) ?? s0; return s0 === null ? '' : `<span class="wb st-${stk(a.n.status)}" style="left:${pc(s0)}%;width:${Math.max(.8, (e0 - s0) / span * 100)}%" title="Attempt ${esc(a.n.input.attempt ?? '?')} · ${fd(a.n.duration_ns)}"></span>`; }).join('')}</div>`;
+  h += `<div class="mu">span ${fd(span * 1e6)} · white marker = response finished${tr !== null && ra !== null ? ` · eligible ${ra >= tr ? fd((ra - tr) * 1e6) + ' after' : fd((tr - ra) * 1e6) + ' before'} the response ended` : ''}</div>`;
+  h += '<h5>Attempts</h5>';
+  h += x.att.length ? x.att.map(a => { const n = a.n; return `<div class="att" style="cursor:pointer" data-go="${esc(n.id)}"><span>#${esc(n.input.attempt ?? '?')}</span>${bdg(n.status, stk(n.status))}<span>${fd(n.duration_ns)} <span class="mu">${rel(n.started_at)}</span></span>${n.error ? `<span style="color:var(--er)">${esc(errLine(n.error))}</span>` : ''}</div>`; }).join('') : `<div class="mu">No worker has picked this up yet${ra !== null ? ' — it becomes eligible ' + (tr !== null ? (ra >= tr ? fd((ra - tr) * 1e6) + ' after the response finished' : 'at +' + fd((ra - tms(c.t.started_at)) * 1e6)) : rel(x.j.run_after)) : ''}.</div>`;
+  if (x.j.last_error_code || x.j.last_error) h += `<div class="alert er" style="margin-top:6px"><b>Last error</b>${esc(x.j.last_error_code || '')} ${esc(typeof x.j.last_error === 'string' ? x.j.last_error : '')}</div>`;
+  if (x.emb.length || x.llm.length) {
+    h += '<h5>What it did</h5>';
+    x.emb.forEach(o => { const e = o.n.embedding, g = embModel(c).find(g => g.id === String(e.computation_id)); h += `<div class="att" style="cursor:pointer" data-go="${esc(o.n.id)}"><span>embedding</span><span>${e.cache_outcome === 'miss' ? 'computed' : e.cache_outcome === 'hit' ? 'cache hit' : 'joined in-flight work'}${g ? ` · <a class="ch" data-stab="emb" data-eid="${esc(g.id)}">${esc(g.id.slice(0, 8))}</a>` : ''}${e.wait_duration_ns ? ' · waited ' + fd(e.wait_duration_ns) : ''}</span></div>`; });
+    x.llm.forEach(o => { const u = usageOf(o); h += `<div class="att" style="cursor:pointer" data-go="${esc(o.n.id)}" data-tabto="llm"><span>LLM</span><span>${esc(sn(o.n.operation))} · ${esc(modelName(o) || '—')} · ${u ? u.inT + '→' + u.outT + ' tok · ' + usd(u.cost) : 'usage unknown'}</span></div>`; });
+  }
+  if (isObj(x.j.payload) && Object.keys(x.j.payload).length) h += `<details><summary>Payload</summary><div>${V(x.j.payload, '/jobs/payload')}</div></details>`;
+  return h + `<div class="fl2"><button data-jg="${esc(x.id)}">Show in job graph</button>${x.att[0] ? `<button data-go="${esc(x.att[0].n.id)}">Open worker operation</button>` : ''}</div></div></div>`;
+}
+function embTab() {
+  const c = cur, E = embModel(c); if (!E.length) return '<p class="mu">This trace has no shared embedding activity.</p>';
+  const cons = E.reduce((a, g) => a + g.cons.length, 0), re = E.reduce((a, g) => a + g.reuse, 0), spent = E.reduce((a, g) => a + g.use.cost, 0), saved = E.reduce((a, g) => a + (g.saved || 0), 0), calls = E.reduce((a, g) => a + (g.compute ? (g.attempts || 1) : 0), 0);
+  let h = `<div class="stats s5">${tile(E.length, 'computations', plural(calls, 'provider call'))}${tile(cons, 'consumers', 'requests for a vector')}${tile(cons ? Math.round(re / cons * 100) + '%' : '—', 'served by reuse', re + ' of ' + cons)}${tile(usd(spent), 'spent', 'provider cost')}${tile(E.some(g => g.known) ? usd(saved) : '—', 'saved', 'avoided duplicate calls')}</div>`;
+  h += `<p class="mu">One computation is shared by every consumer that asks for the same text and model. The first one pays; the rest join in-flight work or hit the cache for free.</p><h4>Computations — click to expand</h4>`;
+  return h + E.map(g => embCard(c, g)).join('');
+}
+function embCard(c, g) {
+  const open = c.eopen === g.id, org = g.cons.find(k => k.how === 'origin'), j = g.cons.filter(k => k.how !== 'origin');
+  let h = `<div class="jc st-${stk(g.status)}${open ? ' open' : ''}"><div class="jh" data-act="etog" data-id="${esc(g.id)}"><span><b>${esc(g.id.slice(0, 8))}</b> ${bdg(g.status, stk(g.status))} <span class="mu">${esc(g.model)}</span></span><span>${g.known ? usd(g.use.cost) : '<span class="mu">cost n/a</span>'}</span><span class="mu">${g.compute ? 'computed for ' + esc(org ? org.who : '?') : 'reused from another trace'} · ${j.length ? 'reused by ' + esc([...new Set(j.map(k => k.who))].join(', ')) : 'not reused'}</span><span class="mu">${g.known && g.saved ? 'saved ' + usd(g.saved) : ''}</span></div>`;
+  if (!open) return h + '</div>';
+  const spans = g.ev.map(o => [tms(o.n.started_at), tms(o.n.ended_at) ?? tms(o.n.started_at)]).filter(x => x[0] !== null), lo = Math.min(...spans.map(x => x[0])), span = Math.max(1e-6, Math.max(...spans.map(x => x[1])) - lo);
+  const row = (o, lab, k) => { const s0 = tms(o.n.started_at), e0 = tms(o.n.ended_at) ?? s0; return `<div class="wr" data-go="${esc(o.n.id)}"><span class="wn1" title="${esc(lab)}">${esc(lab)}</span><span class="wt"><span class="wb st-${stk(o.n.status)}" style="left:${((s0 - lo) / span * 100).toFixed(2)}%;width:${Math.max(1, (e0 - s0) / span * 100).toFixed(2)}%;${k === 'join' ? 'opacity:.6' : ''}"></span></span></div>`; };
+  h += '<div class="jb"><h5>Who did the work</h5>';
+  const nar = [];
+  if (g.compute) nar.push(`Computed once${org ? ' for <b>' + esc(org.who) + '</b>' : ''} in ${fd(g.compute.n.embedding.compute_duration_ns ?? g.compute.n.duration_ns)}${g.known ? ` (${g.use.inT} tokens, ${usd(g.use.cost)})` : ''}${g.attempts > 1 ? `, after ${g.attempts} provider attempts` : ''}.`);
+  g.cons.forEach(k => { const w = k.e.wait_duration_ns; if (k.o.n.status === 'cancelled') nar.push(`<b>${esc(k.who)}</b> stopped waiting after ${fd(w)} (${esc(k.e.reason || 'cancelled')}) — the computation kept running for others.`); else if (k.how === 'join') nar.push(`<b>${esc(k.who)}</b> joined the in-flight computation and waited ${fd(w)}.`); else if (k.how === 'hit') nar.push(`<b>${esc(k.who)}</b> got a cache hit.`); });
+  if (g.known && g.saved) nar.push(`Reuse avoided ${plural(g.reuse, 'duplicate call')} ≈ ${usd(g.saved)}.`);
+  h += `<ul class="il">${nar.map(x => `<li class="in">${x}</li>`).join('')}</ul><h5>Timeline</h5><div class="wf">${g.cons.map(k => row(k.o, k.who + ' · ' + (k.how === 'origin' ? 'requested' : k.how === 'join' ? 'joined' : 'cache hit'), k.how)).join('')}${g.compute ? row(g.compute, 'provider compute', 'c') : ''}</div>`;
+  h += `<h5>Identity</h5><div class="trw">${kvr('Computation', `<code>${esc(g.id)}</code>`)}${kvr('Input hash', `<code>${esc((g.e.input_hash || '').slice(0, 16))}…</code>`)}${g.e.origin_turn_id ? kvr('Origin turn', `<code>${esc(g.e.origin_turn_id)}</code>`) : ''}</div>`;
+  const ob = g.e.origin_trace_id && g.e.origin_trace_id !== c.t.trace_id; if (ob) h += '<p class="mu">Computed in another trace — its cost is not part of this file.</p>';
+  return h + `<div class="fl2">${g.compute ? `<button data-go="${esc(g.compute.n.id)}">Open compute operation</button>` : ''}${jobsModel(c).length ? '<button data-jg>Show in job graph</button>' : ''}</div></div></div>`;
+}
+
+// ---------- background job execution graph (separate pan/zoom canvas)
+let jmode = false; const JW = 210, JH = 62, JGX = 56, JLANE = 86;
+function setJ(on) {
+  jmode = on && !!cur && jobsModel(cur).length > 0; document.body.classList.toggle('jm', jmode); $('#jview').hidden = !jmode;
+  $$('#vsw button').forEach(b => b.classList.toggle('on', (b.dataset.v === 'j') === jmode));
+  if (jmode) { jdraw(); jfit(); }
+}
+function jdraw() {
+  const c = cur, jobs = jobsModel(c), G = embModel(c), root = c.roots[0], N = [], E = [], att = new Map();
+  jobs.forEach(x => x.att.forEach(a => att.set(a, x)));
+  N.push({ id: 'turn', x: 0, y: Math.max(0, (jobs.length - 1) * JLANE / 2), st: stk(c.t.status), t: c.t.kind === 'turn' ? 'User turn' : esc(c.t.kind || 'Trace'), s: root ? sn(root.n.operation) + ' · ' + fd(root.n.duration_ns) : '', s2: c.t.response_complete ? 'response finished ' + rel(c.t.response_ended_at) : 'response not observed', act: root ? ['node', root.n.id] : null });
+  let maxA = 1;
+  jobs.forEach((x, i) => {
+    const y = i * JLANE, xs = 300; maxA = Math.max(maxA, x.att.length);
+    N.push({ id: 'j' + x.id, x: xs, y, st: x.k, t: x.kind, s: `${x.status} · ${x.tries}${x.max ? '/' + x.max : ''} attempts`, s2: x.j.run_after ? 'eligible ' + rel(x.j.run_after) : '', act: ['job', x.id] });
+    E.push(['turn', 'j' + x.id, 'ex']); let prev = 'j' + x.id;
+    if (!x.att.length) { N.push({ id: 'w' + x.id, x: xs + JW + JGX, y, st: 'skipped', ghost: 1, t: 'Waiting for a worker', s: x.j.run_after ? 'not before ' + rel(x.j.run_after) : 'not started', s2: '', act: ['job', x.id] }); E.push([prev, 'w' + x.id, 'ex']); }
+    x.att.forEach((a, k) => { const id = 'a' + a.n.id; N.push({ id, x: xs + (JW + JGX) * (k + 1), y, st: stk(a.n.status), t: 'Attempt ' + (a.n.input.attempt ?? k + 1), s: `${a.n.status} · ${fd(a.n.duration_ns)}`, s2: 'started ' + rel(a.n.started_at), act: ['node', a.n.id] }); E.push([prev, id, 'ex']); prev = id; });
+  });
+  const cy = jobs.length * JLANE + 24;
+  G.forEach((g, i) => {
+    const id = 'c' + g.id, re = g.cons.filter(k => k.how !== 'origin').length; N.push({ id, cm: 1, x: i * (JW + JGX), y: cy, st: stk(g.status), t: 'Embedding ' + g.id.slice(0, 8), s: `${g.cons.length} consumer${g.cons.length === 1 ? '' : 's'} · ${re} reused`, s2: g.known ? usd(g.use.cost) + (g.saved ? ' · saved ' + usd(g.saved) : '') : 'cost n/a', act: ['emb', g.id] });
+    const seen = new Set();
+    g.cons.forEach(k => { let from = 'turn'; for (let q = k.o; q; q = q.p) if (att.has(q)) { from = 'a' + q.n.id; break; } const kind = k.how === 'origin' ? 'org' : 'reu', key = from + kind; if (!seen.has(key)) { seen.add(key); E.push([from, id, kind]); } });
+  });
+  c._jg = { N, E, w: Math.max(...N.map(n => n.x)) + JW, h: Math.max(...N.map(n => n.y)) + JH };
+  $('#jnodes').innerHTML = N.map(n => `<div class="jn st-${n.st}${n.ghost ? ' ghost' : ''}${n.cm ? ' cm' : ''}" tabindex="0" role="button" data-jn="${esc(n.id)}" style="left:${n.x}px;top:${n.y}px"><b>${esc(n.t)}</b><small>${esc(n.s)}</small><small>${esc(n.s2)}</small></div>`).join('');
+  const by = new Map(N.map(n => [n.id, n]));
+  $('#jsvg').innerHTML = '<defs>' + [['ex', '#3a4660'], ['org', '#b388ff'], ['reu', '#5ec2ff']].map(([k, v]) => `<marker id="j${k}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="${v}"/></marker>`).join('') + '</defs>' + E.map(([a, b, k], i) => {
+    const A = by.get(a), B = by.get(b); if (!A || !B) return '';
+    let d; if (k === 'ex') { const sx = A.x + JW, sy = A.y + JH / 2, ex = B.x, ey = B.y + JH / 2, m = Math.max(30, (ex - sx) / 2); d = `M${sx} ${sy}C${sx + m} ${sy} ${ex - m} ${ey} ${ex} ${ey}`; }
+    else { const sx = A.x + JW / 2 + (k === 'reu' ? 18 : -18), sy = A.y + JH, ex = B.x + JW / 2 + (k === 'reu' ? 18 : -18), ey = B.y, m = Math.max(30, (ey - sy) / 2); d = `M${sx} ${sy}C${sx} ${sy + m} ${ex} ${ey - m} ${ex} ${ey}`; }
+    return `<path class="je ${k}" data-ea="${esc(a)}" data-eb="${esc(b)}" d="${d}" marker-end="url(#j${k})"><title>${k === 'org' ? 'computed for this consumer' : k === 'reu' ? 'reused an existing computation' : 'scheduled'}</title></path>`;
+  }).join('');
+  jpaint();
+}
+function jpaint() {
+  const c = cur, g = c._jg; if (!g) return; const s = c.jsel, adj = new Set([s]), sn0 = g.N.find(n => n.id === s);
+  const walk = (from, fwd) => { for (let ch = true; ch;) { ch = false; g.E.forEach(([a, b, k]) => { const [x, y] = fwd ? [a, b] : [b, a]; if (adj.has(x) && !adj.has(y) && (fwd || k === 'ex' || (sn0 && sn0.cm))) { adj.add(y); ch = true; } }); } };
+  if (s) { walk(s, true); walk(s, false); }
+  $$('#jnodes .jn').forEach(d => { d.classList.toggle('sel', d.dataset.jn === s); d.classList.toggle('dim', !!s && !adj.has(d.dataset.jn)); });
+  $$('#jsvg .je').forEach(p => p.classList.toggle('dim', !!s && !(adj.has(p.dataset.ea) && adj.has(p.dataset.eb))));
+}
+function japply() { const v = cur.jv; $('#jworld').style.transform = `translate(${v.x}px,${v.y}px) scale(${v.k})`; }
+function jfit() {
+  const c = cur, g = c && c._jg; if (!g) return; const r = $('#jview').getBoundingClientRect();
+  const k = Math.max(.15, Math.min(1.2, (r.width - 60) / g.w, (r.height - 60) / g.h)); c.jv = { k, x: Math.max(20, (r.width - g.w * k) / 2), y: Math.max(20, (r.height - g.h * k) / 2) }; japply();
+}
+function jzoom(px, py, f) { const v = cur.jv, k = Math.min(2.5, Math.max(.15, v.k * f)), r = k / v.k; v.x = px - (px - v.x) * r; v.y = py - (py - v.y) * r; v.k = k; japply(); }
+function jact(id) {
+  const c = cur, n = c._jg.N.find(x => x.id === id); if (!n) return; c.jsel = id; jpaint(); const a = n.act; if (!a) return;
+  if (a[0] === 'node') { select(a[1], { reveal: true, open: true, force: true }); }
+  else { c.stab = a[0] === 'job' ? 'jobs' : 'emb'; if (a[0] === 'job') c.jopen = a[1]; else c.eopen = a[1]; select(null); setPanel(true); insp(); const el = $(a[0] === 'job' ? `[data-jid="${CSS.escape(a[1])}"]` : '.jc.open', $('#ib')); if (el) el.scrollIntoView({ block: 'nearest' }); }
+}
+function goJobGraph(jid) { const c = cur; if (!c || !jobsModel(c).length) return toast('No background jobs in this trace'); setJ(true); if (jid) { c.jsel = 'j' + jid; jpaint(); } }
+const JV = $('#jview'); let jdrag = null;
+JV.addEventListener('pointerdown', e => { if (!cur || e.button > 0 || e.target.closest('#jzc')) return; jdrag = { x: e.clientX, y: e.clientY, vx: cur.jv.x, vy: cur.jv.y, m: 0, id: e.pointerId, hit: e.target.closest('.jn') }; });
+JV.addEventListener('pointermove', e => { if (!jdrag || e.pointerId !== jdrag.id) return; const dx = e.clientX - jdrag.x, dy = e.clientY - jdrag.y; if (!jdrag.m && Math.abs(dx) + Math.abs(dy) > 4) { jdrag.m = 1; JV.classList.add('pan'); } if (jdrag.m) { cur.jv.x = jdrag.vx + dx; cur.jv.y = jdrag.vy + dy; japply(); } });
+const jend = e => { const d = jdrag; jdrag = null; JV.classList.remove('pan'); if (!d || d.m || !cur) return; if (d.hit) jact(d.hit.dataset.jn); else if (e.type === 'pointerup') { cur.jsel = null; jpaint(); } };
+JV.addEventListener('pointerup', jend); JV.addEventListener('pointercancel', () => { jdrag = null; JV.classList.remove('pan'); });
+JV.addEventListener('keydown', e => { const d = e.target.closest('.jn'); if (d && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); jact(d.dataset.jn); } });
+JV.addEventListener('wheel', e => { if (!cur) return; e.preventDefault(); const r = JV.getBoundingClientRect(); jzoom(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * (e.ctrlKey ? .01 : .0015))); }, { passive: false });
+$('#jzi').onclick = () => { const r = JV.getBoundingClientRect(); jzoom(r.width / 2, r.height / 2, 1.25); }; $('#jzo').onclick = () => { const r = JV.getBoundingClientRect(); jzoom(r.width / 2, r.height / 2, .8); }; $('#jfit').onclick = jfit;
+$('#vsw').onclick = e => { const b = e.target.closest('[data-v]'); if (!b || !cur) return; setJ(b.dataset.v === 'j'); };
 
 // ---------- value rendering (readable text first, structure second)
 const txt = (s, cls = '') => `<div class="tb"><div class="txt ${cls}" dir="auto">${esc(s)}</div><div class="tbt"><button data-act="copy" title="Copy this text">Copy</button><button data-act="grow" title="Show the full text">Expand</button></div></div>`;
@@ -834,7 +1044,8 @@ function DF(o) {
 }
 
 // ---------- summary
-function summary() {
+function summary() { const k = cur.stab || 'ov'; return k === 'jobs' ? jobsTab() : k === 'emb' ? embTab() : overview(); }
+function overview() {
   const c = cur, t = c.t, u = t.totals || {}, r = c.roots[0] && c.roots[0].n; let h = '';
   // verdict
   const nErr = c.errors.length, nDeg = c.degraded.length, failed = t.status === 'error' || (r && r.status === 'error'), inc = t.complete === false;
@@ -854,18 +1065,7 @@ function summary() {
   const items = [...c.tIssues.map(([s, tx]) => `<li class="${s === 'error' ? 'er' : 'wn'}">${esc(tx)}</li>`)];
   c.N.forEach(o => o.issues.filter(i => i.sev !== 'info' || i.kind === 'skipped').forEach(i => items.push(`<li class="${i.sev === 'error' ? 'er' : i.sev === 'warn' ? 'wn' : 'in'}">${goLink(o)} ${esc(i.text)}</li>`)));
   h += items.length ? `<ul class="il">${items.join('')}</ul>` : '<p class="mu">None.</p>';
-  // One JSON can hold the turn plus multiple asynchronous worker attempts.
-  const jobs = workerAttempts(c);
-  if (jobs.length) h += `<h4>Background jobs (${jobs.length} attempts)</h4>` +
-    `<table><tr><th>Worker</th><th>Job ID</th><th>Attempt</th><th>Status</th></tr>${jobs.map(o => {
-      const n = o.n, v = n.input;
-      return `<tr class="go" data-go="${esc(n.id)}"><td>${esc(n.operation)}</td><td><code>${esc(v.job_id || '—')}</code></td><td>${esc(v.attempt ?? '?')}</td><td><span class="bd st-${KNOWN.has(n.status) ? n.status : 'unknown'}">${esc(n.status)}</span></td></tr>`;
-    }).join('')}</table>`;
-  if (Array.isArray(t.jobs) && t.jobs.length) h += `<h4>Durable queue (${t.jobs.length} jobs)</h4><table><tr><th>Job</th><th>Kind</th><th>Status</th><th>Attempts</th><th>Run after (UTC)</th><th>Last error</th></tr>${t.jobs.map(j => `<tr><td><code>${esc(j.id)}</code></td><td>${esc(j.kind)}</td><td>${esc(j.status)}</td><td>${esc(j.attempts)} / ${esc(j.max_attempts)}</td><td>${esc(j.run_after)}</td><td>${esc(j.last_error_code || '—')}</td></tr>`).join('')}</table>`;
-  const embeddingEvents = [...c.N.values()].filter(o => o.n.embedding && /^embedding\.(cache_hit|cache_miss|inflight_join|compute|wait_timeout)$/.test(o.n.operation));
-  if (embeddingEvents.length) h += '<h4>Shared embeddings</h4><table><tr><th>Operation</th><th>Consumer</th><th>Computation</th><th>Outcome</th><th>Source attempts</th></tr>' + embeddingEvents.map(o => {
-    const e = o.n.embedding; return `<tr class="go" data-go="${esc(o.n.id)}"><td>${esc(o.n.operation)}</td><td>${esc(e.consumer || '—')}</td><td><code>${esc(e.computation_id)}</code></td><td>${esc(e.cache_outcome)} · ${esc(e.outcome || o.n.status)}</td><td>${esc(e.provider_attempts)}</td></tr>`;
-  }).join('') + '</table>';
+  h += bgTeaser(c);
   // LLM calls
   const calls = c.llm.filter(o => /^provider\./.test(o.n.operation) || o.n.provider_usage.length), list = calls.length ? calls : c.llm;
   if (list.length) h += `<h4>LLM calls (${list.length})</h4><table><tr><th>Call</th><th>Status</th><th>Model</th><th>In→Out</th><th>Latency</th></tr>${list.map(o => { const us = usageOf(o); return `<tr class="go" data-go="${esc(o.n.id)}" data-tabto="llm"><td>${esc(sn(o.n.operation))}</td><td><span class="bd st-${KNOWN.has(o.n.status) ? o.n.status : 'unknown'}">${esc(o.n.status)}</span></td><td>${esc(modelName(o) || '—')}</td><td>${us ? us.inT + '→' + us.outT : '<span class="mu">unknown</span>'}</td><td>${us && us.lat ? fd(us.lat) : fd(o.n.duration_ns)}</td></tr>`; }).join('')}</table>`;
@@ -897,7 +1097,8 @@ function insp() {
   if (!c) { ih.innerHTML = '<h3>Inspector</h3>'; tb.innerHTML = ib.innerHTML = ''; return; }
   const o = c.sel && c.N.get(c.sel), keep = ib.scrollTop;
   if (!o) {
-    ih.innerHTML = '<div class="row"><h3>Trace summary</h3><button class="x" data-act="close" aria-label="Close inspector" title="Close (Esc)">×</button></div>'; tb.innerHTML = '';
+    ih.innerHTML = '<div class="row"><h3>Trace summary</h3><button class="x" data-act="close" aria-label="Close inspector" title="Close (Esc)">×</button></div>';
+    { const nj = jobsModel(c).length, ne = embModel(c).length, k = c.stab || 'ov'; tb.innerHTML = [['ov', 'Overview'], ...(nj ? [['jobs', 'Jobs ' + nj]] : []), ...(ne ? [['emb', 'Embeddings ' + ne]] : [])].map(([i, l]) => `<button role="tab" aria-selected="${k === i}" data-stab="${i}" class="${k === i ? 'on' : ''}">${l}</button>`).join(''); if (tb.children.length < 2) tb.innerHTML = ''; }
     try { ib.innerHTML = summary(); } catch (e) { ib.innerHTML = `<div class="alert er"><b>Could not render the summary</b>${esc(e.message)}</div>`; }
     return;
   }
@@ -918,7 +1119,7 @@ function insp() {
   ib.innerHTML = html; ib.scrollTop = ib._k === n.id + c.tab ? keep : 0; ib._k = n.id + c.tab;
 }
 function openSummary(anchor) {
-  if (!cur) return;
+  if (!cur) return; if (anchor) cur.stab = 'ov';
   cur.sel = null; paintSel(); setPanel(true); insp();
   if (anchor) { const el = $('#' + anchor, $('#ib')); if (el) el.scrollIntoView({ block: 'start' }); }
 }
@@ -974,7 +1175,10 @@ $('#nodes').addEventListener('keydown', e => {
 });
 const tabbed = el => { const t = el.dataset.tabto; return t ? { tab: t } : {}; };
 $('#insp').addEventListener('click', e => {
-  const t = e.target.closest('[data-tab],[data-go],[data-nv],[data-k],[data-ol],[data-act],[data-wt]'); if (!t || !cur) return; const d = t.dataset, c = cur;
+  const t = e.target.closest('[data-tab],[data-go],[data-nv],[data-k],[data-ol],[data-act],[data-wt],[data-stab],[data-jg]'); if (!t || !cur) return; const d = t.dataset, c = cur;
+  if (t.hasAttribute('data-jg')) { goJobGraph(d.jg); return; }
+  if (d.stab) { c.stab = d.stab; if (d.eid) c.eopen = d.eid; setPanel(true); if (c.sel) { c.sel = null; paintSel(); } insp(); return; }
+  if (d.act === 'jtog' || d.act === 'etog') { const f = d.act === 'jtog' ? 'jopen' : 'eopen', ib = $('#ib'), top = ib.scrollTop; c[f] = c[f] === d.id ? null : d.id; if (d.act === 'jtog') { c.jsel = c[f] ? 'j' + d.id : null; if (jmode) jpaint(); } insp(); ib.scrollTop = top; return; }
   if (d.wt) { const ib = $('#ib'), top = ib.scrollTop; c.wfCol.has(d.wt) ? c.wfCol.delete(d.wt) : c.wfCol.add(d.wt); insp(); ib.scrollTop = top; const f = $(`[data-wt="${CSS.escape(d.wt)}"]`, ib); if (f) f.focus({ preventScroll: true }); return; }
   if (d.tab) { c.tab = d.tab; insp(); }
   else if (d.go) select(d.go, { reveal: true, open: true, force: true, ...tabbed(t) });
@@ -1054,7 +1258,7 @@ addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if (e.key === 'Escape') { if (cur.filtering) clearFilter(); else if (cur.sel) select(null); else if (ipOpen) setPanel(false); }
   else if (k === 'e') setView('expand'); else if (k === 'c') setView('collapse'); else if (k === 'p') setView('problems');
-  else if (k === 'f') fit(); else if (k === 's') $('#info').click();
+  else if (k === 'f') fit(); else if (k === 's') $('#info').click(); else if (k === 'j') { if (jobsModel(cur).length) setJ(!jmode); }
   else if (e.key === '+' || e.key === '=') zc(1.25); else if (e.key === '-') zc(.8);
   else if (e.key === 'n' || e.key === 'N') stepHit(e.shiftKey ? -1 : 1);
   else return;
