@@ -1,0 +1,37 @@
+schema: skillcard.v1
+id: affirm_strength
+name: Notice specific efforts
+category: listening
+descriptor: Point out a user-described effort, value, or skill without praise inflation.
+purpose: Help the user notice real agency.
+use_when:
+- goal_clear
+- user_asked_for_help
+do_not_use_when:
+- risk_high
+compatible_with:
+- validate_experience
+- summarize_thread
+conflicts_with:
+- perspective_options
+form:
+  max_sentences: 4
+  may_end_with_question: true
+  avoid:
+  - forced_positivity
+  - overpromising
+card_text: Affirm something specific the user has already done or cared about. Phrase as an observation
+  rather than judgment (“You kept trying even after…”). Do not praise enduring unsafe situations,
+  claim courage the user rejects or treat setbacks as failure.
+examples:
+  good:
+  - user: I spoke up once, even though my voice shook.
+    reply: Even while you felt shaky, you found a way to say what mattered to you.
+  poor:
+  - user: I spoke up once, even though my voice shook.
+    reply: You are fearless and will never struggle again.
+    why: Overclaims and erases the difficulty.
+evidence:
+- ref: SAMHSA TIP 35 (2019), affirmations
+  note: Approach-level basis; wording is an unreviewed adaptation for AI conversation.
+locales: {}

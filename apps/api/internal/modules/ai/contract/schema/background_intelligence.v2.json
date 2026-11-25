@@ -1,0 +1,313 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "operations",
+    "formulations",
+    "knowledge_ids",
+    "information_gaps",
+    "future_hints"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "background_intelligence.v2"
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "action",
+          "evidence"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "action": {
+            "enum": [
+              "add",
+              "confirm",
+              "revise",
+              "contradict",
+              "supersede",
+              "consolidate",
+              "invalidate",
+              "noop"
+            ]
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "merge_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "maxItems": 4
+          },
+          "kind": {
+            "enum": [
+              "fact",
+              "preference",
+              "goal",
+              "event",
+              "episode",
+              "hypothesis"
+            ]
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 600
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "role"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "role": {
+                  "enum": [
+                    "supports",
+                    "contradicts",
+                    "context"
+                  ]
+                }
+              }
+            },
+            "maxItems": 24
+          },
+          "context_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "maxItems": 12
+          },
+          "entities": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "role"
+              ],
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 100
+                }
+              }
+            },
+            "maxItems": 8
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "maxItems": 8
+          },
+          "sensitivity": {
+            "enum": [
+              "normal",
+              "sensitive",
+              "highly_sensitive"
+            ]
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "valid_to": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "uncertainty": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "alternatives": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 300
+            },
+            "maxItems": 3
+          },
+          "status": {
+            "description": "Optional lifecycle label. Reported facts, preferences, goals, events and episodes use active. Hypotheses use proposed or supported and remain tentative/inferred. The action controls contradiction, invalidation and supersession; omit status when not needed. Legacy proposed/supported labels on reported memory are normalized to active.",
+            "enum": [
+              "active",
+              "proposed",
+              "supported"
+            ]
+          }
+        }
+      },
+      "maxItems": 16
+    },
+    "formulations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "document"
+        ],
+        "properties": {
+          "thread_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "document": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "framework",
+              "fields",
+              "paragraph"
+            ],
+            "properties": {
+              "framework": {
+                "type": "string",
+                "description": "Authored framework name without the framework: prefix; reference the corresponding supplied framework:ID in knowledge_ids.",
+                "maxLength": 100
+              },
+              "fields": {
+                "type": "object",
+                "maxProperties": 12,
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "value",
+                    "status",
+                    "evidence",
+                    "needs_more_evidence"
+                  ],
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "maxLength": 600
+                    },
+                    "status": {
+                      "enum": [
+                        "reported",
+                        "inferred",
+                        "unknown"
+                      ]
+                    },
+                    "evidence": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "maxItems": 12
+                    },
+                    "needs_more_evidence": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              },
+              "paragraph": {
+                "type": "string",
+                "maxLength": 1200
+              }
+            }
+          }
+        }
+      },
+      "maxItems": 2
+    },
+    "knowledge_ids": {
+      "type": "array",
+      "description": "Exact IDs from supplied knowledge, including the framework: prefix. A bare authored framework name is accepted as an alias only when its prefixed ID was supplied.",
+      "items": {
+        "type": "string",
+        "maxLength": 100
+      },
+      "maxItems": 4
+    },
+    "information_gaps": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 300
+      },
+      "maxItems": 8
+    },
+    "future_hints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "topic",
+          "resource_ids",
+          "evidence_ids",
+          "ttl_turns"
+        ],
+        "properties": {
+          "topic": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "resource_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "maxItems": 4
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "maxItems": 12
+          },
+          "ttl_turns": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3
+          },
+          "memory_ids": {
+            "type": "array",
+            "maxItems": 4,
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "maxItems": 4
+    }
+  }
+}

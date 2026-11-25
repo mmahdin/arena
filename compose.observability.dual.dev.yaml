@@ -1,0 +1,27 @@
+# OBS-05A: overlay on compose.observability.dev.yaml, same private Compose project.
+# Only 127.0.0.1:4318 is published, with token authentication enabled.
+# All variables come from owner-only, untracked env files.
+services:
+  otel-collector-dual:
+    profiles: [dual-observability]
+    image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.166.0
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    environment:
+      THEIA_COLLECTOR_INGEST_KEY: ${THEIA_COLLECTOR_INGEST_KEY:?Initialize .env.dual-otlp}
+      THEIA_PHOENIX_API_KEY: ${THEIA_OTEL_CONTENT_API_KEY:?Set a Phoenix system API key in .env.observability}
+      THEIA_LANGFUSE_AUTH_BASE64: ${THEIA_LANGFUSE_AUTH_BASE64:?Initialize .env.dual-otlp}
+      THEIA_LANGFUSE_OTLP_ENDPOINT: ${THEIA_LANGFUSE_OTLP_ENDPOINT:?Initialize .env.dual-otlp}
+    depends_on:
+      phoenix:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:4318:4318"
+    volumes:
+      - ./infra/observability/otelcol-dual.yaml:/etc/otelcol-contrib/config.yaml:ro
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "2"}

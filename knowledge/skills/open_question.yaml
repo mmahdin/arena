@@ -1,0 +1,38 @@
+schema: skillcard.v1
+id: open_question
+name: Ask one open question
+category: questioning
+descriptor: Invite a useful detail with one non-leading open question.
+purpose: Understand the user’s priorities without interrogating them.
+use_when:
+- need_specific_example
+- goal_unclear
+do_not_use_when:
+- user_wants_to_vent
+- risk_elevated
+compatible_with:
+- reflect_emotion
+- clarify_meaning
+conflicts_with:
+- psychoeducation_simple
+form:
+  max_sentences: 4
+  may_end_with_question: true
+  avoid:
+  - question_barrage
+  - pressure
+card_text: Ask only one short, curiosity-led question about the most useful missing part. Avoid stacked
+  questions, why-accusations and requests for intimate backstory. Make it easy to skip. If the user
+  wants listening rather than exploration, do not ask a question.
+examples:
+  good:
+  - user: It went badly again.
+    reply: When you say “badly,” which part felt most difficult?
+  poor:
+  - user: It went badly again.
+    reply: Why did it go badly, what did you say, and how did everyone react?
+    why: Multiple leading questions overwhelm the user.
+evidence:
+- ref: SAMHSA TIP 35 (2019), open questions
+  note: Approach-level basis; wording is an unreviewed adaptation for AI conversation.
+locales: {}

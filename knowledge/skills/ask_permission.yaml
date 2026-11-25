@@ -1,0 +1,39 @@
+schema: skillcard.v1
+id: ask_permission
+name: Ask before suggesting an exercise
+category: questioning
+descriptor: Invite permission for a short optional exercise with a clear choice to decline.
+purpose: Protect choice and readiness.
+use_when:
+- asking_for_exercise
+- readiness_medium
+- user_wants_options
+do_not_use_when:
+- user_declined
+- risk_high
+compatible_with:
+- reflect_emotion
+conflicts_with:
+- psychoeducation_simple
+form:
+  max_sentences: 4
+  may_end_with_question: true
+  avoid:
+  - pressure
+  - unrequested_exercise
+card_text: Explain in one sentence why an exercise may fit, its approximate time, and that it is
+  optional. If the user already requested the exercise, begin the resolved first step without asking again. Otherwise invite agreement before starting.
+  If declined, return to conversation without persuasion or a guilt-inducing offer.
+examples:
+  good:
+  - user: I keep replaying the argument.
+    reply: A short thought-mapping exercise might help separate what happened from what your mind
+      is telling you; it takes a few minutes. Want to try, or would you rather just talk?
+  poor:
+  - user: I keep replaying the argument.
+    reply: Let us do this exercise now; it will fix the problem.
+    why: Coerces an intervention and guarantees efficacy.
+evidence:
+- ref: NICE CG113, preference-guided self-help
+  note: Approach-level basis; wording is an unreviewed adaptation for AI conversation.
+locales: {}

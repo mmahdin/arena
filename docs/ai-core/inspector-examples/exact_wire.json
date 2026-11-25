@@ -1,0 +1,263 @@
+{
+  "complete": true,
+  "schema": "local_ai_trace.v1",
+  "trace_id": "be6c837f-0587-4e6a-9ae7-02af7aa3abd0",
+  "kind": "turn",
+  "turn_id": "00000000-0000-0000-0000-000000000000",
+  "job_id": "00000000-0000-0000-0000-000000000000",
+  "started_at": "2026-11-18T17:47:22.308262829Z",
+  "ended_at": "2026-11-18T17:47:22.318264493Z",
+  "status": "success",
+  "nodes": [
+    {
+      "id": "n000001",
+      "operation": "orchestrator.ProcessTurn",
+      "sequence": 1,
+      "started_at": "2026-11-18T17:47:22.308263965Z",
+      "ended_at": "2026-11-18T17:47:22.318264493Z",
+      "duration_ns": 10000786,
+      "status": "success",
+      "input": {
+        "request": {
+          "channel": "",
+          "client_turn_id": "00000000-0000-0000-0000-000000000000",
+          "conversation_id": "00000000-0000-0000-0000-000000000000",
+          "locale": "",
+          "origin": "",
+          "text": "full synthetic incoming message",
+          "tz": "",
+          "user_id": "00000000-0000-0000-0000-000000000000"
+        }
+      },
+      "output": null,
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000002",
+      "operation": "provider.Structured",
+      "parent_id": "n000001",
+      "sequence": 2,
+      "started_at": "2026-11-18T17:47:22.309513983Z",
+      "ended_at": "2026-11-18T17:47:22.316501337Z",
+      "duration_ns": 6987545,
+      "status": "success",
+      "input": {
+        "mode": "json_object",
+        "model": {
+          "cached_micro_usd_per_m": 0,
+          "input_micro_usd_per_m": 0,
+          "model": "gpt-5.6-sol",
+          "native_json_schema": false,
+          "output_micro_usd_per_m": 0,
+          "provider": "fixture"
+        },
+        "request": {
+          "IdempotencyKey": "",
+          "MaxTokens": 123,
+          "Messages": [
+            {
+              "Content": "full user data",
+              "Role": "user"
+            }
+          ],
+          "Meta": {
+            "bundle": {
+              "prompt_shas": null,
+              "version": ""
+            },
+            "route": "",
+            "trace_flags": 0,
+            "turn_id": "00000000-0000-0000-0000-000000000000",
+            "user_id": "00000000-0000-0000-0000-000000000000"
+          },
+          "Schema": "eyJ0eXBlIjoib2JqZWN0In0=",
+          "SchemaName": "brain.v1",
+          "System": [
+            {
+              "Cache": false,
+              "Name": "policy",
+              "Text": "full synthetic policy"
+            }
+          ],
+          "Temperature": 0.7,
+          "Tier": "",
+          "Timeout": 0
+        }
+      },
+      "output": {
+        "JSON": "eyJvayI6dHJ1ZX0=",
+        "Usage": {
+          "attempts": 0,
+          "cached_tokens": 0,
+          "cost_micro_usd": 0,
+          "finish_reason": "stop",
+          "in_tokens": 30,
+          "latency": 0,
+          "model": "",
+          "out_tokens": 10,
+          "provider": ""
+        }
+      },
+      "artifacts": [],
+      "provider_usage": [
+        {
+          "provider": "fixture",
+          "model": "gpt-5.6-sol",
+          "input_tokens": 30,
+          "output_tokens": 10,
+          "cached_tokens": 0,
+          "latency_ns": 0
+        }
+      ],
+      "estimates": []
+    },
+    {
+      "id": "n000003",
+      "operation": "adapters/llmhttp/provider.Structured",
+      "parent_id": "n000002",
+      "sequence": 3,
+      "started_at": "2026-11-18T17:47:22.310813168Z",
+      "ended_at": "2026-11-18T17:47:22.314964084Z",
+      "duration_ns": 4151100,
+      "status": "success",
+      "input": {
+        "mode": "json_object",
+        "model": {
+          "cached_micro_usd_per_m": 0,
+          "input_micro_usd_per_m": 0,
+          "model": "gpt-5.6-sol",
+          "native_json_schema": false,
+          "output_micro_usd_per_m": 0,
+          "provider": "fixture"
+        },
+        "req": {
+          "IdempotencyKey": "",
+          "MaxTokens": 123,
+          "Messages": [
+            {
+              "Content": "full user data",
+              "Role": "user"
+            }
+          ],
+          "Meta": {
+            "bundle": {
+              "prompt_shas": null,
+              "version": ""
+            },
+            "route": "",
+            "trace_flags": 0,
+            "turn_id": "00000000-0000-0000-0000-000000000000",
+            "user_id": "00000000-0000-0000-0000-000000000000"
+          },
+          "Schema": "eyJ0eXBlIjoib2JqZWN0In0=",
+          "SchemaName": "brain.v1",
+          "System": [
+            {
+              "Cache": false,
+              "Name": "policy",
+              "Text": "full synthetic policy"
+            }
+          ],
+          "Temperature": 0.7,
+          "Tier": "",
+          "Timeout": 0
+        }
+      },
+      "output": {
+        "result0": {
+          "JSON": "eyJvayI6dHJ1ZX0=",
+          "Usage": {
+            "attempts": 0,
+            "cached_tokens": 0,
+            "cost_micro_usd": 0,
+            "finish_reason": "stop",
+            "in_tokens": 30,
+            "latency": 0,
+            "model": "",
+            "out_tokens": 10,
+            "provider": ""
+          }
+        }
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000004",
+      "operation": "http.request",
+      "parent_id": "n000003",
+      "sequence": 4,
+      "started_at": "2026-11-18T17:47:22.312078189Z",
+      "ended_at": "2026-11-18T17:47:22.313548651Z",
+      "duration_ns": 1470756,
+      "status": "success",
+      "input": {
+        "body": "{\"model\":\"gpt-5.6-sol\",\"messages\":[{\"role\":\"system\",\"content\":\"Return only a JSON object satisfying this JSON Schema (no markdown or explanation):\\n{\\\"type\\\":\\\"object\\\"}\"},{\"role\":\"system\",\"content\":\"full synthetic policy\"},{\"role\":\"user\",\"content\":\"full user data\"}],\"response_format\":{\"type\":\"json_object\"},\"max_completion_tokens\":123,\"reasoning_effort\":\"none\"}",
+        "method": "POST",
+        "resource": "/chat/completions"
+      },
+      "output": {
+        "body_complete": true,
+        "bytes_read": 128
+      },
+      "artifacts": [
+        {
+          "name": "http_status",
+          "kind": "http_metadata",
+          "value": 200,
+          "sha256": "27badc983df1780b60c2b3fa9d3a19a00e46aac798451f0febdca52920faaddf"
+        },
+        {
+          "name": "raw_response_body",
+          "kind": "wire_response",
+          "value": "{\"choices\":[{\"finish_reason\":\"stop\",\"message\":{\"content\":\"{\\\"ok\\\":true}\"}}],\"usage\":{\"prompt_tokens\":30,\"completion_tokens\":10}}",
+          "sha256": "8a391b7fe7aff8ca339891b2490c5fdd59bae8a434d23490cd0cd88d698eced0",
+          "source": "http_response_body"
+        }
+      ],
+      "provider_usage": [],
+      "estimates": []
+    }
+  ],
+  "edges": [
+    {
+      "from": "n000001",
+      "to": "n000002",
+      "kind": "execution"
+    },
+    {
+      "from": "n000002",
+      "to": "n000003",
+      "kind": "execution"
+    },
+    {
+      "from": "n000003",
+      "to": "n000004",
+      "kind": "execution"
+    }
+  ],
+  "totals": {
+    "estimated_input_tokens": 0,
+    "provider_calls": 1,
+    "reported_calls": 1,
+    "unknown_usage_calls": 0,
+    "actual_input_tokens": 30,
+    "actual_output_tokens": 10,
+    "actual_cached_tokens": 0,
+    "estimated_cost_micro_usd": 0,
+    "by_stage": {
+      "orchestrator.ProcessTurn": {
+        "estimated_input_tokens": 0,
+        "calls": 1,
+        "actual_input_tokens": 30,
+        "actual_output_tokens": 10,
+        "actual_cached_tokens": 0,
+        "estimated_cost_micro_usd": 0
+      }
+    }
+  },
+  "diagnostics": []
+}

@@ -1,0 +1,311 @@
+schema: knowledge_cards.v1
+cards:
+- id: skill:affirm_strength
+  category: skill
+  name: Notice specific efforts
+  description: Point out a user-described effort, value, or skill without praise inflation.
+  purpose: Help the user notice real agency.
+  use_when: goal_clear, user_asked_for_help
+  limitations: risk_high
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/affirm_strength.yaml
+- id: skill:ask_permission
+  category: skill
+  name: Ask before suggesting an exercise
+  description: Invite permission for a short optional exercise with a clear choice
+    to decline.
+  purpose: Protect choice and readiness.
+  use_when: asking_for_exercise, readiness_medium, user_wants_options
+  limitations: user_declined, risk_high
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/ask_permission.yaml
+- id: skill:boundary_gently
+  category: skill
+  name: Set a clear supportive boundary
+  description: Explain an AI limitation without shame, and offer the nearest safe
+    help.
+  purpose: Keep scope honest while preserving useful support.
+  use_when: user_asked_direct_question, sensitive_topic
+  limitations: risk_high
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/boundary_gently.yaml
+- id: skill:clarify_meaning
+  category: skill
+  name: Check interpretation
+  description: Clarify an ambiguous phrase before responding to an assumed meaning.
+  purpose: Correct misunderstandings early.
+  use_when: need_specific_example, misunderstanding_detected
+  limitations: risk_elevated
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/clarify_meaning.yaml
+- id: skill:grounding_invite
+  category: skill
+  name: Optional present-moment grounding
+  description: Invite a brief eyes-open sensory orientation when mild overwhelm is
+    present.
+  purpose: Offer low-intensity, reversible support for current stress.
+  use_when: overwhelm_present, asking_for_exercise
+  limitations: risk_high, sensitive_topic
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/grounding_invite.yaml
+- id: skill:map_thought_feeling_action
+  category: skill
+  name: Map a concrete CBT loop
+  description: With permission, distinguish situation, thought, emotion, action and
+    short-term effect.
+  purpose: Make patterns observable without arguing thoughts away.
+  use_when: curious_about_pattern, permission_given
+  limitations: risk_elevated, sensitive_topic
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/map_thought_feeling_action.yaml
+- id: skill:motivation_reflection
+  category: skill
+  name: Reflect both sides of ambivalence
+  description: Reflect reasons for change and reasons to stay as they are without
+    persuading.
+  purpose: Support autonomous decision making.
+  use_when: ambivalence_present, readiness_low
+  limitations: risk_high
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/motivation_reflection.yaml
+- id: skill:next_small_step
+  category: skill
+  name: Co-design one small step
+  description: Offer an achievable, reversible action matched to readiness and energy.
+  purpose: Help the user try an action without pressure.
+  use_when: goal_clear, readiness_medium, readiness_high
+  limitations: risk_high, action_barrier
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/next_small_step.yaml
+- id: skill:open_question
+  category: skill
+  name: Ask one open question
+  description: Invite a useful detail with one non-leading open question.
+  purpose: Understand the user’s priorities without interrogating them.
+  use_when: need_specific_example, goal_unclear
+  limitations: user_wants_to_vent, risk_elevated
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/open_question.yaml
+- id: skill:perspective_options
+  category: skill
+  name: Offer tentative alternative readings
+  description: Explore a couple of plausible interpretations without arguing the user
+    out of their feelings.
+  purpose: Increase flexibility when user wants a wider view.
+  use_when: curious_about_pattern, user_wants_options
+  limitations: risk_elevated, user_wants_to_vent
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/perspective_options.yaml
+- id: skill:problem_solve_collaboratively
+  category: skill
+  name: Find a controllable next step
+  description: Distinguish workable problems from uncertainty, then explore an option
+    chosen by the user.
+  purpose: Reduce overwhelm without false certainty.
+  use_when: user_wants_options, action_barrier
+  limitations: risk_high, unsafe_environment
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/problem_solve_collaboratively.yaml
+- id: skill:psychoeducation_simple
+  category: skill
+  name: Explain gently without diagnosis
+  description: Give concise general psychological information, distinct from personal
+    assessment.
+  purpose: Answer informational questions accurately in scope.
+  use_when: information_request, user_asked_direct_question
+  limitations: risk_high
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/psychoeducation_simple.yaml
+- id: skill:reflect_emotion
+  category: skill
+  name: Reflect the named feeling
+  description: Mirror the user's expressed feeling and its context without guessing
+    causes.
+  purpose: Convey accurate understanding before advice.
+  use_when: emotion_high, disclosure_unprocessed
+  limitations: risk_high
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/reflect_emotion.yaml
+- id: skill:repair_misread
+  category: skill
+  name: Repair a wrong interpretation
+  description: Acknowledge a correction briefly, state the revised understanding,
+    and proceed.
+  purpose: Restore accuracy and user control.
+  use_when: misunderstanding_detected, user_corrected_assistant
+  limitations: risk_high
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/repair_misread.yaml
+- id: skill:self_compassion
+  category: skill
+  name: Soften harsh self-talk
+  description: Invite a fairer tone toward the self without denying responsibility.
+  purpose: Explore kinder, accountable language.
+  use_when: self_criticism, user_asked_for_help
+  limitations: risk_elevated
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/self_compassion.yaml
+- id: skill:summarize_thread
+  category: skill
+  name: Collaborative summary
+  description: Summarize the stated issue, feeling, hope, and unresolved question
+    without invented history.
+  purpose: Help the user see a coherent picture and correct errors.
+  use_when: user_asked_for_summary, goal_clear
+  limitations: risk_high
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/summarize_thread.yaml
+- id: skill:validate_experience
+  category: skill
+  name: Validate without minimizing
+  description: Recognize why a reaction may make sense without endorsing every belief
+    or action.
+  purpose: Convey care without false reassurance.
+  use_when: experience_invalidated, emotion_high, disclosure_unprocessed
+  limitations: risk_high
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/validate_experience.yaml
+- id: skill:values_clarification
+  category: skill
+  name: Explore freely chosen values
+  description: Help name personally meaningful qualities of action, not imposed goals.
+  purpose: Make practical choices consistent with what matters.
+  use_when: values_conflict, goal_unclear
+  limitations: risk_elevated
+  prerequisites: Respect user preferences and request permission before exercises
+    or advice.
+  content_id: skills/values_clarification.yaml
+- id: protocol:activity_step
+  category: protocol
+  name: One manageable activity
+  description: Choose a tiny low-pressure activity connected to routine, meaning or
+    connection.
+  purpose: A bounded PLANNING practice; approximately 6 minutes.
+  use_when: low_mood, avoidance, overwhelm
+  limitations: Stop or pause when distress or decline is present; psychosis_signs,
+    mania_signs, dissociation, intoxication, unsafe_environment, medical_instability,
+    coercion_present
+  prerequisites: Current user consent and applicable operational eligibility; never
+    infer consent from selection.
+  content_id: protocols/activity_step.yaml
+- id: protocol:ambivalence_map
+  category: protocol
+  name: Explore both sides of a choice
+  description: Reflect the benefits and costs of change without pressing for a decision.
+  purpose: A bounded PLANNING practice; approximately 7 minutes.
+  use_when: motivation_ambivalence, relationship_strain, life_transition
+  limitations: Stop or pause when distress or decline is present; psychosis_signs,
+    mania_signs, dissociation, intoxication, unsafe_environment, medical_instability,
+    coercion_present
+  prerequisites: Current user consent and applicable operational eligibility; never
+    infer consent from selection.
+  content_id: protocols/ambivalence_map.yaml
+- id: exercise:defusion_phrase
+  category: exercise
+  name: Step back from a sticky thought
+  description: Notice a recurring thought as a thought, without demanding it disappear.
+  purpose: A bounded ACT practice; approximately 5 minutes.
+  use_when: self_critical_thoughts, worry, stress
+  limitations: Stop or pause when distress or decline is present; psychosis_signs,
+    mania_signs, dissociation, intoxication, unsafe_environment, medical_instability,
+    coercion_present
+  prerequisites: Current user consent and applicable operational eligibility; never
+    infer consent from selection.
+  content_id: protocols/defusion_phrase.yaml
+- id: exercise:sensory_grounding
+  category: exercise
+  name: Brief eyes-open orientation
+  description: Gently notice neutral things in the room while staying free to stop.
+  purpose: A bounded GROUNDING practice; approximately 3 minutes.
+  use_when: overwhelm, stress, anxiety_social
+  limitations: Stop or pause when distress or decline is present; psychosis_signs,
+    mania_signs, dissociation, intoxication, unsafe_environment, medical_instability,
+    coercion_present
+  prerequisites: Current user consent and applicable operational eligibility; never
+    infer consent from selection.
+  content_id: protocols/sensory_grounding.yaml
+- id: protocol:thought_record
+  category: protocol
+  name: A small thought record
+  description: Explore one everyday thought, its evidence, and a more balanced possibility.
+  purpose: A bounded CBT practice; approximately 8 minutes.
+  use_when: self_critical_thoughts, anxiety_social, worry, low_mood
+  limitations: Stop or pause when distress or decline is present; psychosis_signs,
+    mania_signs, dissociation, intoxication, unsafe_environment, medical_instability,
+    coercion_present
+  prerequisites: Current user consent and applicable operational eligibility; never
+    infer consent from selection.
+  content_id: protocols/thought_record.yaml
+- id: exercise:values_action
+  category: exercise
+  name: One values-aligned step
+  description: Connect a freely chosen value to a small practical action while allowing
+    discomfort.
+  purpose: A bounded ACT practice; approximately 7 minutes.
+  use_when: motivation_ambivalence, life_transition, relationship_strain
+  limitations: Stop or pause when distress or decline is present; psychosis_signs,
+    mania_signs, dissociation, intoxication, unsafe_environment, medical_instability,
+    coercion_present
+  prerequisites: Current user consent and applicable operational eligibility; never
+    infer consent from selection.
+  content_id: protocols/values_action.yaml
+- id: protocol:worry_sort
+  category: protocol
+  name: Sort a worry
+  description: Separate what can be acted on from uncertainty that cannot be solved
+    now.
+  purpose: A bounded CBT practice; approximately 6 minutes.
+  use_when: worry, stress, overwhelm
+  limitations: Stop or pause when distress or decline is present; psychosis_signs,
+    mania_signs, dissociation, intoxication, unsafe_environment, medical_instability,
+    coercion_present
+  prerequisites: Current user consent and applicable operational eligibility; never
+    infer consent from selection.
+  content_id: protocols/worry_sort.yaml
+- id: framework:cbt_conceptualization
+  category: framework
+  name: CBT CONCEPTUALIZATION
+  description: Organize reported experiences and explicitly tentative hypotheses.
+  purpose: Longitudinal understanding; not diagnosis.
+  use_when: anxiety_social, self_critical_thoughts, low_mood, worry, avoidance
+  limitations: Preserve epistemic labels and independent evidence; do not invent causal
+    certainty.
+  prerequisites: Sufficient user-reported evidence; use relevant fields only.
+  content_id: schemas/formulation_cbt.yaml
+- id: framework:five_p_lite
+  category: framework
+  name: FIVE P LITE
+  description: Organize reported experiences and explicitly tentative hypotheses.
+  purpose: Longitudinal understanding; not diagnosis.
+  use_when: stress, overwhelm, conflict, loneliness, grief, motivation_ambivalence,
+    sleep_strain, life_transition, relationship_strain
+  limitations: Preserve epistemic labels and independent evidence; do not invent causal
+    certainty.
+  prerequisites: Sufficient user-reported evidence; use relevant fields only.
+  content_id: schemas/formulation_five_p.yaml
+- id: resource:protocol_offer
+  category: other
+  name: Permission-based practice offers
+  description: Authored reasons and invitation language for optional practices.
+  purpose: Explain a relevant exercise and invite opt-in.
+  use_when: User is considering a practice and wants its purpose explained.
+  limitations: An offer is not consent and never starts a practice.
+  prerequisites: An applicable selected protocol or exercise.
+  content_id: templates/protocol_offer.yaml

@@ -1,0 +1,503 @@
+{
+  "response_complete": true,
+  "response_ended_at": "2026-11-25T10:26:43.478836342Z",
+  "complete": true,
+  "schema": "local_ai_trace.v1",
+  "trace_id": "1ff1a250-8de8-42be-b8f5-8b32c4462bc7",
+  "kind": "turn",
+  "started_at": "2026-11-25T10:26:43.457742149Z",
+  "ended_at": "2026-11-25T10:26:43.478836342Z",
+  "status": "success",
+  "nodes": [
+    {
+      "id": "n000001",
+      "operation": "orchestrator.ProcessTurn",
+      "sequence": 1,
+      "started_at": "2026-11-25T10:26:43.457746873Z",
+      "ended_at": "2026-11-25T10:26:43.478836342Z",
+      "duration_ns": 21090587,
+      "status": "success",
+      "input": {
+        "request": {
+          "channel": "",
+          "client_turn_id": "00000000-0000-0000-0000-000000000000",
+          "conversation_id": "00000000-0000-0000-0000-000000000000",
+          "locale": "",
+          "origin": "",
+          "text": "situation at work",
+          "tz": "",
+          "user_id": "00000000-0000-0000-0000-000000000000"
+        }
+      },
+      "output": {
+        "items": [
+          {
+            "age": "0m",
+            "epistemic": "reported",
+            "evidence_n": 1,
+            "id": "00000000-0000-4000-8000-000000000001",
+            "kind": "episode",
+            "score": 0.016393442,
+            "sensitivity": "normal",
+            "source": "memory",
+            "source_created_at": "2026-11-24T10:26:43.457595388Z",
+            "source_version": "0000000000000001",
+            "status": "active",
+            "text": "synthetic semantic evidence",
+            "verbatim": false
+          }
+        ],
+        "meta": {
+          "ambiguous_reference": false,
+          "degraded": true,
+          "degraded_reason": "semantic_unavailable",
+          "failed_strategies": [
+            "contextual_vector"
+          ],
+          "hops": 0,
+          "queries": [
+            {
+              "kind": "current",
+              "strategies": [
+                "vector"
+              ],
+              "text": "situation at work"
+            },
+            {
+              "failed_strategies": [
+                "vector"
+              ],
+              "kind": "contextual",
+              "strategies": [],
+              "text": "assistant: synthetic contextual query"
+            }
+          ],
+          "strategies": [
+            "vector"
+          ]
+        },
+        "took": 12013415
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000002",
+      "operation": "application/retrieval/service.Retrieve",
+      "parent_id": "n000001",
+      "sequence": 2,
+      "started_at": "2026-11-25T10:26:43.460883455Z",
+      "ended_at": "2026-11-25T10:26:43.475288906Z",
+      "duration_ns": 14406309,
+      "status": "success",
+      "reason": "semantic_unavailable",
+      "input": {
+        "exclude": [],
+        "include_sensitivity": [],
+        "max_items": 5,
+        "strategies": [],
+        "turn": {
+          "lang": "en",
+          "local_time": "",
+          "message_id": "fc21d67f-3d18-4150-9e7a-2d7b4793a7e0",
+          "origin": "",
+          "reply_to_pending": false,
+          "since_last_msg": 0,
+          "text": "situation at work",
+          "turn_id": "a7adb16c-dfda-4902-b508-c24c9cc3e742"
+        },
+        "user_id": "2f3860d0-7eff-4696-aed5-ec07e5d7b595"
+      },
+      "output": {
+        "items": [
+          {
+            "age": "0m",
+            "epistemic": "reported",
+            "evidence_n": 1,
+            "id": "00000000-0000-4000-8000-000000000001",
+            "kind": "episode",
+            "score": 0.016393442,
+            "sensitivity": "normal",
+            "source": "memory",
+            "source_created_at": "2026-11-24T10:26:43.457595388Z",
+            "source_version": "0000000000000001",
+            "status": "active",
+            "text": "synthetic semantic evidence",
+            "verbatim": false
+          }
+        ],
+        "meta": {
+          "ambiguous_reference": false,
+          "degraded": true,
+          "degraded_reason": "semantic_unavailable",
+          "failed_strategies": [
+            "contextual_vector"
+          ],
+          "hops": 0,
+          "queries": [
+            {
+              "kind": "current",
+              "strategies": [
+                "vector"
+              ],
+              "text": "situation at work"
+            },
+            {
+              "failed_strategies": [
+                "vector"
+              ],
+              "kind": "contextual",
+              "strategies": [],
+              "text": "assistant: synthetic contextual query"
+            }
+          ],
+          "strategies": [
+            "vector"
+          ]
+        },
+        "took": 12013415
+      },
+      "artifacts": [
+        {
+          "name": "decision",
+          "kind": "control_flow",
+          "value": {
+            "reason": "semantic_unavailable",
+            "status": "degraded"
+          },
+          "sha256": "07f78b26eca161ad5c70aa06fe27b4a6779d33ff0b2a1f645e82a6fe0fa99e35"
+        },
+        {
+          "name": "retrieval_queries",
+          "kind": "retrieval_queries",
+          "value": [
+            {
+              "kind": "current",
+              "strategies": [
+                "vector"
+              ],
+              "text": "situation at work"
+            },
+            {
+              "failed_strategies": [
+                "vector"
+              ],
+              "kind": "contextual",
+              "strategies": [],
+              "text": "assistant: synthetic contextual query"
+            }
+          ],
+          "sha256": "754682d5099eecba43e83fa4189e20c2042c7c55781ad2769d5526370127b3f1",
+          "source": "deterministic_dual_query"
+        }
+      ],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000003",
+      "operation": "retrieval.repository.Scan",
+      "parent_id": "n000002",
+      "sequence": 3,
+      "started_at": "2026-11-25T10:26:43.464063605Z",
+      "ended_at": "2026-11-25T10:26:43.466897094Z",
+      "duration_ns": 2834489,
+      "status": "success",
+      "input": {
+        "Dimension": 2,
+        "Model": "synthetic",
+        "TermHashes": null,
+        "TriggerID": "fc21d67f-3d18-4150-9e7a-2d7b4793a7e0",
+        "UserID": "2f3860d0-7eff-4696-aed5-ec07e5d7b595"
+      },
+      "output": true,
+      "artifacts": [
+        {
+          "name": "candidate",
+          "kind": "retrieval_candidate",
+          "value": {
+            "ConversationID": "",
+            "CreatedAt": "2026-11-24T13:56:43.457595388+03:30",
+            "Epistemic": "reported",
+            "Evidence": null,
+            "EvidenceN": 1,
+            "ID": "00000000-0000-4000-8000-000000000001",
+            "Kind": "episode",
+            "Lexical": null,
+            "Sensitivity": "normal",
+            "Source": "memory",
+            "SourceVersion": "0000000000000001",
+            "Status": "active",
+            "Text": "synthetic semantic evidence",
+            "ThreadID": null,
+            "UserID": "2f3860d0-7eff-4696-aed5-ec07e5d7b595",
+            "ValidFrom": null,
+            "Vector": [
+              1,
+              0
+            ]
+          },
+          "sha256": "3462c3c8fb68649b321eccc599261601d3ae220bcaf7c089e099355d25ddd7e2",
+          "source": "repository"
+        },
+        {
+          "name": "candidate",
+          "kind": "retrieval_candidate",
+          "value": {
+            "ConversationID": "",
+            "CreatedAt": "2026-11-24T13:56:43.45759774+03:30",
+            "Epistemic": "reported",
+            "Evidence": null,
+            "EvidenceN": 1,
+            "ID": "00000000-0000-4000-8000-000000000002",
+            "Kind": "episode",
+            "Lexical": null,
+            "Sensitivity": "normal",
+            "Source": "memory",
+            "SourceVersion": "0000000000000001",
+            "Status": "active",
+            "Text": "synthetic contextual evidence",
+            "ThreadID": null,
+            "UserID": "2f3860d0-7eff-4696-aed5-ec07e5d7b595",
+            "ValidFrom": null,
+            "Vector": [
+              0,
+              1
+            ]
+          },
+          "sha256": "3cc1f7d26e85ace3230e639dcba0015d6d2d7ad52e818b0102d41a4cc0a1f2c5",
+          "source": "repository"
+        },
+        {
+          "name": "candidate",
+          "kind": "retrieval_candidate",
+          "value": {
+            "ConversationID": "",
+            "CreatedAt": "2026-11-24T13:56:43.45759849+03:30",
+            "Epistemic": "reported",
+            "Evidence": null,
+            "EvidenceN": 1,
+            "ID": "00000000-0000-4000-8000-000000000003",
+            "Kind": "episode",
+            "Lexical": null,
+            "Sensitivity": "normal",
+            "Source": "memory",
+            "SourceVersion": "0000000000000001",
+            "Status": "active",
+            "Text": "situation at work",
+            "ThreadID": null,
+            "UserID": "2f3860d0-7eff-4696-aed5-ec07e5d7b595",
+            "ValidFrom": null,
+            "Vector": null
+          },
+          "sha256": "594839372f429ae31e3f8fa7c9f0a3d3e01c30c71624cec66fe18f8a2b91589a",
+          "source": "repository"
+        }
+      ],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000004",
+      "operation": "retrieval.rank",
+      "parent_id": "n000002",
+      "sequence": 4,
+      "started_at": "2026-11-25T10:26:43.468709217Z",
+      "ended_at": "2026-11-25T10:26:43.4727159Z",
+      "duration_ns": 4007439,
+      "status": "success",
+      "input": {
+        "candidates": [
+          {
+            "ConversationID": "",
+            "CreatedAt": "2026-11-24T13:56:43.457595388+03:30",
+            "Epistemic": "reported",
+            "Evidence": null,
+            "EvidenceN": 1,
+            "ID": "00000000-0000-4000-8000-000000000001",
+            "Kind": "episode",
+            "Lexical": null,
+            "Sensitivity": "normal",
+            "Source": "memory",
+            "SourceVersion": "0000000000000001",
+            "Status": "active",
+            "Text": "synthetic semantic evidence",
+            "ThreadID": null,
+            "UserID": "2f3860d0-7eff-4696-aed5-ec07e5d7b595",
+            "ValidFrom": null,
+            "Vector": [
+              1,
+              0
+            ]
+          },
+          {
+            "ConversationID": "",
+            "CreatedAt": "2026-11-24T13:56:43.45759774+03:30",
+            "Epistemic": "reported",
+            "Evidence": null,
+            "EvidenceN": 1,
+            "ID": "00000000-0000-4000-8000-000000000002",
+            "Kind": "episode",
+            "Lexical": null,
+            "Sensitivity": "normal",
+            "Source": "memory",
+            "SourceVersion": "0000000000000001",
+            "Status": "active",
+            "Text": "synthetic contextual evidence",
+            "ThreadID": null,
+            "UserID": "2f3860d0-7eff-4696-aed5-ec07e5d7b595",
+            "ValidFrom": null,
+            "Vector": [
+              0,
+              1
+            ]
+          },
+          {
+            "ConversationID": "",
+            "CreatedAt": "2026-11-24T13:56:43.45759849+03:30",
+            "Epistemic": "reported",
+            "Evidence": null,
+            "EvidenceN": 1,
+            "ID": "00000000-0000-4000-8000-000000000003",
+            "Kind": "episode",
+            "Lexical": null,
+            "Sensitivity": "normal",
+            "Source": "memory",
+            "SourceVersion": "0000000000000001",
+            "Status": "active",
+            "Text": "situation at work",
+            "ThreadID": null,
+            "UserID": "2f3860d0-7eff-4696-aed5-ec07e5d7b595",
+            "ValidFrom": null,
+            "Vector": null
+          }
+        ],
+        "query": "situation at work"
+      },
+      "output": null,
+      "artifacts": [
+        {
+          "name": "vector_ranks",
+          "kind": "retrieval_rank",
+          "value": [
+            {
+              "id": "00000000-0000-4000-8000-000000000001",
+              "rank": 1,
+              "score": 1,
+              "source": "memory"
+            }
+          ],
+          "sha256": "6dc5b30f666cd272a0136edc97c21761633bc793dd94074af6d47506011c600e",
+          "source": "cosine"
+        },
+        {
+          "name": "merged_ranks",
+          "kind": "retrieval_merge",
+          "value": [
+            {
+              "id": "00000000-0000-4000-8000-000000000001",
+              "rank": 1,
+              "score": 0.01639344262295082,
+              "source": "memory"
+            }
+          ],
+          "sha256": "8e6073454b19919be283a2ab87fe4126db57206934821dcdbf766b915fd4afad",
+          "source": "reciprocal_rank_fusion"
+        },
+        {
+          "name": "score",
+          "kind": "retrieval_score",
+          "value": 0.01639344262295082,
+          "sha256": "189df17a5823a85fc5e468372bdbdd3e63fef905c311b01700318c60ff6c6af3",
+          "source": "memory:00000000-0000-4000-8000-000000000001"
+        },
+        {
+          "name": "selected",
+          "kind": "retrieval_selection",
+          "value": {
+            "age": "0m",
+            "epistemic": "reported",
+            "evidence_n": 1,
+            "id": "00000000-0000-4000-8000-000000000001",
+            "kind": "episode",
+            "score": 0.016393442,
+            "sensitivity": "normal",
+            "source": "memory",
+            "source_created_at": "2026-11-24T10:26:43.457595388Z",
+            "source_version": "0000000000000001",
+            "status": "active",
+            "text": "synthetic semantic evidence",
+            "verbatim": false
+          },
+          "sha256": "056a60496c5afaf6fe9d3935130b00509a764bb26d8639f258f2425e777067fe",
+          "source": "memory:00000000-0000-4000-8000-000000000001"
+        }
+      ],
+      "provider_usage": [],
+      "estimates": []
+    }
+  ],
+  "edges": [
+    {
+      "from": "n000001",
+      "to": "n000002",
+      "kind": "execution"
+    },
+    {
+      "from": "n000002",
+      "to": "n000003",
+      "kind": "execution"
+    },
+    {
+      "from": "n000002",
+      "to": "n000004",
+      "kind": "execution"
+    },
+    {
+      "from": "n000003",
+      "to": "n000004",
+      "kind": "data",
+      "from_path": "/artifacts/0/value",
+      "to_path": "/input/candidates/0",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000004",
+      "kind": "data",
+      "from_path": "/artifacts/1/value",
+      "to_path": "/input/candidates/1",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000004",
+      "kind": "data",
+      "from_path": "/artifacts/2/value",
+      "to_path": "/input/candidates/2",
+      "evidence": "exact_json_value_match"
+    },
+    {
+      "from": "n000003",
+      "to": "n000004",
+      "kind": "data",
+      "from_path": "/artifacts/2/value/Text",
+      "to_path": "/input/query",
+      "evidence": "exact_json_value_match"
+    }
+  ],
+  "totals": {
+    "estimated_input_tokens": 0,
+    "provider_calls": 0,
+    "reported_calls": 0,
+    "unknown_usage_calls": 0,
+    "actual_input_tokens": 0,
+    "actual_output_tokens": 0,
+    "actual_cached_tokens": 0,
+    "estimated_cost_micro_usd": 0,
+    "by_stage": {}
+  },
+  "diagnostics": [],
+  "turn_id": "a7adb16c-dfda-4902-b508-c24c9cc3e742"
+}

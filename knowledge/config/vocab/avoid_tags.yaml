@@ -1,0 +1,23 @@
+schema: vocab.v1
+values:
+- advice
+- clinical_terms
+- diagnosis
+- medication_instruction
+- reassurance_certainty
+- pressure
+- minimizing
+- trivializing
+- assumed_motive
+- unrequested_exercise
+- forced_positivity
+- question_barrage
+- trauma_detail
+- shaming
+- claiming_recall
+- invented_recall
+- intervention
+- dependency_encouraging
+- invalidating
+- overpromising
+- directive_advice

@@ -1,0 +1,133 @@
+# MON-02: synthetic local operations only. All metrics have bounded, code-owned
+# labels; no PII, request IDs, user IDs, prompt or response data in alerts.
+groups:
+  - name: theia-availability
+    interval: 15s
+    rules:
+      - alert: TheiaAPIMetricsTargetDown
+        expr: up{job="theia-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: Theia API metrics target is unreachable
+          description: The private metrics scrape has failed for at least one minute.
+          runbook: docs/operations/mon02-alerting.md#target-down
+      - alert: TheiaAPIMetricsTargetMissing
+        expr: absent(up{job="theia-api"})
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: Theia API metrics target is missing
+          description: No Theia API scrape target has been configured or discovered.
+          runbook: docs/operations/mon02-alerting.md#target-down
+      - alert: TheiaAlertmanagerTargetDown
+        expr: up{job="theia-alertmanager"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: alerting
+        annotations:
+          summary: Alertmanager is unreachable
+          description: Notification delivery may be unavailable; inspect Grafana and container status directly.
+          runbook: docs/operations/mon02-alerting.md#notification-pipeline
+
+  - name: theia-api-performance
+    interval: 30s
+    rules:
+      - alert: TheiaAPIHighServerErrorRate
+        expr: |
+          (
+            sum(increase(theia_http_requests_total{status_class="5xx"}[5m]))
+            /
+            clamp_min(sum(increase(theia_http_requests_total[5m])), 1)
+          ) > 0.10
+          and sum(increase(theia_http_requests_total{status_class="5xx"}[5m])) >= 5
+          and sum(increase(theia_http_requests_total[5m])) >= 20
+        for: 2m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: Elevated Theia API server-error ratio
+          description: At least five 5xx responses, twenty requests, and a 5xx ratio above 10% over five minutes.
+          runbook: docs/operations/mon02-alerting.md#api-errors-or-latency
+      - alert: TheiaAPIHighP95Latency
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le) (rate(theia_http_request_duration_seconds_bucket[5m]))
+          ) > 2
+          and sum(increase(theia_http_request_duration_seconds_count[5m])) >= 20
+        for: 3m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: Theia API P95 exceeds two seconds
+          description: Twenty or more sampled requests in five minutes and P95 handler latency above two seconds.
+          runbook: docs/operations/mon02-alerting.md#api-errors-or-latency
+
+  - name: theia-llm
+    interval: 30s
+    rules:
+      - alert: TheiaLLMHighFailureRatio
+        expr: |
+          (
+            sum(increase(theia_llm_attempts_total{status="failed"}[10m]))
+            /
+            clamp_min(sum(increase(theia_llm_attempts_total[10m])), 1)
+          ) > 0.30
+          and sum(increase(theia_llm_attempts_total{status="failed"}[10m])) >= 3
+          and sum(increase(theia_llm_attempts_total[10m])) >= 10
+        for: 2m
+        labels:
+          severity: warning
+          component: llm
+        annotations:
+          summary: Elevated failed LLM attempt ratio
+          description: At least three failed attempts and ten total SQL-finalized attempts in ten minutes, with failure ratio above 30%.
+          runbook: docs/operations/mon02-alerting.md#llm-failures
+
+  - name: theia-workers
+    interval: 15s
+    rules:
+      - alert: TheiaWorkerNeverReportedHeartbeat
+        expr: |
+          theia_worker_expected{kind=~"memory|reflection|scheduler"} == 1
+          unless on (kind) theia_worker_heartbeat_success_timestamp_seconds
+        for: 3m
+        labels:
+          severity: warning
+          component: workers
+        annotations:
+          summary: Expected Theia worker has not reported any heartbeat
+          description: A configured worker has not successfully persisted a heartbeat to SQL Server since startup.
+          runbook: docs/operations/mon02-alerting.md#worker-heartbeats
+      - alert: TheiaWorkerHeartbeatStale
+        expr: |
+          (time() - theia_worker_heartbeat_success_timestamp_seconds{kind=~"memory|reflection|scheduler"}) > 90
+          and on (kind) (theia_worker_running == 1)
+          and on (kind) (theia_worker_expected == 1)
+        for: 1m
+        labels:
+          severity: warning
+          component: workers
+        annotations:
+          summary: Theia worker heartbeat is stale
+          description: No successfully persisted running heartbeat for more than 90 seconds.
+          runbook: docs/operations/mon02-alerting.md#worker-heartbeats
+      - alert: TheiaWorkerNotRunning
+        expr: |
+          (theia_worker_running == 0)
+          and on (kind) (theia_worker_expected == 1)
+        for: 1m
+        labels:
+          severity: warning
+          component: workers
+        annotations:
+          summary: An expected Theia worker reports a non-running state
+          description: A worker last persisted a stopped or failed state to SQL Server.
+          runbook: docs/operations/mon02-alerting.md#worker-heartbeats

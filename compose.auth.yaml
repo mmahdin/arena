@@ -1,0 +1,61 @@
+# AUTH-01: opt-in LOCAL-only identity infrastructure. Combine with compose.yaml.
+# Never publish this start-dev overlay on a public interface or use it in production.
+services:
+  keycloak-postgres:
+    profiles: [auth]
+    image: postgres:17.12
+    environment:
+      POSTGRES_DB: ${KEYCLOAK_DB_NAME:-theia_keycloak}
+      POSTGRES_USER: ${KEYCLOAK_DB_USER:-theia_keycloak}
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Run python3 scripts/auth/init_local_keycloak_env.py first}
+    volumes:
+      - theia_keycloak_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  keycloak:
+    profiles: [auth]
+    image: quay.io/keycloak/keycloak:26.8.2
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-postgres:5432/${KEYCLOAK_DB_NAME:-theia_keycloak}
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USER:-theia_keycloak}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Run python3 scripts/auth/init_local_keycloak_env.py first}
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_PORT: "8180"
+      KC_HOSTNAME: http://auth.localhost:8180
+      KC_HOSTNAME_STRICT: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_BOOTSTRAP_ADMIN_USERNAME:?Set bootstrap admin username}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD:?Set bootstrap admin password}
+      THEIA_USERS_BFF_CLIENT_SECRET: ${THEIA_USERS_BFF_CLIENT_SECRET:?Set users BFF client secret}
+      THEIA_STAFF_BFF_CLIENT_SECRET: ${THEIA_STAFF_BFF_CLIENT_SECRET:?Set staff BFF client secret}
+    ports:
+      - "127.0.0.1:8180:8180"
+    volumes:
+      - ./infra/keycloak/realms:/opt/keycloak/data/import:ro
+    networks:
+      default:
+        aliases:
+          - auth.localhost
+    depends_on:
+      keycloak-postgres:
+        condition: service_healthy
+    healthcheck:
+      # The official image has bash but no curl/wget. Probe the private management port.
+      test: ["CMD", "bash", "-ec", "{ printf 'HEAD /health/ready HTTP/1.0\\r\\n\\r\\n' >&0; grep -q 'HTTP/1.0 200'; } 0<>/dev/tcp/127.0.0.1/9000"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+    restart: unless-stopped
+
+volumes:
+  theia_keycloak_pg:

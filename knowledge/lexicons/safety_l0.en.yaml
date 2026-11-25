@@ -1,0 +1,68 @@
+schema: lexicon.v1
+version: 0.1.0
+locale: en
+rules:
+- id: si_explicit
+  category: suicidal_ideation
+  level: high
+  match:
+    type: regex
+    pattern: (?i)\b(?:i (?:want to die|wish i (?:were|was) dead|am going to kill myself|plan to (?:kill myself|end
+      my life)|intend to end my life)|i(?:\x27|’)m (?:going to|about to) (?:kill myself|end my life))\b
+  second_look: true
+- id: si_imminent
+  category: suicidal_ideation
+  level: imminent
+  match:
+    type: regex
+    pattern: (?i)\b(?:i (?:am about to|will (?:soon|tonight)) (?:kill myself|end my life)|i have (?:a )?plan
+      to (?:kill myself|end my life) (?:tonight|now))\b
+  second_look: false
+- id: self_harm
+  category: self_harm
+  level: high
+  match:
+    type: regex
+    pattern: (?i)\b(?:i (?:am going to|intend to|want to) (?:hurt|harm|injure) myself|i keep (?:hurting|harming|injuring)
+      myself)\b
+  second_look: true
+- id: violence_intent
+  category: harm_to_others
+  level: high
+  match:
+    type: regex
+    pattern: (?i)\b(?:i (?:am going to|plan to|intend to) (?:kill|seriously hurt|attack) (?:someone|him|her|them|a
+      person)|i want to kill someone)\b
+  second_look: false
+- id: abuse_unsafe
+  category: abuse_disclosure
+  level: high
+  match:
+    type: regex
+    pattern: (?i)\b(?:my (?:partner|parent|caregiver) (?:is threatening to kill me|is hurting me|hits me)|someone
+      (?:is threatening to kill me|is keeping me trapped))\b
+  second_look: false
+- id: medical_unresponsive
+  category: medical_emergency
+  level: imminent
+  match:
+    type: regex
+    pattern: (?i)\b(?:i (?:cannot|can\x27t) breathe|i (?:am having|think i am having) (?:a heart attack|a stroke)|someone
+      (?:has stopped breathing|is unconscious))\b
+  second_look: false
+- id: substance_overdose
+  category: substance_crisis
+  level: imminent
+  match:
+    type: regex
+    pattern: (?i)\b(?:i (?:think i|may have|have) (?:overdosed|taken an overdose)|someone (?:overdosed|has
+      overdosed))\b
+  second_look: false
+- id: suicidal_ambiguous
+  category: suicidal_ideation
+  level: elevated
+  match:
+    type: regex
+    pattern: (?i)\b(?:i (?:don\x27t|do not) want to (?:be here|live) anymore|i wish i could (?:disappear forever|never
+      wake up))\b
+  second_look: true

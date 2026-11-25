@@ -1,0 +1,119 @@
+schema: protocol.v1
+id: defusion_phrase
+version: 0.1.0
+name: Step back from a sticky thought
+family: act
+one_liner: Notice a recurring thought as a thought, without demanding it disappear.
+est_minutes: 5
+evidence:
+- ref: 'ACBS, ACT: cognitive defusion'
+  level: standard_practice
+- ref: WHO (2020), Doing What Matters in Times of Stress
+  level: standard_practice
+fit_tags:
+- self_critical_thoughts
+- worry
+- stress
+eligibility:
+  require_phase: []
+  require_slots_filled: []
+  require_risk_at_most: low
+  min_user_readiness: medium
+  forbid_flags:
+  - psychosis_signs
+  - mania_signs
+  - dissociation
+  - intoxication
+  - unsafe_environment
+  - medical_instability
+  - coercion_present
+  decline_cooldown_days: 0
+  min_days_between_runs: 0
+  max_runs_per_thread: 0
+steps:
+- id: phrase
+  goal: Choose a manageable thought
+  instruction: Invite one ordinary repeated phrase, not a traumatic image. Explain they can leave
+    it unnamed.
+  expected_inputs:
+  - thought_phrase
+  success_criteria: defusion_phrase_selected
+  ui:
+    widget: none
+  on_success: notice
+  on_stuck:
+    adapt: phrase_easier
+    after: 1
+    then: pause
+  on_distress: stop
+  on_decline: stop
+  adaptations:
+  - id: phrase_easier
+    instruction: Use a neutral example supplied by the user rather than demanding disclosure.
+- id: notice
+  goal: Add a little distance from the thought
+  instruction: Offer the wording “I am noticing the thought that…” and let them decide whether it
+    feels useful. Do not call the thought false.
+  expected_inputs:
+  - noticing_phrase
+  success_criteria: thought_noticed
+  ui:
+    widget: none
+  on_success: reflect
+  on_stuck:
+    adapt: notice_easier
+    after: 1
+    then: pause
+  on_distress: stop
+  on_decline: stop
+  adaptations:
+  - id: notice_easier
+    instruction: If the phrase is awkward, invite “My mind is saying…” or skip it.
+- id: reflect
+  goal: Check whether the phrasing helps
+  instruction: Ask whether this creates any room to choose what matters, or feels unhelpful. Accept
+    either answer.
+  expected_inputs:
+  - reflection
+  success_criteria: defusion_reflection
+  ui:
+    widget: none
+  on_success: complete
+  on_stuck:
+    adapt: ''
+    after: 0
+    then: pause
+  on_distress: stop
+  on_decline: stop
+  adaptations: []
+offer:
+  why_templates:
+  - sticky_thought
+  intents:
+  - Explain the purpose briefly when it helps the user's choice.
+  - Keep participation voluntary; accept skipping, pausing or changing direction.
+stop_rules:
+- when: risk_at_least_elevated
+  action: stop
+  note: safety_overrides_exercise
+- when: user_declines
+  action: stop
+  note: respect_refusal
+- when: distress_increases
+  action: stop
+  note: return_to_support
+- when: topic_shift_later
+  action: pause
+  note: respect_topic_shift
+  follow_up_days: 2
+completion:
+  record_outcome: true
+  ask_rating: true
+  follow_up_days: 3
+  memory_write:
+    kind: event
+    tags:
+    - protocol_outcome
+safety_notes: Development draft, not a clinical intervention manual. Consent and risk gate required;
+  pause/stop on discomfort, confusion, refusal, or increased distress. No trauma processing, diagnostic
+  assessment or medical advice. No outcome guaranteed.

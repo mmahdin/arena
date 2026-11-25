@@ -1,0 +1,91 @@
+# MON-01B: local synthetic-only logs overlay.
+# Run with compose.yaml + compose.monitoring.dev.yaml under the SAME Compose
+# project; never expose Loki/Alloy ports or harvest Docker/container log files.
+services:
+  logging-init:
+    profiles: [monitoring]
+    image: busybox:1.37.0
+    user: "0:0"
+    command:
+      - sh
+      - -ec
+      - |
+        mkdir -p /logs /alloy /loki
+        chown 0:2000 /logs
+        chmod 2770 /logs
+        chown -R 473:473 /alloy
+        chmod 0700 /alloy
+        chown -R 10001:10001 /loki
+        chmod 0700 /loki
+    volumes:
+      - theia_safe_log_data:/logs
+      - theia_alloy_data:/alloy
+      - theia_loki_data:/loki
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+
+  api:
+    # Dockerfile runs as unprivileged 'app'; supplementary group 2000 can
+    # write only to the setgid safe-log spool (no root process required).
+    group_add: ["2000"]
+    environment:
+      THEIA_SAFE_LOG_EXPORT_ENABLED: "true"
+      THEIA_SAFE_LOG_EXPORT_PATH: /var/log/theia/theia-safe.jsonl
+    volumes:
+      - theia_safe_log_data:/var/log/theia
+    depends_on:
+      logging-init: {condition: service_completed_successfully}
+
+  loki:
+    profiles: [monitoring]
+    image: grafana/loki:3.7.10
+    user: "10001:10001"
+    command: ["-config.file=/etc/loki/config.yml"]
+    depends_on:
+      logging-init: {condition: service_completed_successfully}
+    volumes:
+      - ./infra/monitoring/loki/config.yml:/etc/loki/config.yml:ro
+      - theia_loki_data:/loki
+    # No host ports. Loki has auth disabled ONLY because this is a private
+    # single-tenant local Compose network, not a public/service deployment.
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "2"}
+
+  alloy:
+    profiles: [monitoring]
+    image: grafana/alloy:v1.21.3
+    user: "473:473"
+    group_add: ["2000"]
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --storage.path=/var/lib/alloy/data
+      - --server.http.listen-addr=127.0.0.1:12345
+    depends_on:
+      logging-init: {condition: service_completed_successfully}
+      loki: {condition: service_started}
+      api: {condition: service_started}
+    volumes:
+      - ./infra/monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - theia_safe_log_data:/var/log/theia:ro
+      - theia_alloy_data:/var/lib/alloy/data
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "2"}
+
+  grafana:
+    depends_on:
+      loki: {condition: service_started}
+
+volumes:
+  theia_safe_log_data:
+  theia_alloy_data:
+  theia_loki_data:

@@ -1,0 +1,152 @@
+# Local synthetic example; set AI_CORE_CONFIG_FILE to an operator-owned copy.
+# No secrets are stored here; model/API keys are read from environment variables.
+schema: ai_runtime.v4
+bundleDirectory: ../../knowledge
+trustedKeys: {}
+workerId: theia-local-v01
+providers:
+  OpenCode:
+    baseUrl: https://opencode.ai/inference/systemone/v1
+    keyEnv: OPENCODE_API_KEY
+  openai:
+    baseUrl: https://api.openai.com/v1
+    keyEnv: MODEL_OPENAI_KEY
+llm:
+  components:
+    jev:
+      chain:
+      - provider: OpenCode
+        model: jev-1.13-free
+        billing_source: free
+        native_json_schema: false
+      timeout_ms: 4000
+      max_tokens: 500
+      temperature: 0
+    unified:
+      chain:
+      - provider: openai
+        model: gpt-5.6-sol
+        native_json_schema: true
+        # Preserve optional/independently validated proposals and variable protocol inputs.
+        # Strict constrained decoding cannot express the existing v2 contract.
+        json_schema_strict: false
+        reasoning_effort: none
+        supports_temperature: true
+      timeout_ms: 40000
+      max_tokens: 2400
+      temperature: 0.4
+    memory_writer:
+      chain:
+      - provider: openai
+        model: gpt-6-luna
+        native_json_schema: false
+      timeout_ms: 15000
+      max_tokens: 3000
+      temperature: 0.1
+    reflection:
+      chain:
+      - provider: openai
+        model: gpt-6-luna
+        native_json_schema: false
+      timeout_ms: 45000
+      max_tokens: 2500
+      temperature: 0.3
+    embedding:
+      chain:
+      - provider: openai
+        model: text-embedding-3-small
+        dimensions: 1024
+      timeout_ms: 5000
+  max_retries_per_model: 1
+  default_timeout_ms: 60000
+  retry_base_ms: 100
+  retry_max_ms: 1000
+  breaker_window_ms: 60000
+  breaker_cooldown_ms: 30000
+  breaker_error_rate: 0.3
+  breaker_min_samples: 5
+  daily_quota:
+    calls: 100
+budgets:
+  schema: budgets.v1
+  turn:
+    jev_ms: 10000
+    unified_ms: 40000
+    total_ms: 100000
+    retrieval_ms: 10000
+  limits:
+    max_sync_llm_calls: 2
+    max_regenerations: 0
+    max_brain_hops: 0
+  context:
+    active: 3000
+    persistent: 700
+    profile: 250
+    retrieved: 1200
+    recent: 1000
+  operations:
+    scheduler_interval_ms: 60000
+    scheduler_retry_base_ms: 2000
+    scheduler_retry_max_ms: 60000
+    scheduler_max_failures: 6
+    attempt_write_ms: 2000
+    stage_write_ms: 400
+    trace_reference_ms: 150
+    trace_jobs_ms: 1000
+    turn_lease_ms: 120000
+    turn_renew_ms: 20000
+    turn_cleanup_ms: 3000
+    worker_lease_ms: 120000
+    worker_timeout_ms: 60000
+    worker_cleanup_ms: 5000
+    hint_read_ms: 100
+    hint_verification_ms: 25
+    heartbeat_ms: 1000
+    heartbeat_interval_ms: 15000
+    recent_messages: 32
+  tokens:
+    jev_in: 18000
+    knowledge_content: 3500
+    memory_writer_in: 3000
+    reflection_in: 8000
+    wctx_target: 1500
+    unified_in: 18000
+    unified_out: 2400
+  quotas:
+    reflection_per_user_per_day: 4
+    memory_writer_per_user_per_hour: 30
+    user_msgs_per_minute: 12
+# One process-local service shared by Retrieval and all indexing workers.
+embeddingCache:
+  ttl_seconds: 900
+  max_entries: 4096
+  max_in_flight: 64
+retrievalTimeouts:
+  total_ms: 10000
+  per_strategy_ms: 10000
+encryption:
+  active: local-v1
+  keyEnv:
+    local-v1: AI_MEMORY_KEY
+policy:
+  reviewId: unreviewed-local-v0.1.0-test-policy
+  # Memory use is enabled without consent mappings.
+  consentKeys: []
+  actions: {}
+feedback:
+  minUnusedRetrievals: 3
+  importanceMultiplier: 0.9
+
+retrievalDefaults:
+  max_items: 5
+  hard_cap_with_hop: 7
+  per_item_tokens: 60
+  total_tokens: 400
+background:
+  batch_size: 16
+  min_messages: 4
+  flush_seconds: 300
+  sweep_seconds: 30
+  max_users: 32
+  input_tokens: 16000
+  output_tokens: 3000

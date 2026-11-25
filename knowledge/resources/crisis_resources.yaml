@@ -1,0 +1,20 @@
+# UNREVIEWED DEVELOPMENT CONTENT. Synthetic testing only; clinical and native Persian review required.
+schema: crisis_resources.v1
+last_full_verification: '2026-11-18'
+locales:
+  en:
+  - id: international_helpline_directory
+    name: Find A Helpline (country-specific directory, NOT a live helpline)
+    kind: chat
+    contact: https://findahelpline.com
+    hours: Directory website; each listed helpline has its own hours
+    verified_on: '2026-11-18'
+  fa:
+  - id: international_helpline_directory
+    name: فهرست بین‌المللی راه‌های دریافت حمایت؛ خودش خط کمک فوری نیست
+    kind: chat
+    contact: https://findahelpline.com
+    hours: وب‌سایت راهنما؛ ساعت فعالیت هر خدمت جداگانه درج شده است
+    verified_on: '2026-11-18'
+fallback_locale: en
+stale_after_days: 180

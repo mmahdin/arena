@@ -1,0 +1,7 @@
+# Hybrid retrieval: cosine + Okapi BM25 + reciprocal rank fusion.
+schema: retrieval.v2
+defaults:
+  max_items: 5
+  hard_cap_with_hop: 7
+  per_item_tokens: 60
+  total_tokens: 400

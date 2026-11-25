@@ -1,0 +1,13 @@
+# SYNTHETIC WP-03 CONTRACT FIXTURE ONLY. NOT CLINICALLY REVIEWED; NEVER SHIP TO USERS.
+schema: memory.v1
+allowed_kinds:
+- fact
+- preference
+- episode
+- hypothesis
+- goal
+- event
+- safety_event
+require_evidence: true
+preserve_derived_on_soft_delete: true
+allow_hard_delete: false

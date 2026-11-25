@@ -1,0 +1,85 @@
+schema: problem.v1
+slots:
+- id: situation
+  importance:
+    exploring: 0.9
+    understanding_sufficient: 0.6
+    working: 0.4
+  ask_cost: 0.2
+  ask_hint: One recent specific moment; do not demand details of trauma.
+- id: emotions
+  importance:
+    exploring: 0.8
+    understanding_sufficient: 0.5
+    working: 0.4
+  ask_cost: 0.2
+  ask_hint: What feeling or body signal stood out, in their own words?
+- id: thoughts
+  importance:
+    exploring: 0.6
+    understanding_sufficient: 0.8
+    working: 0.7
+  ask_cost: 0.35
+  ask_hint: If willing, what interpretation passed through their mind?
+- id: behaviors
+  importance:
+    exploring: 0.5
+    understanding_sufficient: 0.7
+    working: 0.75
+  ask_cost: 0.3
+  ask_hint: What they did or avoided; no moral judgment.
+- id: goal
+  importance:
+    exploring: 0.65
+    understanding_sufficient: 0.9
+    working: 0.8
+  ask_cost: 0.2
+  ask_hint: What would they like from this conversation, if anything?
+- id: impact
+  importance:
+    exploring: 0.4
+    understanding_sufficient: 0.6
+    working: 0.5
+  ask_cost: 0.45
+  ask_hint: How this affects life; no symptom scoring unless volunteered.
+- id: history
+  importance:
+    exploring: 0.1
+    working: 0.2
+  ask_cost: 0.75
+  ask_hint: Only when volunteered/relevant; never elicit trauma narratives.
+- id: supports
+  importance:
+    exploring: 0.25
+    working: 0.6
+  ask_cost: 0.3
+  ask_hint: People, places or routines that support them, without assumptions.
+- id: values
+  importance:
+    exploring: 0.25
+    working: 0.55
+  ask_cost: 0.3
+  ask_hint: What matters to them, not what they should value.
+- id: readiness
+  importance:
+    understanding_sufficient: 0.25
+    working: 0.6
+  ask_cost: 0.35
+  ask_hint: Whether they prefer listening, information, or an optional small step.
+readiness_rule:
+  require_filled:
+  - situation
+  - emotions
+  and_any_of:
+  - thoughts
+  - behaviors
+  - goal
+  min_user_turns_in_thread: 3
+information_needs:
+  v_min: 0.45
+  recently_asked_hours: 24
+  max_returned: 2
+  suppress_if:
+  - mode_venting
+  - risk_gte_elevated
+  - user_declined_slot

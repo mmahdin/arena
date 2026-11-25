@@ -1,0 +1,161 @@
+schema: protocol.v1
+id: thought_record
+version: 0.1.0
+name: A small thought record
+family: cbt
+one_liner: Explore one everyday thought, its evidence, and a more balanced possibility.
+est_minutes: 8
+evidence:
+- ref: 'Beck, Cognitive Behavior Therapy: Basics and Beyond'
+  level: standard_practice
+- ref: NICE CG113
+  level: standard_practice
+fit_tags:
+- self_critical_thoughts
+- anxiety_social
+- worry
+- low_mood
+eligibility:
+  require_phase: []
+  require_slots_filled: []
+  require_risk_at_most: low
+  min_user_readiness: medium
+  forbid_flags:
+  - psychosis_signs
+  - mania_signs
+  - dissociation
+  - intoxication
+  - unsafe_environment
+  - medical_instability
+  - coercion_present
+  decline_cooldown_days: 0
+  min_days_between_runs: 0
+  max_runs_per_thread: 0
+steps:
+- id: situation
+  goal: Choose one ordinary recent moment
+  instruction: With permission, pick a manageable recent situation. Ask what happened, not for traumatic
+    detail.
+  expected_inputs:
+  - situation
+  success_criteria: situation_specific_enough
+  ui:
+    widget: none
+  on_success: thought
+  on_stuck:
+    adapt: situation_easier
+    after: 1
+    then: pause
+  on_distress: stop
+  on_decline: stop
+  adaptations:
+  - id: situation_easier
+    instruction: Offer a smaller moment from today, or pause if none feels safe.
+- id: thought
+  goal: Capture a first interpretation
+  instruction: Ask what went through their mind then. Record their words, not a clinician-inferred
+    thought. Belief rating is optional.
+  expected_inputs:
+  - thought
+  - belief_rating
+  success_criteria: thought_captured
+  ui:
+    widget: none
+  on_success: evidence
+  on_stuck:
+    adapt: thought_easier
+    after: 1
+    then: pause
+  on_distress: stop
+  on_decline: stop
+  adaptations:
+  - id: thought_easier
+    instruction: Offer “If that moment had a subtitle, what might it say?”; do not suggest the answer.
+- id: evidence
+  goal: Look at what supports and complicates it
+  instruction: Invite one observation supporting the thought and one that complicates it. Avoid debate,
+    reassurance or making the person feel mistaken.
+  expected_inputs:
+  - evidence_for
+  - evidence_against
+  success_criteria: evidence_considered
+  ui:
+    widget: none
+  on_success: alternative
+  on_stuck:
+    adapt: evidence_easier
+    after: 1
+    then: pause
+  on_distress: stop
+  on_decline: stop
+  adaptations:
+  - id: evidence_easier
+    instruction: If examining both sides feels invalidating, acknowledge this and pause.
+- id: alternative
+  goal: Offer a fairer, not falsely positive reading
+  instruction: Help the user write a realistic alternative that can hold uncertainty and their feeling.
+    Do not assert another person’s motive.
+  expected_inputs:
+  - balanced_thought
+  success_criteria: balanced_alternative_stated
+  ui:
+    widget: none
+  on_success: takeaway
+  on_stuck:
+    adapt: alternative_easier
+    after: 1
+    then: pause
+  on_distress: stop
+  on_decline: stop
+  adaptations:
+  - id: alternative_easier
+    instruction: Try “What would be a fair, not necessarily positive, way to phrase this?”
+- id: takeaway
+  goal: Review what changed or did not
+  instruction: Ask if the new wording fits and whether the exercise was useful; a no is a valid outcome.
+    No promise of symptom relief.
+  expected_inputs:
+  - takeaway
+  - rating_after
+  success_criteria: takeaway_confirmed
+  ui:
+    widget: none
+  on_success: complete
+  on_stuck:
+    adapt: ''
+    after: 0
+    then: pause
+  on_distress: stop
+  on_decline: stop
+  adaptations: []
+offer:
+  why_templates:
+  - thought_feels_certain
+  intents:
+  - Explain the purpose briefly when it helps the user's choice.
+  - Keep participation voluntary; accept skipping, pausing or changing direction.
+stop_rules:
+- when: risk_at_least_elevated
+  action: stop
+  note: safety_overrides_exercise
+- when: user_declines
+  action: stop
+  note: respect_refusal
+- when: distress_increases
+  action: stop
+  note: return_to_support
+- when: topic_shift_later
+  action: pause
+  note: respect_topic_shift
+  follow_up_days: 2
+completion:
+  record_outcome: true
+  ask_rating: true
+  follow_up_days: 3
+  memory_write:
+    kind: event
+    tags:
+    - protocol_outcome
+safety_notes: Development draft, not a clinical intervention manual. Consent and risk gate required;
+  pause/stop on discomfort, confusion, refusal, or increased distress. No trauma processing, diagnostic
+  assessment or medical advice. No outcome guaranteed.

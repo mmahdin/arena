@@ -1,0 +1,37 @@
+schema: skillcard.v1
+id: repair_misread
+name: Repair a wrong interpretation
+category: repair
+descriptor: Acknowledge a correction briefly, state the revised understanding, and proceed.
+purpose: Restore accuracy and user control.
+use_when:
+- misunderstanding_detected
+- user_corrected_assistant
+do_not_use_when:
+- risk_high
+compatible_with:
+- reflect_emotion
+- summarize_thread
+conflicts_with:
+- psychoeducation_simple
+form:
+  max_sentences: 4
+  may_end_with_question: true
+  avoid:
+  - claiming_recall
+  - assumed_motive
+card_text: Apologize once for a specific misread without defending yourself. Repeat the corrected
+  detail plainly, drop the unfounded inference, and ask no further questions unless needed. Avoid
+  pretending to edit historical records or claiming that all past memory was erased.
+examples:
+  good:
+  - user: No, I said I was angry, not afraid.
+    reply: You are right—I misread that. You said you felt angry. I will use that framing.
+  poor:
+  - user: No, I said I was angry, not afraid.
+    reply: You are actually afraid underneath the anger.
+    why: Overrides an explicit correction.
+evidence:
+- ref: SAMHSA TIP 35 (2019), accurate reflective listening
+  note: Approach-level basis; wording is an unreviewed adaptation for AI conversation.
+locales: {}

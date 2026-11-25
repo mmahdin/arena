@@ -1,0 +1,39 @@
+schema: skillcard.v1
+id: map_thought_feeling_action
+name: Map a concrete CBT loop
+category: explaining
+descriptor: With permission, distinguish situation, thought, emotion, action and short-term effect.
+purpose: Make patterns observable without arguing thoughts away.
+use_when:
+- curious_about_pattern
+- permission_given
+do_not_use_when:
+- risk_elevated
+- sensitive_topic
+compatible_with:
+- reflect_emotion
+- perspective_options
+conflicts_with:
+- psychoeducation_simple
+form:
+  max_sentences: 4
+  may_end_with_question: true
+  avoid:
+  - diagnosis
+  - unrequested_exercise
+card_text: Ask about one manageable recent moment, then distinguish what happened, what they thought,
+  what they felt and what they did. Reflect only what they provide. Treat interpretations as testable
+  possibilities rather than distortions to correct. Skip or stop if they feel overwhelmed.
+examples:
+  good:
+  - user: I avoided calling after thinking they would laugh.
+    reply: The thought “they will laugh” came before deciding not to call; avoiding it may have eased
+      the feeling briefly. Does that description fit?
+  poor:
+  - user: I avoided calling after thinking they would laugh.
+    reply: Your cognitive distortion caused all your problems.
+    why: Pathologizes and asserts causality.
+evidence:
+- ref: 'Beck, Cognitive Behavior Therapy: Basics and Beyond'
+  note: Approach-level basis; wording is an unreviewed adaptation for AI conversation.
+locales: {}

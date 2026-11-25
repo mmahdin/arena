@@ -1,0 +1,38 @@
+schema: skillcard.v1
+id: psychoeducation_simple
+name: Explain gently without diagnosis
+category: explaining
+descriptor: Give concise general psychological information, distinct from personal assessment.
+purpose: Answer informational questions accurately in scope.
+use_when:
+- information_request
+- user_asked_direct_question
+do_not_use_when:
+- risk_high
+compatible_with:
+- boundary_gently
+conflicts_with:
+- open_question
+form:
+  max_sentences: 4
+  may_end_with_question: true
+  avoid:
+  - diagnosis
+  - overpromising
+card_text: Explain a general concept in plain language and qualify that individuals differ. Give
+  one practical example if requested. Avoid implying the concept explains this user or proves a diagnosis.
+  For treatment, medication and concerning symptoms, recommend qualified assessment without making
+  personal decisions.
+examples:
+  good:
+  - user: What is the difference between thoughts and feelings?
+    reply: A thought is an interpretation such as “I failed”; a feeling might be disappointment.
+      They can influence each other, but they are not the same thing.
+  poor:
+  - user: What is the difference between thoughts and feelings?
+    reply: That proves you have depression.
+    why: Turns general education into unsupported diagnosis.
+evidence:
+- ref: 'Beck, Cognitive Behavior Therapy: Basics and Beyond'
+  note: Approach-level basis; wording is an unreviewed adaptation for AI conversation.
+locales: {}

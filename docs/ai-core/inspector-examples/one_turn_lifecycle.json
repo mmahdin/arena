@@ -1,0 +1,197 @@
+{
+  "schema": "local_ai_trace.v1",
+  "trace_id": "40000000-0000-4000-8000-000000000001",
+  "kind": "turn",
+  "turn_id": "10000000-0000-4000-8000-000000000001",
+  "started_at": "2026-11-25T08:00:00Z",
+  "ended_at": "2026-11-25T08:00:06Z",
+  "status": "success",
+  "complete": false,
+  "response_complete": true,
+  "response_ended_at": "2026-11-25T08:00:01Z",
+  "background_status": "pending",
+  "jobs": [
+    {
+      "id": "20000000-0000-4000-8000-000000000001",
+      "kind": "memory_embed",
+      "status": "failed",
+      "attempts": 1,
+      "max_attempts": 6,
+      "created_at": "2026-11-25T08:00:00Z",
+      "run_after": "2026-11-25T08:00:08Z",
+      "last_error_code": "memory_denied",
+      "payload": {
+        "schema": "embedding_job.v2",
+        "source_kind": "session",
+        "source_id": "30000000-0000-4000-8000-000000000001",
+        "source_version": "0000000000000001"
+      }
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000002",
+      "kind": "memory_embed",
+      "status": "queued",
+      "attempts": 1,
+      "max_attempts": 6,
+      "created_at": "2026-11-25T08:00:00Z",
+      "run_after": "2026-11-25T08:00:08Z",
+      "last_error_code": "memory_retry",
+      "payload": {
+        "schema": "embedding_job.v2",
+        "source_kind": "message",
+        "source_id": "30000000-0000-4000-8000-000000000001",
+        "source_version": "0000000000000001"
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n000001",
+      "operation": "orchestrator.ProcessTurn",
+      "sequence": 1,
+      "started_at": "2026-11-25T08:00:00Z",
+      "ended_at": "2026-11-25T08:00:01Z",
+      "duration_ns": 1000000000,
+      "status": "success",
+      "input": {
+        "request": {
+          "text": "Synthetic message: discuss a fictional project."
+        }
+      },
+      "output": {
+        "text": "Synthetic response about that fictional project."
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": []
+    },
+    {
+      "id": "n000002",
+      "operation": "memory.RunOnce",
+      "sequence": 2,
+      "started_at": "2026-11-25T08:00:02Z",
+      "ended_at": "2026-11-25T08:00:03Z",
+      "duration_ns": 1000000000,
+      "status": "success",
+      "input": {
+        "kind": "memory",
+        "turn_id": "10000000-0000-4000-8000-000000000001",
+        "job_id": "20000000-0000-4000-8000-000000000001",
+        "attempt": 1
+      },
+      "output": {
+        "worked": true
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": [],
+      "parent_id": "n000001"
+    },
+    {
+      "id": "n000003",
+      "operation": "memory_embed.skipped",
+      "sequence": 3,
+      "started_at": "2026-11-25T08:00:02Z",
+      "ended_at": "2026-11-25T08:00:02Z",
+      "duration_ns": 0,
+      "status": "skipped",
+      "input": null,
+      "output": null,
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": [],
+      "parent_id": "n000002",
+      "reason": "source_ineligible_or_revision_changed"
+    },
+    {
+      "id": "n000004",
+      "operation": "memory.RunOnce",
+      "sequence": 4,
+      "started_at": "2026-11-25T08:00:04Z",
+      "ended_at": "2026-11-25T08:00:06Z",
+      "duration_ns": 2000000000,
+      "status": "error",
+      "input": {
+        "kind": "memory",
+        "turn_id": "10000000-0000-4000-8000-000000000001",
+        "job_id": "20000000-0000-4000-8000-000000000002",
+        "attempt": 1
+      },
+      "output": {
+        "worked": true
+      },
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": [],
+      "parent_id": "n000001",
+      "error": {
+        "type": "context.deadlineExceededError",
+        "code": "deadline_exceeded"
+      }
+    },
+    {
+      "id": "n000005",
+      "operation": "provider.Embed",
+      "sequence": 5,
+      "started_at": "2026-11-25T08:00:04Z",
+      "ended_at": "2026-11-25T08:00:05Z",
+      "duration_ns": 1000000000,
+      "status": "error",
+      "input": {
+        "input": "Synthetic message: discuss a fictional project."
+      },
+      "output": null,
+      "artifacts": [],
+      "provider_usage": [],
+      "estimates": [],
+      "parent_id": "n000004",
+      "error": {
+        "type": "context.deadlineExceededError",
+        "code": "deadline_exceeded"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "n000001",
+      "to": "n000002",
+      "kind": "execution"
+    },
+    {
+      "from": "n000002",
+      "to": "n000003",
+      "kind": "execution"
+    },
+    {
+      "from": "n000001",
+      "to": "n000004",
+      "kind": "execution"
+    },
+    {
+      "from": "n000004",
+      "to": "n000005",
+      "kind": "execution"
+    }
+  ],
+  "totals": {
+    "estimated_input_tokens": 0,
+    "provider_calls": 1,
+    "reported_calls": 0,
+    "unknown_usage_calls": 1,
+    "actual_input_tokens": 0,
+    "actual_output_tokens": 0,
+    "actual_cached_tokens": 0,
+    "estimated_cost_micro_usd": 0,
+    "by_stage": {
+      "memory.RunOnce": {
+        "estimated_input_tokens": 0,
+        "calls": 1,
+        "actual_input_tokens": 0,
+        "actual_output_tokens": 0,
+        "actual_cached_tokens": 0,
+        "estimated_cost_micro_usd": 0
+      }
+    }
+  },
+  "diagnostics": []
+}

@@ -1,0 +1,13 @@
+# AUTH-05: opt-in LOCAL Keycloak SPI overlay. Compose with compose.auth.yaml.
+# Does NOT enable the theia-users-bff client or the Go User Login flag.
+services:
+  keycloak:
+    image: theia-keycloak-sms:26.8.2-auth05
+    build:
+      context: .
+      dockerfile: infra/keycloak/Dockerfile.sms
+    environment:
+      THEIA_SMS_ENV: local
+      THEIA_SMS_TRANSPORT: mock
+      THEIA_SMS_HMAC_KEY_BASE64: ${THEIA_SMS_HMAC_KEY_BASE64:?Run python3 scripts/auth/ensure_local_sms_key.py first}
+      THEIA_SMS_MOCK_OUTBOX_DIR: /tmp/theia-sms-outbox

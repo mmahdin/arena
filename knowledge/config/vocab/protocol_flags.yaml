@@ -1,0 +1,14 @@
+schema: vocab.v1
+values:
+- trauma_active
+- acute_grief
+- psychosis_signs
+- mania_signs
+- dissociation
+- intoxication
+- unsafe_environment
+- cognitive_overload
+- eating_disorder_risk
+- medical_instability
+- coercion_present
+- user_declined

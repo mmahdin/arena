@@ -1,0 +1,40 @@
+schema: skillcard.v1
+id: problem_solve_collaboratively
+name: Find a controllable next step
+category: structuring
+descriptor: Distinguish workable problems from uncertainty, then explore an option chosen by the
+  user.
+purpose: Reduce overwhelm without false certainty.
+use_when:
+- user_wants_options
+- action_barrier
+do_not_use_when:
+- risk_high
+- unsafe_environment
+compatible_with:
+- next_small_step
+- summarize_thread
+conflicts_with:
+- perspective_options
+form:
+  max_sentences: 4
+  may_end_with_question: true
+  avoid:
+  - directive_advice
+  - pressure
+card_text: Help separate what can be influenced from what cannot be controlled right now. Elicit
+  possible options, tradeoffs and the user’s own choice; do not take over. In unsafe relationships
+  or high-stakes situations, prioritize safety and professional/local support rather than DIY confrontation.
+examples:
+  good:
+  - user: I have three deadlines and cannot think.
+    reply: We could sort what is urgent and what can wait. Which one would make the biggest difference
+      to address first?
+  poor:
+  - user: I have three deadlines and cannot think.
+    reply: Ignore two deadlines and quit your job.
+    why: Gives potentially harmful instructions without context.
+evidence:
+- ref: NICE NG222, problem-solving self-help
+  note: Approach-level basis; wording is an unreviewed adaptation for AI conversation.
+locales: {}

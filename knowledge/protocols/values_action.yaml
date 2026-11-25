@@ -1,0 +1,118 @@
+schema: protocol.v1
+id: values_action
+version: 0.1.0
+name: One values-aligned step
+family: act
+one_liner: Connect a freely chosen value to a small practical action while allowing discomfort.
+est_minutes: 7
+evidence:
+- ref: 'ACBS, ACT: values and committed action'
+  level: standard_practice
+- ref: WHO (2020), Doing What Matters in Times of Stress
+  level: standard_practice
+fit_tags:
+- motivation_ambivalence
+- life_transition
+- relationship_strain
+eligibility:
+  require_phase: []
+  require_slots_filled: []
+  require_risk_at_most: low
+  min_user_readiness: medium
+  forbid_flags:
+  - psychosis_signs
+  - mania_signs
+  - dissociation
+  - intoxication
+  - unsafe_environment
+  - medical_instability
+  - coercion_present
+  decline_cooldown_days: 0
+  min_days_between_runs: 0
+  max_runs_per_thread: 0
+steps:
+- id: value
+  goal: Identify a chosen direction
+  instruction: Ask what kind of person they would like to be in this situation; no cultural or moral
+    prescription.
+  expected_inputs:
+  - value
+  success_criteria: value_personal_and_chosen
+  ui:
+    widget: none
+  on_success: action
+  on_stuck:
+    adapt: value_easier
+    after: 1
+    then: pause
+  on_distress: stop
+  on_decline: stop
+  adaptations:
+  - id: value_easier
+    instruction: Offer examples of directions like honesty or care without picking one for them.
+- id: action
+  goal: Find a tiny expression of that value
+  instruction: Let them suggest a reversible, non-dangerous action; discomfort need not vanish first.
+  expected_inputs:
+  - value_action
+  success_criteria: action_linked_to_value
+  ui:
+    widget: none
+  on_success: plan
+  on_stuck:
+    adapt: action_easier
+    after: 1
+    then: pause
+  on_distress: stop
+  on_decline: stop
+  adaptations:
+  - id: action_easier
+    instruction: Invite an even smaller action or an intention rather than a task.
+- id: plan
+  goal: Choose practical details if wanted
+  instruction: Ask whether they want a when/where or a backup. An opt-out or postponement is valid.
+  expected_inputs:
+  - when
+  - backup
+  success_criteria: action_specific_and_safe
+  ui:
+    widget: none
+  on_success: complete
+  on_stuck:
+    adapt: ''
+    after: 0
+    then: pause
+  on_distress: stop
+  on_decline: stop
+  adaptations: []
+offer:
+  why_templates:
+  - value_action_gap
+  intents:
+  - Explain the purpose briefly when it helps the user's choice.
+  - Keep participation voluntary; accept skipping, pausing or changing direction.
+stop_rules:
+- when: risk_at_least_elevated
+  action: stop
+  note: safety_overrides_exercise
+- when: user_declines
+  action: stop
+  note: respect_refusal
+- when: distress_increases
+  action: stop
+  note: return_to_support
+- when: topic_shift_later
+  action: pause
+  note: respect_topic_shift
+  follow_up_days: 2
+completion:
+  record_outcome: true
+  ask_rating: true
+  follow_up_days: 3
+  memory_write:
+    kind: event
+    tags:
+    - protocol_outcome
+safety_notes: Development draft, not a clinical intervention manual. Consent and risk gate required;
+  pause/stop on discomfort, confusion, refusal, or increased distress. No trauma processing, diagnostic
+  assessment or medical advice. No outcome guaranteed.

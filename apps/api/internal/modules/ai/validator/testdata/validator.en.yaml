@@ -1,0 +1,30 @@
+# SYNTHETIC REGEX FIXTURE ONLY. Requires clinical review before activation.
+schema: validator_lexicon.v1
+locale: en
+hedges: ["may", "might", "perhaps", "possibly", "it seems"]
+question_patterns:
+  - '(?i)^\s*(?:what|why|when|how|where|do you|are you|could you)\b'
+clinical_labels: ["depression", "anxiety disorder"]
+patterns:
+  diagnosis:
+    - '(?i)\byou (?:have|suffer from) (?:depression|anxiety disorder)\b'
+  medication:
+    - '(?i)\b(?:take|increase|stop) (?:your )?(?:medication|antidepressants|\d+\s*(?:mg|pills|tablets))\b'
+    - '(?i)\btake \d+\s*(?:mg|pills|tablets)\b'
+  guarantee:
+    - '(?i)\bthis will (?:fix|cure)\b'
+  therapist_identity:
+    - '(?i)\bas your therapist\b'
+    - '(?i)\bi(?: am|''m) your therapist\b'
+  directive_advice:
+    - '(?i)\byou (?:should|must|need to)\b'
+  internal_leak:
+    - '(?i)\b(?:response_plan|memory_id)\b'
+  technique:
+    - '(?i)\b(?:try|do) (?:a|this) (?:breathing )?exercise\b'
+  dependency:
+    - '(?i)\bonly i understand you\b'
+  invalidating:
+    - '(?i)\bjust get over it\b'
+  crisis_forbidden:
+    - '(?i)\bhere is how to (?:harm|hurt) yourself\b'

@@ -1,0 +1,37 @@
+schema: protocol_offer.v1
+why_templates:
+  thought_feels_certain:
+    text: A particular thought seems to carry a lot of weight; examining it gently may reveal more than one
+      workable interpretation.
+    locales: {}
+  tiny_step_option:
+    text: A small, chosen action may be more manageable than trying to change the whole day at once.
+    locales: {}
+  worry_loop_visible:
+    text: It may help to sort concerns into what can be influenced now and what cannot be solved today.
+    locales: {}
+  sticky_thought:
+    text: A recurring thought can sometimes be noticed as a mental event without needing to prove or disprove
+      it.
+    locales: {}
+  value_action_gap:
+    text: Connecting a manageable action with something important to you might offer direction without demanding
+      a particular feeling.
+    locales: {}
+  overwhelm_tool:
+    text: Briefly noticing safe aspects of the present environment may help you orient, without needing to
+      force calm.
+    locales: {}
+  ambivalence_respected:
+    text: Both reasons for and against change deserve space; the direction belongs to you.
+    locales: {}
+must_say:
+  opt_out_line:
+    text: This is optional; we can just talk instead.
+    locales: {}
+  time_estimate:
+    text: It is a brief exercise and we can take it slowly.
+    locales: {}
+  stop_anytime:
+    text: You can pause, skip any question, or stop at any point.
+    locales: {}

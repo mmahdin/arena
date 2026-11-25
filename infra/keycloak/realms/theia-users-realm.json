@@ -1,0 +1,39 @@
+{
+  "realm": "theia-users",
+  "enabled": true,
+  "displayName": "Theia Users (LOCAL - SMS NOT IMPLEMENTED)",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "registrationEmailAsUsername": false,
+  "resetPasswordAllowed": false,
+  "loginWithEmailAllowed": false,
+  "duplicateEmailsAllowed": false,
+  "bruteForceProtected": true,
+  "clients": [
+    {
+      "clientId": "theia-users-bff",
+      "name": "Theia User BFF - disabled until SMS SPI",
+      "protocol": "openid-connect",
+      "enabled": false,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${THEIA_USERS_BFF_CLIENT_SECRET}",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://app.localhost:8080/auth/user/callback"
+      ],
+      "webOrigins": [],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://app.localhost:8080/",
+        "backchannel.logout.url": "http://api:8080/auth/user/backchannel-logout",
+        "backchannel.logout.session.required": "true",
+        "backchannel.logout.revoke.offline.tokens": "false"
+      },
+      "frontchannelLogout": false
+    }
+  ]
+}

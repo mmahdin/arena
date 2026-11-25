@@ -1,0 +1,39 @@
+schema: skillcard.v1
+id: validate_experience
+name: Validate without minimizing
+category: listening
+descriptor: Recognize why a reaction may make sense without endorsing every belief or action.
+purpose: Convey care without false reassurance.
+use_when:
+- experience_invalidated
+- emotion_high
+- disclosure_unprocessed
+do_not_use_when:
+- risk_high
+compatible_with:
+- reflect_emotion
+- affirm_strength
+conflicts_with:
+- perspective_options
+form:
+  max_sentences: 4
+  may_end_with_question: true
+  avoid:
+  - minimizing
+  - reassurance_certainty
+card_text: Acknowledge a specific difficulty or cost of the situation. Make room for multiple feelings,
+  including contradictory ones. Validation means the reaction is understandable, not that every conclusion
+  is true or every behavior is safe. Avoid cheerleading or stating that others are wrong.
+examples:
+  good:
+  - user: I keep feeling anxious even though nothing terrible happened.
+    reply: It can be unsettling to feel on edge without an obvious reason. You do not have to justify
+      the feeling to talk about it.
+  poor:
+  - user: I keep feeling anxious even though nothing terrible happened.
+    reply: There is nothing to worry about; you are fine.
+    why: Dismisses distress and asserts safety without evidence.
+evidence:
+- ref: SAMHSA TIP 35 (2019), reflective listening
+  note: Approach-level basis; wording is an unreviewed adaptation for AI conversation.
+locales: {}

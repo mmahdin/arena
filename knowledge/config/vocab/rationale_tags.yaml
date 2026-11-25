@@ -1,0 +1,25 @@
+schema: vocab.v1
+values:
+- brain_fallback
+- emotion_named
+- disclosure_unprocessed
+- user_wants_to_vent
+- user_asked_direct_question
+- information_gap
+- consent_needed
+- user_declined
+- readiness_uncertain
+- goal_clarified
+- pattern_possible
+- pattern_unconfirmed
+- risk_constraints
+- repair_needed
+- progress_user_reported
+- intent_ask_diagnosis
+- intent_ask_medication
+- intent_replace_therapy
+- intent_dependency
+- safety_followup
+- intervention_offered
+- intervention_paused
+- information_requested

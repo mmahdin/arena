@@ -1,0 +1,24 @@
+{
+  "schema_version": "memwriter.v1",
+  "ops": [
+    {
+      "op": "add",
+      "kind": "fact",
+      "content": "Synthetic user prefers short replies",
+      "epistemic": "reported",
+      "evidence_msg_ids": [
+        "84412d48-c311-4cc2-a624-490717b3b1c6"
+      ],
+      "reason_tag": "preference",
+      "importance": 0,
+      "entities": [
+        {
+          "role": "friend",
+          "label": "Synthetic friend"
+        }
+      ],
+      "sensitivity": "normal",
+      "valid_from": "2026-11-16"
+    }
+  ]
+}

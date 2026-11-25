@@ -1,0 +1,377 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "thread_id",
+    "hypothesis_ops",
+    "thread_proposals",
+    "information_gaps"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "reflection.v1"
+    },
+    "thread_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "not": {
+        "const": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "formulation": {
+      "$ref": "#/$defs/formulation"
+    },
+    "hypothesis_ops": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/op"
+      }
+    },
+    "episode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "session_id",
+        "summary",
+        "topics",
+        "emotions",
+        "outcome",
+        "msg_range",
+        "follow_ups"
+      ],
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "not": {
+            "const": "00000000-0000-0000-0000-000000000000"
+          }
+        },
+        "summary": {
+          "type": "string"
+        },
+        "topics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "emotions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/emotion_label"
+          }
+        },
+        "outcome": {
+          "enum": [
+            "explored",
+            "exercise_done",
+            "decision_made",
+            "unresolved"
+          ]
+        },
+        "msg_range": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "not": {
+              "const": "00000000-0000-0000-0000-000000000000"
+            }
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "follow_ups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "thread_proposals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "thread_id",
+          "op",
+          "reason"
+        ],
+        "properties": {
+          "thread_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "not": {
+              "const": "00000000-0000-0000-0000-000000000000"
+            }
+          },
+          "phase": {
+            "enum": [
+              "exploring",
+              "understanding_sufficient",
+              "working",
+              "maintaining",
+              "resolved",
+              "paused",
+              "dormant"
+            ]
+          },
+          "op": {
+            "enum": [
+              "merge",
+              "split",
+              "resolve",
+              "dormant"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "information_gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://theia.app/schemas/reflection.v1.json",
+  "$defs": {
+    "op": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "evidence_msg_ids",
+        "reason_tag"
+      ],
+      "properties": {
+        "op": {
+          "enum": [
+            "add",
+            "update",
+            "confirm",
+            "contradict",
+            "supersede",
+            "reject",
+            "noop"
+          ]
+        },
+        "target_id": {
+          "$ref": "#/$defs/memory_id"
+        },
+        "kind": {
+          "enum": [
+            "fact",
+            "preference",
+            "episode",
+            "hypothesis",
+            "goal",
+            "event"
+          ]
+        },
+        "content": {
+          "type": "string",
+          "maxLength": 320
+        },
+        "epistemic": {
+          "enum": [
+            "reported",
+            "inferred"
+          ]
+        },
+        "evidence_msg_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "$ref": "#/$defs/message_id"
+          }
+        },
+        "entities": {
+          "type": "array",
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "required": [
+              "role"
+            ],
+            "properties": {
+              "role": {
+                "type": "string",
+                "maxLength": 30
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 40
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "tags": {
+          "type": "array",
+          "maxItems": 6,
+          "items": {
+            "type": "string",
+            "maxLength": 30
+          }
+        },
+        "sensitivity": {
+          "enum": [
+            "normal",
+            "sensitive",
+            "highly_sensitive"
+          ]
+        },
+        "importance": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "valid_from": {
+          "type": "string",
+          "format": "date"
+        },
+        "reason_tag": {
+          "type": "string",
+          "maxLength": 40
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "add"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "kind",
+              "content",
+              "epistemic"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "enum": [
+                  "update",
+                  "confirm",
+                  "contradict",
+                  "supersede",
+                  "reject"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "target_id"
+            ]
+          }
+        }
+      ]
+    },
+    "memory_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "not": {
+        "const": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "message_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "not": {
+        "const": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "formulation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "framework",
+        "fields",
+        "paragraph"
+      ],
+      "properties": {
+        "framework": {
+          "$ref": "#/$defs/framework"
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/formulation_field"
+          }
+        },
+        "paragraph": {
+          "type": "string"
+        }
+      }
+    },
+    "formulation_field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "status",
+        "evidence",
+        "needs_more_evidence"
+      ],
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "reported",
+            "inferred",
+            "unknown"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "not": {
+              "const": "00000000-0000-0000-0000-000000000000"
+            }
+          }
+        },
+        "needs_more_evidence": {
+          "type": "boolean"
+        }
+      }
+    },
+    "framework": {
+      "enum": [
+        "__INJECT:formulation_frameworks__"
+      ]
+    },
+    "emotion_label": {
+      "enum": [
+        "__INJECT:config/emotions.yaml__"
+      ]
+    }
+  }
+}

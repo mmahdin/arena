@@ -1,0 +1,40 @@
+# UNREVIEWED DEVELOPMENT CONTENT. Synthetic testing only; clinical and native Persian review required.
+schema: boundary_scripts.v1
+scripts:
+  boundary_no_diagnosis:
+    text: I can help you think through what you are noticing, but I cannot determine whether you have a mental
+      health condition. A qualified clinician can assess symptoms in context. If you want, we can describe
+      what has been happening so you can decide what to bring to an appointment.
+    locales:
+      fa: >-
+        می‌توانم کمک کنم تجربه‌ات را بهتر توصیف کنی، اما نمی‌توانم مشخص کنم اختلالی داری یا نه. متخصص
+        می‌تواند علائم را در کنار شرایطت بررسی کند. اگر بخواهی، می‌توانیم حرف‌هایی را که می‌خواهی در یک جلسه
+        مطرح کنی مرتب کنیم.
+  boundary_no_medication_advice:
+    text: Medication decisions, including whether to start, stop or change a dose, need a prescriber who knows
+      your health history. I cannot recommend a change. If you are worried about side effects, please contact
+      your prescriber or pharmacist; urgent symptoms need prompt medical care. I can help you organize the
+      questions you want to ask.
+    locales:
+      fa: >-
+        شروع، قطع یا تغییر مقدار دارو نیاز به نظر پزشک آشنا با وضعیتت دارد و من نمی‌توانم تغییری پیشنهاد
+        بدهم. اگر نگران عوارض هستی، با پزشک یا داروساز صحبت کن؛ علائم فوری نیاز به رسیدگی پزشکی دارند.
+        می‌توانم کمک کنم پرسش‌هایت را مرتب کنی.
+  boundary_not_a_therapist:
+    text: I can listen, help you reflect, and offer optional low-intensity coping tools, but I am an AI, not
+      your therapist, and I cannot replace professional care. Having a human professional or trusted person
+      available can matter, especially if things feel hard to manage. What kind of support would feel most
+      useful to look for?
+    locales:
+      fa: >-
+        می‌توانم گوش بدهم و کمک کنم درباره تجربه‌ات فکر کنی، اما هوش مصنوعی هستم و جای روان‌شناس یا مراقبت
+        حرفه‌ای را نمی‌گیرم. همراهی یک متخصص یا فرد قابل اعتماد می‌تواند کمک‌کننده باشد. چه نوع حمایتی برایت
+        مفیدتر به نظر می‌رسد؟
+  boundary_gentle_other_supports:
+    text: I am glad it feels possible to talk here. You deserve support beyond a chat as well, from people
+      who can be present in your life. We can think together about one person, community, or professional you
+      might feel safe reaching out to, without pressure.
+    locales:
+      fa: >-
+        خوب است که اینجا می‌توانی حرف بزنی. سزاوار حمایتی از آدم‌هایی هم هستی که بتوانند در زندگی‌ات حضور
+        داشته باشند. اگر بخواهی، می‌توانیم بدون فشار به کسی فکر کنیم که تماس گرفتن با او برایت امن باشد.

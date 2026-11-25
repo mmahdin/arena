@@ -1,0 +1,42 @@
+schema: golden.v1
+id: longitudinal
+title: Synthetic contradictory facts and explicit correction across sessions
+synthetic_only: true
+tags: [longitudinal, memory_correction, contradiction]
+setup:
+  user: {id: 22222222-2222-4222-8222-222222222222, locale: en, tz: Europe/Berlin}
+  clock: '2026-06-01T12:00:00Z'
+  memory:
+    - {id: 44444444-4444-4444-8444-444444444444, kind: fact, status: active, epistemic: reported, text: 'Synthetic user prefers A'}
+ground_truth:
+  profile_facts: {preference: B}
+  planted_contradictions: [preference]
+  corrections: [preference]
+sessions:
+  - gap: 1d
+    turns:
+      - text: Synthetic report B contradicts A.
+        expect:
+          route: normal
+          brain: {objective_in: [explore, clarify]}
+          state_after:
+            memory:
+              status_is: {44444444-4444-4444-8444-444444444444: contested}
+          longitudinal: {fact_recall: [preference]}
+      - text: Synthetic correction confirms B.
+        expect:
+          brain: {objective_in: [repair], objective_not_in: [provide_insight]}
+          state_after:
+            memory:
+              status_is: {44444444-4444-4444-8444-444444444444: superseded}
+          async_after:
+            memory_ops_include: [{op: supersede, target: 44444444-4444-4444-8444-444444444444}]
+          longitudinal: {correction_applied: [preference]}
+  - gap: 7d
+    turns:
+      - text: Synthetic recall of corrected preference.
+        expect:
+          route: normal
+          retrieval: {must_exclude_statuses: [superseded, rejected]}
+          brain: {objective_in: [answer_direct]}
+          longitudinal: {fact_recall: [preference], no_stale_hypotheses: [old_claim]}
