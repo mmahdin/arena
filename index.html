@@ -101,10 +101,14 @@ ul.il li.er::before{content:"✕";color:var(--er);left:2px}ul.il li.wn::before{c
 .ol{cursor:pointer;display:block;text-align:left;width:100%;margin:1px 0;padding:2px 6px;border:0;background:none;border-radius:4px}
 .pcinfo{margin-top:6px;font-size:12px}.pcinfo button{display:block;margin:3px 0;font-size:11px;text-align:left;overflow-wrap:anywhere}
 table{border-collapse:collapse;width:100%;font-size:12px}td,th{border-bottom:1px solid var(--bd);padding:3px 6px;text-align:left}th{color:var(--mu);font-weight:500}
+#ib table td:nth-child(n+4){white-space:nowrap}
 tr.go{cursor:pointer}tr.go:hover td{background:#7c9cff14}
 .df{display:block;text-align:left;margin:2px 0;width:100%;overflow-wrap:anywhere;font-size:11.5px}
 .msg{border:1px solid var(--bd);border-radius:10px;margin:6px 0;overflow:hidden}.msg>.mh{display:flex;gap:6px;align-items:center;padding:3px 8px;background:#0f131c;font-size:11px;color:var(--mu)}.msg>.tb .txt{border:0;border-radius:0}
 .msg.system{border-color:#5ec2ff55}.msg.user{border-color:#7c9cff66}.msg.assistant{border-color:#3ecf8e55}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px;margin-bottom:6px}
+.stat{background:var(--p2);border:1px solid var(--bd);border-radius:10px;padding:7px 10px;min-width:0}
+.stat .sv{display:block;font-size:19px;font-weight:700;line-height:1.15;overflow-wrap:anywhere}.stat .sl{display:block;color:var(--mu);font-size:11px}.stat .ss{display:block;color:var(--mu);font-size:10px;opacity:.85}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .att{display:flex;gap:8px;align-items:baseline;padding:3px 0;border-bottom:1px solid var(--bd);overflow-wrap:anywhere}.att.rt{color:var(--mu);font-size:11px;padding-left:20px}
 .wf{display:flex;flex-direction:column}
@@ -348,19 +352,22 @@ function defaultExp(c) { // roots + every path that leads to a problem
 }
 
 // ---------- LLM call model (works on both llm/client.* wrappers and provider.* calls)
-const hasPrompt = r => isObj(r) && !Array.isArray(r) && ['messages', 'system', 'input', 'prompt', 'schema'].some(k => ci(r, k) !== undefined);
+const hasPrompt = r => isObj(r) && !Array.isArray(r) && ['messages', 'system', 'input', 'prompt', 'schema', 'systemone'].some(k => ci(r, k) !== undefined);
 function isLLMNode(o) {
   if (o._llm === undefined) o._llm = llmInfo(o);
   return !!o._llm;
 }
 function llmInfo(o) {
   const n = o.n, inp = n.input;
+  if (/^embedding\./.test(n.operation)) return null; // Shared/reused logical work is not a provider call.
   let req = null;
   if (isObj(inp)) for (const cand of [ci(inp, 'request'), ci(inp, 'req'), inp]) if (hasPrompt(cand)) { req = cand; break; }
   const nameHit = /^(provider|llm)\b|[/.](Structured|Stream|Embed)$/i.test(n.operation);
   if (!req && !n.provider_usage.length && !nameHit) return null;
   const L = { req, kind: /embed/i.test(n.operation) ? 'embed' : (/stream/i.test(n.operation) || n.artifacts.some(a => a.kind === 'stream_chunk')) ? 'stream' : /structured/i.test(n.operation) ? 'structured' : 'generate' };
   L.model = ci(inp, 'model'); L.mode = ci(inp, 'mode');
+  L.systemOne = ci(req, 'systemone');
+  if (L.systemOne) L.mode = 'systemone';
   // response container: unwrap {out:{…}} / {result0:{…}}
   let R = n.output;
   if (isObj(R)) for (const k of ['out', 'result', 'result0', 'response']) { const v = ci(R, k); if (isObj(v) && !Array.isArray(v)) { R = v; break; } }
@@ -385,12 +392,20 @@ function llmInfo(o) {
 }
 /** token usage from provider_usage[] (preferred) or the response's own usage block */
 function usageOf(o) {
-  const n = o.n, L = o._llm;
-  if (n.provider_usage.length) return { inT: n.provider_usage.reduce((a, x) => a + (num(x.input_tokens) || 0), 0), outT: n.provider_usage.reduce((a, x) => a + (num(x.output_tokens) || 0), 0), cached: n.provider_usage.reduce((a, x) => a + (num(x.cached_tokens) || 0), 0), cost: n.provider_usage.reduce((a, x) => a + (num(x.estimated_cost_micro_usd) || 0), 0), lat: n.provider_usage.reduce((a, x) => a + (num(x.latency_ns) || 0), 0), model: n.provider_usage[0].model, provider: n.provider_usage[0].provider, reported: true };
+  const n = o.n, L = o._llm, pu = n.provider_usage, sum = k => pu.reduce((a, x) => a + (num(x[k]) || 0), 0);
+  if (pu.length) return { inT: sum('input_tokens'), outT: sum('output_tokens'), cached: sum('cached_tokens'), cost: sum('estimated_cost_micro_usd'), lat: sum('latency_ns'), model: pu[0].model, provider: pu[0].provider, reported: true, src: 'provider_usage', finish: (L && L.finish) || '' };
   const u = L && L.usage;
-  if (u && (num(ci(u, 'in_tokens', 'input_tokens')) || num(ci(u, 'out_tokens', 'output_tokens')))) return { inT: num(ci(u, 'in_tokens', 'input_tokens')) || 0, outT: num(ci(u, 'out_tokens', 'output_tokens')) || 0, cached: num(ci(u, 'cached_tokens')) || 0, cost: num(ci(u, 'cost_micro_usd')), lat: num(ci(u, 'latency')), model: ci(u, 'model'), provider: ci(u, 'provider'), reported: true };
+  if (u && (num(ci(u, 'in_tokens', 'input_tokens')) || num(ci(u, 'out_tokens', 'output_tokens')))) return { inT: num(ci(u, 'in_tokens', 'input_tokens')) || 0, outT: num(ci(u, 'out_tokens', 'output_tokens')) || 0, cached: num(ci(u, 'cached_tokens')) || 0, cost: num(ci(u, 'cost_micro_usd')), lat: num(ci(u, 'latency')), model: ci(u, 'model'), provider: ci(u, 'provider'), attempts: num(ci(u, 'attempts')), reported: true, src: 'response', finish: ci(u, 'finish_reason') || (L && L.finish) || '' };
   return null;
 }
+/** pricing / capability block of the model used: the request's own, else the last successful attempt's */
+function modelMeta(o) {
+  const L = o._llm, m = L && L.model;
+  if (isObj(m) && ci(m, 'model')) return m;
+  const at = L ? L.attempts : [], pick = [...at].reverse().find(a => !a.failure && isObj(a.model)) || at[at.length - 1];
+  return pick && isObj(pick.model) ? pick.model : (isObj(m) ? m : null);
+}
+const estTokens = n => n.estimates.filter(e => !e.source.includes('/section/')).reduce((a, e) => a + (num(e.tokens) || 0), 0);
 const modelName = o => { const L = o._llm, u = usageOf(o); return (u && u.model) || (L && (ci(L.model, 'model') || L.rmodel)) || ''; };
 function schemaCheck(s, v, p = '$', out = []) { // tiny JSON-Schema subset, local sanity check only
   if (!isObj(s) || out.length > 10) return out;
@@ -421,10 +436,16 @@ function meta() {
   const chip = (txt, cls = '', extra = '') => `<span class="chip ${cls}" ${extra}>${txt}</span>`;
   const ok = t.status === 'success' && t.complete !== false && !c.errors.length;
   let h = chip(esc(t.status || 'unknown') + (t.complete === false ? ' (incomplete)' : ''), t.status === 'error' || t.complete === false ? 'er' : ok && !c.degraded.length ? 'ok' : 'wn');
+  if (typeof t.response_complete === 'boolean' && t.kind === 'turn') h += chip(t.response_complete ? 'response finished' : 'response not observed / running', t.response_complete ? 'ok' : 'wn');
+  if (t.background_status) h += chip('background: ' + esc(t.background_status), t.background_status === 'complete' ? 'ok' : 'wn');
   if (r) h += chip(fd(r.n.duration_ns));
   h += chip(plural(c.N.size, 'operation'));
   const workers = workerAttempts(c);
   if (workers.length) h += chip(plural(workers.length, 'background job attempt'));
+  const shared = [...c.N.values()].filter(o => o.n.operation === 'embedding.compute');
+  const reused = [...c.N.values()].filter(o => /^embedding\.(cache_hit|inflight_join)$/.test(o.n.operation));
+  if (shared.length) h += chip(plural(shared.length, 'shared embedding computation'));
+  if (reused.length) h += chip(plural(reused.length, 'embedding reuse'));
   if (num(u.provider_calls) !== null) h += chip(plural(u.provider_calls, 'LLM call'));
   if (num(u.actual_input_tokens) !== null) h += chip(`${u.actual_input_tokens}→${u.actual_output_tokens ?? '?'} tokens` + (u.unknown_usage_calls ? ` (+${u.unknown_usage_calls} call${u.unknown_usage_calls === 1 ? '' : 's'} with unknown usage)` : ''));
   if (c.errors.length) h += `<button class="chip er" data-issues title="Show the issue list in the summary">✕ ${plural(c.errors.length, 'error')}</button>`;
@@ -439,6 +460,7 @@ function sub(o) {
   const n = o.n, p = [];
   if (n.status === 'success') p.push(fd(n.duration_ns));
   else { p.push(n.status); const e = n.status === 'error' ? errLine(n.error) : ''; if (e) p.push(e); else if (n.reason) p.push(n.reason); }
+  if (n.embedding) p.push(n.embedding.cache_outcome + (n.embedding.consumer ? ' · ' + n.embedding.consumer : ''));
   if (isLLMNode(o)) { const m = modelName(o), u = usageOf(o); if (m) p.push(m); if (u) p.push(`${u.inT}→${u.outT} tok`); }
   if (n.status === 'success' && !isLLMNode(o) && n.artifacts.length) p.push(n.artifacts.length + ' art.');
   return p.join(' · ');
@@ -623,6 +645,19 @@ function errBox(n, o) {
   if (outErr) h += `<details><summary>error in output</summary><div>${V(outErr, '/output/error')}</div></details>`;
   return h + '</div>';
 }
+function embeddingPanel(n) {
+  const e = n.embedding;
+  if (!isObj(e)) return '';
+  const origin = e.origin_trace_id === cur.t.trace_id && cur.N.has(e.origin_node_id)
+    ? goLink(cur.N.get(e.origin_node_id))
+    : `<code>${esc(e.origin_trace_id || 'not captured')}</code>${e.origin_turn_id ? ' · Turn ' + esc(e.origin_turn_id) : ''}`;
+  return '<h4>Shared embedding</h4><div class="trw">'
+    + kvr('Cache outcome', esc(e.cache_outcome)) + kvr('Computation', `<code>${esc(e.computation_id)}</code>`)
+    + kvr('Consumer', esc(e.consumer || 'unspecified')) + kvr('Vector identity', esc(e.provider + ' / ' + e.model + ' / ' + e.dimensions + ' dimensions'))
+    + kvr('Origin', origin) + kvr('Waiting', fd(e.wait_duration_ns || 0)) + kvr('Computation duration', fd(e.compute_duration_ns || 0))
+    + kvr('Source computation attempts', esc(e.provider_attempts ?? 'unknown')) + kvr('Outcome', esc(e.outcome || n.status) + (e.reason ? ' · ' + esc(e.reason) : ''))
+    + '</div><p class="mu">Cache hits and in-flight joins reuse vectors. Only physical provider nodes contribute usage and cost. An origin in another trace is correlation metadata; open that file manually to inspect it.</p>';
+}
 function OV(o) {
   const n = o.n, t0 = tms(cur.t.started_at), ns = tms(n.started_at); let h = '';
   if (n.status === 'error') h += errBox(n, o);
@@ -630,6 +665,7 @@ function OV(o) {
   else if (n.status === 'cancelled') h += `<div class="alert wn"><b>Cancelled</b>${n.reason ? 'Reason: <code>' + esc(n.reason) + '</code>' : 'No reason was recorded.'}</div>`;
   else if (n.status === 'running') h += '<div class="alert wn"><b>No result recorded</b>This operation was still running, or the trace was cut off before it finished.</div>';
   else if (!KNOWN.has(n.status)) h += `<div class="alert wn"><b>Unknown status “${esc(n.status)}”</b>This viewer does not recognise it; data is shown as captured.</div>`;
+  h += embeddingPanel(n);
   const warn = o.issues.filter(i => i.sev === 'warn' && !['cancelled', 'running', 'status'].includes(i.kind));
   if (warn.length) h += `<div class="alert wn"><b>⚠ Degraded signals</b>${issueList(warn)}</div>`;
   const bad = [], walk = q => q.kids.forEach(k => { if (k.n.status === 'error' || k.issues.some(i => i.sev === 'warn')) bad.push(k); walk(k); }); walk(o);
@@ -639,7 +675,7 @@ function OV(o) {
     + kvr('Started', (ns !== null && t0 !== null ? '+' + fd((ns - t0) * 1e6) + ' into trace' : esc(n.started_at || '—')) + (n.ended_at ? '' : ' · no end recorded')) + '</div>';
   if (isLLMNode(o)) {
     const u = usageOf(o), L = o._llm;
-    h += `<h4>LLM call</h4><div class="trw">${kvr('Model', esc([u && u.provider, modelName(o)].filter(Boolean).join('/') || 'not recorded'))}${u ? kvr('Tokens', `${u.inT} in → ${u.outT} out${u.cached ? ` · ${u.cached} cached` : ''}`) : kvr('Tokens', '<span class="mu">usage not reported (unknown, not zero)</span>')}</div><p><a class="ch" data-tab="llm">Open the LLM view for prompts, response and attempts →</a></p>`;
+    h += '<h4>LLM usage &amp; metadata</h4>' + llmPanel(o, false) + '<p><a class="ch" data-tab="llm">Open the LLM view for full usage, pricing, prompts, response and attempts →</a></p>';
     const um = L.req && ci(L.req, 'messages'); if (Array.isArray(um)) { const last = [...um].reverse().find(m => ci(m, 'role') === 'user'); const c = last && ci(last, 'content'); if (typeof c === 'string') h += `<h4>Last user message</h4>${txt(c)}`; }
     const rt = L.streamText || L.text; if (rt) h += `<h4>Response</h4>${txt(rt)}`;
   }
@@ -661,23 +697,76 @@ function strs(v, p, out) {
   else if (v && typeof v === 'object') for (const k in v) strs(v[k], p + '/' + jp(k), out);
 }
 
+// ---------- inspector: LLM usage & metadata panel
+const rate = u => num(u) === null ? '—' : '$' + (u / 1e6).toFixed(u > 0 && u < 1e4 ? 4 : 2) + ' / 1M';
+const stat = (v, l, sub) => `<div class="stat"><span class="sv">${v}</span><span class="sl">${l}</span>${sub ? `<span class="ss">${sub}</span>` : ''}</div>`;
+/** tokens, cost, latency and model metadata for one LLM node. compact = Overview, full = LLM tab */
+function llmPanel(o, full) {
+  const L = o._llm, n = o.n, u = usageOf(o), mm = modelMeta(o), est = estTokens(n), rows = [];
+  const row = (k, v) => { if (v !== '' && v != null) rows.push(kvr(k, v)); };
+  let h = '';
+  if (u) {
+    const pct = u.inT && u.cached ? `${Math.round(u.cached / u.inT * 100)}% of input` : '';
+    h += '<div class="stats">' + stat(u.inT, 'input tokens', est ? `≈ ${est} estimated` : '') + stat(u.outT, 'output tokens') + stat(u.cached, 'cached tokens', pct) + stat(u.inT + u.outT, 'total tokens') + stat(num(u.cost) !== null ? esc(usd(u.cost)) : '—', 'cost') + stat(u.lat ? fd(u.lat) : '—', 'reported latency', 'node took ' + fd(n.duration_ns)) + '</div>';
+    h += `<div class="mu">Source: ${u.src === 'provider_usage' ? 'usage reported by the provider for this call' : 'usage block in this call’s response'}.</div>`;
+  } else h += `<div class="alert wn"><b>Token usage not reported</b>The trace has no usage for this call${n.status === 'error' ? ' (it failed)' : ''}. Treat it as unknown, not zero.${est ? ` Heuristic input estimate ≈ ${est} tokens (not a tokenizer).` : ''}</div>`;
+  const prov = (u && u.provider) || ci(mm, 'provider') || '', name = modelName(o);
+  row('Model', name ? esc([prov, name].filter(Boolean).join('/')) : '');
+  row('Billing source', esc(ci(mm, 'billing_source') || ''));
+  row('Tier', esc(ci(L.req, 'tier') || (L.attempts.length && L.attempts[L.attempts.length - 1].tier) || (attemptFor(o) && attemptFor(o).tier) || ''));
+  const fin = (u && u.finish) || L.finish; row('Finish reason', fin ? esc(fin) : '');
+  const nAtt = L.attempts.length || (u && u.attempts) || 0, failed = L.attempts.filter(a => a.failure), fb = L.attempts.filter(a => a.fallback);
+  if (nAtt) row('Attempts', `${nAtt}${failed.length ? ` · <b>${failed.length} failed</b> (${esc([...new Set(failed.map(a => a.failure))].join(', '))})` : ''}${fb.length ? ' · fallback model used' : ''}`);
+  else if (attemptFor(o)) { const a = attemptFor(o), tot = attemptsOf(o.p.n).length; row('Attempt', `#${esc(a.attempt ?? '?')} of ${tot} in ${esc(sn(o.p.n.operation))}${a.fallback ? ' · fallback model' : ''}${a.failure ? ` · failed: <b>${esc(a.failure)}</b>` : ''}`); }
+  if (full) {
+    row('Call kind', esc({ structured: 'structured output', stream: 'streaming', embed: 'embedding', generate: 'generation' }[L.kind]));
+    row('Mode', esc(L.mode || ''));
+    if (mm && ci(mm, 'native_json_schema') !== undefined) row('Native JSON schema', esc(ci(mm, 'native_json_schema')));
+    const dim = ci(mm, 'dimensions') || (L.vector && L.vector.length); row('Embedding dimensions', dim ? esc(dim) : '');
+    if (L.kind === 'stream') row('First text chunk', L.firstTokenMs != null ? '+' + fd(L.firstTokenMs * 1e6) + ' after the call started' : '');
+    else if (L.attempts.some(a => a.first_token)) row('First token', 'received');
+    if (u && u.lat) row('Latency', `${fd(u.lat)} reported · ${fd(n.duration_ns)} wall-clock for this node <span class="mu">(wall-clock includes retries and children)</span>`);
+    const ri = num(ci(mm, 'input_micro_usd_per_m')), ro = num(ci(mm, 'output_micro_usd_per_m')), rc = num(ci(mm, 'cached_micro_usd_per_m'));
+    if (ri !== null || ro !== null) row('Pricing', `input ${rate(ri)} · output ${rate(ro)}${rc !== null ? ' · cached ' + rate(rc) : ''}`);
+    if (u && ri !== null && ro !== null && !u.cached) {
+      const comp = Math.ceil(u.inT * ri / 1e6 + u.outT * ro / 1e6), rep = num(u.cost);
+      row('Cost check', `${esc(usd(comp))} from tokens × rates` + (rep !== null && Math.abs(comp - rep) > 1 ? ` <span class="pl wn">differs from reported ${esc(usd(rep))}</span>` : rep !== null ? ' <span class="mu">matches the reported cost</span>' : ''));
+    }
+    if (u && est) row('Estimate vs actual', `≈ ${est} estimated input tokens vs ${u.inT} actual (${u.inT - est >= 0 ? '+' : ''}${u.inT - est}) <span class="mu">${esc((n.estimates[0].method || '').split(';')[0])}, not a tokenizer</span>`);
+  }
+  if (rows.length) h += `<div class="trw" style="margin-top:8px">${rows.join('')}</div>`;
+  // per-call breakdown for wrapper nodes that own provider calls
+  const kids = o.kids.filter(isLLMNode);
+  if (full && kids.length) {
+    let tIn = 0, tOut = 0, tC = 0, tCost = 0, rcount = 0;
+    const body = kids.map(k => { const ku = usageOf(k); if (ku) { rcount++; tIn += ku.inT; tOut += ku.outT; tC += ku.cached; tCost += num(ku.cost) || 0; }
+      return `<tr class="go" data-go="${esc(k.n.id)}" data-tabto="llm"><td>${esc(sn(k.n.operation))}</td><td><span class="bd st-${KNOWN.has(k.n.status) ? k.n.status : 'unknown'}">${esc(k.n.status)}</span></td><td>${esc(modelName(k) || '—')}</td>${ku ? `<td>${ku.inT}</td><td>${ku.outT}</td><td>${ku.cached}</td><td>${esc(usd(ku.cost))}</td><td>${ku.lat ? fd(ku.lat) : '—'}</td>` : '<td colspan="5" class="mu">usage unknown (not zero)</td>'}</tr>`; }).join('');
+    h += `<h4>Provider calls (${kids.length}) — usage breakdown</h4><table><tr><th>Call</th><th>Status</th><th>Model</th><th>In</th><th>Out</th><th>Cached</th><th>Cost</th><th>Latency</th></tr>${body}<tr><th colspan="3">Total of ${rcount} reporting</th><th>${tIn}</th><th>${tOut}</th><th>${tC}</th><th>${esc(usd(tCost))}</th><th></th></tr></table>`;
+    if (rcount < kids.length) h += `<div class="mu">${kids.length - rcount} of ${kids.length} calls reported no usage, so the total covers only the reporting calls.</div>`;
+    if (u && u.src === 'response' && (u.inT !== tIn || u.outT !== tOut)) h += `<div class="alert wn" style="margin-top:6px"><b>Totals differ</b>The wrapper reports ${u.inT} in / ${u.outT} out, the reporting provider calls add up to ${tIn} in / ${tOut} out.</div>`;
+  }
+  return h;
+}
+
 // ---------- inspector: LLM view
 function LLM(o) {
   const L = o._llm, n = o.n, u = usageOf(o); let h = '';
   const mdl = L.model, chips = [`<span class="chip">${{ structured: 'Structured output', stream: 'Streaming', embed: 'Embedding', generate: 'Generation' }[L.kind]}</span>`];
   const mname = modelName(o); if (mname) chips.push(`<span class="chip">${esc([u && u.provider || ci(mdl, 'provider'), mname].filter(Boolean).join('/'))}</span>`);
   if (L.mode) chips.push(`<span class="chip">mode: ${esc(L.mode)}</span>`);
+  if (L.systemOne) chips.push('<span class="chip">Native System One decisions</span>');
   const tier = ci(L.req, 'tier'); if (tier) chips.push(`<span class="chip">tier: ${esc(tier)}</span>`);
-  if (isObj(mdl) && ci(mdl, 'native_json_schema') !== undefined) chips.push(`<span class="chip">native JSON schema: ${esc(ci(mdl, 'native_json_schema'))}</span>`);
+  if (!L.systemOne && isObj(mdl) && ci(mdl, 'native_json_schema') !== undefined) chips.push(`<span class="chip">native JSON schema: ${esc(ci(mdl, 'native_json_schema'))}</span>`);
   h += `<div class="chips">${chips.join('')}</div>`;
   if (n.status === 'error') h += errBox(n, o);
+  h += '<h4>Tokens &amp; usage</h4>' + llmPanel(o, true);
   // attempts (client-level calls)
   if (L.attempts.length) {
     const kids = o.kids.filter(isLLMNode), link = kids.length === L.attempts.length;
     h += `<h4>Attempts (${L.attempts.length})</h4><div>`;
     L.attempts.forEach((a, i) => {
       const fail = a.failure, m = ci(a.model, 'model'), k = link ? kids[i] : null;
-      h += `<div class="att"><span class="bd ${fail ? 'st-error' : 'st-success'}">${fail ? '✕' : '✓'} #${esc(a.attempt ?? i + 1)}</span><span>${fail ? `failed: <b>${esc(fail)}</b>` : 'completed'}${m ? ` · <code>${esc(m)}</code>` : ''}${a.fallback ? ' · <span class="pl wn">fallback model</span>' : ''}${a.first_token ? ' · first token received' : ''} · ${fd(a.elapsed_ns)}${k ? ` · ${goLink(k, 'data-tabto="llm"')}` : ''}</span></div>`;
+      h += `<div class="att"><span class="bd ${fail ? 'st-error' : 'st-success'}">${fail ? '✕' : '✓'} #${esc(a.attempt ?? i + 1)}</span><span>${fail ? `failed: <b>${esc(fail)}</b>` : 'completed'}${m ? ` · <code>${esc(m)}</code>` : ''}${a.tier ? ` · tier ${esc(a.tier)}` : ''}${a.fallback ? ' · <span class="pl wn">fallback model</span>' : ''}${a.first_token ? ' · first token received' : ''} · ${fd(a.elapsed_ns)}${k ? ` · ${goLink(k, 'data-tabto="llm"')}` : ''}</span></div>`;
       const r = L.retries.find(x => x.value.retry_index === i); if (r) h += `<div class="att rt">↻ retry after ${fd(r.value.delay_ns)} delay</div>`;
     });
     h += '</div>' + (!link && kids.length ? `<div class="mu">The ${kids.length} provider call(s) below could not be matched 1:1 to attempts.</div>` : '');
@@ -690,11 +779,15 @@ function LLM(o) {
     h += '<h4>Request</h4>';
     const par = Object.entries(req).filter(([k, v]) => !/^(messages|system|schema|input|meta|prompt)$/i.test(k) && v !== '' && v !== null && typeof v !== 'object');
     if (par.length) h += '<div class="trw">' + par.map(([k, v]) => kvr(esc(k), `<code>${esc(v)}</code>`)).join('') + '</div>';
+    if (L.systemOne) {
+      h += '<h4>State</h4>' + txt(String(ci(L.systemOne, 'state') ?? ''));
+      h += '<h4>Typed questions</h4>' + V(ci(L.systemOne, 'questions'), '/llm/systemone/questions');
+    }
     let sys = ci(req, 'system'); if (typeof sys === 'string') sys = [{ Text: sys }];
     if (Array.isArray(sys)) sys.forEach(s => { if (!isObj(s)) return; h += `<div class="msg system"><div class="mh"><span class="bd" style="--c:#5ec2ff">system</span>${esc(ci(s, 'name') || '')}${ci(s, 'cache') ? ' <span class="pl wn">cache</span>' : ''}</div>${txt(String(ci(s, 'text', 'content') ?? ''))}</div>`; });
     const msgs = ci(req, 'messages');
     if (Array.isArray(msgs)) msgs.forEach(m => { const role = String(ci(m, 'role') ?? '?'), c = ci(m, 'content'); h += `<div class="msg ${esc(role)}"><div class="mh"><span class="bd" style="--c:hsl(${hue(role)} 70% 72%)">${esc(role)}</span></div>${typeof c === 'string' ? txt(c) : `<div style="padding:6px 8px">${V(c, '/llm/msg')}</div>`}</div>`; });
-    else if (msgs == null && L.kind !== 'embed') h += '<div class="mu">No messages captured for this call.</div>';
+    else if (msgs == null && L.kind !== 'embed' && !L.systemOne) h += '<div class="mu">No messages captured for this call.</div>';
     const ein = ci(req, 'input', 'prompt'); if (ein != null) h += `<div class="msg user"><div class="mh"><span class="bd" style="--c:#7c9cff">input</span></div>${typeof ein === 'string' ? txt(ein) : `<div style="padding:6px 8px">${V(ein, '/llm/input')}</div>`}</div>`;
     const sch = ci(req, 'schema'); let schemaObj = null;
     if (sch != null) { schemaObj = typeof sch === 'string' ? (tryJ(b64(sch) ?? sch) || null) : sch; h += `<details><summary>Output schema${ci(req, 'schemaname') ? ': ' + esc(ci(req, 'schemaname')) : ''}</summary><div>${schemaObj ? V(schemaObj, '/llm/schema') : txt(String(sch))}</div></details>`; }
@@ -702,7 +795,9 @@ function LLM(o) {
     L.schemaObj = schemaObj;
   }
   // response
-  h += '<h4>Response</h4>';
+  const nativeResponse = n.artifacts.find(a => a.name === 'systemone_response');
+  if (nativeResponse) h += '<h4>Native typed answers</h4>' + V(nativeResponse.value, '/llm/systemone/response');
+  h += L.systemOne ? '<h4>Normalized selection</h4>' : '<h4>Response</h4>';
   const rt = L.kind === 'stream' ? L.streamText : L.text;
   if (L.kind === 'embed' || L.vector) {
     if (L.vector) { const v = L.vector, norm = Math.sqrt(v.reduce((a, x) => a + (num(x) || 0) ** 2, 0)); h += `<div class="trw">${kvr('Dimensions', v.length)}${kvr('L2 norm', norm.toFixed(4))}${kvr('First values', `<code>${esc(v.slice(0, 8).map(x => typeof x === 'number' ? +x.toFixed(5) : x).join(', '))}${v.length > 8 ? ', …' : ''}</code>`)}</div>`; }
@@ -722,13 +817,6 @@ function LLM(o) {
     }
   } else h += `<div class="mu">${n.status === 'error' ? 'No response — the call failed before returning content.' : L.kind === 'stream' ? 'No streamed text captured.' : 'No response content captured.'}</div>`;
   if (L.kind === 'stream' && L.chunks.length) h += `<details><summary>Chunk timeline (${L.chunks.length})</summary><div>${L.chunks.map((a, i) => { const x = ci(a.value, 'chunk'), tx = ci(x, 'text'), f = ci(x, 'finishreason', 'finish_reason'); return `<div class="att"><span class="mu">#${i}</span><span>${typeof tx === 'string' && tx ? `<code>${esc(tx)}</code>` : '<span class="mu">no text</span>'}${f ? ` · finish: <b>${esc(f)}</b>` : ''}${isObj(ci(x, 'usage')) ? ' · usage' : ''}</span></div>`; }).join('')}</div></details>`;
-  // usage
-  h += '<h4>Usage</h4>';
-  if (u) h += `<table><tr><th>Input</th><th>Output</th><th>Cached</th><th>Cost</th><th>Latency</th></tr><tr><td>${u.inT}</td><td>${u.outT}</td><td>${u.cached}</td><td>${esc(usd(u.cost))}</td><td>${fd(u.lat)}</td></tr></table>`;
-  else h += '<div class="mu">Usage was not reported for this call — treat it as unknown, not zero.</div>';
-  if (L.finish && L.kind !== 'stream') h += `<div class="mu">finish reason: ${esc(L.finish)}</div>`;
-  const est = n.estimates.filter(e => !e.source.includes('/section/')).reduce((a, e) => a + (num(e.tokens) || 0), 0);
-  if (est) h += `<div class="mu">Heuristic input estimate ≈ ${est} tokens (not a tokenizer).</div>`;
   return h;
 }
 
@@ -754,6 +842,7 @@ function summary() {
   else if (inc) h += '<div class="alert wn"><b>⚠ Incomplete trace</b>The trace is marked incomplete, so later operations may be missing.</div>';
   else if (nErr || nDeg) h += `<div class="alert wn"><b>⚠ Completed, but degraded</b>${nErr ? `${plural(nErr, 'operation')} failed and the run recovered. ` : ''}${nDeg ? `${plural(nDeg, 'operation')} ${nDeg === 1 ? 'shows' : 'show'} retries, fallbacks or other degraded signals.` : ''}</div>`;
   else h += '<div class="alert ok"><b>✓ Completed without detected problems</b>No errors, retries, fallbacks or diagnostics were recorded.</div>';
+  if (t.background_status) h += `<p><b>Response:</b> ${t.response_complete ? 'finished' : 'not observed or still running'}${t.response_ended_at ? ' · ' + esc(t.response_ended_at) : ''}. <b>Background:</b> ${esc(t.background_status)}.</p><p class="mu">This is a saved checkpoint. Re-import the same file to see later jobs and retries. A complete queue snapshot can be reopened by future scheduled work.</p>`;
   // conversation
   const um = r && (gp(r, '/input/request/text') ?? gp(r, '/input/text')), rp = r && (gp(r, '/output/text') ?? gp(r, '/output/Text') ?? gp(r, '/output/reply'));
   if (typeof um === 'string') h += `<h4>User message</h4>${txt(um)}`;
@@ -772,6 +861,11 @@ function summary() {
       const n = o.n, v = n.input;
       return `<tr class="go" data-go="${esc(n.id)}"><td>${esc(n.operation)}</td><td><code>${esc(v.job_id || '—')}</code></td><td>${esc(v.attempt ?? '?')}</td><td><span class="bd st-${KNOWN.has(n.status) ? n.status : 'unknown'}">${esc(n.status)}</span></td></tr>`;
     }).join('')}</table>`;
+  if (Array.isArray(t.jobs) && t.jobs.length) h += `<h4>Durable queue (${t.jobs.length} jobs)</h4><table><tr><th>Job</th><th>Kind</th><th>Status</th><th>Attempts</th><th>Run after (UTC)</th><th>Last error</th></tr>${t.jobs.map(j => `<tr><td><code>${esc(j.id)}</code></td><td>${esc(j.kind)}</td><td>${esc(j.status)}</td><td>${esc(j.attempts)} / ${esc(j.max_attempts)}</td><td>${esc(j.run_after)}</td><td>${esc(j.last_error_code || '—')}</td></tr>`).join('')}</table>`;
+  const embeddingEvents = [...c.N.values()].filter(o => o.n.embedding && /^embedding\.(cache_hit|cache_miss|inflight_join|compute|wait_timeout)$/.test(o.n.operation));
+  if (embeddingEvents.length) h += '<h4>Shared embeddings</h4><table><tr><th>Operation</th><th>Consumer</th><th>Computation</th><th>Outcome</th><th>Source attempts</th></tr>' + embeddingEvents.map(o => {
+    const e = o.n.embedding; return `<tr class="go" data-go="${esc(o.n.id)}"><td>${esc(o.n.operation)}</td><td>${esc(e.consumer || '—')}</td><td><code>${esc(e.computation_id)}</code></td><td>${esc(e.cache_outcome)} · ${esc(e.outcome || o.n.status)}</td><td>${esc(e.provider_attempts)}</td></tr>`;
+  }).join('') + '</table>';
   // LLM calls
   const calls = c.llm.filter(o => /^provider\./.test(o.n.operation) || o.n.provider_usage.length), list = calls.length ? calls : c.llm;
   if (list.length) h += `<h4>LLM calls (${list.length})</h4><table><tr><th>Call</th><th>Status</th><th>Model</th><th>In→Out</th><th>Latency</th></tr>${list.map(o => { const us = usageOf(o); return `<tr class="go" data-go="${esc(o.n.id)}" data-tabto="llm"><td>${esc(sn(o.n.operation))}</td><td><span class="bd st-${KNOWN.has(o.n.status) ? o.n.status : 'unknown'}">${esc(o.n.status)}</span></td><td>${esc(modelName(o) || '—')}</td><td>${us ? us.inT + '→' + us.outT : '<span class="mu">unknown</span>'}</td><td>${us && us.lat ? fd(us.lat) : fd(o.n.duration_ns)}</td></tr>`; }).join('')}</table>`;
