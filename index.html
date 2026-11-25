@@ -30,7 +30,7 @@ header{display:flex;gap:8px;align-items:center;padding:8px 12px;background:var(-
 .seg button.zero{opacity:.6}
 #metaBar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:5px 12px;background:var(--pn);border-bottom:1px solid var(--bd);font-size:12px;color:var(--mu)}
 #metaBar:empty{display:none}
-.chip{display:inline-flex;gap:4px;align-items:center;border:1px solid var(--bd);border-radius:99px;padding:0 9px;line-height:20px;background:var(--p2);color:var(--tx);font-size:11.5px}
+.chip{display:inline-flex;gap:4px;align-items:center;border:1px solid var(--bd);border-radius:5px;padding:0 7px;line-height:19px;background:var(--p2);color:var(--tx);font-size:11.5px}
 button.chip{cursor:pointer}.chip.er{border-color:var(--er);color:var(--er)}.chip.wn{border-color:var(--wn);color:var(--wn)}.chip.ok{border-color:var(--ok);color:var(--ok)}
 
 /* ===== canvas ===== */
@@ -74,9 +74,24 @@ body.has.ip #insp{display:flex}
 #tabs button.on{border-color:var(--ac);color:var(--ac);background:none}
 #tabs .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:5px;background:var(--er)}#tabs .dot.w{background:var(--wn)}
 #ib{flex:1;overflow:auto;padding:12px 14px 30px;min-height:0}
-#ib h4{margin:16px 0 6px;color:var(--mu);font-size:11px;text-transform:uppercase;letter-spacing:.06em}#ib h4:first-child{margin-top:0}
-.trw{display:flex;flex-direction:column;gap:3px}
-.kv{display:flex;gap:10px;align-items:baseline}.kv>.k{flex:0 0 auto;min-width:90px;max-width:40%;color:var(--mu);overflow-wrap:anywhere}.vv{min-width:0;flex:1;overflow-wrap:anywhere}
+#ib h4{margin:16px 0 6px;padding-top:7px;border-top:1px solid var(--bd);color:var(--tx);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+#ib h4:first-child{margin-top:0;padding-top:0;border-top:0}
+#ib h5{margin:12px 0 4px;color:var(--mu);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em}
+#ib h5:first-child{margin-top:0}
+/* key/value rows: one aligned two-column grid, so labels and values line up like a table */
+.trw{display:grid;grid-template-columns:minmax(74px,34%) minmax(0,1fr);column-gap:14px;align-items:baseline}
+.trw>.kv{display:contents}
+.trw>.kv>.k,.trw>.kv>.vv{padding:2px 0;border-bottom:1px solid #ffffff0d}
+.trw>details{grid-column:1/-1}
+/* compact variant: pairs flow side by side, each pair keeps its own columns */
+.trw.wrap{display:flex;flex-wrap:wrap;gap:2px 22px}
+.trw.wrap>.kv{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;flex:1 1 190px;align-items:baseline}
+/* stacked variant: label above value, for long single-column content */
+.trw.single{display:block}
+.trw.single>.kv{display:grid;grid-template-columns:minmax(0,1fr)}
+.trw.single>.kv>.k{font-size:11px;border-bottom:0}
+.kv>.k{color:var(--mu);overflow-wrap:anywhere}
+.vv{min-width:0;overflow-wrap:anywhere}
 details{margin:2px 0}summary{cursor:pointer;list-style:none;color:var(--mu)}summary::-webkit-details-marker{display:none}
 summary::before{content:"▸ ";display:inline-block;width:1em}details[open]>summary::before{content:"▾ "}summary em{font-size:11px;margin-left:6px}
 details>div{margin-left:5px;border-left:1px solid var(--bd);padding-left:10px}
@@ -84,32 +99,53 @@ details>div{margin-left:5px;border-left:1px solid var(--bd);padding-left:10px}
 .tbt{position:absolute;right:6px;top:6px;display:flex;gap:4px;opacity:0;transition:opacity .12s}
 .tb:hover .tbt,.tb:focus-within .tbt{opacity:1}.tbt button{font-size:10.5px;padding:0 6px;background:#0f131ccc}
 @media(hover:none){.tbt{opacity:1}}
-.txt{white-space:pre-wrap;background:#0f131c;border:1px solid var(--bd);border-radius:8px;padding:8px 10px;max-height:300px;overflow:auto;overflow-wrap:anywhere}
+.txt{white-space:pre-wrap;background:#ffffff05;border-left:2px solid var(--bd);padding:5px 10px;max-height:300px;overflow:auto;overflow-wrap:anywhere}
 .txt.grown{max-height:none}
 .pt{font:12px/1.55 ui-monospace,Menlo,Consolas,monospace;max-height:420px}
 .bar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}.bar button{font-size:11px;padding:2px 9px}
-.bd{display:inline-block;padding:0 8px;border-radius:99px;background:var(--c,#445);color:#0b1020;font-size:11px;font-weight:600;line-height:18px}
+.bd{display:inline-block;padding:0 6px;border-radius:4px;background:var(--c,#445);color:#0b1020;font-size:10.5px;font-weight:600;line-height:17px;white-space:nowrap}
 .r-cp{--c:#5ec2ff}.r-tr{--c:#b388ff}.r-rg{--c:#ffa94d}.r-mt{--c:#7d889e;color:#fff}.fl{animation:fl 1.8s}@keyframes fl{0%,60%{background:#f5b84a55}}
-.card{border:1px solid var(--bd);border-radius:10px;padding:8px 10px;margin:8px 0;background:var(--p2)}.card>.h,.card>summary>.h{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.card>.h{margin-bottom:6px}
-details.card>summary{color:var(--tx)}details.card>div{margin-top:6px}
-.alert{border:1px solid var(--bd);border-left-width:4px;border-radius:8px;padding:8px 10px;margin:0 0 10px;background:var(--p2)}
-.alert.er{border-color:var(--er);background:#2a1620}.alert.wn{border-color:var(--wn);background:#2a2314}.alert.ok{border-color:var(--ok);background:#12281f}.alert.in{border-color:var(--ac)}
-.alert>b{display:block;margin-bottom:3px}
+/* flat blocks: a rule and a label instead of a card shell */
+.sec{border-top:1px solid var(--bd);padding-top:7px;margin:9px 0 0}
+.sec>.h{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:4px}
+.alert{border-left:3px solid var(--bd);padding:3px 0 3px 10px;margin:0 0 10px}
+.alert.er{border-color:var(--er)}.alert.wn{border-color:var(--wn)}.alert.ok{border-color:var(--ok)}.alert.in{border-color:var(--ac)}
+.alert>b{display:block;margin-bottom:2px}
+.alert.er>b{color:var(--er)}.alert.wn>b{color:var(--wn)}.alert.ok>b{color:var(--ok)}.alert.in>b{color:var(--ac)}
 ul.il{margin:4px 0 0;padding:0;list-style:none}ul.il li{padding:2px 0 2px 16px;position:relative;overflow-wrap:anywhere}ul.il li::before{content:"•";position:absolute;left:4px}
 ul.il li.er::before{content:"✕";color:var(--er);left:2px}ul.il li.wn::before{content:"⚠";color:var(--wn);left:0}ul.il li.in::before{content:"i";color:var(--mu);left:4px}
 .cmp{background:#7c9cff12;box-shadow:0 0 0 1px #7c9cff30;border-radius:3px;cursor:pointer}.cmp.on,.ol.on{background:#f5b84a44}
-.ol{cursor:pointer;display:block;text-align:left;width:100%;margin:1px 0;padding:2px 6px;border:0;background:none;border-radius:4px}
-.pcinfo{margin-top:6px;font-size:12px}.pcinfo button{display:block;margin:3px 0;font-size:11px;text-align:left;overflow-wrap:anywhere}
+.ol{cursor:pointer;display:block;text-align:left;width:100%;margin:0;padding:2px 6px;border:0;border-bottom:1px solid #ffffff0d;background:none;border-radius:0}
+.ol:hover{background:#7c9cff14}
+/* label/value metrics table: compact, no boxes */
+table.mt{margin:2px 0 6px;font-size:12px;width:auto;min-width:min(100%,360px)}
+table.mt th{font-weight:400;color:var(--mu);padding:2px 12px 2px 0;white-space:nowrap}
+table.mt td{padding:2px 6px 2px 0;font-variant-numeric:tabular-nums}
+table.mt td.num{text-align:right;font-weight:600;padding-right:12px}
+table.mt td.sub,table.mt .sub{color:var(--mu);font-size:11px;padding:2px 0}
+table.mt tr:last-child td,table.mt tr:last-child th{border-bottom:0}
+.pcinfo{margin-top:4px;font-size:12px;border-left:2px solid var(--ac);padding-left:8px}
+.pcinfo button{display:block;margin:1px 0;padding:1px 0;border:0;background:none;border-radius:0;font-size:11px;text-align:left;overflow-wrap:anywhere;color:var(--ac)}
+.pcinfo button:hover{text-decoration:underline}
 table{border-collapse:collapse;width:100%;font-size:12px}td,th{border-bottom:1px solid var(--bd);padding:3px 6px;text-align:left}th{color:var(--mu);font-weight:500}
 #ib table td:nth-child(n+4){white-space:nowrap}
+.tbl-wrap{overflow-x:auto}
 tr.go{cursor:pointer}tr.go:hover td{background:#7c9cff14}
 .df{display:block;text-align:left;margin:2px 0;width:100%;overflow-wrap:anywhere;font-size:11.5px}
-.msg{border:1px solid var(--bd);border-radius:10px;margin:6px 0;overflow:hidden}.msg>.mh{display:flex;gap:6px;align-items:center;padding:3px 8px;background:#0f131c;font-size:11px;color:var(--mu)}.msg>.tb .txt{border:0;border-radius:0}
-.msg.system{border-color:#5ec2ff55}.msg.user{border-color:#7c9cff66}.msg.assistant{border-color:#3ecf8e55}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px;margin-bottom:6px}
-.stat{background:var(--p2);border:1px solid var(--bd);border-radius:10px;padding:7px 10px;min-width:0}
-.stat .sv{display:block;font-size:19px;font-weight:700;line-height:1.15;overflow-wrap:anywhere}.stat .sl{display:block;color:var(--mu);font-size:11px}.stat .ss{display:block;color:var(--mu);font-size:10px;opacity:.85}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+/* messages: role gutter + content, rule separated */
+.msg{display:grid;grid-template-columns:minmax(66px,84px) minmax(0,1fr);border-top:1px solid var(--bd);margin:0}
+.msg>.mh{display:flex;gap:5px;align-items:baseline;flex-wrap:wrap;padding:5px 8px 5px 0;font-size:11px;color:var(--mu)}
+.msg>.mh .bd{font-size:10px;line-height:16px;padding:0 6px}
+.msg>.tb .txt{border:0;background:none;padding:4px 0;border-radius:0}
+.msg>.tb .tbt{right:0;top:2px}
+.msg.system>.mh .bd{--c:#5ec2ff}.msg.user>.mh .bd{--c:#7c9cff}.msg.assistant>.mh .bd{--c:#3ecf8e}
+/* metrics: one ruled strip of figures, no boxes */
+.stats{display:flex;flex-wrap:wrap;align-items:flex-start;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);margin:2px 0 10px}
+.stat{flex:1 1 88px;min-width:0;padding:4px 10px 5px;border-left:1px solid var(--bd)}
+.stat:first-child{border-left:0;padding-left:0}
+.stat .sv{display:block;font-size:16px;font-weight:700;line-height:1.2;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.stat .sl{display:block;color:var(--mu);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em}
+.stat .ss{display:block;color:var(--mu);font-size:10px;opacity:.85}
 .att{display:flex;gap:8px;align-items:baseline;padding:3px 0;border-bottom:1px solid var(--bd);overflow-wrap:anywhere}.att.rt{color:var(--mu);font-size:11px;padding-left:20px}
 .wf{display:flex;flex-direction:column}
 .wr{display:grid;grid-template-columns:minmax(110px,38%) 1fr;gap:8px;align-items:center;text-align:left;border-radius:4px;padding:1px 4px;width:100%;cursor:pointer}
@@ -125,19 +161,28 @@ tr.go{cursor:pointer}tr.go:hover td{background:#7c9cff14}
 }
 
 /* ===== jobs / embeddings / job graph ===== */
-.stats.s5{grid-template-columns:repeat(auto-fit,minmax(82px,1fr))}.stats.s5 .stat{padding:6px 8px}.stats.s5 .sv{font-size:17px}
+.stats.s5 .stat{flex-basis:74px;padding:3px 8px 4px}.stats.s5 .stat .sv{font-size:15px}
 .sb{display:flex;height:8px;border-radius:99px;overflow:hidden;background:#0f131c;margin:2px 0 8px}.sb i{display:block;background:var(--c)}
 .lg{display:flex;gap:10px;flex-wrap:wrap;color:var(--mu);font-size:11px;margin-bottom:8px}.lg b{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c);margin-right:4px}
-.stat.go{cursor:pointer}.stat.go:hover{border-color:var(--ac)}
-.jc{border:1px solid var(--bd);border-left:4px solid var(--c,#667);border-radius:10px;background:var(--p2);margin:6px 0}
-.jc>.jh{display:grid;grid-template-columns:1fr auto;gap:1px 10px;padding:7px 10px;cursor:pointer;align-items:center}
-.jc>.jh:hover{background:#7c9cff10}.jc.open>.jh{border-bottom:1px solid var(--bd)}
-.jc .jb{padding:8px 10px 10px}.jc .jb h5{margin:10px 0 4px;color:var(--mu);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em}.jc .jb h5:first-child{margin-top:0}
+.stat.go{cursor:pointer}.stat.go:hover .sv{color:var(--ac)}
+/* expandable table rows replace the old job/embedding cards */
+table.gt{margin:4px 0 12px}
+table.gt th{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+table.gt td{padding:4px 6px;vertical-align:top;overflow-wrap:anywhere}
+table.gt tr.jr[data-aidx] td:first-child{border-left:0}
+table.gt tr.jr{cursor:pointer}table.gt tr.jr:hover td{background:#7c9cff14}
+table.gt tr.jr.open td{background:#7c9cff10;border-bottom-color:transparent}
+table.gt tr.jr td:first-child{border-left:3px solid var(--c,#667)}
+table.gt td.num,table.gt th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.gt tr.jd>td{background:#0f131c;padding:8px 10px 10px;border-bottom:1px solid var(--bd)}
+table.gt tr.jd h5{margin:10px 0 4px;color:var(--mu);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em}
+table.gt tr.jd h5:first-child{margin-top:0}
+table.gt .sub{color:var(--mu);font-size:11px}
 .dots i{display:inline-block;width:8px;height:8px;border-radius:50%;border:1px solid var(--mu);margin-left:3px;vertical-align:-1px}.dots i.u{background:var(--c);border-color:var(--c)}
 .mk{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--tx);opacity:.7}
 .lane{position:relative;height:14px;background:#0f131c;border-radius:4px;margin:3px 0}.lane .wb{top:2px;bottom:2px}
 .fl2{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.fl2 button{font-size:11px;padding:2px 9px}
-.hl{background:#7c9cff14;border-radius:6px;padding:6px 8px;margin:6px 0;font-size:12px}
+.hl{border-left:2px solid var(--ac);padding:1px 0 1px 9px;margin:6px 0;font-size:12px}
 #jview{display:none;flex:1;position:relative;overflow:hidden;cursor:grab;background:radial-gradient(circle at 1px 1px,#222b3d 1px,transparent 0) 0 0/24px 24px;touch-action:none}
 body.jm #jview{display:block}body.jm #view{display:none}body.jm #flow,body.jm #expg,body.jm #find,body.jm #fc{display:none}
 #jview.pan{cursor:grabbing}#jview *{-webkit-user-select:none;user-select:none}
@@ -650,11 +695,13 @@ const tile = (v, l, s, go) => `<div class="stat${go ? ' go' : ''}" ${go ? `data-
 const sbar = parts => { const t = parts.reduce((a, [n]) => a + n, 0) || 1; return `<div class="sb">${parts.filter(p => p[0]).map(([n, k, l]) => `<i class="st-${k}" style="width:${n / t * 100}%" title="${n} ${esc(l)}"></i>`).join('')}</div><div class="lg">${parts.filter(p => p[0]).map(([n, k, l]) => `<span class="st-${k}"><b></b>${n} ${esc(l)}</span>`).join('')}</div>`; };
 function bgTeaser(c) {
   const J = jobsModel(c), E = embModel(c); let h = '';
+  if (!J.length && !E.length) return h;
+  h += '<h4>Background</h4><table class="mt">';
   if (J.length) { const d = J.filter(x => x.k === 'success').length, f = J.filter(x => x.k === 'error').length;
-    h += `<h4>Background</h4><div class="hl"><a class="ch" data-stab="jobs"><b>${plural(J.length, 'job')}</b></a> · ${d} done${J.length - d - f ? ' · ' + (J.length - d - f) + ' waiting/running' : ''}${f ? ' · <span style="color:var(--er)">' + f + ' failed</span>' : ''} — <a class="ch" data-jg>open job graph</a></div>`; }
+    h += `<tr><th><a class="ch" data-stab="jobs">${plural(J.length, 'job')}</a></th><td>${d} done${J.length - d - f ? ` · ${J.length - d - f} waiting/running` : ''}${f ? ` · <span style="color:var(--er)">${f} failed</span>` : ''}</td><td class="sub"><a class="ch" data-jg>open job graph</a></td></tr>`; }
   if (E.length) { const cons = E.reduce((a, g) => a + g.cons.length, 0), re = E.reduce((a, g) => a + g.reuse, 0);
-    h += `${J.length ? '' : '<h4>Background</h4>'}<div class="hl"><a class="ch" data-stab="emb"><b>${plural(E.length, 'shared embedding')}</b></a> · ${plural(cons, 'consumer')}, ${re} served by reuse</div>`; }
-  return h;
+    h += `<tr><th><a class="ch" data-stab="emb">${plural(E.length, 'shared embedding')}</a></th><td>${plural(cons, 'consumer')}, ${re} served by reuse</td><td></td></tr>`; }
+  return h + '</table>';
 }
 function jobsTab() {
   const c = cur, J = jobsModel(c); if (!J.length) return '<p class="mu">This trace contains no background jobs.</p>';
@@ -664,17 +711,32 @@ function jobsTab() {
   h += sbar([[cnt('success'), 'success', 'completed'], [cnt('running'), 'running', 'running'], [cnt('skipped'), 'skipped', 'queued'], [cnt('cancelled'), 'cancelled', 'cancelled'], [cnt('error'), 'error', 'failed']]);
   const kinds = [...new Set(J.map(x => x.kind))];
   if (kinds.length > 1) h += '<table><tr><th>Kind</th><th>Jobs</th><th>Done</th><th>Attempts</th><th>Time</th><th>Cost</th></tr>' + kinds.map(k => { const q = J.filter(x => x.kind === k); return `<tr><td>${esc(k)}</td><td>${q.length}</td><td>${q.filter(x => x.k === 'success').length}</td><td>${q.reduce((a, x) => a + x.tries, 0)}</td><td>${q.some(x => x.att.length) ? fd(q.reduce((a, x) => a + x.dur, 0)) : '—'}</td><td>${q.some(x => x.use.n) ? usd(q.reduce((a, x) => a + x.use.cost, 0)) : '—'}</td></tr>`; }).join('') + '</table>';
-  h += `<div class="fl2"><button data-jg>Open job graph</button></div><h4>Jobs — click to expand</h4>` + J.map(x => jobCard(c, x)).join('');
+  h += `<div class="fl2"><button data-jg>Open job graph</button></div><h4>Jobs — click a row to expand</h4>` + jobTable(c, J);
   if (c.t.background_status) h += `<p class="mu">Saved checkpoint — background is “${esc(c.t.background_status)}”. Re-import the file later to see further attempts.</p>`;
   return h;
 }
-function jobCard(c, x) {
-  const open = c.jopen === x.id, tr = tms(c.t.response_ended_at), ra = tms(x.j.run_after), cr = tms(x.j.created_at), M = x.max || Math.max(x.tries, 1);
-  const dots = '<span class="dots">' + Array.from({ length: Math.min(M, 12) }, (_, i) => `<i class="${i < x.tries ? 'u' : ''}"></i>`).join('') + `</span> <span class="mu">${x.tries}${x.max ? '/' + x.max : ''}</span>`;
-  let h = `<div class="jc st-${x.k}${open ? ' open' : ''}" data-jid="${esc(x.id)}"><div class="jh" data-act="jtog" data-id="${esc(x.id)}"><span><b>${esc(x.kind)}</b> ${bdg(x.status)}</span><span>${dots}</span><span class="mu">${esc(x.id.slice(0, 8))} · ${x.att.length ? fd(x.dur) : 'not started'}${x.emb.length ? ' · ' + plural(x.emb.length, 'embedding') : ''}${x.llm.length ? ' · ' + plural(x.llm.length, 'LLM call') : ''}</span><span class="mu">${x.j.last_error_code ? '<span style="color:var(--er)">' + esc(x.j.last_error_code) + '</span>' : ''}</span></div>`;
-  if (!open) return h + '</div>';
-  h += '<div class="jb"><h5>Lifecycle</h5>';
-  const ts = [cr, ra, ...x.att.flatMap(a => [tms(a.n.started_at), tms(a.n.ended_at)]), tr].filter(v => v !== null), lo = Math.min(...ts), span = Math.max(1e-6, Math.max(...ts) - lo), pc = v => ((v - lo) / span * 100).toFixed(2);
+const jdots = x => { const M = x.max || Math.max(x.tries, 1); return '<span class="dots">' + Array.from({ length: Math.min(M, 12) }, (_, i) => `<i class="${i < x.tries ? 'u' : ''}"></i>`).join('') + '</span>'; };
+const jwhat = x => [!x.att.length ? 'not started yet' : '', x.emb.length ? plural(x.emb.length, 'embedding') : '', x.llm.length ? plural(x.llm.length, 'LLM call') : ''].filter(Boolean).join(' · ');
+/** jobs as an expandable table: one ruled row per job, detail on demand */
+function jobTable(c, J) {
+  let h = '<div class="tbl-wrap"><table class="gt"><tr><th>Job</th><th>Status</th><th class="num">Attempts</th><th class="num">Worker time</th><th class="num">Cost</th></tr>';
+  J.forEach(x => {
+    const open = c.jopen === x.id, what = jwhat(x);
+    h += `<tr class="jr st-${x.k}${open ? ' open' : ''}" data-act="jtog" data-id="${esc(x.id)}" data-jid="${esc(x.id)}" aria-expanded="${open}">`
+      + `<td><b>${esc(x.kind)}</b><div class="sub"><code>${esc(x.id.slice(0, 8))}</code>${what ? ' · ' + what : ''}</div></td>`
+      + `<td>${bdg(x.status)}${x.j.last_error_code ? `<div class="sub" style="color:var(--er)">${esc(x.j.last_error_code)}</div>` : ''}</td>`
+      + `<td class="num">${jdots(x)} <span class="sub">${x.tries}${x.max ? '/' + x.max : ''}</span></td>`
+      + `<td class="num">${x.att.length ? fd(x.dur) : '—'}</td>`
+      + `<td class="num">${x.use.n ? esc(usd(x.use.cost)) : '—'}</td></tr>`;
+    if (open) h += `<tr class="jd"><td colspan="5">${jobDetail(c, x)}</td></tr>`;
+  });
+  return h + '</table></div>';
+}
+function jobDetail(c, x) {
+  const tr = tms(c.t.response_ended_at), ra = tms(x.j.run_after), cr = tms(x.j.created_at);
+  let h = '<h5>Lifecycle</h5>';
+
+  const ts = [cr, ra, ...x.att.flatMap(a => [tms(a.n.started_at), tms(a.n.ended_at)]), tr].filter(v => v !== null), lo = ts.length ? Math.min(...ts) : 0, span = ts.length ? Math.max(1e-6, Math.max(...ts) - lo) : 1, pc = v => ((v - lo) / span * 100).toFixed(2);
   h += `<div class="lane" title="created → run-after → attempts"><span class="mk" style="left:${pc(tr ?? lo)}%" title="response finished"></span>${cr !== null && ra !== null && ra > cr ? `<span class="wb st-skipped" style="left:${pc(cr)}%;width:${(ra - cr) / span * 100}%;opacity:.5" title="delayed by run_after"></span>` : ''}${x.att.map(a => { const s0 = tms(a.n.started_at), e0 = tms(a.n.ended_at) ?? s0; return s0 === null ? '' : `<span class="wb st-${stk(a.n.status)}" style="left:${pc(s0)}%;width:${Math.max(.8, (e0 - s0) / span * 100)}%" title="Attempt ${esc(a.n.input.attempt ?? '?')} · ${fd(a.n.duration_ns)}"></span>`; }).join('')}</div>`;
   h += `<div class="mu">span ${fd(span * 1e6)} · white marker = response finished${tr !== null && ra !== null ? ` · eligible ${ra >= tr ? fd((ra - tr) * 1e6) + ' after' : fd((tr - ra) * 1e6) + ' before'} the response ended` : ''}</div>`;
   h += '<h5>Attempts</h5>';
@@ -686,22 +748,34 @@ function jobCard(c, x) {
     x.llm.forEach(o => { const u = usageOf(o); h += `<div class="att" style="cursor:pointer" data-go="${esc(o.n.id)}" data-tabto="llm"><span>LLM</span><span>${esc(sn(o.n.operation))} · ${esc(modelName(o) || '—')} · ${u ? u.inT + '→' + u.outT + ' tok · ' + usd(u.cost) : 'usage unknown'}</span></div>`; });
   }
   if (isObj(x.j.payload) && Object.keys(x.j.payload).length) h += `<details><summary>Payload</summary><div>${V(x.j.payload, '/jobs/payload')}</div></details>`;
-  return h + `<div class="fl2"><button data-jg="${esc(x.id)}">Show in job graph</button>${x.att[0] ? `<button data-go="${esc(x.att[0].n.id)}">Open worker operation</button>` : ''}</div></div></div>`;
+  return h + `<div class="fl2"><button data-jg="${esc(x.id)}">Show in job graph</button>${x.att[0] ? `<button data-go="${esc(x.att[0].n.id)}">Open worker operation</button>` : ''}</div>`;
 }
+
 function embTab() {
   const c = cur, E = embModel(c); if (!E.length) return '<p class="mu">This trace has no shared embedding activity.</p>';
   const cons = E.reduce((a, g) => a + g.cons.length, 0), re = E.reduce((a, g) => a + g.reuse, 0), spent = E.reduce((a, g) => a + g.use.cost, 0), saved = E.reduce((a, g) => a + (g.saved || 0), 0), calls = E.reduce((a, g) => a + (g.compute ? (g.attempts || 1) : 0), 0);
   let h = `<div class="stats s5">${tile(E.length, 'computations', plural(calls, 'provider call'))}${tile(cons, 'consumers', 'requests for a vector')}${tile(cons ? Math.round(re / cons * 100) + '%' : '—', 'served by reuse', re + ' of ' + cons)}${tile(usd(spent), 'spent', 'provider cost')}${tile(E.some(g => g.known) ? usd(saved) : '—', 'saved', 'avoided duplicate calls')}</div>`;
-  h += `<p class="mu">One computation is shared by every consumer that asks for the same text and model. The first one pays; the rest join in-flight work or hit the cache for free.</p><h4>Computations — click to expand</h4>`;
-  return h + E.map(g => embCard(c, g)).join('');
+  h += `<p class="mu">One computation is shared by every consumer that asks for the same text and model. The first one pays; the rest join in-flight work or hit the cache for free.</p><h4>Computations — click a row to expand</h4>`;
+  let t = '<div class="tbl-wrap"><table class="gt"><tr><th>Computation</th><th>Status</th><th>Model</th><th class="num">Consumers</th><th class="num">Cost</th><th class="num">Saved</th></tr>';
+  E.forEach(g => {
+    const open = c.eopen === g.id, re = g.cons.length - g.cons.filter(k => k.how === 'origin').length;
+    t += `<tr class="jr st-${stk(g.status)}${open ? ' open' : ''}" data-act="etog" data-id="${esc(g.id)}" aria-expanded="${open}">`
+      + `<td><b><code>${esc(g.id.slice(0, 8))}</code></b><div class="sub">${g.compute ? 'computed for ' + esc((g.cons.find(k => k.how === 'origin') || {}).who || '?') : 'reused from another trace'}</div></td>`
+      + `<td>${bdg(g.status, stk(g.status))}</td>`
+      + `<td>${esc(g.model)}</td>`
+      + `<td class="num">${g.cons.length}${re ? ` <span class="sub">· ${re} reused</span>` : ''}</td>`
+      + `<td class="num">${g.known ? esc(usd(g.use.cost)) : '<span class="sub">n/a</span>'}</td>`
+      + `<td class="num">${g.known && g.saved ? esc(usd(g.saved)) : '<span class="sub">—</span>'}</td></tr>`;
+    if (open) t += `<tr class="jd"><td colspan="6">${embDetail(c, g)}</td></tr>`;
+  });
+  return t + '</table></div>';
 }
-function embCard(c, g) {
-  const open = c.eopen === g.id, org = g.cons.find(k => k.how === 'origin'), j = g.cons.filter(k => k.how !== 'origin');
-  let h = `<div class="jc st-${stk(g.status)}${open ? ' open' : ''}"><div class="jh" data-act="etog" data-id="${esc(g.id)}"><span><b>${esc(g.id.slice(0, 8))}</b> ${bdg(g.status, stk(g.status))} <span class="mu">${esc(g.model)}</span></span><span>${g.known ? usd(g.use.cost) : '<span class="mu">cost n/a</span>'}</span><span class="mu">${g.compute ? 'computed for ' + esc(org ? org.who : '?') : 'reused from another trace'} · ${j.length ? 'reused by ' + esc([...new Set(j.map(k => k.who))].join(', ')) : 'not reused'}</span><span class="mu">${g.known && g.saved ? 'saved ' + usd(g.saved) : ''}</span></div>`;
-  if (!open) return h + '</div>';
-  const spans = g.ev.map(o => [tms(o.n.started_at), tms(o.n.ended_at) ?? tms(o.n.started_at)]).filter(x => x[0] !== null), lo = Math.min(...spans.map(x => x[0])), span = Math.max(1e-6, Math.max(...spans.map(x => x[1])) - lo);
+function embDetail(c, g) {
+  const org = g.cons.find(k => k.how === 'origin'), j = g.cons.filter(k => k.how !== 'origin');
+  let h = '';
+  const spans = g.ev.map(o => [tms(o.n.started_at), tms(o.n.ended_at) ?? tms(o.n.started_at)]).filter(x => x[0] !== null), lo = spans.length ? Math.min(...spans.map(x => x[0])) : 0, span = spans.length ? Math.max(1e-6, Math.max(...spans.map(x => x[1])) - lo) : 1;
   const row = (o, lab, k) => { const s0 = tms(o.n.started_at), e0 = tms(o.n.ended_at) ?? s0; return `<div class="wr" data-go="${esc(o.n.id)}"><span class="wn1" title="${esc(lab)}">${esc(lab)}</span><span class="wt"><span class="wb st-${stk(o.n.status)}" style="left:${((s0 - lo) / span * 100).toFixed(2)}%;width:${Math.max(1, (e0 - s0) / span * 100).toFixed(2)}%;${k === 'join' ? 'opacity:.6' : ''}"></span></span></div>`; };
-  h += '<div class="jb"><h5>Who did the work</h5>';
+  h += '<h5>Who did the work</h5>';
   const nar = [];
   if (g.compute) nar.push(`Computed once${org ? ' for <b>' + esc(org.who) + '</b>' : ''} in ${fd(g.compute.n.embedding.compute_duration_ns ?? g.compute.n.duration_ns)}${g.known ? ` (${g.use.inT} tokens, ${usd(g.use.cost)})` : ''}${g.attempts > 1 ? `, after ${g.attempts} provider attempts` : ''}.`);
   g.cons.forEach(k => { const w = k.e.wait_duration_ns; if (k.o.n.status === 'cancelled') nar.push(`<b>${esc(k.who)}</b> stopped waiting after ${fd(w)} (${esc(k.e.reason || 'cancelled')}) — the computation kept running for others.`); else if (k.how === 'join') nar.push(`<b>${esc(k.who)}</b> joined the in-flight computation and waited ${fd(w)}.`); else if (k.how === 'hit') nar.push(`<b>${esc(k.who)}</b> got a cache hit.`); });
@@ -709,7 +783,7 @@ function embCard(c, g) {
   h += `<ul class="il">${nar.map(x => `<li class="in">${x}</li>`).join('')}</ul><h5>Timeline</h5><div class="wf">${g.cons.map(k => row(k.o, k.who + ' · ' + (k.how === 'origin' ? 'requested' : k.how === 'join' ? 'joined' : 'cache hit'), k.how)).join('')}${g.compute ? row(g.compute, 'provider compute', 'c') : ''}</div>`;
   h += `<h5>Identity</h5><div class="trw">${kvr('Computation', `<code>${esc(g.id)}</code>`)}${kvr('Input hash', `<code>${esc((g.e.input_hash || '').slice(0, 16))}…</code>`)}${g.e.origin_turn_id ? kvr('Origin turn', `<code>${esc(g.e.origin_turn_id)}</code>`) : ''}</div>`;
   const ob = g.e.origin_trace_id && g.e.origin_trace_id !== c.t.trace_id; if (ob) h += '<p class="mu">Computed in another trace — its cost is not part of this file.</p>';
-  return h + `<div class="fl2">${g.compute ? `<button data-go="${esc(g.compute.n.id)}">Open compute operation</button>` : ''}${jobsModel(c).length ? '<button data-jg>Show in job graph</button>' : ''}</div></div></div>`;
+  return h + `<div class="fl2">${g.compute ? `<button data-go="${esc(g.compute.n.id)}">Open compute operation</button>` : ''}${jobsModel(c).length ? '<button data-jg>Show in job graph</button>' : ''}</div>`;
 }
 
 // ---------- background job execution graph (separate pan/zoom canvas)
@@ -764,7 +838,7 @@ function jzoom(px, py, f) { const v = cur.jv, k = Math.min(2.5, Math.max(.15, v.
 function jact(id) {
   const c = cur, n = c._jg.N.find(x => x.id === id); if (!n) return; c.jsel = id; jpaint(); const a = n.act; if (!a) return;
   if (a[0] === 'node') { select(a[1], { reveal: true, open: true, force: true }); }
-  else { c.stab = a[0] === 'job' ? 'jobs' : 'emb'; if (a[0] === 'job') c.jopen = a[1]; else c.eopen = a[1]; select(null); setPanel(true); insp(); const el = $(a[0] === 'job' ? `[data-jid="${CSS.escape(a[1])}"]` : '.jc.open', $('#ib')); if (el) el.scrollIntoView({ block: 'nearest' }); }
+  else { c.stab = a[0] === 'job' ? 'jobs' : 'emb'; if (a[0] === 'job') c.jopen = a[1]; else c.eopen = a[1]; select(null); setPanel(true); insp(); const el = $(a[0] === 'job' ? `tr.jr[data-jid="${CSS.escape(a[1])}"]` : 'tr.jr.open', $('#ib')); if (el) el.scrollIntoView({ block: 'nearest' }); }
 }
 function goJobGraph(jid) { const c = cur; if (!c || !jobsModel(c).length) return toast('No background jobs in this trace'); setJ(true); if (jid) { c.jsel = 'j' + jid; jpaint(); } }
 const JV = $('#jview'); let jdrag = null;
@@ -822,7 +896,7 @@ function PC(o, ai) {
       const srcN = c => Array.isArray(c.sources) ? c.sources.length : 0;
       body = `<div class="tb"><div class="txt pt" dir="auto">${R(0, by.length, null, 0)}</div><div class="tbt"><button data-act="copy">Copy</button><button data-act="grow">Expand</button></div></div><details><summary>Structure: ${plural(cs.length, 'component')}${ok.includes(false) ? ' · ' + ok.filter(x => !x).length + ' with invalid byte ranges (skipped)' : ''}</summary><div>${cs.map((c, j) => ok[j] ? `<button class="ol" data-ol="${ai}:${pi}:${j}" style="padding-left:${6 + dp(j) * 14}px">${esc(c.name)} <span class="mu">${c.end_byte - c.start_byte} B · ${srcN(c)} source(s)</span></button>` : '').join('')}</div></details><div class="pcinfo mu">Click a highlighted section to see its captured sources.</div>`;
     }
-    return `<div class="card" data-part="${ai}:${pi}"><div class="h"><span class="bd" style="--c:hsl(${hue(pt.role)} 70% 72%)">${esc(pt.role)}</span><b>${esc(pt.name)}</b>${pt.source ? `<span class="mu">source label: ${esc(pt.source)}</span>` : ''}</div>${body}</div>`;
+    return `<div class="sec" data-part="${ai}:${pi}"><div class="h"><span class="bd" style="--c:hsl(${hue(pt.role)} 70% 72%)">${esc(pt.role)}</span><b>${esc(pt.name)}</b>${pt.source ? `<span class="mu">source label: ${esc(pt.source)}</span>` : ''}</div>${body}</div>`;
   }).join('');
 }
 function actC(k) {
@@ -838,7 +912,13 @@ function navPath(id, p) {
 function flash(p) {
   let el; for (let q = p; q && !el; q = q.slice(0, q.lastIndexOf('/'))) el = $('#ib').querySelector(`[data-p="${CSS.escape(q)}"]`);
   if (!el) return; if (el.tagName === 'DETAILS') el.open = true;
-  for (let d = el.parentElement; d && d.id !== 'ib'; d = d.parentElement) if (d.tagName === 'DETAILS') d.open = true;
+  for (let d = el.parentElement; d && d.id !== 'ib'; d = d.parentElement) {
+    if (d.tagName === 'DETAILS') d.open = true;
+    else if (d.tagName === 'TR' && d.hasAttribute('hidden') && d.hasAttribute('data-arow')) {
+      d.removeAttribute('hidden');
+      const head = d.previousElementSibling; if (head) { head.classList.add('open'); head.setAttribute('aria-expanded', 'true'); }
+    }
+  }
   el.scrollIntoView({ block: 'center' }); el.classList.add('fl'); setTimeout(() => el.classList.remove('fl'), 1800);
 }
 
@@ -846,11 +926,12 @@ function flash(p) {
 const issueList = (items, withNode) => items.length ? '<ul class="il">' + items.map(i => `<li class="${i.sev === 'error' ? 'er' : i.sev === 'warn' ? 'wn' : 'in'}">${withNode ? goLink(cur.N.get(i.id)) + ' ' : ''}${esc(i.text)}</li>`).join('') + '</ul>' : '';
 function errBox(n, o) {
   const parts = errParts(n.error), at = o && attemptFor(o);
-  let h = `<div class="alert er"><b>✕ This operation failed</b>`;
-  if (parts.length) h += '<div class="trw">' + parts.map(([k, v]) => kvr(esc(k), /^(message|msg|detail|error|reason|cause)$/i.test(k) ? txt(v) : `<code>${esc(v)}</code>`)).join('') + '</div>';
-  else h += '<div class="mu">The trace records status “error” but no error details.</div>';
+  let h = `<div class="alert er"><b>✕ This operation failed</b><div class="trw single">`;
+  if (parts.length) h += parts.map(([k, v]) => kvr(esc(k), /^(message|msg|detail|error|reason|cause)$/i.test(k) ? txt(v) : `<code>${esc(v)}</code>`)).join('');
+  else h += '<div class="vv mu">The trace records status “error” but no error details.</div>';
   if (n.reason) h += kvr('reason', `<code>${esc(n.reason)}</code>`);
-  if (at && at.failure) h += `<div style="margin-top:4px">Failure reason from the caller’s attempt log (attempt ${esc(at.attempt ?? '?')}, matched by position): <b>${esc(at.failure)}</b></div>`;
+  h += '</div>';
+  if (at && at.failure) h += `<div class="mu">Failure reason from the caller’s attempt log (attempt ${esc(at.attempt ?? '?')}, matched by position): <b>${esc(at.failure)}</b></div>`;
   const out = n.output, outErr = isObj(out) && ci(out, 'error', 'err');
   if (outErr) h += `<details><summary>error in output</summary><div>${V(outErr, '/output/error')}</div></details>`;
   return h + '</div>';
@@ -861,7 +942,7 @@ function embeddingPanel(n) {
   const origin = e.origin_trace_id === cur.t.trace_id && cur.N.has(e.origin_node_id)
     ? goLink(cur.N.get(e.origin_node_id))
     : `<code>${esc(e.origin_trace_id || 'not captured')}</code>${e.origin_turn_id ? ' · Turn ' + esc(e.origin_turn_id) : ''}`;
-  return '<h4>Shared embedding</h4><div class="trw">'
+  return '<h4>Shared embedding</h4><div class="trw wrap">'
     + kvr('Cache outcome', esc(e.cache_outcome)) + kvr('Computation', `<code>${esc(e.computation_id)}</code>`)
     + kvr('Consumer', esc(e.consumer || 'unspecified')) + kvr('Vector identity', esc(e.provider + ' / ' + e.model + ' / ' + e.dimensions + ' dimensions'))
     + kvr('Origin', origin) + kvr('Waiting', fd(e.wait_duration_ns || 0)) + kvr('Computation duration', fd(e.compute_duration_ns || 0))
@@ -889,7 +970,7 @@ function OV(o) {
     const um = L.req && ci(L.req, 'messages'); if (Array.isArray(um)) { const last = [...um].reverse().find(m => ci(m, 'role') === 'user'); const c = last && ci(last, 'content'); if (typeof c === 'string') h += `<h4>Last user message</h4>${txt(c)}`; }
     const rt = L.streamText || L.text; if (rt) h += `<h4>Response</h4>${txt(rt)}`;
   }
-  if (o.kids.length) h += `<h4>Child operations (${o.kids.length})</h4>` + o.kids.map(k => `<div>${goLink(k)} <span class="bd st-${KNOWN.has(k.n.status) ? k.n.status : 'unknown'}">${esc(k.n.status)}</span> <span class="mu">${esc(sub(k).split(' · ').slice(1).join(' · '))}</span></div>`).join('');
+  if (o.kids.length) h += `<h4>Child operations (${o.kids.length})</h4><table class="mt"><tr><th>Operation</th><th>Status</th><th>Detail</th></tr>` + o.kids.map(k => `<tr><td>${goLink(k)}</td><td><span class="bd st-${KNOWN.has(k.n.status) ? k.n.status : 'unknown'}">${esc(k.n.status)}</span></td><td class="sub">${esc(sub(k).split(' · ').slice(1).join(' · '))}</td></tr>`).join('') + '</table>';
   if (!isLLMNode(o)) {
     const outS = [], inS = []; strs(n.output, '/output', outS); strs(n.input, '/input', inS);
     const seen = new Set(), pick = (a, m) => a.sort((x, y) => y[1].length - x[1].length).filter(([, s]) => !seen.has(s) && seen.add(s)).slice(0, m), ks = [...pick(outS, 3), ...pick(inS, 2)];
@@ -909,7 +990,6 @@ function strs(v, p, out) {
 
 // ---------- inspector: LLM usage & metadata panel
 const rate = u => num(u) === null ? '—' : '$' + (u / 1e6).toFixed(u > 0 && u < 1e4 ? 4 : 2) + ' / 1M';
-const stat = (v, l, sub) => `<div class="stat"><span class="sv">${v}</span><span class="sl">${l}</span>${sub ? `<span class="ss">${sub}</span>` : ''}</div>`;
 /** tokens, cost, latency and model metadata for one LLM node. compact = Overview, full = LLM tab */
 function llmPanel(o, full) {
   const L = o._llm, n = o.n, u = usageOf(o), mm = modelMeta(o), est = estTokens(n), rows = [];
@@ -917,8 +997,9 @@ function llmPanel(o, full) {
   let h = '';
   if (u) {
     const pct = u.inT && u.cached ? `${Math.round(u.cached / u.inT * 100)}% of input` : '';
-    h += '<div class="stats">' + stat(u.inT, 'input tokens', est ? `≈ ${est} estimated` : '') + stat(u.outT, 'output tokens') + stat(u.cached, 'cached tokens', pct) + stat(u.inT + u.outT, 'total tokens') + stat(num(u.cost) !== null ? esc(usd(u.cost)) : '—', 'cost') + stat(u.lat ? fd(u.lat) : '—', 'reported latency', 'node took ' + fd(n.duration_ns)) + '</div>';
-    h += `<div class="mu">Source: ${u.src === 'provider_usage' ? 'usage reported by the provider for this call' : 'usage block in this call’s response'}.</div>`;
+    h += '<table class="mt"><tr><th>Input tokens</th><td class="num">' + u.inT + '</td><th>Cached</th><td class="num">' + u.cached + '</td><th>Output tokens</th><td class="num">' + u.outT + '</td><th>Cost</th><td class="num">' + (num(u.cost) !== null ? esc(usd(u.cost)) : '—') + '</td></tr>'
+      + '<tr><td class="sub" colspan="8">' + [est ? '≈ ' + est + ' estimated input (heuristic)' : '', pct ? pct + ' cached' : '', 'total ' + (u.inT + u.outT) + ' tokens', u.lat ? 'reported latency ' + fd(u.lat) + ' · node ' + fd(n.duration_ns) : 'node took ' + fd(n.duration_ns)].filter(Boolean).join(' · ') + '</td></tr></table>';
+    h += `<div class="mu" style="margin:-2px 0 8px">Source: ${u.src === 'provider_usage' ? 'usage reported by the provider for this call' : 'usage block in this call’s response'}.</div>`;
   } else h += `<div class="alert wn"><b>Token usage not reported</b>The trace has no usage for this call${n.status === 'error' ? ' (it failed)' : ''}. Treat it as unknown, not zero.${est ? ` Heuristic input estimate ≈ ${est} tokens (not a tokenizer).` : ''}</div>`;
   const prov = (u && u.provider) || ci(mm, 'provider') || '', name = modelName(o);
   row('Model', name ? esc([prov, name].filter(Boolean).join('/')) : '');
@@ -931,6 +1012,7 @@ function llmPanel(o, full) {
   if (full) {
     row('Call kind', esc({ structured: 'structured output', stream: 'streaming', embed: 'embedding', generate: 'generation' }[L.kind]));
     row('Mode', esc(L.mode || ''));
+    if (L.systemOne) row('Decisions', 'native System One');
     if (mm && ci(mm, 'native_json_schema') !== undefined) row('Native JSON schema', esc(ci(mm, 'native_json_schema')));
     const dim = ci(mm, 'dimensions') || (L.vector && L.vector.length); row('Embedding dimensions', dim ? esc(dim) : '');
     if (L.kind === 'stream') row('First text chunk', L.firstTokenMs != null ? '+' + fd(L.firstTokenMs * 1e6) + ' after the call started' : '');
@@ -944,7 +1026,7 @@ function llmPanel(o, full) {
     }
     if (u && est) row('Estimate vs actual', `≈ ${est} estimated input tokens vs ${u.inT} actual (${u.inT - est >= 0 ? '+' : ''}${u.inT - est}) <span class="mu">${esc((n.estimates[0].method || '').split(';')[0])}, not a tokenizer</span>`);
   }
-  if (rows.length) h += `<div class="trw" style="margin-top:8px">${rows.join('')}</div>`;
+  if (rows.length) h += `<div class="trw wrap" style="margin-top:4px">${rows.join('')}</div>`;
   // per-call breakdown for wrapper nodes that own provider calls
   const kids = o.kids.filter(isLLMNode);
   if (full && kids.length) {
@@ -961,13 +1043,8 @@ function llmPanel(o, full) {
 // ---------- inspector: LLM view
 function LLM(o) {
   const L = o._llm, n = o.n, u = usageOf(o); let h = '';
-  const mdl = L.model, chips = [`<span class="chip">${{ structured: 'Structured output', stream: 'Streaming', embed: 'Embedding', generate: 'Generation' }[L.kind]}</span>`];
-  const mname = modelName(o); if (mname) chips.push(`<span class="chip">${esc([u && u.provider || ci(mdl, 'provider'), mname].filter(Boolean).join('/'))}</span>`);
-  if (L.mode) chips.push(`<span class="chip">mode: ${esc(L.mode)}</span>`);
-  if (L.systemOne) chips.push('<span class="chip">Native System One decisions</span>');
-  const tier = ci(L.req, 'tier'); if (tier) chips.push(`<span class="chip">tier: ${esc(tier)}</span>`);
-  if (!L.systemOne && isObj(mdl) && ci(mdl, 'native_json_schema') !== undefined) chips.push(`<span class="chip">native JSON schema: ${esc(ci(mdl, 'native_json_schema'))}</span>`);
-  h += `<div class="chips">${chips.join('')}</div>`;
+  const mname = modelName(o);
+  h += `<div class="mu" style="margin:0 0 8px">${{ structured: 'structured output', stream: 'streaming', embed: 'embedding', generate: 'generation' }[L.kind] || esc(L.kind || 'call')}${mname ? ' · ' + esc(mname) : ''}${L.systemOne ? ' · native System One decisions' : ''}</div>`;
   if (n.status === 'error') h += errBox(n, o);
   h += '<h4>Tokens &amp; usage</h4>' + llmPanel(o, true);
   // attempts (client-level calls)
@@ -982,13 +1059,13 @@ function LLM(o) {
     h += '</div>' + (!link && kids.length ? `<div class="mu">The ${kids.length} provider call(s) below could not be matched 1:1 to attempts.</div>` : '');
   }
   const kids = o.kids.filter(isLLMNode);
-  if (kids.length && !L.attempts.length) h += `<h4>Provider calls</h4>` + kids.map(k => `<div>${goLink(k, 'data-tabto="llm"')} <span class="bd st-${KNOWN.has(k.n.status) ? k.n.status : 'unknown'}">${esc(k.n.status)}</span> <span class="mu">${esc(modelName(k))}</span></div>`).join('');
+  if (kids.length && !L.attempts.length) h += `<h4>Provider calls</h4><table class="mt"><tr><th>Call</th><th>Status</th><th>Model</th></tr>` + kids.map(k => `<tr><td>${goLink(k, 'data-tabto="llm"')}</td><td><span class="bd st-${KNOWN.has(k.n.status) ? k.n.status : 'unknown'}">${esc(k.n.status)}</span></td><td class="sub">${esc(modelName(k) || '—')}</td></tr>`).join('') + '</table>';
   // request
   const req = L.req;
   if (req) {
     h += '<h4>Request</h4>';
     const par = Object.entries(req).filter(([k, v]) => !/^(messages|system|schema|input|meta|prompt)$/i.test(k) && v !== '' && v !== null && typeof v !== 'object');
-    if (par.length) h += '<div class="trw">' + par.map(([k, v]) => kvr(esc(k), `<code>${esc(v)}</code>`)).join('') + '</div>';
+    if (par.length) h += '<div class="trw wrap">' + par.map(([k, v]) => kvr(esc(k), `<code>${esc(v)}</code>`)).join('') + '</div>';
     if (L.systemOne) {
       h += '<h4>State</h4>' + txt(String(ci(L.systemOne, 'state') ?? ''));
       h += '<h4>Typed questions</h4>' + V(ci(L.systemOne, 'questions'), '/llm/systemone/questions');
@@ -1010,16 +1087,16 @@ function LLM(o) {
   h += L.systemOne ? '<h4>Normalized selection</h4>' : '<h4>Response</h4>';
   const rt = L.kind === 'stream' ? L.streamText : L.text;
   if (L.kind === 'embed' || L.vector) {
-    if (L.vector) { const v = L.vector, norm = Math.sqrt(v.reduce((a, x) => a + (num(x) || 0) ** 2, 0)); h += `<div class="trw">${kvr('Dimensions', v.length)}${kvr('L2 norm', norm.toFixed(4))}${kvr('First values', `<code>${esc(v.slice(0, 8).map(x => typeof x === 'number' ? +x.toFixed(5) : x).join(', '))}${v.length > 8 ? ', …' : ''}</code>`)}</div>`; }
+    if (L.vector) { const v = L.vector, norm = Math.sqrt(v.reduce((a, x) => a + (num(x) || 0) ** 2, 0)); h += `<div class="trw wrap">${kvr('Dimensions', v.length)}${kvr('L2 norm', norm.toFixed(4))}${kvr('First values', `<code>${esc(v.slice(0, 8).map(x => typeof x === 'number' ? +x.toFixed(5) : x).join(', '))}${v.length > 8 ? ', …' : ''}</code>`)}</div>`; }
     else h += `<div class="mu">${n.status === 'error' ? 'No vector — the call failed.' : 'No vector captured.'}</div>`;
   } else if (rt) {
     const parsed = L.kind === 'stream' ? null : tryJ(rt);
-    if (L.kind === 'stream') h += `<div class="chips"><span class="chip">${plural(L.chunks.length, 'chunk')}</span>${L.firstTokenMs != null ? `<span class="chip">first text +${fd(L.firstTokenMs * 1e6)}</span>` : ''}${L.finish ? `<span class="chip">finish: ${esc(L.finish)}</span>` : '<span class="chip wn">no finish reason</span>'}</div>`;
+    if (L.kind === 'stream') h += `<div class="mu">Stream · ${plural(L.chunks.length, 'chunk')}${L.firstTokenMs != null ? ` · first text +${fd(L.firstTokenMs * 1e6)}` : ''}${L.finish ? ` · finish: ${esc(L.finish)}` : ' · <span style="color:var(--wn)">no finish reason</span>'}</div>`;
     if (parsed) {
-      h += `<div class="chips"><span class="chip ok">valid JSON</span></div>`;
+      h += `<div class="mu" style="color:var(--ok)">✓ valid JSON</div>`;
       const probs = L.schemaObj ? schemaCheck(L.schemaObj, parsed) : [];
       if (probs.length) h += `<div class="alert er"><b>✕ Response does not satisfy the request schema</b><span class="mu">local check of type/required/properties; this is likely why the caller retried</span><ul class="il">${probs.map(p => `<li class="er">${esc(p)}</li>`).join('')}</ul></div>`;
-      else if (L.schemaObj) h += '<div class="chips"><span class="chip ok">matches schema (basic check)</span></div>';
+      else if (L.schemaObj) h += '<div class="mu" style="color:var(--ok)">✓ matches schema (basic check)</div>';
       h += V(parsed, '/llm/response') + `<details><summary>Raw response text</summary><div>${txt(rt)}</div></details>`;
     } else {
       if (L.kind === 'structured') h += '<div class="alert wn"><b>⚠ Response is not valid JSON</b>A structured call should return JSON.</div>';
@@ -1053,7 +1130,7 @@ function overview() {
   else if (inc) h += '<div class="alert wn"><b>⚠ Incomplete trace</b>The trace is marked incomplete, so later operations may be missing.</div>';
   else if (nErr || nDeg) h += `<div class="alert wn"><b>⚠ Completed, but degraded</b>${nErr ? `${plural(nErr, 'operation')} failed and the run recovered. ` : ''}${nDeg ? `${plural(nDeg, 'operation')} ${nDeg === 1 ? 'shows' : 'show'} retries, fallbacks or other degraded signals.` : ''}</div>`;
   else h += '<div class="alert ok"><b>✓ Completed without detected problems</b>No errors, retries, fallbacks or diagnostics were recorded.</div>';
-  if (t.background_status) h += `<p><b>Response:</b> ${t.response_complete ? 'finished' : 'not observed or still running'}${t.response_ended_at ? ' · ' + esc(t.response_ended_at) : ''}. <b>Background:</b> ${esc(t.background_status)}.</p><p class="mu">This is a saved checkpoint. Re-import the same file to see later jobs and retries. A complete queue snapshot can be reopened by future scheduled work.</p>`;
+  if (t.background_status) h += `<div class="mu">Saved checkpoint — background is “${esc(t.background_status)}”. Re-import the same file to see later jobs and retries.</div>`;
   // conversation
   const um = r && (gp(r, '/input/request/text') ?? gp(r, '/input/text')), rp = r && (gp(r, '/output/text') ?? gp(r, '/output/Text') ?? gp(r, '/output/reply'));
   if (typeof um === 'string') h += `<h4>User message</h4>${txt(um)}`;
@@ -1072,10 +1149,10 @@ function overview() {
   // timeline
   h += '<h4>Timeline</h4>' + waterfall(c);
   // facts
-  h += `<h4>Trace</h4><div class="trw">${kvr('Kind', esc(t.kind) + ' · ' + esc(t.status) + (t.complete === false ? ' · incomplete' : ''))}${kvr('Trace', esc(t.trace_id))}${t.turn_id ? kvr('Turn', esc(t.turn_id)) : ''}${t.job_id ? kvr('Job', esc(t.job_id)) : ''}${kvr('Started', esc(t.started_at))}${t.ended_at ? kvr('Ended', esc(t.ended_at)) : ''}${kvr('File', esc(c.name))}</div>`;
-  if (t.totals) h += `<h4>Provider usage</h4><div>${esc(u.provider_calls)} call(s), ${esc(u.reported_calls)} reported, <b>${esc(u.unknown_usage_calls)}</b> unknown (unknown is not zero). Tokens ${esc(u.actual_input_tokens)} in / ${esc(u.actual_output_tokens)} out / ${esc(u.actual_cached_tokens)} cached. Heuristic input estimate ${esc(u.estimated_input_tokens)}.${num(u.estimated_cost_micro_usd) ? ' Estimated cost ' + esc(usd(u.estimated_cost_micro_usd)) + '.' : ''}</div>` + (isObj(u.by_stage) && Object.keys(u.by_stage).length ? '<table><tr><th>Stage</th><th>Calls</th><th>In</th><th>Out</th><th>≈ in est.</th></tr>' + Object.entries(u.by_stage).map(([k, s]) => `<tr><td>${esc(k)}</td><td>${esc(s.calls)}</td><td>${esc(s.actual_input_tokens)}</td><td>${esc(s.actual_output_tokens)}</td><td>${esc(s.estimated_input_tokens)}</td></tr>`).join('') + '</table>' : '');
+  h += `<h4>Trace</h4><div class="trw">${kvr('Kind', esc(t.kind) + ' · ' + esc(t.status) + (t.complete === false ? ' · incomplete' : ''))}${kvr('Trace', esc(t.trace_id))}${t.turn_id ? kvr('Turn', esc(t.turn_id)) : ''}${t.job_id ? kvr('Job', esc(t.job_id)) : ''}${kvr('Started', esc(t.started_at))}${t.ended_at ? kvr('Ended', esc(t.ended_at)) : ''}${t.response_complete !== undefined ? kvr('Response', t.response_complete ? 'finished' + (t.response_ended_at ? ' · ' + esc(t.response_ended_at) : '') : 'not observed or still running') : ''}${t.background_status ? kvr('Background', esc(t.background_status)) : ''}${kvr('File', esc(c.name))}</div>`;
+  if (t.totals) h += `<h4>Provider usage</h4><table class="mt"><tr><th>Calls</th><th>Reported</th><th>Unknown</th><th>Input</th><th>Output</th><th>Cached</th><th>≈ input est.</th><th>≈ cost</th></tr><tr><td class="num">${esc(u.provider_calls)}</td><td class="num">${esc(u.reported_calls)}</td><td class="num">${esc(u.unknown_usage_calls)}</td><td class="num">${esc(u.actual_input_tokens)}</td><td class="num">${esc(u.actual_output_tokens)}</td><td class="num">${esc(u.actual_cached_tokens)}</td><td class="num">${esc(u.estimated_input_tokens)}</td><td class="num">${num(u.estimated_cost_micro_usd) ? esc(usd(u.estimated_cost_micro_usd)) : '—'}</td></tr></table><div class="mu">Unknown usage is not zero. Estimates are heuristic, not a tokenizer.</div>` + (isObj(u.by_stage) && Object.keys(u.by_stage).length ? '<table class="mt"><tr><th>Stage</th><th class="num">Calls</th><th class="num">In</th><th class="num">Out</th><th class="num">≈ in est.</th></tr>' + Object.entries(u.by_stage).map(([k, s]) => `<tr><td>${esc(k)}</td><td class="num">${esc(s.calls)}</td><td class="num">${esc(s.actual_input_tokens)}</td><td class="num">${esc(s.actual_output_tokens)}</td><td class="num">${esc(s.estimated_input_tokens)}</td></tr>`).join('') + '</table>' : '');
   const st = {}; c.N.forEach(o => st[o.n.status] = (st[o.n.status] || 0) + 1);
-  h += '<h4>Operations</h4>' + Object.entries(st).map(([k, v]) => `<span class="bd st-${KNOWN.has(k) ? k : 'unknown'}">${v} ${esc(k)}</span>`).join(' ');
+  h += '<h4>Operations</h4><table class="mt"><tr>' + Object.keys(st).map(k => `<th class="st-${KNOWN.has(k) ? k : 'unknown'}" style="color:var(--c)">${esc(k)}</th>`).join('') + '</tr><tr>' + Object.values(st).map(v => `<td class="num">${v}</td>`).join('') + '</tr></table>';
   const de = t.edges.filter(e => e.kind === 'data'), nb = de.filter(e => e.evidence === 'instrumented_binding').length;
   h += `<p class="mu">${plural(de.length, 'data edge')}: ${nb} instrumented binding(s), ${de.length - nb} value match(es). ${plural(t.edges.length - de.length, 'execution edge')}.</p>`;
   if (c.notes.length) h += '<h4>Loader notes</h4><ul class="il">' + c.notes.map(x => `<li class="in">${esc(x)}</li>`).join('') + '</ul>';
@@ -1088,6 +1165,23 @@ function waterfall(c) {
   const sp = rows.map(([o]) => span(o)), total = Math.max(1e-9, ...[...c.N.values()].map(span).filter(Boolean).map(x => x[1]));
   const shown = rows.slice(0, 300);
   return `<div class="wf" role="list">${shown.map(([o, d], i) => { const s = sp[i], col = c.wfCol.has(o.n.id); return `<div class="wr${cur.sel === o.n.id ? ' sel' : ''}" role="listitem" tabindex="0" data-go="${esc(o.n.id)}" title="${esc(o.n.operation + ' · ' + o.n.status + ' · ' + fd(o.n.duration_ns))}"><span class="wn1" style="padding-left:${d * 12}px">${o.kids.length ? `<span class="wtg" role="button" tabindex="0" data-wt="${esc(o.n.id)}" aria-expanded="${!col}" aria-label="${col ? 'Expand' : 'Collapse'} ${esc(sn(o.n.operation))} in timeline" title="${col ? 'Show' : 'Hide'} ${plural(o.kids.length, 'child operation')}">${col ? '▸' : '▾'}</span>` : '<span class="wtg leaf"></span>'}${esc(sn(o.n.operation))}${col ? ` <span class="mu">(+${plural(o.kids.length, 'child', 'children')} hidden)</span>` : ''}</span><span class="wt"><span class="wb st-${KNOWN.has(o.n.status) ? o.n.status : 'unknown'}" style="${s ? `left:${(s[0] / total * 100).toFixed(2)}%;width:${Math.max(.4, (s[1] - s[0]) / total * 100).toFixed(2)}%` : 'display:none'}"></span></span></div>`; }).join('')}${rows.length > shown.length ? `<div class="mu">…${rows.length - shown.length} more operations not drawn</div>` : ''}</div><div class="mu">Bars show wall-clock start/end relative to trace start; total ${fd(total * 1e6)}.</div>`;
+}
+
+/* artifacts as expandable rows: kind · name · source · size */
+function artifactsTable(o) {
+  const n = o.n, open0 = n.artifacts.length <= 6;
+  let h = '<div class="tbl-wrap"><table class="gt"><tr><th>Kind</th><th>Name</th><th>Source</th><th class="num">Size</th></tr>';
+  n.artifacts.forEach((a, i) => {
+    const open = open0, size = typeof a.value === 'string' ? a.value.length + ' B' : isObj(a.value) ? (Array.isArray(a.value) ? plural(a.value.length, 'item') : plural(Object.keys(a.value).length, 'field')) : '—';
+    const sha = a.sha256 ? `sha ${esc(a.sha256.slice(0, 8))}` : '';
+    h += `<tr class="jr${open ? ' open' : ''}" data-act="atog" data-aidx="${i}" aria-expanded="${open}" data-p="/artifacts/${i}">`
+      + `<td><span class="bd" style="--c:hsl(${hue(a.kind)} 70% 72%)">${esc(a.kind)}</span></td>`
+      + `<td><b>${esc(a.name)}</b>${sha ? `<div class="sub"><code>${sha}</code></div>` : ''}</td>`
+      + `<td class="sub">${esc(a.source || '')}</td>`
+      + `<td class="num sub">${esc(size)}</td></tr>`;
+    h += `<tr class="jd" data-arow="${i}"${open ? '' : ' hidden'}><td colspan="4" data-p="/artifacts/${i}/value">${a.kind === 'prompt_composition' ? PC(o, i) : V(a.value, `/artifacts/${i}/value`)}</td></tr>`;
+  });
+  return h + '</table></div>';
 }
 
 // ---------- inspector shell
@@ -1114,7 +1208,7 @@ function insp() {
   let html;
   try {
     html = c.tab === 'ov' ? OV(o) : c.tab === 'llm' ? LLM(o) : c.tab === 'in' ? none(n.input, 'input') || pane(n.input, 'in', '/input') : c.tab === 'out' ? none(n.output, 'output') || pane(n.output, 'out', '/output') : c.tab === 'df' ? DF(o) :
-      !n.artifacts.length ? '<p class="mu">This operation captured no artifacts.</p> ' : bar(n.artifacts, 'ar') + (c.raw ? txt(json(n.artifacts), 'pt') : n.artifacts.map((a, i) => `<details class="card" ${n.artifacts.length <= 6 ? 'open' : ''} data-p="/artifacts/${i}"><summary><span class="h"><span class="bd" style="--c:hsl(${hue(a.kind)} 70% 72%)">${esc(a.kind)}</span><b>${esc(a.name)}</b>${a.source ? `<span class="mu">source label: ${esc(a.source)}</span>` : ''}${a.sha256 ? `<span class="mu">sha ${esc(a.sha256.slice(0, 8))}</span>` : ''}</span></summary><div data-p="/artifacts/${i}/value">${a.kind === 'prompt_composition' ? PC(o, i) : V(a.value, `/artifacts/${i}/value`)}</div></details>`).join(''));
+      !n.artifacts.length ? '<p class="mu">This operation captured no artifacts.</p> ' : bar(n.artifacts, 'ar') + (c.raw ? txt(json(n.artifacts), 'pt') : artifactsTable(o));
   } catch (e) { html = `<div class="alert er"><b>Could not render this view</b>${esc(e.message)}</div>` + txt(json(n), 'pt'); }
   ib.innerHTML = html; ib.scrollTop = ib._k === n.id + c.tab ? keep : 0; ib._k = n.id + c.tab;
 }
@@ -1189,7 +1283,12 @@ $('#insp').addEventListener('click', e => {
     if (a === 'close') { setPanel(false); }
     else if (a === 'copy') { const x = $('.txt', t.closest('.tb')); if (x) copyText(x.textContent); }
     else if (a === 'grow') { const x = $('.txt', t.closest('.tb')); if (x) { x.classList.toggle('grown'); t.textContent = x.classList.contains('grown') ? 'Collapse' : 'Expand'; } }
-    else if (a === 'expandAll' || a === 'collapseAll') $$('#ib details').forEach(x => x.open = a === 'expandAll');
+    else if (a === 'atog') {
+      const row = t.closest('tr'), det = row && row.nextElementSibling, on = det && det.hasAttribute('hidden'), ib = $('#ib'), top = ib.scrollTop;
+      if (det && det.hasAttribute('data-arow')) { det.toggleAttribute('hidden', !on); row.classList.toggle('open', on); row.setAttribute('aria-expanded', String(on)); }
+      ib.scrollTop = top; return;
+    }
+    else if (a === 'expandAll' || a === 'collapseAll') { $$('#ib details').forEach(x => x.open = a === 'expandAll'); $$('#ib tr.jd[data-arow]').forEach(x => x.toggleAttribute('hidden', a === 'collapseAll')); $$('#ib tr.jr[data-aidx]').forEach(x => { x.classList.toggle('open', a === 'expandAll'); x.setAttribute('aria-expanded', String(a === 'expandAll')); }); }
     else if (a === 'raw') { c.raw = !c.raw; insp(); }
     else if (a === 'copyJson' && o) copyText(json(d.which === 'in' ? o.n.input : d.which === 'out' ? o.n.output : o.n.artifacts));
     else if (a === 'copyNode' && o) copyText(json(o.n));
