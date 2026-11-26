@@ -26,7 +26,7 @@ export function BackButton({ onClick, dark = false, floating = false, label = 'Ø
   );
 }
 
-export function PrimaryButton({ children, onClick, disabled = false, light = false, className = '', type = 'button', ariaLabel }) {
+export function PrimaryButton({ children, onClick, disabled = false, light = false, className = '', type = 'button', ariaLabel, ...rest }) {
   return (
     <button
       type={type}
@@ -34,6 +34,7 @@ export function PrimaryButton({ children, onClick, disabled = false, light = fal
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
+      {...rest}
     >
       {children}
     </button>
@@ -230,7 +231,7 @@ export function VoiceWave({ path }) {
   return (
     <div className="voice-wave" aria-hidden="true">
       <svg viewBox="0 0 280 140" preserveAspectRatio="none">
-        <path d={path} fill="none" stroke="#171713" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={path} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </div>
   );

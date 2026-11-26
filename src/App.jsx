@@ -530,7 +530,7 @@ export default function App() {
   };
 
   return (
-    <div className="app-shell" data-screen-surface={active ? screenSurfaceForRoute(route) : 'light'} dir="rtl">
+    <div className="app-shell" data-screen-surface={active ? screenSurfaceForRoute(route) : 'ink'} dir="rtl">
       {active && !complete && progressPhase !== 'ready' ? (
         <section className="connected-status" role="status">
           {progressPhase === 'error' ? <><p>مرحلهٔ قبلیت پیدا نشد.</p><button type="button" onClick={() => setProgressRetry(n => n + 1)}>تلاش دوباره</button></> : <p>در حال آماده‌سازی…</p>}

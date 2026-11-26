@@ -157,7 +157,7 @@ test('conversation style redesign is a minimal, accessible chat preview', () => 
   for (const removed of ['approach-tabs', 'approach-preview-badge', 'approach-swipe-hint', 'approach-author']) {
     assert.ok(!onboarding.includes(removed), `${removed} should stay out of the redesigned screen`);
   }
-  assert.ok(onboarding.includes('چطور باهات حرف بزنم؟'));
+  assert.ok(onboarding.includes('چطور با تو حرف بزنم؟'));
   assert.ok(onboarding.includes('inert={index !== active}'));
   assert.ok(onboarding.includes('aria-live="polite"'));
   assert.ok(onboarding.includes('<h2 id="approach-style"'));
