@@ -8,7 +8,7 @@ import react from '@vitejs/plugin-react';
  * the external Go/MSSQL service is not running locally. Production and
  * vite.config.js remain completely untouched.
  */
-function createSyntheticPreviewApi() {
+export function createSyntheticPreviewApi() {
   const usersByPhone = new Map();
   const sessions = new Map();
 
@@ -315,8 +315,47 @@ function createSyntheticPreviewApi() {
   };
 }
 
+/**
+ * The onboarding is a designed narrative, so it can also be inspected as a
+ * contact sheet: `/#/welcome` for the live app, or `/__gallery` for every
+ * chapter rendered side by side at phone width in one page.
+ */
+function galleryMiddleware() {
+  const routes = [
+    ['welcome', 'خوش‌آمد'],
+    ['privacy', 'حریم خصوصی'],
+    ['simple-intro', 'فصل یکم · شب'],
+    ['name', 'نام'],
+    ['deeper-intro', 'فصل دوم · سپیده'],
+    ['know-intro', 'فصل سوم · خورشید'],
+    ['almost-intro', 'فصل چهارم · دیدن'],
+    ['checkins', 'یادآوری'],
+    ['ready', 'آماده'],
+  ];
+  return (req, res, next) => {
+    const url = new URL(req.url || '/', 'http://127.0.0.1');
+    if (url.pathname !== '/__gallery') return next();
+    const frames = routes.map(([route, label]) => (
+      `<figure><figcaption>${label} <small>#/${route}</small></figcaption>` +
+      `<iframe src="/#/${route}" title="${label}" loading="lazy"></iframe></figure>`
+    )).join('');
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">
+<title>تیا — گالری آشنایی</title>
+<style>
+  body{margin:0;padding:28px;background:#08080a;color:#cdc6b8;font-family:Tahoma,sans-serif}
+  h1{font-size:15px;font-weight:400;letter-spacing:.3em;color:#c9a86a;margin:0 0 24px}
+  main{display:flex;flex-wrap:wrap;gap:22px}
+  figure{margin:0}
+  figcaption{font-size:11px;letter-spacing:.08em;margin-bottom:8px;color:#8a8272}
+  figcaption small{opacity:.5;margin-inline-start:6px}
+  iframe{width:390px;height:844px;border:1px solid #24232a;border-radius:18px;background:#0e1019}
+</style></head><body><h1>تیا — گالری آشنایی</h1><main>${frames}</main></body></html>`);
+  };
+}
+
 export async function startTheiaPreview({ host = '0.0.0.0', port = 5173 } = {}) {
-  const apiMiddleware = createSyntheticPreviewApi();
+  const apiMiddleware = previewApi;
   const server = await createServer({
     configFile: false,
     plugins: [
@@ -325,6 +364,7 @@ export async function startTheiaPreview({ host = '0.0.0.0', port = 5173 } = {}) 
         name: 'theia-sandbox-preview-api',
         configureServer(vite) {
           vite.middlewares.use(apiMiddleware);
+          vite.middlewares.use(galleryMiddleware());
         },
       },
     ],
@@ -338,6 +378,8 @@ export async function startTheiaPreview({ host = '0.0.0.0', port = 5173 } = {}) 
   await server.listen();
   return server;
 }
+
+export const previewApi = createSyntheticPreviewApi();
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const value = (flag, fallback) => {

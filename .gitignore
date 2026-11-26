@@ -46,3 +46,6 @@ ATTRIBUTIONS.md
 *.patch
 
 .venv/
+
+# Design-review renders (regenerate with scripts/render-theia-scenes.mjs)
+artifacts/

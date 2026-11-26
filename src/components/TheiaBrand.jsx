@@ -1,35 +1,80 @@
 import React from 'react';
+import { archGeometry, dawnStarPath, crescentPath } from './theia/scenes.js';
+import TheiaScene from './theia/TheiaScene.jsx';
 
-/** The user-approved logo. Keep the supplied artwork and colors intact. */
-export const THEIA_LOGO_SRC = '/brand/photo_2026-11-12_19-20-10.jpg';
+/**
+ * Theia visual identity.
+ *
+ * Iranian users meet an illustrated woman in nearly every wellness app, and a
+ * Greek goddess rendered as a long-haired figure in a beige drape reads either
+ * as imported fantasy or as one more lifestyle model. So Theia is not pictured
+ * here. She is shown as what her myth is actually made of: a threshold you
+ * stand in front of, and the light that appears in it.
+ *
+ * The mark is a two-centred Persian arch with a dawn star inside it — a shape
+ * every Iranian reader has physically stood in, which says "you may enter"
+ * without a single decorative flourish. It is the same geometry used in the
+ * onboarding chapters, the app icon and the favicon.
+ */
 
-export function TheiaMark({ size = 24, luminous = false, className = '' }) {
+export const THEIA_MARK = '/brand/theia-mark.svg';
+export const THEIA_LOGO_SRC = THEIA_MARK;
+
+/**
+ * Optical sizing. A true identity has two drawings of the same mark: the
+ * hairline version for hero sizes, and a sturdier one for the 14–24px sizes it
+ * lives at inside seals, chat bubbles and list rows. Rendering the hairline at
+ * 16px turns it into a grey smudge, so the geometry and the stroke weight are
+ * both tuned per size band.
+ */
+const MARK_SCALES = [
+  { max: 32, geometry: { half: 52, spring: 146, d: 34, base: 198, starY: 148, starR: 26 }, stroke: 12 },
+  { max: 64, geometry: { half: 48, spring: 148, d: 30, base: 196, starY: 146, starR: 21 }, stroke: 9 },
+  { max: Infinity, geometry: { half: 44, spring: 152, d: 25, base: 194, starY: 140, starR: 15 }, stroke: 5.5 },
+];
+
+export function markScaleFor(size) {
+  const numeric = typeof size === 'number' ? size : Number.parseFloat(size);
+  const resolved = Number.isFinite(numeric) ? numeric : 24;
+  return MARK_SCALES.find((scale) => resolved <= scale.max) || MARK_SCALES[MARK_SCALES.length - 1];
+}
+
+/** The instrument: threshold + star, drawn inline so it inherits colour. */
+export function theiaMarkPaths(options = {}) {
+  const { half, spring, d, base, starY, starR } = { ...markScaleFor(64).geometry, ...options };
+  return {
+    arch: archGeometry({ half, spring, d, base }).path,
+    star: dawnStarPath(120, starY, starR, starR * 0.3),
+  };
+}
+
+export function TheiaMark({ size = 24, luminous = false, className = '', title }) {
+  const scale = markScaleFor(size);
+  const { arch, star } = theiaMarkPaths(scale.geometry);
   return (
     <span
       className={`theia-mark ${luminous ? 'theia-mark--luminous' : ''} ${className}`.trim()}
       style={{ width: size, height: size }}
-      aria-hidden="true"
+      role={title ? 'img' : undefined}
+      aria-label={title || undefined}
+      aria-hidden={title ? undefined : 'true'}
     >
-      <img src={THEIA_LOGO_SRC} width="1254" height="1254" alt="" draggable="false" />
+      <svg viewBox="0 0 240 240" fill="none" focusable="false">
+        <path d={arch} stroke="currentColor" strokeWidth={scale.stroke} strokeLinecap="round" strokeOpacity="0.9" />
+        <path d={star} fill="currentColor" />
+      </svg>
     </span>
   );
 }
 
-export function TheiaSealIcon({ size = 11, className = '' }) {
-  return <TheiaMark size={size} className={className} />;
-}
-
-/** Keep Home's existing button geometry and gentle breathing motion. */
-export function TheiaHomeArt() {
-  return (
-    <span className="home-conversation-art" aria-hidden="true">
-      <TheiaMark size="100%" luminous className="home-conversation-mark theia-home-emblem" />
-    </span>
-  );
+/** Same mark, kept under the old name for seals and signatures. */
+export function TheiaSealIcon({ size = 11, className = '', title }) {
+  return <TheiaMark size={size} className={className} title={title} />;
 }
 
 /**
- * Quiet celestial empty-inbox illustration for Letters ("هنوز نامه‌ای نرسیده").
+ * Quiet empty state for Letters: a crescent above a single line of horizon.
+ * The light is there, the letter has not arrived yet.
  */
 export function TheiaLetterEmpty({ size = 44 }) {
   return (
@@ -43,30 +88,51 @@ export function TheiaLetterEmpty({ size = 44 }) {
       focusable="false"
     >
       <path
-        d="M9 17.5C9 15.57 10.57 14 12.5 14H35.5C37.43 14 39 15.57 39 17.5V33.5C39 35.43 37.43 37 35.5 37H12.5C10.57 37 9 35.43 9 33.5V17.5Z"
+        d={crescentPath({ cx: 25, cy: 22, radius: 11, inner: 9.6, offset: 4.2 })}
         stroke="currentColor"
-        strokeWidth="1.35"
-      />
-      <path
-        d="M10.5 16L24 26.2L37.5 16"
-        stroke="currentColor"
-        strokeWidth="1.35"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M28.5 5.2A5.2 5.2 0 1 0 32.8 11.4A4.1 4.1 0 0 1 28.5 5.2Z"
-        stroke="#d5d9f7"
-        strokeOpacity="0.65"
         strokeWidth="1.25"
-        strokeLinecap="round"
         strokeLinejoin="round"
+        strokeOpacity="0.85"
       />
+      <path d="M8 36.5H40" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeOpacity="0.45" />
       <path
-        d="M21 6.5L21.65 8.35L23.5 9L21.65 9.65L21 11.5L20.35 9.65L18.5 9L20.35 8.35L21 6.5Z"
-        fill="#f6cf98"
-        fillOpacity="0.78"
+        d={dawnStarPath(24, 31, 2.6, 0.8)}
+        fill="currentColor"
+        fillOpacity="0.7"
       />
     </svg>
   );
 }
+
+/** Home's invitation: the mark inside a slow dawn orbit. */
+export function TheiaHomeArt() {
+  const { arch, star } = theiaMarkPaths({ half: 34, spring: 148, d: 19, base: 182, starY: 136, starR: 11 });
+  return (
+    <span className="home-conversation-art" aria-hidden="true">
+      <svg className="home-conversation-orbit" viewBox="0 0 100 100" fill="none" focusable="false">
+        <path className="home-orbit-trace home-orbit-trace--first" d="M50 8C73 8 92 27 92 50S73 92 50 92 8 73 8 50 27 8 50 8Z" />
+        <path className="home-orbit-trace home-orbit-trace--second" d="M50 16C69 16 84 31 84 50S69 84 50 84 16 69 16 50 31 16 50 16Z" />
+        <path className="home-orbit-accent" d="M50 4v6M50 90v6M4 50h6M90 50h6" />
+        <circle className="home-orbit-point home-orbit-point--sun" cx="50" cy="4" r="1.9" />
+        <path className="home-orbit-crescent" d={crescentPath({ cx: 96, cy: 62, radius: 4.6, inner: 4, offset: 1.7 })} />
+      </svg>
+      <svg className="home-conversation-mark theia-home-emblem" viewBox="0 0 240 240" fill="none" focusable="false">
+        <path d={arch} stroke="currentColor" strokeWidth="7" strokeLinecap="round" strokeOpacity="0.8" />
+        <path d={star} fill="currentColor" />
+      </svg>
+    </span>
+  );
+}
+
+/** A hairline of light — the separator that replaces decorative rules. */
+export function TheiaHairline({ className = '' }) {
+  return (
+    <svg className={`theia-hairline ${className}`.trim()} viewBox="0 0 200 8" fill="none" aria-hidden="true" focusable="false">
+      <path d="M0 4H86" stroke="currentColor" strokeWidth=".7" strokeOpacity=".4" />
+      <path d="M114 4H200" stroke="currentColor" strokeWidth=".7" strokeOpacity=".4" />
+      <path d={dawnStarPath(100, 4, 3.2, 1)} fill="currentColor" fillOpacity=".7" />
+    </svg>
+  );
+}
+
+export { TheiaScene };

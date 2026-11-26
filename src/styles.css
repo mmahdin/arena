@@ -46,6 +46,7 @@ svg { flex-shrink: 0; }
 .app-shell[data-screen-surface="dark"] { --screen-surface: var(--dark); }
 .app-shell[data-screen-surface="black"] { --screen-surface: #000; }
 .app-shell[data-screen-surface="beige"] { --screen-surface: var(--beige); }
+.app-shell[data-screen-surface="night"] { --screen-surface: var(--theia-night, #0e1019); }
 .screen-transition {
   height: 100%;
   background: var(--screen-surface);
@@ -1816,94 +1817,576 @@ svg { flex-shrink: 0; }
   .chat-letter-reference { transition: none; }
 }
 
-/* ---------- Theia (تیا) visual identity refinements ---------- */
+
+/* ============================================================================
+   Theia identity — "the light and the seeing of it"
+   ----------------------------------------------------------------------------
+   The product is Persian-first, so the type is Estedad for the interface and
+   Noto Naskh for anything that should feel inscribed. The imagery is generated
+   from geometry (src/components/theia/scenes.js): a Persian threshold arch and
+   a dawn star, never a figure. Sunset gold on night-blue is the whole palette;
+   every surface below is one of those two materials or a mix of them.
+   ========================================================================== */
+
+:root {
+  --theia-ink: #0b0a09;
+  --theia-night: #0e1019;
+  --theia-lapis: #1b2438;
+  --theia-lapis-light: #2b3a58;
+  --theia-cream: #f2ece1;
+  --theia-gold: #c9a86a;
+  --theia-gold-light: #e6cd9a;
+  --theia-moon: #dcdfef;
+  --theia-turquoise: #8fbcb4;
+  --theia-dim: #8a8272;
+  --theia-line: rgb(242 236 225 / 13%);
+  --theia-line-strong: rgb(242 236 225 / 24%);
+  --theia-serif: 'Noto Naskh Arabic Variable', 'Estedad Variable', serif;
+  --theia-sans: 'Estedad Variable', 'Vazirmatn Variable', Tahoma, sans-serif;
+  --theia-ease: cubic-bezier(.22, .68, .18, 1);
+}
+
+/* Night is a first-class theme for the onboarding, not a dark variant of a
+   light page: it carries the whole first half of the journey. */
+.app-shell[data-screen-surface="night"] { --screen-surface: var(--theia-night); }
+.theme-night { background: var(--theia-night); color: var(--theia-cream); }
+
+/* A single, extremely quiet paper grain keeps large dark fields from looking
+   like flat dead space on OLED phones. */
+.theia-grain {
+  position: absolute;
+  inset: 0;
+  /* Behind every child of its own screen, never over the text. */
+  z-index: -1;
+  pointer-events: none;
+  opacity: .3;
+  background-image:
+    radial-gradient(circle at 20% 12%, rgb(230 205 154 / 7%), transparent 42%),
+    radial-gradient(circle at 82% 78%, rgb(43 58 88 / 22%), transparent 52%);
+  mix-blend-mode: screen;
+}
+
+/* One shared aurora behind the narrative screens; it warms as the story moves
+   from night to dawn to sun, using only a class change. */
+.theia-aurora {
+  position: absolute;
+  inset: -12% -20% auto -20%;
+  height: 74%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 60% at 50% 18%, rgb(43 58 88 / 46%), transparent 70%),
+    radial-gradient(48% 46% at 78% 8%, rgb(230 205 154 / 9%), transparent 72%);
+  filter: blur(2px);
+  opacity: .9;
+  animation: theia-aurora-breathe 17s var(--theia-ease) infinite;
+}
+.theia-aurora--quiet { opacity: .62; }
+.chapter-screen--dawn .theia-aurora {
+  background:
+    radial-gradient(58% 58% at 50% 30%, rgb(201 168 106 / 22%), transparent 72%),
+    radial-gradient(52% 50% at 20% 4%, rgb(43 58 88 / 48%), transparent 74%);
+}
+.chapter-screen--sun .theia-aurora {
+  background:
+    radial-gradient(52% 54% at 50% 34%, rgb(230 205 154 / 22%), transparent 72%),
+    radial-gradient(60% 60% at 50% 0%, rgb(43 58 88 / 40%), transparent 76%);
+}
+.chapter-screen--sight .theia-aurora {
+  background:
+    radial-gradient(54% 56% at 50% 32%, rgb(230 205 154 / 26%), transparent 70%),
+    radial-gradient(46% 46% at 62% 6%, rgb(143 188 180 / 10%), transparent 70%);
+}
+@keyframes theia-aurora-breathe {
+  0%, 100% { opacity: .78; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+/* ---------------- The mark ---------------- */
 .theia-mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
-  border-radius: 50%;
+  color: var(--theia-cream);
   vertical-align: middle;
-  background: #080808;
 }
-.theia-mark img {
-  display: block;
-  flex-shrink: 0;
-  /* Use the original photo; frame its mark by reducing only outer black space. */
-  width: 165%;
-  height: 165%;
-  max-width: none;
-  object-fit: contain;
+.theia-mark svg { width: 100%; height: 100%; overflow: visible; }
+.theia-mark--luminous { color: var(--theia-gold-light); filter: drop-shadow(0 0 10px rgb(230 205 154 / 22%)); }
+
+.theia-hairline { display: block; width: 100%; height: 8px; color: var(--theia-gold); }
+
+.theia-scene { display: block; width: 100%; height: 100%; overflow: visible; }
+
+/* Scene motion is written once, and only once. Everything below is the same
+   vocabulary: slow breathing light, a star that surfaces, a horizon that
+   settles, ripples that return. */
+.theia-scene.is-animated .theia-star { animation: theia-star-breathe 7s var(--theia-ease) infinite; animation-delay: var(--theia-delay, 0s); }
+.theia-scene.is-animated .theia-star--focus { animation-duration: 5.4s; }
+.theia-scene.is-animated .theia-breathe { animation: theia-glow-breathe 9s var(--theia-ease) infinite; }
+.theia-scene.is-animated .theia-drift { animation: theia-drift 22s var(--theia-ease) infinite; transform-origin: 50% 50%; }
+.theia-scene.is-animated .theia-rise { animation: theia-rise 2.6s var(--theia-ease) both; animation-delay: .25s; }
+.theia-scene.is-animated .theia-horizon { animation: theia-horizon-in 2.8s var(--theia-ease) both; }
+.theia-scene.is-animated .theia-ripple { animation: theia-ripple 6s var(--theia-ease) infinite; animation-delay: var(--theia-delay, 0s); transform-origin: 120px 188px; }
+
+@keyframes theia-star-breathe {
+  0%, 100% { opacity: .72; }
+  50% { opacity: 1; }
+}
+@keyframes theia-glow-breathe {
+  0%, 100% { opacity: .74; }
+  50% { opacity: 1; }
+}
+@keyframes theia-drift {
+  0%, 100% { transform: rotate(-1.2deg); }
+  50% { transform: rotate(1.4deg); }
+}
+@keyframes theia-rise {
+  from { stroke-dasharray: 240; stroke-dashoffset: 240; opacity: .2; }
+  to { stroke-dasharray: 240; stroke-dashoffset: 0; opacity: 1; }
+}
+@keyframes theia-horizon-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: .8; transform: none; }
+}
+@keyframes theia-ripple {
+  0% { transform: scale(.86); opacity: 0; }
+  22% { opacity: .42; }
+  100% { transform: scale(1.14); opacity: 0; }
+}
+@keyframes theia-rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
 }
 
-:root {
-  --theia-dawn: #f6cf98;
-  --theia-moon: #d5d9f7;
-  --theia-gold: #d8a76c;
+/* ---------------- Chapter rail ---------------- */
+.chapter-rail {
+  position: absolute;
+  z-index: 3;
+  top: max(58px, calc(env(safe-area-inset-top, 0px) + 22px));
+  inset-inline: 0;
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.chapter-rail li {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 0 12px;
+  color: rgb(242 236 225 / 26%);
+  transition: color 400ms var(--theia-ease);
+}
+.chapter-rail li + li::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: -2px;
+  top: 50%;
+  width: 3px;
+  height: 1px;
+  background: currentColor;
+  opacity: .5;
+}
+.chapter-rail-numeral {
+  font-family: var(--theia-serif);
+  font-size: 11px;
+  letter-spacing: .18em;
+}
+.chapter-rail-name { font-size: 12px; font-weight: 480; letter-spacing: -.1px; }
+.chapter-rail li.is-active { color: var(--theia-gold-light); }
+.chapter-rail li.is-active .chapter-rail-numeral { font-size: 12px; }
+
+/* ---------------- Chapter screens ---------------- */
+.welcome-screen,
+.chapter-screen,
+.privacy-screen,
+.name-screen,
+.checkins-screen,
+.ready-screen {
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  padding: 0 26px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  background: var(--theia-night);
+  color: var(--theia-cream);
+}
+.welcome-screen::-webkit-scrollbar,
+.chapter-screen::-webkit-scrollbar,
+.privacy-screen::-webkit-scrollbar,
+.name-screen::-webkit-scrollbar,
+.checkins-screen::-webkit-scrollbar,
+.ready-screen::-webkit-scrollbar { display: none; }
+
+
+.chapter-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--theia-gold);
+  font-size: 11.5px;
+  font-weight: 560;
+  letter-spacing: .16em;
+}
+.chapter-numeral {
+  font-family: var(--theia-serif);
+  font-size: 15px;
+  letter-spacing: .1em;
+  color: var(--theia-gold-light);
+}
+.chapter-eyebrow-text { opacity: .92; }
+
+.chapter-title,
+.welcome-title,
+.privacy-head h1,
+.name-head h1,
+.checkins-head h1,
+.ready-head h1 {
+  font-family: var(--theia-serif);
+  font-weight: 500;
+  line-height: 1.62;
+  letter-spacing: -.2px;
+  color: #f7f1e5;
+  text-wrap: balance;
+}
+.chapter-title { font-size: clamp(24px, 6.8vw, 30px); }
+
+.chapter-body,
+.welcome-body,
+.privacy-head p,
+.checkins-head p,
+.ready-head p {
+  color: rgb(242 236 225 / 70%);
+  font-size: 14.5px;
+  font-weight: 380;
+  line-height: 1.95;
+  text-wrap: pretty;
 }
 
-.privacy-art {
-  top: 43%;
-  width: 142px;
-  height: 164px;
+.chapter-myth {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  color: rgb(230 205 154 / 62%);
+  font-family: var(--theia-serif);
+  font-size: 13px;
+  line-height: 1.8;
 }
-@media (max-height: 700px) {
-  .privacy-art {
-    top: 45%;
-    width: 112px;
-    height: 130px;
-  }
-}
+.chapter-myth-rule { width: 42px; height: 6px; color: var(--theia-gold); opacity: .6; }
 
-.mood-glow[data-mood-level="3"] {
-  background: radial-gradient(ellipse at center, rgb(246 207 152 / 42%), rgb(213 217 247 / 32%) 46%, transparent 70%);
+/* The figure never dominates the words; it sits in the upper third like a
+   window you happen to be standing in front of. */
+.chapter-figure {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  height: clamp(180px, 26dvh, 244px);
+  margin-top: clamp(84px, 12dvh, 116px);
+  pointer-events: none;
 }
-.mood-glow[data-mood-level="4"] {
-  background: radial-gradient(ellipse at center, rgb(246 207 152 / 56%), rgb(213 217 247 / 22%) 48%, transparent 70%);
-}
+.chapter-figure .theia-scene { height: 100%; width: auto; max-width: 100%; aspect-ratio: 4 / 5; }
 
-.wax-seal {
-  background: #b88c58;
-  color: #fcf5e8;
-  box-shadow: inset 0 0 0 4px #cca26e, inset 0 0 0 6px #916a3d, 0 3px 6px rgb(0 0 0 / 28%);
+.chapter-head {
+  position: relative;
+  z-index: 2;
+  margin-top: clamp(12px, 2.2dvh, 24px);
+  padding-bottom: 8px;
+  display: grid;
+  gap: 13px;
 }
+/* Chapter CTAs stay pinned to the bottom of the viewport, exactly like the
+   original question screens, so the reading column can scroll under them. */
+.chapter-screen .primary-button { background: var(--theia-gold-light); color: #201a12; border-radius: 16px; font-weight: 620; }
+.chapter-screen { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 
-.drawer-brand {
+/* ---------------- Welcome ---------------- */
+.welcome-screen { align-items: stretch; justify-content: flex-start; }
+.welcome-head {
+  position: relative;
+  z-index: 2;
+  margin-top: clamp(96px, 14dvh, 132px);
+  display: grid;
+  gap: 14px;
+}
+.welcome-eyebrow {
+  color: var(--theia-gold);
+  font-size: 11.5px;
+  font-weight: 540;
+  letter-spacing: .2em;
+}
+.welcome-title { font-size: clamp(27px, 7.6vw, 32px); }
+.welcome-figure {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  display: grid;
+  place-items: center;
+  min-height: 148px;
+  margin: clamp(6px, 1.6dvh, 18px) 0 0;
+  pointer-events: none;
+}
+.welcome-figure .theia-scene { height: 100%; width: auto; max-width: 82%; aspect-ratio: 4 / 5; }
+.welcome-body {
+  position: relative;
+  z-index: 2;
+  margin-top: clamp(4px, 1.2dvh, 12px);
+  font-size: 14px;
+  color: rgb(242 236 225 / 66%);
+}
+.welcome-caption {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin: 16px 0 18px;
+  color: rgb(242 236 225 / 34%);
+  font-size: 11px;
+  letter-spacing: .14em;
 }
-.drawer-brand-mark {
-  flex-shrink: 0;
-  filter: drop-shadow(0 0 10px rgb(246 207 152 / 14%));
-}
-
-.home-conversation-art::before {
-  background: radial-gradient(circle, rgb(246 207 152 / 10%) 0%, rgb(213 217 247 / 8%) 38%, transparent 73%);
-}
-.home-orbit-point--sun {
-  fill: var(--theia-dawn);
-}
-.home-orbit-crescent {
-  fill: var(--theia-moon);
-  opacity: .86;
-}
-.theia-home-emblem {
-  filter: drop-shadow(0 0 16px rgb(246 207 152 / 12%));
-}
-.home-letter-seal {
-  background: var(--theia-gold);
-  color: #231a10;
+.welcome-caption-rule { flex: 1; height: 1px; background: currentColor; opacity: .5; }
+.welcome-screen .primary-button {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  margin-bottom: max(18px, env(safe-area-inset-bottom));
+  background: var(--theia-gold-light);
+  color: #201a12;
+  border-radius: 16px;
+  font-family: var(--theia-sans);
+  font-weight: 620;
+  letter-spacing: -.1px;
 }
 
-.letter-read-signature {
+/* ---------------- Privacy ---------------- */
+.privacy-figure {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  height: clamp(146px, 21dvh, 192px);
+  margin-top: clamp(84px, 11dvh, 104px);
+  pointer-events: none;
+}
+.privacy-head { position: relative; z-index: 2; display: grid; gap: 13px; margin-top: 10px; }
+.privacy-head h1 { font-size: clamp(23px, 6.4vw, 27px); }
+.privacy-card {
+  position: relative;
+  inset: auto;
+  z-index: 2;
+  width: 100%;
+  margin-top: auto;
+  padding: 17px 18px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 9px;
+  gap: 16px;
+  border: 1px solid var(--theia-line);
+  border-radius: 16px;
+  background: rgb(242 236 225 / 4%);
+  color: var(--theia-cream);
+  font-size: 13.5px;
+  line-height: 1.65;
+  text-align: start;
+  backdrop-filter: blur(3px);
 }
-.letter-signature-mark {
-  opacity: .85;
+.privacy-card:disabled { opacity: .55; }
+.privacy-card-label { flex: 1; }
+.privacy-card .toggle { background: rgb(242 236 225 / 16%); }
+.privacy-card .toggle.is-on { background: var(--theia-gold); }
+.privacy-card .toggle span { background: #fff; }
+.privacy-screen .primary-button,
+.name-screen .primary-button,
+.checkins-screen .primary-button,
+.ready-screen .primary-button {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  margin: 16px 0 max(18px, env(safe-area-inset-bottom));
+  background: var(--theia-gold-light);
+  color: #201a12;
+  border-radius: 16px;
+  font-weight: 620;
+}
+.privacy-screen .primary-button:disabled,
+.ready-screen .primary-button:disabled { background: rgb(242 236 225 / 12%); color: rgb(242 236 225 / 34%); }
+.privacy-screen .connected-notice { margin: 12px 0 0; background: rgb(201 120 106 / 12%); color: #f0d7cf; border-radius: 12px; padding: 12px 14px; font-size: 12.5px; }
+.privacy-screen .connected-notice p { margin-bottom: 6px; }
+.privacy-screen .connected-notice button { background: transparent; color: var(--theia-gold-light); text-decoration: underline; font-size: 12.5px; }
+
+/* ---------------- Name ---------------- */
+.name-head { position: relative; z-index: 2; margin-top: clamp(108px, 15dvh, 142px); display: grid; gap: 14px; }
+.name-head h1 { font-size: clamp(25px, 7vw, 30px); }
+.name-screen form { position: relative; z-index: 2; display: flex; flex-direction: column; flex: 1; }
+.name-screen .name-input {
+  width: 100%;
+  margin: 26px 0 0;
+  padding: 4px 0 14px;
+  border: 0;
+  border-bottom: 1px solid var(--theia-line-strong);
+  background: transparent;
+  color: var(--theia-cream);
+  caret-color: var(--theia-gold);
+  font-family: var(--theia-serif);
+  font-size: 26px;
+  font-weight: 500;
+  text-align: start;
+  outline: none;
+  transition: border-color 240ms var(--theia-ease);
+}
+.name-screen .name-input:focus { border-bottom-color: var(--theia-gold); }
+.name-screen .name-input::placeholder { color: rgb(242 236 225 / 26%); }
+.name-hint { margin-top: 14px; color: rgb(242 236 225 / 46%); font-size: 13px; line-height: 1.85; }
+.name-screen form .primary-button { margin-top: auto; }
+
+/* ---------------- Check-ins ---------------- */
+.checkins-figure {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  height: clamp(184px, 28dvh, 258px);
+  margin-top: clamp(84px, 11dvh, 106px);
+  pointer-events: none;
+}
+.checkins-head { position: relative; z-index: 2; display: grid; gap: 13px; margin-top: 4px; }
+.checkins-head h1 { font-size: clamp(23px, 6.4vw, 27px); }
+.checkins-caption {
+  margin-top: 6px;
+  color: rgb(230 205 154 / 52%);
+  font-family: var(--theia-serif);
+  font-size: 12.5px;
+  letter-spacing: .04em;
+}
+.checkins-screen .primary-button { margin-top: auto; }
+
+/* ---------------- Ready ---------------- */
+.ready-figure {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  display: grid;
+  place-items: center;
+  min-height: 172px;
+  margin-top: clamp(84px, 11dvh, 104px);
+  pointer-events: none;
+}
+.ready-figure .theia-scene { height: 100%; width: auto; max-width: 88%; aspect-ratio: 4 / 5; }
+.ready-head { position: relative; z-index: 2; display: grid; gap: 12px; margin-top: 6px; }
+.ready-head h1 { font-size: clamp(27px, 7.6vw, 33px); }
+.ready-note {
+  position: relative;
+  z-index: 2;
+  margin-top: 14px;
+  color: rgb(242 236 225 / 40%);
+  font-size: 11.5px;
+  line-height: 1.8;
+}
+.ready-screen .primary-button { margin-top: auto; }
+
+/* The chapter rail and figures must not fight the dense question screens. */
+.question-screen .chapter-rail,
+.age-screen .chapter-rail,
+.mood-screen .chapter-rail,
+.voice-screen .chapter-rail,
+.approach-screen .chapter-rail { opacity: .9; }
+.theme-light .chapter-rail li,
+.theme-beige .chapter-rail li { color: rgb(35 32 27 / 26%); }
+.theme-light .chapter-rail li.is-active,
+.theme-beige .chapter-rail li.is-active { color: #8a6f3f; }
+
+/* ---------------- Quiet typographic rhythm ---------------- */
+.theme-night .page-header h1,
+.theme-night .page-header p { font-family: var(--theia-sans); }
+.question-screen .page-header h1 { letter-spacing: -.6px; }
+
+/* Voice and approach keep their geometry, but inherit the new material. */
+.voice-screen { background: var(--theia-ink); }
+.voice-card { background: var(--theia-night); border: 1px solid var(--theia-line); }
+.voice-card.is-active { border-color: rgb(230 205 154 / 34%); }
+.voice-card-copy strong { color: var(--theia-cream); }
+.voice-card-copy small { color: rgb(242 236 225 / 44%); }
+.voice-wave { background: transparent; }
+.voice-screen .primary-button { background: var(--theia-gold-light); color: #201a12; border-radius: 16px; }
+.theme-beige.approach-screen { background: #cdbfa9; }
+.approach-mark { color: #3a3128; }
+.approach-reply { background: rgb(255 252 245 / 62%); }
+.approach-reply.is-active { background: #fdf8ee; }
+.approach-message--user p { background: #201a12; color: #f3ece0; }
+
+/* ---------------- Home / drawer / chat inherit the same materials -------- */
+.home-screen { background: var(--theia-ink); }
+.home-conversation-mark { width: 62%; height: 62%; color: var(--theia-gold-light); }
+.home-start-label { font-family: var(--theia-serif); font-size: 21px; font-weight: 500; letter-spacing: 0; color: #f3ece0; }
+.home-orbit-trace { stroke: rgb(242 236 225 / 22%); }
+.home-orbit-trace--second { stroke: rgb(230 205 154 / 34%); }
+.home-orbit-accent { stroke: var(--theia-gold); opacity: .7; }
+.home-orbit-point { fill: var(--theia-gold-light); }
+.home-orbit-crescent { fill: var(--theia-moon); opacity: .8; }
+.home-conversation-art::before { background: radial-gradient(circle, rgb(230 205 154 / 13%) 0%, rgb(43 58 88 / 16%) 44%, transparent 74%); }
+.drawer-panel { background: #161824; }
+.drawer-brand { color: #f3ece0; font-family: var(--theia-serif); }
+.drawer-brand-mark { color: var(--theia-gold-light); }
+.wax-seal { background: var(--theia-gold); color: #241d13; box-shadow: inset 0 0 0 4px #dcc08d, inset 0 0 0 6px #9d7f4e, 0 3px 6px rgb(0 0 0 / 30%); }
+.letter-read-signature { color: #cbb894; }
+.letter-signature-mark { color: var(--theia-gold); }
+.home-letter-seal { background: var(--theia-gold); color: #221a10; }
+.mood-glow[data-mood-level="3"] { background: radial-gradient(ellipse at center, rgb(230 205 154 / 40%), rgb(43 58 88 / 34%) 46%, transparent 70%); }
+.mood-glow[data-mood-level="4"] { background: radial-gradient(ellipse at center, rgb(230 205 154 / 56%), rgb(43 58 88 / 26%) 48%, transparent 70%); }
+
+/* ---------------- Compact screens ---------------- */
+@media (max-height: 760px) {
+  .welcome-head { margin-top: clamp(84px, 11dvh, 96px); }
+  .welcome-figure { min-height: 120px; }
+  .welcome-body { font-size: 13px; line-height: 1.8; }
+  .chapter-figure { height: clamp(132px, 20dvh, 176px); margin-top: 82px; }
+  .chapter-title { font-size: 23px; }
+  .chapter-body { font-size: 13.5px; line-height: 1.85; }
+  .chapter-myth { font-size: 12px; margin-top: 14px; }
+  .privacy-figure { height: 120px; margin-top: 78px; }
+  .name-head { margin-top: 88px; }
+  .checkins-figure { height: clamp(144px, 22dvh, 190px); margin-top: 78px; }
+  .ready-figure { min-height: 124px; margin-top: 78px; }
+}
+@media (max-height: 700px) {
+  .chapter-figure { display: none; }
+  .chapter-head { margin-top: 92px; }
+  .welcome-figure { min-height: 92px; }
+  .privacy-figure { display: none; }
+  .privacy-head { margin-top: 84px; }
+  .checkins-figure { height: 120px; margin-top: 76px; }
+  .ready-figure { display: none; }
+  .ready-head { margin-top: 92px; }
+  .name-head { margin-top: 84px; }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .theia-aurora,
+  .theia-scene.is-animated .theia-star,
+  .theia-scene.is-animated .theia-breathe,
+  .theia-scene.is-animated .theia-drift,
+  .theia-scene.is-animated .theia-ripple { animation: none; }
+  .theia-scene.is-animated .theia-rise { animation: none; stroke-dasharray: none; }
+  .chapter-rail li { transition: none; }
+}
+
+/* Voice: the choice is visual, and the screen says so. */
+.voice-note {
+  position: absolute;
+  bottom: 186px;
+  inset-inline: 30px;
+  color: rgb(242 236 225 / 42%);
+  font-size: 11.5px;
+  line-height: 1.8;
+  text-align: center;
+}
+@media (max-height: 740px) { .voice-note { bottom: 172px; font-size: 11px; } }

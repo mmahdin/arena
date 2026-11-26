@@ -1,3 +1,36 @@
+## 2026-11-26 — Theia identity redesign (onboarding)
+
+The human representation of Theia is gone. Onboarding is now a four-chapter light
+narrative — شب (Selene) → سپیده (Eos) → خورشید (Helios) → دیدن (Theia) — staged in
+a two-centred Persian arch whose light changes per chapter. All art is generated
+from geometry (`src/components/theia/scenes.js`) and all copy from
+`src/features/onboarding/theiaNarrative.js`. The old female-profile logo, the
+four storybook figures, the welcome/privacy/ready/check-ins illustrations and the
+1254px JPEG are deleted from `public/brand/`; the favicon, Apple icon and PWA
+icons are regenerated from the new mark with per-size optical tuning.
+
+- **PASSED:** `npm test` — 126/126 assertions across 17 files, including the new
+  `theia-narrative.test.mjs` (geometry determinism, crescent/arch validity, WCAG
+  contrast of the palette, chapter/route coverage, copy safety, asset
+  reproducibility).
+- **PASSED:** `npm run test:narrative` — the real `App` rendered in jsdom against
+  the synthetic preview API walks all 26 steps from Login → Welcome → Privacy →
+  I → Name → … → IV → Check-ins → Ready → Chat, asserting each chapter screen,
+  its scene and its active rail item (23 assertions).
+- **PASSED:** `npm run build`; `npm run brand:build`; `npm run brand:scenes`
+  (contact sheet inspected at `artifacts/theia-scenes/contact-sheet.png`).
+- **PASSED:** mark legibility at 16/24/32/64/192/512px after optical sizing.
+- **PASSED (fixed here):** the two pre-existing test failures recorded below
+  (`foundation.test.mjs` asset count; the missing `پخش صوتی نداریم` honesty note
+  on the voice screen). `check:foundation` still cannot run in a snapshot without
+  `.agents/skills`, which is not committed.
+- **NOT RUN:** browser Playwright visual regression at 360/390/430/1280px,
+  reduced-motion screenshots, and live Go/MSSQL E2E — no Chromium runtime is
+  available in this sandbox, so layout was verified by static inspection, the
+  jsdom journey and generated artwork rather than by screenshots. Run
+  `npm run test:e2e:full-onboarding` (or `npm run preview:theia` and
+  `/__gallery`) before release.
+
 ## 2026-11-12 — User-selected logo
 
 The official logo is now `public/brand/photo_2026-11-12_19-20-10.jpg`.

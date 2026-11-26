@@ -10,14 +10,22 @@ test('chat, home, history and all main dark screens use a dark underlying surfac
   for (const route of ['home', 'chat', 'history', 'survey', 'day', 'letter', 'insight']) {
     assert.equal(screenSurfaceForRoute(route), 'dark', route);
   }
-  for (const route of ['menu', 'research', 'experts', 'voice', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro']) {
+  for (const route of ['menu', 'research', 'experts', 'voice']) {
     assert.equal(screenSurfaceForRoute(route), 'black', route);
   }
 });
 
+test('the light narrative owns the night surface so no dark page fades in from white', () => {
+  for (const route of ['welcome', 'privacy', 'name', 'checkins', 'ready',
+    'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro']) {
+    assert.equal(screenSurfaceForRoute(route), 'night', route);
+  }
+  assert.match(styles, /\.app-shell\[data-screen-surface="night"\]\s*\{\s*--screen-surface:\s*var\(--theia-night/);
+});
+
 test('designer beige and light onboarding pages retain their surfaces', () => {
   for (const route of ['testimonials', 'interests', 'approach']) assert.equal(screenSurfaceForRoute(route), 'beige');
-  for (const route of ['welcome', 'name', 'privacy', 'ready', 'therapist', 'age', 'concerns']) assert.equal(screenSurfaceForRoute(route), 'light');
+  for (const route of ['therapist', 'age', 'concerns']) assert.equal(screenSurfaceForRoute(route), 'light');
 });
 
 test('the route-controlled shell and transition never fade dark screens from transparent white', () => {

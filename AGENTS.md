@@ -1,3 +1,19 @@
+## Theia identity amendment (2026-11-26)
+
+**Theia is never depicted as a person.** The Greek Titaness of divine light and
+sight is expressed as a Persian threshold arch and the light that appears in it,
+generated from geometry in `src/components/theia/scenes.js`. The retired
+female-figure illustrations and the photographic female-profile logo have been
+deleted from `public/brand/`; do not restore them, do not add a new human or
+animal mascot, and do not introduce decorative ornament that is not part of the
+light vocabulary. Onboarding copy lives in
+`src/features/onboarding/theiaNarrative.js` and may be refined, but the four
+chapter order (شب → سپیده → خورشید → دیدن), the honesty of the privacy copy, and
+the "no promise of a cure" register are product decisions. Regenerate brand art
+with `npm run brand:build` and review it with `npm run brand:scenes`; the icons,
+favicon and scenes must never be hand-edited separately. See
+`docs/design/THEIA_IDENTITY_2026_11.md`.
+
 ## Approved onboarding personalization amendment (2026-11-11)
 
 The user explicitly requested using onboarding information throughout chat. This
