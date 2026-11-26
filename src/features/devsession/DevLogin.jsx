@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { TheiaMark } from '../../components/TheiaBrand';
-import { TheiaInstrument } from '../../components/TheiaSigil';
+import EarthshineScene from '../../components/EarthshineScene';
+import { SCENES, sceneStyle } from '../onboarding/earthshine';
 import { PrimaryButton, StatusBar } from '../../components/UI';
 import { normalizeTestPhone } from './phone';
 
@@ -13,23 +13,33 @@ export default function DevLogin({ session, login, retry }) {
   const invalid = phone.length >= 11 && !normalized;
   const loading = session.phase === 'loading' || session.phase === 'working';
   const offline = session.phase === 'error';
+  const scene = SCENES[0];
   const submit = (event) => {
     event.preventDefault();
     setAttempted(true);
     if (normalized && !loading && !offline) login(normalized);
   };
   return (
-    <section className="app-screen dev-login-screen" aria-busy={loading}>
+    <section
+      className="app-screen dev-login-screen es-shell"
+      data-es-scene={scene.id}
+      aria-busy={loading}
+      style={sceneStyle(scene)}
+    >
+      <EarthshineScene scene={scene} />
       <StatusBar />
-      <div className="dev-login-art">
-        <TheiaInstrument state="welcome" label="حلقهٔ باز تیا، با ستاره‌ای از سپیده در مرکز" />
+      <div className="dev-login-art" aria-hidden="true">
+        <span className="es-dev-rule" />
       </div>
       <header className="page-header">
         <h1>به تیا خوش آمدی.</h1>
-        <p>نه یک چهره؛ نوری که کمک می‌کند خودت را واضح‌تر ببینی.</p>
+        <p>{'همراهی برای دیدن آن‌چه از پیش در توست؛ پیش از سپیده، زیر یک ماه.'}</p>
       </header>
       <div className="dev-login-panel">
-        <div className="dev-login-heading"><TheiaMark size={17} /><strong>ورود با شمارهٔ آزمایشی</strong></div>
+        <div className="dev-login-heading">
+          <span className="es-dev-rule" aria-hidden="true" />
+          <strong>ورود با شمارهٔ آزمایشی</strong>
+        </div>
         {loading && <p role="status">در حال ورود…</p>}
         {offline && <div className="dev-login-error" role="alert">
           <p>{session.error?.action === 'logout' ? 'خروج انجام نشد. دوباره تلاش کن.' : 'ارتباط برقرار نشد. دوباره تلاش کن.'}</p>
