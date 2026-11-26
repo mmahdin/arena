@@ -24,10 +24,10 @@ const fa = (value) => Number(value).toLocaleString('fa-IR');
 
 /**
  * The onboarding tells one quiet story: Theia, the faceless Greek Titaness of
- * sight and far-shining light, never appears as a body — only as an open ring,
- * an aperture of light and the horizon it measures. Six chapters carry the
- * metaphor from night to a completed circle; each chapter names the emotional
- * movement ("not knowing is where seeing begins") instead of decorating it.
+ * sight and far-shining light, never appears as a body — only as one celestial
+ * shore (sky, horizon, sea) whose light changes from night to dawn. Six
+ * chapters carry the metaphor from night to a completed dawn; each chapter
+ * names the emotional movement instead of decorating it.
  */
 const CHAPTERS = [
   { name: 'آغاز', routes: ['welcome', 'privacy'] },
@@ -111,7 +111,7 @@ function Welcome({ navigate }) {
     <Shell theme="ink" className="welcome-screen" footer={(
       <Continue onClick={() => nextFrom('welcome', navigate)}>شروع</Continue>
     )}>
-      <Instrument state="welcome" className="ob-art--hero" label="حلقهٔ باز تیا، با ستاره‌ای از سپیده در مرکز" />
+      <Instrument state="welcome" className="ob-art--hero" label="ساحلی در نخستین نور: خورشید بر افق، سروها بر دماغه و بازتاب نور بر آب" />
       <ObHeader
         epigraph="روشناییِ دوربرد"
         title="تیا را نمی‌بینی؛ با تیا می‌بینی."
@@ -275,7 +275,7 @@ function Privacy({ navigate, back, privacySharing = true, privacyLoading = false
         title="حریم تو، مثل این حلقه است."
         lede="فقط تو تعیین می‌کنی چقدر باز شود. برای اینکه پاسخ‌ها متناسب با تو باشند، گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شوند و اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شود."
       />
-      <Instrument state="veil" tone="paper" className="ob-art--small" label="پرده‌ای که در میانه باز شده و شکافی از نور را نشان می‌دهد" />
+      <Instrument state="veil" tone="paper" className="ob-art--small" label="پرده‌ای که در میانه کنار رفته و شکافی از نور را بر ساحل باز کرده است" />
       <button
         type="button"
         className="privacy-card"
@@ -595,9 +595,9 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
   );
 }
 
-// Deliberately drawn as native SVG, not screenshots, so it stays sharp and
-// changes smoothly at all five mood positions. Direction follows the reference:
-// left is struggling and right is generally good, regardless of page RTL.
+// Deliberately drawn as native SVG, not screenshots, so it stays sharp at all
+// five mood positions. Direction follows the reference: left is struggling and
+// right is generally good, regardless of page RTL.
 const MOODS = [
   { label: 'این روزها سخت می‌گذرد', note: 'لازم نیست توضیح بدهی. از همین‌جا شروع می‌کنیم.' },
   { label: 'انرژی زیادی ندارم', note: 'با چیزهای کوچک شروع می‌کنیم؛ لازم نیست بزرگ باشد.' },
@@ -606,50 +606,156 @@ const MOODS = [
   { label: 'در کل حالم خوب است', note: 'خوب است. بگذار بیشتر بشناسیمش.' },
 ];
 
+/**
+ * The mood is drawn as the same celestial shore as the onboarding scenes:
+ * night with a fading moon at the hard end, the sun rising at the horizon as
+ * the slider moves right. The place never changes — only the light does.
+ */
+// Five hours of the same shore, mirrored from the onboarding scenes: the mood
+// slider moves the light, not the place. Left is night, right is full morning.
+const MOOD_SKIES = [
+  {
+    sky: ['#04060C', '#0A1120', '#16203A', '#26344E'],
+    sunY: 214, sunR: 0, moon: 0.9, moonY: 62, stars: 1, rim: 0.12,
+    water: ['#1E2A3E', '#070A11'], glow: 0.1, path: 0.12,
+  },
+  {
+    sky: ['#05070F', '#101828', '#2A2A3E', '#5A4446'],
+    sunY: 200, sunR: 17, moon: 0.45, moonY: 56, stars: 0.65, rim: 0.24,
+    water: ['#24304A', '#080B12'], glow: 0.35, path: 0.32,
+  },
+  {
+    sky: ['#081020', '#1E2438', '#4A3442', '#B0714A'],
+    sunY: 184, sunR: 26, moon: 0.1, moonY: 50, stars: 0.28, rim: 0.4,
+    water: ['#2A3450', '#0A0D14'], glow: 0.6, path: 0.55,
+  },
+  {
+    sky: ['#0D1626', '#2A2C40', '#6E4450', '#D99364'],
+    sunY: 170, sunR: 29, moon: 0, moonY: 46, stars: 0.12, rim: 0.52,
+    water: ['#2E3852', '#0B0E15'], glow: 0.78, path: 0.72,
+  },
+  {
+    sky: ['#16203A', '#3A3448', '#8A5650', '#F2B47E'],
+    sunY: 156, sunR: 33, moon: 0, moonY: 44, stars: 0, rim: 0.64,
+    water: ['#333D56', '#0C1017'], glow: 0.95, path: 0.9,
+  },
+];
+const MOOD_STARS = [
+  [42, 52, 1.3], [92, 30, 1.0], [138, 66, 1.1], [206, 40, 1.1],
+  [254, 72, 1.2], [302, 42, 0.9], [62, 104, 0.9], [292, 104, 0.8],
+  [176, 24, 0.8], [238, 96, 0.7],
+];
+const HORIZON_Y = 196;
+
+
+/**
+ * The mood is drawn as the same celestial shore as the onboarding scenes: at
+ * the hard end a fading moon over dark water, at the easy end the sun risen
+ * over the ridge with its light on the water. The place never changes.
+ */
 function MoodScribble({ level }) {
-  // A continuous hand-drawn contour evolves from angular and tangled to round.
-  const path = React.useMemo(() => {
-    const points = [];
-    const turns = [9.5, 7.4, 5.0, 3.0, 2.2][level];
-    const count = 430;
-    for (let i = 0; i <= count; i++) {
-      const progress = i / count;
-      const theta = progress * turns * Math.PI * 2;
-      const rough = level <= 1 ? (1 + 0.24 * Math.sin(theta * 2.7) + 0.12 * Math.cos(theta * 4.3)) : 1;
-      const radius = (0.45 + progress * 0.50) * rough;
-      const tilt = level === 4 ? 0.15 : 0.38;
-      const x = 170 + 113 * radius * Math.cos(theta + tilt) + (level === 2 ? 13 * Math.sin(theta * 0.4) : 0);
-      const y = 150 + 105 * radius * Math.sin(theta) + (level === 0 ? 12 * Math.sin(theta * 1.5) : 0);
-      points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`);
-    }
-    return points.join(' ');
-  }, [level]);
-  // The line itself is the illustration: a tangled thread at the hard end of
-  // the scale, a nearly closed ring at the easy end, and a dawn-coloured light
-  // that grows as the contour untangles.
-  const tone = ['#8C94B8', '#B0A0A0', '#D2AE86', '#E3C48C', '#F2C98D'][level];
+  const scene = MOOD_SKIES[level] || MOOD_SKIES[2];
+  const sunX = 172;
+  const ridgeFar = 'M0 178 C22 172 44 166 70 170 C96 174 116 184 140 186 C166 188 188 176 214 172 C240 168 264 176 288 180 C306 183 320 184 340 182';
+  const ridgeNear = 'M0 196 C26 188 48 186 76 192 C106 198 130 202 158 202 C188 202 212 194 238 192 C264 190 296 196 340 200';
   return (
     <svg className="mood-scribble" viewBox="0 0 340 300" aria-hidden="true" focusable="false">
       <defs>
-        <linearGradient id="mood-line" x1="40" y1="270" x2="300" y2="40" gradientUnits="userSpaceOnUse">
-          <stop stopColor={tone} stopOpacity="0.55" />
-          <stop offset="0.55" stopColor={tone} />
-          <stop offset="1" stopColor="#F7E7C6" />
+        <linearGradient id="mood-sky" x1="0" y1="0" x2="0" y2={HORIZON_Y} gradientUnits="userSpaceOnUse">
+          {scene.sky.map((c, i) => (
+            <stop key={i} offset={[0, 0.34, 0.66, 0.9][i]} stopColor={c} />
+          ))}
         </linearGradient>
+        <radialGradient id="mood-sun" cx="50%" cy="38%" r="62%">
+          <stop stopColor="#FFF3DA" />
+          <stop offset="0.45" stopColor="#F2C588" />
+          <stop offset="1" stopColor="#C98650" />
+        </radialGradient>
         <radialGradient id="mood-halo" cx="50%" cy="50%" r="50%">
-          <stop stopColor="#F3D8A3" stopOpacity={0.1 + level * 0.11} />
-          <stop offset="1" stopColor="#F3D8A3" stopOpacity="0" />
+          <stop stopColor="#F8DFAE" stopOpacity="0.55" />
+          <stop offset="0.55" stopColor="#F2C58A" stopOpacity="0.18" />
+          <stop offset="1" stopColor="#F2C58A" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="mood-bloom" cx="50%" cy="50%" r="50%">
+          <stop stopColor="#FFC98C" stopOpacity="0.62" />
+          <stop offset="0.6" stopColor="#F0A868" stopOpacity="0.18" />
+          <stop offset="1" stopColor="#F0A868" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="mood-reflect" cx="50%" cy="50%" r="50%">
+          <stop stopColor="#E3C48C" stopOpacity="0.3" />
+          <stop offset="1" stopColor="#E3C48C" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id="mood-sea" x1="0" y1={HORIZON_Y} x2="0" y2="300" gradientUnits="userSpaceOnUse">
+          <stop stopColor={scene.water[0]} />
+          <stop offset="1" stopColor={scene.water[1]} />
+        </linearGradient>
+        <linearGradient id="mood-sea-glow" x1="0" y1={HORIZON_Y} x2="0" y2={HORIZON_Y + 44} gradientUnits="userSpaceOnUse">
+          <stop stopColor="#E8B87A" stopOpacity="0.5" />
+          <stop offset="1" stopColor="#E8B87A" stopOpacity="0" />
+        </linearGradient>
+        <mask id="mood-moon">
+          <rect x="0" y="0" width="340" height="300" fill="#000" />
+          <circle cx="256" cy={scene.moonY} r="15" fill="#fff" />
+          <circle cx="264" cy={scene.moonY - 4} r="14" fill="#000" />
+        </mask>
+        <radialGradient id="mood-vignette" cx="50%" cy="46%" r="72%">
+          <stop stopColor="#000" stopOpacity="0" />
+          <stop offset="0.72" stopColor="#000" stopOpacity="0" />
+          <stop offset="1" stopColor="#000" stopOpacity="0.34" />
         </radialGradient>
       </defs>
-      <circle cx="170" cy="150" r="128" fill="url(#mood-halo)" />
-      <path d={path} fill="none" stroke="url(#mood-line)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+
+      <rect x="0" y="0" width="340" height="300" rx="18" fill="url(#mood-sky)" />
+
+      <g className="mood-fade" style={{ opacity: scene.stars }}>
+        {MOOD_STARS.map(([x, y, r], i) => (
+          <circle key={i} cx={x} cy={y} r={r} fill="#EDE0C8" opacity={0.5 + (i % 3) * 0.17} />
+        ))}
+      </g>
+      <g className="mood-fade" style={{ opacity: scene.moon }}>
+        <circle cx="256" cy={scene.moonY} r="34" fill="url(#mood-halo)" opacity="0.26" />
+        <g mask="url(#mood-moon)">
+          <circle cx="256" cy={scene.moonY} r="15" fill="#EAE4D4" />
+        </g>
+      </g>
+      <g className="mood-fade" style={{ opacity: scene.sunR ? 1 : 0 }}>
+        <ellipse cx={sunX} cy={HORIZON_Y - 8} rx="150" ry="46" fill="url(#mood-bloom)" opacity={scene.glow} />
+        <circle cx={sunX} cy={scene.sunY} r={scene.sunR * 2.6} fill="url(#mood-halo)" opacity="0.7" />
+        <circle cx={sunX} cy={scene.sunY} r={scene.sunR} fill="url(#mood-sun)" />
+      </g>
+
+      <path d={`${ridgeFar} L340 ${HORIZON_Y} L0 ${HORIZON_Y} Z`} fill="#1E2736" />
+      <path d={`${ridgeNear} L340 ${HORIZON_Y} L0 ${HORIZON_Y} Z`} fill="#141B26" />
+      <path d={ridgeFar} fill="none" stroke="#E3C48C" strokeWidth="0.8" opacity={scene.rim} />
+      <path d={ridgeNear} fill="none" stroke="#E3C48C" strokeWidth="0.6" opacity={scene.rim * 0.6} />
+
+      <rect x="0" y={HORIZON_Y} width="340" height={300 - HORIZON_Y} fill="url(#mood-sea)" />
+      <rect x="0" y={HORIZON_Y} width="340" height="44" fill="url(#mood-sea-glow)" opacity="0.45" />
+
+      <g className="mood-fade" style={{ opacity: scene.path }}>
+        <ellipse cx={sunX} cy={HORIZON_Y + 14} rx="42" ry="24" fill="url(#mood-reflect)" />
+        <path d={`M${sunX - 26} ${HORIZON_Y + 6} Q${sunX} ${HORIZON_Y + 9} ${sunX + 26} ${HORIZON_Y + 6}`} stroke="#E3C48C" strokeWidth="1.3" strokeLinecap="round" opacity="0.5" />
+        <path d={`M${sunX - 19} ${HORIZON_Y + 22} Q${sunX} ${HORIZON_Y + 26} ${sunX + 19} ${HORIZON_Y + 22}`} stroke="#E3C48C" strokeWidth="1" strokeLinecap="round" opacity="0.3" />
+        <path d={`M${sunX - 12} ${HORIZON_Y + 38} Q${sunX} ${HORIZON_Y + 42} ${sunX + 12} ${HORIZON_Y + 38}`} stroke="#E3C48C" strokeWidth="0.9" strokeLinecap="round" opacity="0.18" />
+      </g>
+
+      {/* the same cypress headland entering from the lower left */}
+      <path d="M0 262 C26 254 54 252 82 258 C116 266 142 284 178 300 L0 300 Z" fill="#080B11" />
+      <path d="M0 262 C26 254 54 252 82 258 C116 266 142 284 178 300" fill="none" stroke="#E3C48C" strokeWidth="0.9" opacity="0.3" />
+      <g fill="#04060A">
+        <path d="M43 186 C47.5 204 49 232 45 256 C44 262 40 262 39 256 C35 232 38 204 43 186 Z" />
+        <path d="M67 200 C70.5 216 71.5 238 68 256 C67 261 64 261 63 256 C60 238 63 216 67 200 Z" />
+        <path d="M84 224 C86 234 86.5 246 85 256 C84.5 259 82.5 259 82 256 C80.5 246 82 234 84 224 Z" />
+      </g>
+
       {level >= 3 && (
-        <path
-          d="M170 137L172.6 144.8L180.4 147.4L172.6 150L170 157.8L167.4 150L159.6 147.4L167.4 144.8L170 137Z"
-          fill={tone}
-          opacity={level === 4 ? '0.95' : '0.5'}
-        />
+        <g fill="none" stroke="#0A0D13" strokeWidth="1.2" strokeLinecap="round" opacity="0.7">
+          <path d="M118 92 Q123 87 128 92 Q133 87 138 92" />
+          <path d="M232 68 Q236 64 240 68 Q244 64 248 68" />
+        </g>
       )}
+
+      <rect x="0" y="0" width="340" height="300" rx="18" fill="url(#mood-vignette)" />
     </svg>
   );
 }
@@ -692,7 +798,7 @@ function CheckinsScreen({ navigate, back }) {
         title="یادآوری، درست وقتی لازم است."
         lede="تیا می‌تواند گاهی حالت را بپرسد. هر وقت بخواهی می‌توانی یادآوری‌ها را خاموش کنی."
       />
-      <Instrument state="pulse" tone="paper" className="ob-art--small" label="حلقه‌ای که نورش بازمی‌گردد" />
+      <Instrument state="pulse" tone="paper" className="ob-art--small" label="فانوس دریایی بر دماغه؛ نوری که هر شب بازمی‌گردد" />
     </Shell>
   );
 }
@@ -1036,7 +1142,7 @@ function Ready({ navigate, savingProfile = false }) {
       )}
     >
       <p className="ob-chapter">فصل شش · حلقه</p>
-      <Instrument state="seal" className="ob-art--hero" label="حلقهٔ کامل تیا؛ دایره بسته می‌شود و ستاره در مرکز می‌درخشد" />
+      <Instrument state="seal" className="ob-art--hero" label="سپیدهٔ کامل: خورشید در حلقهٔ بسته و بازتاب آرام آن بر آب" />
       <ObHeader
         title="حلقه کامل می‌شود."
         lede="از این‌جا با هم شروع می‌کنیم. پاسخ‌های آشنایی اولیه‌ات ذخیره می‌شوند و برای شخصی‌سازی گفت‌وگو در اختیار سرویس هوش مصنوعی قرار می‌گیرند."
