@@ -278,6 +278,30 @@
 }
 .ob-art--small .theia-instrument { width: 100%; height: 100%; max-width: 244px; max-height: 244px; }
 
+/* The artwork carries its own light: a quiet bloom sits behind the plate so the
+   instrument reads as lit from within rather than pasted onto the surface. */
+.ob-art--hero::before {
+  content: '';
+  position: absolute;
+  inset: 6% 2% 2%;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(232 196 140 / 20%), rgb(232 196 140 / 6%) 52%, transparent 76%);
+  animation: ob-art-breathe 11s ease-in-out infinite;
+}
+.onboarding-screen.ob-paper .ob-art--hero::before {
+  background: radial-gradient(closest-side, rgb(201 156 97 / 11%), rgb(201 156 97 / 3%) 54%, transparent 78%);
+}
+.ob-art--hero .theia-instrument { position: relative; z-index: 1; }
+@keyframes ob-art-breathe {
+  0%, 100% { opacity: 0.72; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ob-art--hero::before { animation: none; opacity: 0.85; }
+}
+
 .theia-instrument { animation: ob-instrument-in 900ms cubic-bezier(.2,.8,.2,1) both; }
 @keyframes ob-instrument-in {
   from { opacity: 0; transform: scale(0.975) translateY(6px); }
