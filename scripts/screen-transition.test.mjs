@@ -15,13 +15,11 @@ test('chat, home, history and all main dark screens use a dark underlying surfac
   }
 });
 
-test('2026 onboarding alternates night ink and ivory paper surfaces', () => {
-  for (const route of ['welcome', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro', 'voice', 'approach', 'ready']) {
+test('Earthshine onboarding keeps one cool sky until final pale twilight', () => {
+  for (const route of ['welcome', 'privacy', 'simple-intro', 'name', 'age', 'therapist', 'interests', 'mood', 'checkins', 'referral', 'concerns', 'deeper-intro', 'know-intro', 'almost-intro', 'voice', 'approach']) {
     assert.equal(screenSurfaceForRoute(route), 'ink', route);
   }
-  for (const route of ['privacy', 'name', 'age', 'therapist', 'interests', 'mood', 'checkins', 'referral', 'concerns']) {
-    assert.equal(screenSurfaceForRoute(route), 'paper', route);
-  }
+  assert.equal(screenSurfaceForRoute('ready'), 'dawn');
   assert.equal(screenSurfaceForRoute('testimonials'), 'beige');
 });
 

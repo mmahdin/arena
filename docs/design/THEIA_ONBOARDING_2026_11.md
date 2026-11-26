@@ -1,4 +1,6 @@
-# تیا — Onboarding redesign, 2026-11
+# تیا — Onboarding redesign, 2026-11 (superseded visual edition)
+
+> Historical design record: the open-ring / astrolabe artwork below was replaced on 2026-11-26 by the Earthshine storyboard. Continue to use the existing routes, flow ordinals and integration contracts, but follow `FRONTEND_DESIGN_SPEC.md` and `src/components/EarthshineMoon.jsx` for the current onboarding visuals.
 
 **Scope:** the entire pre-Home journey (26 routes in `FLOW`), plus the sign-in entry
 that precedes it. Routing, server-owned progress, answer storage, and every
