@@ -2,8 +2,7 @@ import React, { useCallback, useContext, useEffect, useLayoutEffect, useRef, use
 import { Check, ChevronLeft, ChevronRight, Flame, Landmark } from 'lucide-react';
 import { AGE_RANGES, APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import { resistVoiceDrag, voiceSwipeTarget } from '../features/onboarding/voiceCarousel';
-import { TheiaMark } from '../components/TheiaBrand';
-import { TheiaInstrument, TheiaSigil } from '../components/TheiaSigil';
+import { EarthshineMoon } from '../components/EarthshineMoon';
 import {
   BackButton,
   ChoiceButton,
@@ -35,7 +34,7 @@ const CHAPTERS = [
   { name: 'دیدن', routes: ['deeper-intro', 'mood', 'concerns', 'focus', 'feelings'] },
   { name: 'سپیده', routes: ['know-intro', 'faith', 'neurodivergent', 'relationships', 'interests', 'strengths', 'barriers', 'recharge'] },
   { name: 'سه نور', routes: ['almost-intro', 'approach', 'voice', 'checkins', 'referral'] },
-  { name: 'حلقه', routes: ['ready'] },
+  { name: 'آغاز مسیر', routes: ['ready'] },
 ];
 
 function chapterIndexFor(route) {
@@ -63,17 +62,17 @@ function ChapterSeam({ index }) {
   );
 }
 
-function Shell({ theme = 'paper', back, children, className = '', footer }) {
+function Shell({ theme = 'ink', back, children, className = '', footer }) {
   const route = useContext(OnboardingRouteContext);
   const dark = theme === 'ink' || theme === 'dark' || theme === 'black';
-  const surface = dark ? 'ink' : 'paper';
+  const surface = theme === 'dawn' ? 'dawn' : dark ? 'ink' : 'paper';
   return (
     <section className={`app-screen onboarding-screen ob-shell ob-${surface} ${className}`.trim()} data-ob-theme={surface}>
       <StatusBar />
       <div className="ob-chrome">
         {back
           ? <BackButton onClick={back} dark={dark} />
-          : <span className="ob-chrome__sigil" aria-hidden="true"><TheiaSigil size={19} /></span>}
+          : <span className="ob-chrome__wordmark" aria-hidden="true">تیا</span>}
         <ChapterSeam index={chapterIndexFor(route)} />
         <span className="ob-chrome__tail" aria-hidden="true" />
       </div>
@@ -94,10 +93,10 @@ function ObHeader({ title, lede, epigraph, align = 'start', className = '' }) {
   );
 }
 
-function Instrument({ state, tone = 'ink', className = '', label }) {
+function Instrument({ state, className = '', label, aperture }) {
   return (
     <div className={`ob-art ${className}`.trim()}>
-      <TheiaInstrument state={state} tone={tone} label={label} />
+      <EarthshineMoon scene={state} label={label} aperture={aperture} />
     </div>
   );
 }
@@ -111,12 +110,12 @@ function Welcome({ navigate }) {
     <Shell theme="ink" className="welcome-screen" footer={(
       <Continue onClick={() => nextFrom('welcome', navigate)}>شروع</Continue>
     )}>
-      <Instrument state="welcome" className="ob-art--hero" label="حلقهٔ باز تیا، با ستاره‌ای از سپیده در مرکز" />
+      <Instrument state="welcome" className="ob-art--hero" label="هلال صبحگاهی و قرص کم‌نور ماه در آسمانی تاریک" />
       <ObHeader
-        epigraph="روشناییِ دوربرد"
         title="تیا را نمی‌بینی؛ با تیا می‌بینی."
-        lede="تیا، الههٔ یونانیِ نور و دیدن، هیچ تصویری از خودش ندارد؛ تنها چیزی که از او مانده روشنایی است. این‌جا هم همین‌طور است: نه یک چهره، بلکه نوری که کمک می‌کند خودت را واضح‌تر ببینی."
+        lede="در اسطوره‌ها، تیا الههٔ نور و دیدن بود. این‌جا چهره‌ای ندارد؛ همراهی است که کمک می‌کند آن‌چه از پیش در توست، روشن‌تر دیده شود."
       />
+      <p className="ai-companion-note">تیا همراهی مبتنی بر هوش مصنوعی است، نه جایگزینِ درمانگر حرفه‌ای.</p>
     </Shell>
   );
 }
@@ -222,27 +221,27 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
 const INTERSTITIALS = {
   'simple-intro': {
     state: 'night',
-    chapter: 'فصل دو · شب',
+    chapter: 'شب',
     title: 'از تاریکی شروع می‌کنیم.',
-    lede: 'نه چون چیزی خراب است؛ چون هر دیدن از ندیدن آغاز می‌شود. این‌جا لازم نیست از قبل بدانی چه چیزی در تو می‌گذرد.',
+    lede: 'نه چون چیزی خراب است؛ چون هر دیدنی از ندیدن شروع می‌شود. لازم نیست از پیش بدانی در تو چه می‌گذرد؛ چشم که عادت کند، چیزها کم‌کم پیدا می‌شوند.',
   },
   'deeper-intro': {
-    state: 'sight',
-    chapter: 'فصل سه · دیدن',
-    title: 'تیا نور را نمی‌سازد؛ آن را می‌بیند.',
-    lede: 'پس چیزی به تو اضافه نمی‌کند و چیزی هم از تو نمی‌گیرد. فقط کمک می‌کند آن‌چه هست را واضح‌تر ببینی — حتی وقتی واضح دیدن راحت نیست.',
+    state: 'seeing',
+    chapter: 'دیدن',
+    title: 'آن‌چه تاریک به نظر می‌رسد، خالی نیست.',
+    lede: 'بخشِ تاریکِ ماه هم کمی روشن است: نوری که از زمین به آن می‌رسد، به چشم تو برمی‌گردد. تیا چیزی به تو اضافه نمی‌کند و چیزی از تو نمی‌گیرد؛ فقط کمک می‌کند آن‌چه هست واضح‌تر دیده شود، حتی وقتی دیدنش آسان نیست.',
   },
   'know-intro': {
     state: 'dawn',
-    chapter: 'فصل چهار · سپیده',
+    chapter: 'سپیده',
     title: 'سپیده یک‌باره نمی‌آید.',
-    lede: 'کم‌کم روشن می‌شود، آن‌قدر آرام که اول متوجهش نمی‌شوی. حال آدم هم همین‌طور عوض می‌شود.',
+    lede: 'کم‌کم روشن می‌شود، آن‌قدر آرام که اول متوجهش نمی‌شوی. گاهی نوری می‌آید و دوباره پس می‌رود؛ آن هم بخشی از راه است. حال آدم هم اغلب همین‌طور عوض می‌شود.',
   },
   'almost-intro': {
-    state: 'orbits',
-    chapter: 'فصل پنج · سه نور',
-    title: 'خورشید، ماه، سپیده.',
-    lede: 'هر سه فرزندان تیا بودند؛ سه حالتِ نور، و هیچ‌کدام همیشگی نبود. حال تو هم همین‌طور است: می‌آید و می‌رود و هیچ‌کدام تمامِ تو نیست.',
+    state: 'lights',
+    chapter: 'سه نور',
+    title: 'سه نور؛ و هیچ‌کدام همیشگی نیست.',
+    lede: 'خورشید، ماه و سپیده، هر سه فرزندانِ تیا بودند: سه حالتِ یک نور. حال‌های تو هم همین‌طورند: می‌آیند و می‌روند، و هیچ‌کدام تمامِ تو نیست.',
   },
 };
 
@@ -256,7 +255,7 @@ function Interstitial({ route, navigate, back }) {
       footer={<Continue onClick={() => nextFrom(route, navigate)}>ادامه</Continue>}
     >
       <p className="ob-chapter">{item.chapter}</p>
-      <Instrument state={item.state} className="ob-art--hero" />
+      <Instrument state={item.state} className="ob-art--hero" label={`ماه در فصل ${item.chapter}`} />
       <ObHeader title={item.title} lede={item.lede} />
     </Shell>
   );
@@ -265,17 +264,26 @@ function Interstitial({ route, navigate, back }) {
 function Privacy({ navigate, back, privacySharing = true, privacyLoading = false, privacySaving = false,
   privacyLoaded = false, privacyError = false, onTogglePrivacy, onRetryPrivacy }) {
   const sharing = privacySharing;
+  const [aperture, setAperture] = useState(0.28);
   return (
     <Shell
+      theme="ink"
       back={back}
       className="privacy-screen"
       footer={<Continue onClick={() => nextFrom('privacy', navigate)}>ادامه</Continue>}
     >
       <ObHeader
-        title="حریم تو، مثل این حلقه است."
-        lede="فقط تو تعیین می‌کنی چقدر باز شود. برای اینکه پاسخ‌ها متناسب با تو باشند، گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شوند و اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شود."
+        title="چه‌قدر بگویی، انتخاب توست."
+        lede="فقط تو تعیین می‌کنی چه‌قدر از خودت بگویی. برای اینکه پاسخ‌ها به تو نزدیک‌تر باشند، گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شوند و اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شود."
       />
-      <Instrument state="veil" tone="paper" className="ob-art--small" label="پرده‌ای که در میانه باز شده و شکافی از نور را نشان می‌دهد" />
+      <Instrument state="privacy" className="ob-art--privacy" aperture={aperture} label="هلال ماه از شکافی با عرض قابل تغییر دیده می‌شود" />
+      <label className="aperture-control">
+        <span>گشودگیِ تصویر</span>
+        <input type="range" min="0.12" max="0.62" step="0.01" value={aperture}
+          onChange={(event) => setAperture(Number(event.target.value))}
+          aria-label="میزان گشودگی شکاف در تصویر" />
+      </label>
+      <p className="aperture-note">این تصویر نمادین است؛ تغییر آن بر ذخیره‌سازی یا پردازش اطلاعاتت اثری ندارد.</p>
       <button
         type="button"
         className="privacy-card"
@@ -286,8 +294,9 @@ function Privacy({ navigate, back, privacySharing = true, privacyLoading = false
         onClick={onTogglePrivacy}
       >
         <span className={`toggle ${sharing ? 'is-on' : ''}`} aria-hidden="true"><span /></span>
-        <span>اجازهٔ استفاده از گفت‌وگوها</span>
+        <span>ترجیحِ اشتراک‌گذاری گفت‌وگوها</span>
       </button>
+      <p className="privacy-preference-note">این انتخاب فقط به‌عنوان ترجیح ذخیره می‌شود؛ گفت‌وگوها را به اشتراک نمی‌گذارد و ذخیره‌سازی یا پردازش را تغییر نمی‌دهد.</p>
       {privacyError && <div className="connected-notice" role="alert">
         <p>تنظیمات حریم خصوصی در دسترس نیست. دوباره تلاش کن.</p>
         <button type="button" onClick={onRetryPrivacy}>تلاش دوباره</button>
@@ -595,9 +604,6 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
   );
 }
 
-// Deliberately drawn as native SVG, not screenshots, so it stays sharp and
-// changes smoothly at all five mood positions. Direction follows the reference:
-// left is struggling and right is generally good, regardless of page RTL.
 const MOODS = [
   { label: 'این روزها سخت می‌گذرد', note: 'لازم نیست توضیح بدهی. از همین‌جا شروع می‌کنیم.' },
   { label: 'انرژی زیادی ندارم', note: 'با چیزهای کوچک شروع می‌کنیم؛ لازم نیست بزرگ باشد.' },
@@ -605,54 +611,6 @@ const MOODS = [
   { label: 'دارم می‌گذرونم', note: 'داری راه می‌افتی. همین کافی است.' },
   { label: 'در کل حالم خوب است', note: 'خوب است. بگذار بیشتر بشناسیمش.' },
 ];
-
-function MoodScribble({ level }) {
-  // A continuous hand-drawn contour evolves from angular and tangled to round.
-  const path = React.useMemo(() => {
-    const points = [];
-    const turns = [9.5, 7.4, 5.0, 3.0, 2.2][level];
-    const count = 430;
-    for (let i = 0; i <= count; i++) {
-      const progress = i / count;
-      const theta = progress * turns * Math.PI * 2;
-      const rough = level <= 1 ? (1 + 0.24 * Math.sin(theta * 2.7) + 0.12 * Math.cos(theta * 4.3)) : 1;
-      const radius = (0.45 + progress * 0.50) * rough;
-      const tilt = level === 4 ? 0.15 : 0.38;
-      const x = 170 + 113 * radius * Math.cos(theta + tilt) + (level === 2 ? 13 * Math.sin(theta * 0.4) : 0);
-      const y = 150 + 105 * radius * Math.sin(theta) + (level === 0 ? 12 * Math.sin(theta * 1.5) : 0);
-      points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`);
-    }
-    return points.join(' ');
-  }, [level]);
-  // The line itself is the illustration: a tangled thread at the hard end of
-  // the scale, a nearly closed ring at the easy end, and a dawn-coloured light
-  // that grows as the contour untangles.
-  const tone = ['#8C94B8', '#B0A0A0', '#D2AE86', '#E3C48C', '#F2C98D'][level];
-  return (
-    <svg className="mood-scribble" viewBox="0 0 340 300" aria-hidden="true" focusable="false">
-      <defs>
-        <linearGradient id="mood-line" x1="40" y1="270" x2="300" y2="40" gradientUnits="userSpaceOnUse">
-          <stop stopColor={tone} stopOpacity="0.55" />
-          <stop offset="0.55" stopColor={tone} />
-          <stop offset="1" stopColor="#F7E7C6" />
-        </linearGradient>
-        <radialGradient id="mood-halo" cx="50%" cy="50%" r="50%">
-          <stop stopColor="#F3D8A3" stopOpacity={0.1 + level * 0.11} />
-          <stop offset="1" stopColor="#F3D8A3" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <circle cx="170" cy="150" r="128" fill="url(#mood-halo)" />
-      <path d={path} fill="none" stroke="url(#mood-line)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-      {level >= 3 && (
-        <path
-          d="M170 137L172.6 144.8L180.4 147.4L172.6 150L170 157.8L167.4 150L159.6 147.4L167.4 144.8L170 137Z"
-          fill={tone}
-          opacity={level === 4 ? '0.95' : '0.5'}
-        />
-      )}
-    </svg>
-  );
-}
 
 function MoodScreen({ navigate, back, answers, setAnswer }) {
   const mood = Number.isInteger(answers.mood) && answers.mood >= 0 && answers.mood <= 4 ? answers.mood : 2;
@@ -664,8 +622,7 @@ function MoodScreen({ navigate, back, answers, setAnswer }) {
     >
       <ObHeader title="این روزها چه حالی داری؟" lede="نوار را بکش تا نزدیک‌ترین حالت را پیدا کنی؛ لازم نیست دقیق باشد." />
       <div className="mood-stage">
-        <div className="mood-glow" data-mood-level={mood} aria-hidden="true" />
-        <MoodScribble level={mood} />
+        <EarthshineMoon scene="seeing" label="قرص ماه با نور بازتابیده‌ای که بخش تاریکش را نمایان می‌کند" />
         <h2 aria-live="polite">{MOODS[mood].label}</h2>
         <div className="mood-slider-wrap" dir="ltr">
           <div className="mood-ticks" aria-hidden="true">
@@ -684,15 +641,16 @@ function MoodScreen({ navigate, back, answers, setAnswer }) {
 function CheckinsScreen({ navigate, back }) {
   return (
     <Shell
+      theme="ink"
       back={back}
       className="checkins-screen"
       footer={<Continue onClick={() => nextFrom('checkins', navigate)}>ادامه</Continue>}
     >
+      <Instrument state="checkins" className="ob-art--hero" label="یک نقطهٔ آرام و روشن در آسمان صبحگاهی" />
       <ObHeader
-        title="یادآوری، درست وقتی لازم است."
-        lede="تیا می‌تواند گاهی حالت را بپرسد. هر وقت بخواهی می‌توانی یادآوری‌ها را خاموش کنی."
+        title="اگر بخواهی، یک نور روشن می‌ماند."
+        lede="تیا می‌تواند گاهی سراغ حالت را بگیرد، بی‌اصرار. هر وقت بخواهی می‌توانی یادآوری‌ها را خاموش کنی."
       />
-      <Instrument state="pulse" tone="paper" className="ob-art--small" label="حلقه‌ای که نورش بازمی‌گردد" />
     </Shell>
   );
 }
@@ -995,7 +953,7 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
               aria-hidden={index !== active}
               inert={index !== active}
             >
-              <span className="approach-mark" aria-hidden="true"><TheiaMark size={18} /></span>
+              <span className="approach-mark" aria-hidden="true">تیا</span>
               <p className="approach-response">{item.exampleResponse || item.response}</p>
             </article>
           ))}
@@ -1027,7 +985,7 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
 function Ready({ navigate, savingProfile = false }) {
   return (
     <Shell
-      theme="ink"
+      theme="dawn"
       className="ready-screen"
       footer={(
         <Continue disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>
@@ -1035,11 +993,10 @@ function Ready({ navigate, savingProfile = false }) {
         </Continue>
       )}
     >
-      <p className="ob-chapter">فصل شش · حلقه</p>
-      <Instrument state="seal" className="ob-art--hero" label="حلقهٔ کامل تیا؛ دایره بسته می‌شود و ستاره در مرکز می‌درخشد" />
+      <Instrument state="final" className="ob-art--hero" label="قرص کامل ماه در آسمان روشنِ پیش از طلوع و خطی گرم بر افق" />
       <ObHeader
-        title="حلقه کامل می‌شود."
-        lede="از این‌جا با هم شروع می‌کنیم. پاسخ‌های آشنایی اولیه‌ات ذخیره می‌شوند و برای شخصی‌سازی گفت‌وگو در اختیار سرویس هوش مصنوعی قرار می‌گیرند."
+        title="از این‌جا شروع می‌کنیم."
+        lede="آسمان همان است؛ فقط چشمت عادت کرده. پاسخ‌های آشنایی اولیه‌ات ذخیره می‌شوند و برای شخصی‌سازی گفت‌وگو در اختیار سرویس هوش مصنوعی قرار می‌گیرند."
       />
     </Shell>
   );
