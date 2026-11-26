@@ -15,21 +15,32 @@ test('chat, home, history and all main dark screens use a dark underlying surfac
   }
 });
 
-test('2026 onboarding alternates night ink and ivory paper surfaces', () => {
-  for (const route of ['welcome', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro', 'voice', 'approach', 'ready']) {
+test('Earthshine onboarding progresses continuously from night ink to civil twilight', () => {
+  for (const route of ['welcome', 'privacy']) {
     assert.equal(screenSurfaceForRoute(route), 'ink', route);
   }
-  for (const route of ['privacy', 'name', 'age', 'therapist', 'interests', 'mood', 'checkins', 'referral', 'concerns']) {
-    assert.equal(screenSurfaceForRoute(route), 'paper', route);
+  for (const route of ['simple-intro', 'name', 'age', 'identity', 'therapist']) {
+    assert.equal(screenSurfaceForRoute(route), 'night', route);
   }
+  for (const route of ['deeper-intro', 'mood', 'concerns', 'focus', 'feelings']) {
+    assert.equal(screenSurfaceForRoute(route), 'seeing', route);
+  }
+  for (const route of ['know-intro', 'faith', 'neurodivergent', 'relationships', 'interests', 'strengths', 'barriers', 'recharge']) {
+    assert.equal(screenSurfaceForRoute(route), 'dawn', route);
+  }
+  for (const route of ['almost-intro', 'approach', 'voice', 'checkins', 'referral']) {
+    assert.equal(screenSurfaceForRoute(route), 'morning', route);
+  }
+  assert.equal(screenSurfaceForRoute('ready'), 'twilight');
   assert.equal(screenSurfaceForRoute('testimonials'), 'beige');
 });
 
 test('the route-controlled shell and transition never fade dark screens from transparent white', () => {
   assert.match(app, /data-screen-surface=\{active \? screenSurfaceForRoute\(route\) : 'ink'\}/);
   const onboardingCss = readFileSync(new URL('../src/onboarding.css', import.meta.url), 'utf8');
-  assert.match(onboardingCss, /\.app-shell\[data-screen-surface="ink"\]\s*\{\s*--screen-surface:\s*#0a0b0d/);
-  assert.match(onboardingCss, /\.app-shell\[data-screen-surface="paper"\]\s*\{\s*--screen-surface:\s*#f2ede4/);
+  for (const surface of ['ink', 'night', 'seeing', 'dawn', 'morning', 'twilight']) {
+    assert.match(onboardingCss, new RegExp(`\\.app-shell\\[data-screen-surface="${surface}"\\]\\s*\\{\\s*--screen-surface:`));
+  }
   assert.match(styles, /\.app-shell\[data-screen-surface="dark"\]\s*\{\s*--screen-surface:\s*var\(--dark\)/);
   assert.match(styles, /\.screen-transition\s*\{[^}]*background:\s*var\(--screen-surface\)/s);
   assert.match(styles, /@keyframes screen-in\s*\{\s*from\s*\{\s*opacity:\s*\.96/);

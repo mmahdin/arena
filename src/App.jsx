@@ -222,7 +222,8 @@ export default function App() {
   useEffect(() => {
     if (!active) return;
     window.scrollTo(0, 0);
-    document.documentElement.style.colorScheme = ['home', 'survey', 'day', 'letter', 'history', 'saved', 'settings', 'menu', 'chat', 'insight', 'research', 'experts', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro', 'voice'].includes(route) ? 'dark' : 'light';
+    const surface = screenSurfaceForRoute(route);
+    document.documentElement.style.colorScheme = ['twilight', 'beige', 'light'].includes(surface) ? 'light' : 'dark';
   }, [active, route]);
 
   // Keep the mobile composer above the visual viewport when the keyboard opens.

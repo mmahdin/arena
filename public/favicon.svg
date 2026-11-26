@@ -1,16 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <defs>
-    <linearGradient id="g" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F7E7C6"/>
-      <stop offset=".46" stop-color="#E3C48C"/>
-      <stop offset="1" stop-color="#B98A4E"/>
-    </linearGradient>
-    <radialGradient id="n" cx="50%" cy="40%" r="70%">
-      <stop stop-color="#1A1D24"/>
-      <stop offset="1" stop-color="#0A0B0D"/>
+    <radialGradient id="sky" cx="50%" cy="42%" r="72%">
+      <stop stop-color="#0E1728"/>
+      <stop offset="1" stop-color="#060911"/>
     </radialGradient>
+    <radialGradient id="ashen" cx="38" cy="26" r="28" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#556B87"/>
+      <stop offset=".6" stop-color="#3A4E69"/>
+      <stop offset="1" stop-color="#27364B"/>
+    </radialGradient>
+    <linearGradient id="cresc" x1="-20" y1="0" x2="-13" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F6FAFE"/>
+      <stop offset=".6" stop-color="#E2EBF6"/>
+      <stop offset="1" stop-color="#B6C6DC"/>
+    </linearGradient>
+    <clipPath id="moon">
+      <circle cx="0" cy="0" r="20"/>
+    </clipPath>
   </defs>
-  <rect width="64" height="64" rx="15" fill="url(#n)"/>
-  <path d="M19.4 54.7A26 26 0 1 1 44.6 54.7" stroke="url(#g)" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-  <path d="M32 20Q32.7 30.3 40.1 31Q32.7 31.7 32 42Q31.3 31.7 23.9 31Q31.3 30.3 32 20Z" fill="url(#g)"/>
+  <rect width="64" height="64" rx="15" fill="url(#sky)"/>
+  <g transform="translate(32 32)" clip-path="url(#moon)">
+    <circle cx="0" cy="0" r="20" fill="url(#ashen)" opacity=".88"/>
+    <g transform="rotate(-46)">
+      <path d="M0 -20.2A20.2 20.2 0 0 0 0 20.2A14.2 20.2 0 0 1 0 -20.2Z" fill="#99AEC8" opacity=".38"/>
+      <path d="M0 -20.1A20.1 20.1 0 0 0 0 20.1A15.7 20.1 0 0 1 0 -20.1Z" fill="url(#cresc)"/>
+    </g>
+  </g>
 </svg>

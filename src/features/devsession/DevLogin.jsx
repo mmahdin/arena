@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { TheiaMark } from '../../components/TheiaBrand';
-import { TheiaInstrument } from '../../components/TheiaSigil';
+import { EarthshineScene } from '../../components/Earthshine';
 import { PrimaryButton, StatusBar } from '../../components/UI';
 import { normalizeTestPhone } from './phone';
 
@@ -22,11 +22,11 @@ export default function DevLogin({ session, login, retry }) {
     <section className="app-screen dev-login-screen" aria-busy={loading}>
       <StatusBar />
       <div className="dev-login-art">
-        <TheiaInstrument state="welcome" label="حلقهٔ باز تیا، با ستاره‌ای از سپیده در مرکز" />
+        <EarthshineScene scene="welcome" />
       </div>
       <header className="page-header">
         <h1>به تیا خوش آمدی.</h1>
-        <p>نه یک چهره؛ نوری که کمک می‌کند خودت را واضح‌تر ببینی.</p>
+        <p>این‌جا چهره‌ای نیست؛ همراهی است که کمک می‌کند آن‌چه در توست روشن‌تر دیده شود.</p>
       </header>
       <div className="dev-login-panel">
         <div className="dev-login-heading"><TheiaMark size={17} /><strong>ورود با شمارهٔ آزمایشی</strong></div>
