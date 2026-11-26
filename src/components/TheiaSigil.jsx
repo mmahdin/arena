@@ -3,17 +3,14 @@ import React from 'react';
 /**
  * Theia's 2026 identity is intentionally faceless.
  *
- * In the myth Theia (Θεία, "the far-shining") is the Titaness of sight and of
- * the light of the sky. She was never given a cult image, a temple or a statue:
- * what survives of her is light itself. Her children are Helios, Selene and Eos
- * — sun, moon and dawn. The brand therefore shows an instrument of light, never
- * a body: an astrolabe-like ring left deliberately open, one spark of dawn
- * inside it, and the quiet horizon it measures. The open ring is the product
- * promise: the app does not close around you or complete you; it lets light in
- * and leaves the circle open for the person using it.
+ * TheiaSigil / TheiaMark remains the small shared brand emblem across the app
+ * shell, Home, Letters, and Chat.
  *
- * Geometry is hand-authored SVG so the mark stays sharp at 11px and can carry
- * subtle motion (honouring prefers-reduced-motion) where a raster cannot.
+ * TheiaInstrument carries the onboarding visual narrative: Earthshine and
+ * Revelation rather than Illumination. Instead of geometric astrolabe rings or
+ * decorative ticks, eight cohesive lunar and atmospheric compositions tell a
+ * single story: nothing is added to the Moon — through reflection, what has
+ * always been within gently becomes visible.
  */
 
 const SIGIL_STAR = (cx, cy, radius) => {
@@ -33,8 +30,6 @@ export function TheiaSigil({ size = 32, luminous = false, complete = false, clas
   const id = React.useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const gold = `sigil-gold-${id}`;
   const glow = `sigil-glow-${id}`;
-  // The ring stops short of closing at the bottom. On the final screen the seam
-  // meets (complete) — the only place in the product where the circle closes.
   const openRing = 'M19.4 54.7A26 26 0 1 1 44.6 54.7';
   return (
     <svg
@@ -90,353 +85,677 @@ export function TheiaMark({ size = 24, luminous = false, complete = false, class
 }
 
 /* ------------------------------------------------------------------ */
-/* The instrument: one drawing, changing state across the story arc.  */
+/* Earthshine & Revelation: one unchanging Moon, revealed by light.   */
 /* ------------------------------------------------------------------ */
 
-const CX = 180;
-const CY = 180;
-
-/** Polar coordinates; 0° is north, angles increase clockwise (matching SVG). */
-function polar(radius, angle, cx = CX, cy = CY) {
-  const theta = ((angle - 90) * Math.PI) / 180;
-  return [cx + radius * Math.cos(theta), cy + radius * Math.sin(theta)];
-}
-
-function arcPath(radius, from, to) {
-  const [x1, y1] = polar(radius, from);
-  const [x2, y2] = polar(radius, to);
-  const sweep = (to - from + 360) % 360;
-  const large = sweep > 180 ? 1 : 0;
-  return `M${x1.toFixed(2)} ${y1.toFixed(2)}A${radius} ${radius} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
-}
-
-const STAR = (cx, cy, r) => {
-  const k = r * 0.09;
-  return `M${cx} ${cy - r}Q${cx + k} ${cy - k} ${cx + r} ${cy}Q${cx + k} ${cy + k} ${cx} ${cy + r}Q${cx - k} ${cy + k} ${cx - r} ${cy}Q${cx - k} ${cy - k} ${cx} ${cy - r}Z`;
+const STATE_LABEL = {
+  welcome: 'هلال ماه با تابش زمین: بخش تاریک ماه با بازتاب نور زمین به‌آرامی دیده می‌شود',
+  night: 'شب: ماهِ کامل در سایهٔ آرام شب پیش از تابش نور',
+  veil: 'حریم انتخابی: سایه‌ای که در میانه کنار می‌رود و بخشی از ماه را روشن می‌کند',
+  sight: 'دیدن از راه بازتاب: نور زمین به سوی ماه برمی‌گردد و نقش‌های پنهانش را آشکار می‌کند',
+  dawn: 'سپیده: هلال سحرگاهی بر فراز مهِ آرامِ پیش از طلوع',
+  orbits: 'سه نور: خورشید، ماهِ زمین‌تاب و سپیده در یک آسمان پیوسته',
+  pulse: 'یادآوری: بازتاب آرام هلال ماه در آبِ ساکن',
+  seal: 'آشکارشدن کامل: همان ماهِ همیشگی، این‌بار یکسره دیده و روشن با رگه‌های طلاییِ درونی',
 };
 
 /**
- * Two tonal readings of the same instrument: night (on ink surfaces) and an
- * ink etching (on ivory paper). Both are the same geometry, so the story keeps
- * one object while the light changes around it.
+ * Exact spherical crescent path in canonical [-100..100] coordinates.
+ * `phase` in (0, 1]: 0 = dark, 0.5 = half, 1 = full disc.
+ * Sunlit limb sits on the +x side before group rotation.
  */
-const TONES = {
-  ink: {
-    frame: '#EDE0C8',
-    frameSoft: '#E4D3B4',
-    disc: 'url(#ti-disc)',
-    rim: '#EBDCC0',
-    gold: 'url(#ti-gold)',
-    goldFlat: '#EBD8B2',
-    bright: '#FBEED4',
-    horizon: 'url(#ti-horizon)',
-    halo: 'url(#ti-halo)',
-    slit: 'url(#ti-slit-soft)',
-    glowFilter: 'url(#ti-soft-sm)',
-    boost: 1,
-  },
-  paper: {
-    frame: '#26231C',
-    frameSoft: '#332F27',
-    disc: 'url(#ti-disc-paper)',
-    rim: '#8D8474',
-    gold: 'url(#ti-gold-paper)',
-    goldFlat: '#A9783F',
-    bright: '#8E5F2C',
-    horizon: 'url(#ti-horizon-paper)',
-    halo: 'url(#ti-halo-paper)',
-    slit: 'url(#ti-slit-paper)',
-    glowFilter: 'url(#ti-soft-sm)',
-    boost: 1.9,
-  },
-};
+export function lunarLitPath(phase, r = 100) {
+  const f = Math.max(0.002, Math.min(1, phase));
+  if (f >= 0.999) {
+    return `M0 ${-r}A${r} ${r} 0 1 1 0 ${r}A${r} ${r} 0 1 1 0 ${-r}Z`;
+  }
+  const rx = (r * Math.abs(1 - 2 * f)).toFixed(2);
+  const sweep = f < 0.5 ? 0 : 1;
+  return `M0 ${-r}A${r} ${r} 0 0 1 0 ${r}A${rx} ${r} 0 0 ${sweep} 0 ${-r}Z`;
+}
 
-const ToneContext = React.createContext(TONES.ink);
-const useTone = () => React.useContext(ToneContext);
+/** Canonical lunar maria (basaltic seas) shared unchanged across every screen. */
+const LUNAR_MARIA = [
+  // Mare Imbrium
+  'M-48 -58C-26 -72 2 -66 8 -46C14 -28 2 -12 -22 -14C-44 -16 -62 -36 -48 -58Z',
+  // Oceanus Procellarum
+  'M-72 -38C-56 -44 -44 -22 -46 2C-48 24 -34 38 -46 52C-58 64 -80 46 -86 18C-90 -8 -84 -32 -72 -38Z',
+  // Mare Serenitatis
+  'M12 -46C28 -54 46 -42 44 -24C42 -10 22 -8 12 -18C4 -26 4 -40 12 -46Z',
+  // Mare Tranquillitatis & Fecunditatis
+  'M16 -10C34 -18 58 -8 66 10C74 26 62 42 46 36C34 30 34 16 18 14C8 12 8 -2 16 -10Z',
+  // Mare Crisium
+  'M60 -30C68 -34 76 -26 74 -18C72 -12 62 -12 58 -18C55 -24 56 -28 60 -30Z',
+  // Mare Nubium & Humorum
+  'M-42 20C-26 14 -10 26 -12 44C-14 58 -32 66 -46 54C-56 44 -54 26 -42 20Z',
+];
 
-function Frame({ detail = 1 }) {
-  const tone = useTone();
-  const boost = tone.boost || 1;
+/** Subtle inner-gold mineral filaments nestled along the lunar ridges. */
+const GOLD_VEINS = [
+  'M-12 -44Q4 -34 10 -16Q16 -2 32 4',
+  'M24 -12Q44 -6 56 12',
+  'M-54 -14Q-42 8 -46 34',
+  'M-34 46Q-14 52 8 42',
+];
+
+/**
+ * Shared sculptural Moon in canonical coordinates scaled to `radius` at `(cx, cy)`.
+ * The exact same lunar geography persists across every state; only the
+ * angle and degree of direct light and reflected Earthshine change.
+ */
+export function LunarSphere({
+  ids,
+  cx,
+  cy,
+  radius,
+  tilt = -24,
+  sunPhase = 0.11,
+  earthshine = 0.5,
+  goldReveal = 0.25,
+  mariaStrength = 0.35,
+  rimHighlight = true,
+  tone = 'ink',
+}) {
+  const scale = (radius / 100).toFixed(4);
+  const paper = tone === 'paper';
+  const lit = lunarLitPath(sunPhase, 100);
+
   return (
-    <g className="ti-frame">
-      <circle cx={CX} cy={CY} r="132" stroke={tone.frame} strokeWidth="0.6" opacity={0.16 * detail * boost} />
-      <circle cx={CX} cy={CY} r="126" stroke={tone.frame} strokeWidth="0.6" opacity={0.07 * detail * boost} />
-      <g className="ti-ticks" opacity={0.32 * detail * boost}>
-        {Array.from({ length: 60 }, (_, i) => {
-          const angle = i * 6;
-          const long = angle % 30 === 0;
-          const [x1, y1] = polar(long ? 126 : 129, angle);
-          const [x2, y2] = polar(132, angle);
-          return (
-            <line
-              key={angle}
-              x1={x1.toFixed(2)} y1={y1.toFixed(2)} x2={x2.toFixed(2)} y2={y2.toFixed(2)}
-              stroke={tone.frame} strokeWidth="0.6" opacity={long ? 0.55 : 0.28}
-            />
-          );
-        })}
+    <g transform={`translate(${cx} ${cy}) scale(${scale}) rotate(${tilt})`}>
+      <g clipPath={`url(#${ids.moonClip})`}>
+        {/* 1. Shadowed sphere body */}
+        <circle cx="0" cy="0" r="100" fill={`url(#${ids.moonDark})`} />
+
+        {/* 2. Reflected Earthshine wash across the dark hemisphere */}
+        {earthshine > 0 && (
+          <circle
+            cx="0"
+            cy="0"
+            r="100"
+            fill={`url(#${ids.earthshineWash})`}
+            opacity={earthshine}
+          />
+        )}
+
+        {/* 3. Lunar maria — always present, gradually revealed by light */}
+        <g opacity={mariaStrength} filter={`url(#${ids.mariaBlur})`}>
+          {LUNAR_MARIA.map((d, i) => (
+            <path key={i} d={d} fill={`url(#${ids.mariaFill})`} />
+          ))}
+        </g>
+
+        {/* 4. Subtle bright lunar highlands around southern Tycho region */}
+        <ellipse
+          cx="-14"
+          cy="64"
+          rx="26"
+          ry="16"
+          fill={paper ? '#D9CFC0' : '#DCE7F6'}
+          opacity={Math.min(0.16, earthshine * 0.18 + sunPhase * 0.08)}
+          filter={`url(#${ids.mariaBlur})`}
+        />
+
+        {/* 5. Inherent gold filaments revealed where reflection reaches */}
+        {goldReveal > 0 && (
+          <g fill="none" stroke={`url(#${ids.goldVein})`} strokeLinecap="round">
+            {GOLD_VEINS.map((d, i) => (
+              <path
+                key={i}
+                d={d}
+                strokeWidth={i < 2 ? '1.35' : '1.05'}
+                opacity={goldReveal * (i % 2 === 0 ? 0.72 : 0.52)}
+                filter={`url(#${ids.softSm})`}
+              />
+            ))}
+            {GOLD_VEINS.map((d, i) => (
+              <path
+                key={`crisp-${i}`}
+                d={d}
+                strokeWidth={i < 2 ? '0.65' : '0.5'}
+                opacity={goldReveal * 0.85}
+              />
+            ))}
+          </g>
+        )}
+
+        {/* 6. Soft atmospheric penumbra along the solar terminator */}
+        <path
+          d={lit}
+          fill={`url(#${ids.sunLit})`}
+          opacity={sunPhase > 0.9 ? 0.55 : 0.42}
+          filter={`url(#${ids.terminatorBlur})`}
+        />
+
+        {/* 7. Crisp sunlit crescent / revealed solar face */}
+        <path
+          d={lit}
+          fill={`url(#${ids.sunLit})`}
+          opacity={sunPhase > 0.9 ? 0.72 : 0.96}
+        />
+
+        {/* 8. Re-tint maria gently on full illumination so topography stays rich */}
+        {sunPhase > 0.7 && (
+          <g opacity={(sunPhase - 0.7) * 1.15} filter={`url(#${ids.mariaBlur})`}>
+            {LUNAR_MARIA.map((d, i) => (
+              <path key={`full-${i}`} d={d} fill={paper ? '#7D756A' : '#4C5361'} />
+            ))}
+          </g>
+        )}
+
+        {/* 9. Subtle spherical limb shading for genuine 3D depth */}
+        <circle cx="0" cy="0" r="100" fill={`url(#${ids.sphereShade})`} />
       </g>
-      <circle cx={CX} cy={CY} r="104" stroke={tone.frameSoft} strokeWidth="0.7" strokeDasharray="1 7" opacity={0.5 * detail * boost} className="ti-drift" />
-      <circle cx={CX} cy={CY} r="96" stroke={tone.frameSoft} strokeWidth="0.5" opacity={0.16 * detail * boost} />
-      <path d="M40 252H320" stroke={tone.horizon} strokeWidth="0.8" opacity={0.55 * detail} />
-      <path d="M40 258H320" stroke={tone.frameSoft} strokeWidth="0.4" opacity={0.12 * detail} />
+
+      {/* 10. Delicate sunlit rim specular & cool Earthshine edge whisper */}
+      {rimHighlight && (
+        <path
+          d="M0 -99.5A99.5 99.5 0 0 1 0 99.5"
+          stroke={paper ? '#FBF4E4' : '#FFF7E4'}
+          strokeWidth={sunPhase < 0.15 ? '1.15' : '0.85'}
+          strokeLinecap="round"
+          opacity={sunPhase < 0.05 ? 0.48 : 0.82}
+        />
+      )}
+      {earthshine > 0.2 && (
+        <path
+          d="M0 -99.5A99.5 99.5 0 0 0 0 99.5"
+          stroke={paper ? '#8B98AA' : '#A8C1DF'}
+          strokeWidth="0.75"
+          strokeLinecap="round"
+          opacity={earthshine * 0.38}
+        />
+      )}
     </g>
   );
 }
 
-function Star({ radius = 15, opacity = 1, glow = true }) {
-  const tone = useTone();
-  return (
-    <g opacity={opacity}>
-      {glow && <circle cx={CX} cy={CY} r={radius * 3.4} fill={tone.halo} opacity="0.5" />}
-      <path d={STAR(CX, CY, radius)} fill={tone.gold} />
-    </g>
-  );
-}
+/** Shared SVG <defs> builder keyed per component instance so IDs never collide. */
+export function useEarthshineDefs(prefix, tone = 'ink') {
+  const uid = React.useId().replace(/[^a-zA-Z0-9_-]/g, '');
+  const id = (name) => `${prefix}-${name}-${uid}`;
+  const ids = {
+    moonClip: id('mc'),
+    moonDark: id('md'),
+    earthshineWash: id('ew'),
+    mariaFill: id('mf'),
+    sunLit: id('sl'),
+    goldVein: id('gv'),
+    sphereShade: id('ss'),
+    earthLimb: id('el'),
+    earthBeam: id('eb'),
+    dawnMist: id('dm'),
+    veilLeft: id('vl'),
+    veilRight: id('vr'),
+    waterPlane: id('wp'),
+    corona: id('co'),
+    helios: id('he'),
+    eos: id('eo'),
+    mariaBlur: id('mb'),
+    terminatorBlur: id('tb'),
+    softSm: id('sm'),
+    softLg: id('lg'),
+    waterClip: id('wc'),
+  };
 
-function Seam({ from, to, radius = 96, width = 1.8, opacity = 1 }) {
-  const tone = useTone();
-  return (
-    <g opacity={opacity}>
-      <path d={arcPath(radius, from, to)} stroke={tone.gold} strokeWidth={width * 3.4} strokeLinecap="round" opacity="0.22" filter="url(#ti-soft)" />
-      <path d={arcPath(radius, from, to)} stroke={tone.gold} strokeWidth={width} strokeLinecap="round" />
-    </g>
-  );
-}
+  const paper = tone === 'paper';
 
-function Disc({ opacity = 1 }) {
-  const tone = useTone();
-  return (
-    <>
-      <circle cx={CX} cy={CY} r="92" fill={tone.disc} opacity={opacity} />
-      <circle cx={CX} cy={CY} r="92" stroke={tone.rim} strokeWidth="0.55" opacity="0.18" />
-    </>
-  );
-}
+  const defs = (
+    <defs>
+      <clipPath id={ids.moonClip}>
+        <circle cx="0" cy="0" r="100" />
+      </clipPath>
+      <clipPath id={ids.waterClip}>
+        <rect x="20" y="196" width="320" height="140" />
+      </clipPath>
 
-const STATE_LABEL = {
-  welcome: 'حلقهٔ باز تیا: دایره‌ای از نور که کامل نمی‌شود و ستاره‌ای از سپیده در مرکزش',
-  night: 'شب: حلقه تاریک است و تنها اخگری در مرکز آن مانده',
-  veil: 'پرده: پرده‌ای که در میانه باز شده و شکافی از نور را نشان می‌دهد',
-  sight: 'دیدن: چشمی از خطوط نازک در دل حلقه، با مردمکی از نور',
-  dawn: 'سپیده: نوار نور در افق و کمانی که کم‌کم روشن می‌شود',
-  orbits: 'سه نور: خورشید، ماه و سپیده در سه مدار جدا',
-  pulse: 'یادآوری: حلقه‌ای که نورش بازمی‌گردد',
-  seal: 'حلقهٔ کامل: دایره بسته می‌شود و ستاره در مرکز می‌درخشد',
-};
+      {/* Deep shadowed lunar surface */}
+      <radialGradient id={ids.moonDark} cx="35%" cy="38%" r="78%">
+        <stop offset="0%" stopColor={paper ? '#3C3C40' : '#181C26'} />
+        <stop offset="65%" stopColor={paper ? '#29282B' : '#0E1016'} />
+        <stop offset="100%" stopColor={paper ? '#1E1D1F' : '#090A0E'} />
+      </radialGradient>
+
+      {/* Cool silver-blue reflected Earthshine across the dark face */}
+      <radialGradient id={ids.earthshineWash} cx="28%" cy="46%" r="76%">
+        <stop offset="0%" stopColor={paper ? '#B6C3D4' : '#A9C2E2'} stopOpacity="0.95" />
+        <stop offset="52%" stopColor={paper ? '#7D8B9F' : '#657D9F'} stopOpacity="0.62" />
+        <stop offset="100%" stopColor={paper ? '#485263' : '#253145'} stopOpacity="0.18" />
+      </radialGradient>
+
+      {/* Organic lunar basalt seas */}
+      <radialGradient id={ids.mariaFill} cx="50%" cy="50%" r="60%">
+        <stop offset="0%" stopColor={paper ? '#202229' : '#090C12'} stopOpacity="0.92" />
+        <stop offset="100%" stopColor={paper ? '#343844' : '#131924'} stopOpacity="0.45" />
+      </radialGradient>
+
+      {/* Direct solar illumination — warm lunar cream & gold */}
+      <linearGradient id={ids.sunLit} x1="-20" y1="-90" x2="100" y2="85" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor={paper ? '#FBF3DF' : '#FFF8E8'} />
+        <stop offset="48%" stopColor={paper ? '#E3C084' : '#ECCE97'} />
+        <stop offset="100%" stopColor={paper ? '#BA8848' : '#C29153'} />
+      </linearGradient>
+
+      {/* Inner gold revealed inside the shadow */}
+      <linearGradient id={ids.goldVein} x1="-70" y1="-60" x2="70" y2="60" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor={paper ? '#D29F56' : '#F4DFB4'} />
+        <stop offset="55%" stopColor={paper ? '#B47E3A' : '#D9B679'} />
+        <stop offset="100%" stopColor={paper ? '#8F5E24' : '#A97B41'} />
+      </linearGradient>
+
+      {/* Spherical limb darkening so the Moon reads as a three-dimensional orb */}
+      <radialGradient id={ids.sphereShade} cx="46%" cy="46%" r="54%">
+        <stop offset="68%" stopColor="#000" stopOpacity="0" />
+        <stop offset="92%" stopColor="#050608" stopOpacity={paper ? '0.18' : '0.32'} />
+        <stop offset="100%" stopColor="#050608" stopOpacity={paper ? '0.32' : '0.52'} />
+      </radialGradient>
+
+      {/* Soft atmospheric corona around the Moon */}
+      <radialGradient id={ids.corona} cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor={paper ? '#D8B37B' : '#96B2D6'} stopOpacity={paper ? '0.28' : '0.26'} />
+        <stop offset="55%" stopColor={paper ? '#E7CFA5' : '#D9B679'} stopOpacity={paper ? '0.12' : '0.10'} />
+        <stop offset="100%" stopColor={paper ? '#F2EDE4' : '#0A0B0D'} stopOpacity="0" />
+      </radialGradient>
+
+      {/* Earth atmospheric arc in `sight` */}
+      <radialGradient id={ids.earthLimb} cx="46%" cy="18%" r="76%">
+        <stop offset="0%" stopColor="#C8E1F4" stopOpacity="0.92" />
+        <stop offset="22%" stopColor="#6E9AC2" stopOpacity="0.58" />
+        <stop offset="58%" stopColor="#1A2C44" stopOpacity="0.32" />
+        <stop offset="100%" stopColor="#0A0B0D" stopOpacity="0" />
+      </radialGradient>
+
+      {/* Reflected light stream from Earth to Moon */}
+      <linearGradient id={ids.earthBeam} x1="88" y1="278" x2="220" y2="118" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#A6CBE8" stopOpacity="0.24" />
+        <stop offset="48%" stopColor="#94B6D8" stopOpacity="0.11" />
+        <stop offset="100%" stopColor="#94B6D8" stopOpacity="0" />
+      </linearGradient>
+
+      {/* Pre-dawn horizon mist */}
+      <linearGradient id={ids.dawnMist} x1="180" y1="208" x2="180" y2="322" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#E4B884" stopOpacity="0" />
+        <stop offset="42%" stopColor="#D79F68" stopOpacity="0.28" />
+        <stop offset="68%" stopColor="#F0CF9B" stopOpacity="0.48" />
+        <stop offset="100%" stopColor="#0A0B0D" stopOpacity="0" />
+      </linearGradient>
+
+      {/* Parted twilight veils for `veil` (Privacy on paper) */}
+      <linearGradient id={ids.veilLeft} x1="62" y1="180" x2="178" y2="180" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#F2EDE4" stopOpacity="0" />
+        <stop offset="55%" stopColor="#262421" stopOpacity="0.82" />
+        <stop offset="92%" stopColor="#1B1917" stopOpacity="0.94" />
+        <stop offset="100%" stopColor="#1B1917" stopOpacity="0" />
+      </linearGradient>
+      <linearGradient id={ids.veilRight} x1="298" y1="180" x2="182" y2="180" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#F2EDE4" stopOpacity="0" />
+        <stop offset="55%" stopColor="#262421" stopOpacity="0.82" />
+        <stop offset="92%" stopColor="#1B1917" stopOpacity="0.94" />
+        <stop offset="100%" stopColor="#1B1917" stopOpacity="0" />
+      </linearGradient>
+
+      {/* Still water surface for `pulse` (Checkins on paper) */}
+      <linearGradient id={ids.waterPlane} x1="180" y1="196" x2="180" y2="318" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#2E323B" stopOpacity="0.22" />
+        <stop offset="35%" stopColor="#464E5D" stopOpacity="0.14" />
+        <stop offset="100%" stopColor="#F2EDE4" stopOpacity="0" />
+      </linearGradient>
+
+      {/* Helios (diffused solar glow) & Eos (dawn mist) for `orbits` */}
+      <radialGradient id={ids.helios} cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="#FFF6DF" stopOpacity="0.95" />
+        <stop offset="18%" stopColor="#F2D194" stopOpacity="0.62" />
+        <stop offset="52%" stopColor="#C89354" stopOpacity="0.18" />
+        <stop offset="100%" stopColor="#0A0B0D" stopOpacity="0" />
+      </radialGradient>
+      <linearGradient id={ids.eos} x1="180" y1="224" x2="180" y2="334" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#E6B19A" stopOpacity="0" />
+        <stop offset="46%" stopColor="#DCA58E" stopOpacity="0.32" />
+        <stop offset="74%" stopColor="#ECC59B" stopOpacity="0.36" />
+        <stop offset="100%" stopColor="#0A0B0D" stopOpacity="0" />
+      </linearGradient>
+
+      <filter id={ids.mariaBlur} x="-25%" y="-25%" width="150%" height="150%">
+        <feGaussianBlur stdDeviation="4.5" />
+      </filter>
+      <filter id={ids.terminatorBlur} x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="5.5" />
+      </filter>
+      <filter id={ids.softSm} x="-35%" y="-35%" width="170%" height="170%">
+        <feGaussianBlur stdDeviation="2.4" />
+      </filter>
+      <filter id={ids.softLg} x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="11" />
+      </filter>
+    </defs>
+  );
+
+  return { ids, defs };
+}
 
 export function TheiaInstrument({ state = 'welcome', tone = 'ink', className = '', label }) {
-  const palette = TONES[tone] || TONES.ink;
+  const { ids, defs } = useEarthshineDefs('ti', tone);
+
   return (
-    <ToneContext.Provider value={palette}>
-      <svg
-        className={`theia-instrument theia-instrument--${state} theia-instrument--tone-${tone} ${className}`.trim()}
-        viewBox="0 0 360 360"
-        fill="none"
-        role="img"
-        aria-label={label || STATE_LABEL[state] || STATE_LABEL.welcome}
-        focusable="false"
-      >
-        <defs>
-          <radialGradient id="ti-disc" cx="50%" cy="42%" r="62%">
-            <stop stopColor="#181C23" />
-            <stop offset="0.62" stopColor="#0D0F13" />
-            <stop offset="1" stopColor="#090A0C" />
-          </radialGradient>
-          <radialGradient id="ti-disc-paper" cx="50%" cy="38%" r="64%">
-            <stop stopColor="#FFFCF4" />
-            <stop offset="0.68" stopColor="#F7F0E3" />
-            <stop offset="1" stopColor="#EFE6D5" />
-          </radialGradient>
-          <linearGradient id="ti-gold" x1="70" y1="60" x2="300" y2="312" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#F8EBCE" />
-            <stop offset="0.42" stopColor="#E3C48C" />
-            <stop offset="1" stopColor="#B0824A" />
-          </linearGradient>
-          <linearGradient id="ti-gold-paper" x1="70" y1="60" x2="300" y2="312" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#C79A5C" />
-            <stop offset="0.46" stopColor="#AC7B40" />
-            <stop offset="1" stopColor="#8A5C2C" />
-          </linearGradient>
-          <linearGradient id="ti-horizon" x1="40" y1="0" x2="320" y2="0" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#E4D3B4" stopOpacity="0" />
-            <stop offset="0.5" stopColor="#E4D3B4" stopOpacity="0.9" />
-            <stop offset="1" stopColor="#E4D3B4" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="ti-horizon-paper" x1="40" y1="0" x2="320" y2="0" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#3A352C" stopOpacity="0" />
-            <stop offset="0.5" stopColor="#3A352C" stopOpacity="0.5" />
-            <stop offset="1" stopColor="#3A352C" stopOpacity="0" />
-          </linearGradient>
-          <radialGradient id="ti-halo" cx="50%" cy="50%" r="50%">
-            <stop stopColor="#F3D8A3" stopOpacity="0.55" />
-            <stop offset="1" stopColor="#F3D8A3" stopOpacity="0" />
-          </radialGradient>
-          <radialGradient id="ti-halo-paper" cx="50%" cy="50%" r="50%">
-            <stop stopColor="#E7C089" stopOpacity="0.45" />
-            <stop offset="1" stopColor="#E7C089" stopOpacity="0" />
-          </radialGradient>
-          <radialGradient id="ti-dawn" cx="50%" cy="100%" r="78%">
-            <stop stopColor="#F2C98D" stopOpacity="0.55" />
-            <stop offset="0.55" stopColor="#C98D5A" stopOpacity="0.14" />
-            <stop offset="1" stopColor="#0A0B0D" stopOpacity="0" />
-          </radialGradient>
-          <linearGradient id="ti-slit-soft" x1="0" y1="86" x2="0" y2="274" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#F8EBCE" stopOpacity="0" />
-            <stop offset="0.32" stopColor="#F6E2BA" stopOpacity="0.85" />
-            <stop offset="0.62" stopColor="#F3D8A3" stopOpacity="0.6" />
-            <stop offset="1" stopColor="#F3D8A3" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="ti-slit-paper" x1="0" y1="86" x2="0" y2="274" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#D9B782" stopOpacity="0" />
-            <stop offset="0.34" stopColor="#D9B782" stopOpacity="0.55" />
-            <stop offset="0.64" stopColor="#C79A5C" stopOpacity="0.3" />
-            <stop offset="1" stopColor="#C79A5C" stopOpacity="0" />
-          </linearGradient>
-          <clipPath id="ti-disc-clip">
-            <circle cx={CX} cy={CY} r="92" />
-          </clipPath>
-          <linearGradient id="ti-fold-fade" x1="0" y1="88" x2="0" y2="272" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#fff" stopOpacity="0" />
-            <stop offset="0.28" stopColor="#fff" stopOpacity="1" />
-            <stop offset="0.72" stopColor="#fff" stopOpacity="1" />
-            <stop offset="1" stopColor="#fff" stopOpacity="0" />
-          </linearGradient>
-          <mask id="ti-fold-fade">
-            <rect x="80" y="80" width="200" height="200" fill="url(#ti-fold-fade)" />
-          </mask>
-          <mask id="ti-moon-mask">
-            <rect x="0" y="0" width="360" height="360" fill="#000" />
-            <circle cx={polar(74, 296)[0]} cy={polar(74, 296)[1]} r="8.4" fill="#fff" />
-            <circle cx={polar(74, 296)[0] + 4.2} cy={polar(74, 296)[1] - 2} r="7.6" fill="#000" />
-          </mask>
-          <filter id="ti-soft" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="7" />
-          </filter>
-          <filter id="ti-soft-sm" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="2.2" />
-          </filter>
-        </defs>
+    <svg
+      className={`theia-instrument theia-instrument--${state} theia-instrument--tone-${tone} ${className}`.trim()}
+      viewBox="0 0 360 360"
+      fill="none"
+      role="img"
+      aria-label={label || STATE_LABEL[state] || STATE_LABEL.welcome}
+      focusable="false"
+    >
+      {defs}
 
-        <Frame detail={state === 'night' ? 0.5 : 1} />
+      {/* WELCOME: Earthshine crescent — cool reflected light revealing unseen basins & inner gold */}
+      {state === 'welcome' && (
+        <g>
+          <circle cx="180" cy="174" r="146" fill={`url(#${ids.corona})`} className="ti-earthshine-breathe" />
+          <ellipse cx="212" cy="198" rx="92" ry="74" fill="#F2D49B" opacity="0.06" filter={`url(#${ids.softLg})`} />
+          <g fill="#DCE6F5">
+            <circle cx="72" cy="96" r="1.1" opacity="0.34" />
+            <circle cx="294" cy="108" r="0.9" opacity="0.28" />
+            <circle cx="84" cy="252" r="0.9" opacity="0.22" />
+          </g>
+          <LunarSphere
+            ids={ids}
+            cx={180}
+            cy={174}
+            radius={88}
+            tilt={-26}
+            sunPhase={0.11}
+            earthshine={0.54}
+            goldReveal={0.26}
+            mariaStrength={0.38}
+            tone={tone}
+          />
+        </g>
+      )}
 
-        {['welcome', 'night', 'veil', 'sight', 'dawn', 'pulse', 'seal'].includes(state) && (
-          <Disc opacity={state === 'night' ? 0.94 : 1} />
-        )}
+      {/* NIGHT: The whole Moon resting unseen in quiet shadow before reflection */}
+      {state === 'night' && (
+        <g>
+          <circle cx="180" cy="174" r="126" fill="#526585" opacity="0.04" filter={`url(#${ids.softLg})`} />
+          <LunarSphere
+            ids={ids}
+            cx={180}
+            cy={174}
+            radius={90}
+            tilt={-28}
+            sunPhase={0.02}
+            earthshine={0.12}
+            goldReveal={0.03}
+            mariaStrength={0.14}
+            tone={tone}
+          />
+        </g>
+      )}
 
-        {state === 'welcome' && (
+      {/* VEIL (Privacy on paper): Parted twilight shadow opening softly by choice */}
+      {state === 'veil' && (
+        <g>
+          <circle cx="180" cy="178" r="118" fill={`url(#${ids.corona})`} opacity="0.85" />
+          <LunarSphere
+            ids={ids}
+            cx={180}
+            cy={178}
+            radius={74}
+            tilt={-18}
+            sunPhase={0.18}
+            earthshine={0.48}
+            goldReveal={0.36}
+            mariaStrength={0.34}
+            tone={tone}
+          />
+          {/* Soft parted shadow curtains that open gently at the center */}
+          <path
+            d="M54 78Q148 178 54 282L160 282Q144 178 160 78Z"
+            fill={`url(#${ids.veilLeft})`}
+            filter={`url(#${ids.softLg})`}
+          />
+          <path
+            d="M306 78Q212 178 306 282L200 282Q216 178 200 78Z"
+            fill={`url(#${ids.veilRight})`}
+            filter={`url(#${ids.softLg})`}
+          />
+          <path
+            d="M158 96Q144 178 158 260"
+            stroke="#C79A5C"
+            strokeWidth="0.9"
+            opacity="0.34"
+            filter={`url(#${ids.softSm})`}
+          />
+          <path
+            d="M202 96Q216 178 202 260"
+            stroke="#C79A5C"
+            strokeWidth="0.9"
+            opacity="0.34"
+            filter={`url(#${ids.softSm})`}
+          />
+        </g>
+      )}
+
+      {/* SIGHT: Earth's sunlit atmosphere reflecting gentle blue-silver light onto the dark Moon */}
+      {state === 'sight' && (
+        <g>
+          {/* Diffused Earthshine cone traveling from Earth's curved limb up to the Moon */}
+          <path
+            d="M44 268Q114 214 156 122L254 188Q174 264 114 316Z"
+            fill={`url(#${ids.earthBeam})`}
+            filter={`url(#${ids.softLg})`}
+            className="ti-earthshine-breathe"
+          />
+          {/* Distant stars */}
+          <circle cx="96" cy="84" r="1.05" fill="#DCE6F5" opacity="0.34" />
+          <circle cx="302" cy="88" r="0.9" fill="#DCE6F5" opacity="0.26" />
+
+          {/* Moon bathed in reflected Earthlight */}
+          <circle cx="212" cy="134" r="106" fill={`url(#${ids.corona})`} opacity="0.92" />
+          <LunarSphere
+            ids={ids}
+            cx={212}
+            cy={134}
+            radius={68}
+            tilt={-34}
+            sunPhase={0.09}
+            earthshine={0.72}
+            goldReveal={0.44}
+            mariaStrength={0.44}
+            tone={tone}
+          />
+
+          {/* Earth's curved atmospheric horizon in the lower-left foreground */}
           <g>
-            <circle cx={CX} cy={CY} r="140" fill={palette.halo} opacity="0.16" />
-            <Seam from={142} to={212} radius={96} width={2} />
-            <circle cx={CX} cy={CY} r="58" fill={palette.halo} opacity="0.35" />
-            <Star radius={19} />
+            <circle cx="34" cy="482" r="246" fill={`url(#${ids.earthLimb})`} />
+            <path
+              d="M28 286A246 246 0 0 1 208 320"
+              stroke="#BBE0FA"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              opacity="0.58"
+              filter={`url(#${ids.softSm})`}
+            />
+            <path
+              d="M32 284A246 246 0 0 1 198 314"
+              stroke="#E6F4FF"
+              strokeWidth="0.9"
+              strokeLinecap="round"
+              opacity="0.72"
+            />
           </g>
-        )}
+        </g>
+      )}
 
-        {state === 'night' && (
-          <g>
-            <Seam from={200} to={238} radius={96} width={1.1} opacity={0.35} />
-            <circle cx={CX} cy={CY} r="2.4" fill={palette.goldFlat} opacity="0.5" filter={palette.glowFilter} />
-            <Star radius={5.4} opacity={0.33} glow={false} />
+      {/* DAWN: Waning Earthlit crescent suspended peacefully above rising pre-dawn mist */}
+      {state === 'dawn' && (
+        <g>
+          <circle cx="180" cy="140" r="106" fill={`url(#${ids.corona})`} opacity="0.82" />
+          <LunarSphere
+            ids={ids}
+            cx={180}
+            cy={140}
+            radius={62}
+            tilt={154}
+            sunPhase={0.14}
+            earthshine={0.58}
+            goldReveal={0.34}
+            mariaStrength={0.4}
+            tone={tone}
+          />
+          {/* Gradual layers of dawn mist — light arriving without announcement */}
+          <ellipse cx="180" cy="274" rx="148" ry="44" fill={`url(#${ids.dawnMist})`} filter={`url(#${ids.softLg})`} />
+          <ellipse cx="180" cy="264" rx="112" ry="18" fill="#F2D09A" opacity="0.22" filter={`url(#${ids.softLg})`} />
+          <path
+            d="M52 268Q180 258 308 268"
+            stroke="#F6DEC0"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            opacity="0.34"
+            filter={`url(#${ids.softSm})`}
+          />
+        </g>
+      )}
+
+      {/* ORBITS (Three Lights): Helios, Selene, and Eos united by flowing light — no rings */}
+      {state === 'orbits' && (
+        <g>
+          {/* Eos — pale rose-gold dawn lifting gently across the lower horizon */}
+          <ellipse cx="180" cy="284" rx="148" ry="46" fill={`url(#${ids.eos})`} filter={`url(#${ids.softLg})`} />
+          <path
+            d="M58 282Q180 272 302 282"
+            stroke="#ECC5A2"
+            strokeWidth="1.1"
+            strokeLinecap="round"
+            opacity="0.36"
+            filter={`url(#${ids.softSm})`}
+          />
+
+          {/* Helios — diffused solar radiance upper-right casting light toward Selene */}
+          <g className="ti-earthshine-breathe">
+            <circle cx="264" cy="86" r="78" fill={`url(#${ids.helios})`} />
+            <circle cx="264" cy="86" r="13" fill="#FFF4D8" opacity="0.88" filter={`url(#${ids.softSm})`} />
+            <circle cx="264" cy="86" r="6.5" fill="#FFFDF6" opacity="0.96" />
           </g>
-        )}
 
-        {state === 'veil' && (
-          <g clipPath="url(#ti-disc-clip)">
-            {/* A curtain parted at the middle: the opening is chosen, not taken. */}
-            <g mask="url(#ti-fold-fade)">
-              {Array.from({ length: 7 }, (_, i) => {
-                const offset = 16 + i * 17;
-                return [-1, 1].map((side) => (
-                  <path
-                    key={`${side}-${i}`}
-                    d={`M${CX + side * offset} 70 Q${CX + side * (offset + 10)} 180 ${CX + side * offset} 290`}
-                    stroke={palette.rim}
-                    strokeWidth={i % 2 ? 0.7 : 1}
-                    opacity={0.2 - i * 0.014}
-                  />
-                ));
-              })}
+          {/* Subtle diagonal wash of sunlight reaching Selene */}
+          <path
+            d="M254 96L156 174"
+            stroke="#F4D7A2"
+            strokeWidth="48"
+            strokeLinecap="round"
+            opacity="0.06"
+            filter={`url(#${ids.softLg})`}
+          />
+
+          {/* Selene — the Moon catching Helios's crescent while holding Earthshine */}
+          <LunarSphere
+            ids={ids}
+            cx={162}
+            cy={178}
+            radius={54}
+            tilt={-42}
+            sunPhase={0.16}
+            earthshine={0.58}
+            goldReveal={0.34}
+            mariaStrength={0.42}
+            tone={tone}
+          />
+        </g>
+      )}
+
+      {/* PULSE (Checkins on paper): Crescent reflected quietly on still water */}
+      {state === 'pulse' && (
+        <g>
+          <circle cx="180" cy="116" r="78" fill={`url(#${ids.corona})`} opacity="0.72" />
+          <LunarSphere
+            ids={ids}
+            cx={180}
+            cy={116}
+            radius={43}
+            tilt={-22}
+            sunPhase={0.15}
+            earthshine={0.48}
+            goldReveal={0.32}
+            mariaStrength={0.36}
+            tone={tone}
+          />
+
+          {/* Still water horizon */}
+          <path d="M44 196H316" stroke="#8C8375" strokeWidth="0.7" opacity="0.38" />
+          <rect x="34" y="196" width="292" height="122" fill={`url(#${ids.waterPlane})`} />
+
+          {/* Inverted lunar reflection dissolving gently in water */}
+          <g clipPath={`url(#${ids.waterClip})`} opacity="0.34" filter={`url(#${ids.softSm})`}>
+            <g transform="translate(0 392) scale(1 -0.82)">
+              <LunarSphere
+                ids={ids}
+                cx={180}
+                cy={116}
+                radius={43}
+                tilt={-22}
+                sunPhase={0.15}
+                earthshine={0.4}
+                goldReveal={0.25}
+                mariaStrength={0.25}
+                rimHighlight={false}
+                tone={tone}
+              />
             </g>
-            <path d="M180 86 Q199 180 180 274 Q161 180 180 86Z" fill={palette.slit} filter="url(#ti-soft-sm)" />
-            <path d="M180 116 Q188 180 180 244 Q172 180 180 116Z" fill={palette.goldFlat} opacity="0.3" />
-            <Star radius={13} opacity={0.9} glow={false} />
           </g>
-        )}
 
-        {state === 'sight' && (
-          <g>
-            <path d="M112 180Q180 142 248 180Q180 218 112 180Z" stroke={palette.rim} strokeWidth="0.9" opacity="0.45" fill="none" />
-            <path d="M126 180Q180 154 234 180" stroke={palette.rim} strokeWidth="0.6" opacity="0.2" fill="none" />
-            <circle cx={CX} cy={CY} r="26" fill={palette.halo} opacity="0.55" />
-            <circle cx={CX} cy={CY} r="6.4" fill={palette.gold} />
-            <g className="ti-sight-ring">
-              <circle cx={CX} cy={CY} r="17" stroke={palette.rim} strokeWidth="0.6" opacity="0.3" fill="none" />
-            </g>
-            <Star radius={4} opacity={0.9} glow={false} />
-          </g>
-        )}
+          {/* Gentle breathing surface ripples */}
+          <ellipse
+            cx="180"
+            cy="244"
+            rx="44"
+            ry="6"
+            stroke="#A87E45"
+            strokeWidth="0.9"
+            opacity="0.45"
+            className="ti-ripple"
+          />
+          <ellipse
+            cx="180"
+            cy="244"
+            rx="68"
+            ry="9"
+            stroke="#847C70"
+            strokeWidth="0.7"
+            opacity="0.32"
+            className="ti-ripple ti-ripple--late"
+          />
+        </g>
+      )}
 
-        {state === 'dawn' && (
-          <g clipPath="url(#ti-disc-clip)">
-            <ellipse cx={CX} cy="250" rx="126" ry="62" fill={palette.halo} opacity="0.75" />
-            <ellipse cx={CX} cy="246" rx="86" ry="34" fill="url(#ti-dawn)" opacity="0.65" />
-            <Seam from={132} to={318} radius={92} width={1.5} opacity={0.9} />
-            <circle cx={CX} cy={236} r="30" fill={palette.halo} opacity="0.9" />
-            <path d={`M${CX - 30} 238H${CX + 30}`} stroke={palette.bright} strokeWidth="1.4" strokeLinecap="round" opacity="0.8" />
-            <circle cx={CX} cy={238} r="2.6" fill={palette.bright} filter={palette.glowFilter} />
-            <Star radius={11} opacity={0.9} />
-          </g>
-        )}
-
-        {state === 'orbits' && (
-          <g>
-            <circle cx={CX} cy={CY} r="50" stroke={palette.rim} strokeWidth="0.5" opacity="0.2" />
-            <circle cx={CX} cy={CY} r="74" stroke={palette.rim} strokeWidth="0.5" opacity="0.16" />
-            <circle cx={CX} cy={CY} r="104" stroke={palette.rim} strokeWidth="0.5" opacity="0.12" />
-            {/* Helios — the sun: a small disc with a fine corona. */}
-            <g>
-              <circle cx={polar(104, 34)[0]} cy={polar(104, 34)[1]} r="19" fill={palette.halo} />
-              <circle cx={polar(104, 34)[0]} cy={polar(104, 34)[1]} r="6.6" fill={palette.gold} />
-            </g>
-            {/* Selene — the moon: a crescent, the light it borrows. */}
-            <g mask="url(#ti-moon-mask)">
-              <circle cx={polar(74, 296)[0]} cy={polar(74, 296)[1]} r="8.4" fill={palette.goldFlat} opacity="0.9" />
-            </g>
-            {/* Eos — the dawn: a low pale seam where the sun comes back. */}
-            <g>
-              <circle cx={polar(60, 152)[0]} cy={polar(60, 152)[1]} r="16" fill={palette.halo} opacity="0.6" />
-              <path d={`M${polar(60, 152)[0] - 13} ${polar(60, 152)[1]}H${polar(60, 152)[0] + 13}`} stroke="#E7B6A0" strokeWidth="1.5" strokeLinecap="round" opacity="0.9" />
-            </g>
-            <Star radius={8} opacity={0.75} glow={false} />
-          </g>
-        )}
-
-        {state === 'pulse' && (
-          <g>
-            <Seam from={150} to={250} radius={96} width={2} />
-            <circle cx={CX} cy={CY} r="96" stroke={palette.goldFlat} strokeWidth="1" fill="none" opacity="0.55" className="ti-pulse" />
-            <circle cx={CX} cy={CY} r="96" stroke={palette.goldFlat} strokeWidth="1" fill="none" opacity="0.3" className="ti-pulse ti-pulse--late" />
-            <Star radius={14} />
-          </g>
-        )}
-
-        {state === 'seal' && (
-          <g>
-            <circle cx={CX} cy={CY} r="132" stroke={palette.gold} strokeWidth="1.4" opacity="0.7" />
-            <g className="ti-rays">
-              {Array.from({ length: 16 }, (_, i) => {
-                const [x1, y1] = polar(136, i * 22.5);
-                const [x2, y2] = polar(146, i * 22.5);
-                return <line key={i} x1={x1.toFixed(2)} y1={y1.toFixed(2)} x2={x2.toFixed(2)} y2={y2.toFixed(2)} stroke={palette.rim} strokeWidth="0.8" opacity="0.4" />;
-              })}
-            </g>
-            <circle cx={CX} cy={CY} r="96" stroke={palette.gold} strokeWidth="2" fill="none" opacity="0.9" />
-            <circle cx={CX} cy={CY} r="64" fill={palette.halo} opacity="0.5" />
-            <Star radius={23} />
-          </g>
-        )}
-      </svg>
-    </ToneContext.Provider>
+      {/* SEAL (Ready): The exact same Moon, wholly revealed in serene pearl & inner gold */}
+      {state === 'seal' && (
+        <g>
+          <circle cx="180" cy="174" r="148" fill={`url(#${ids.corona})`} opacity="0.95" className="ti-earthshine-breathe" />
+          <circle cx="180" cy="174" r="108" fill="#F2D8A6" opacity="0.16" filter={`url(#${ids.softLg})`} />
+          <LunarSphere
+            ids={ids}
+            cx={180}
+            cy={174}
+            radius={90}
+            tilt={-26}
+            sunPhase={1}
+            earthshine={0.78}
+            goldReveal={0.78}
+            mariaStrength={0.42}
+            rimHighlight={false}
+            tone={tone}
+          />
+          {/* Gentle luminous rim of completion */}
+          <circle
+            cx="180"
+            cy="174"
+            r="90.5"
+            stroke="#F7E5BF"
+            strokeWidth="1.2"
+            opacity="0.64"
+            filter={`url(#${ids.softSm})`}
+          />
+        </g>
+      )}
+    </svg>
   );
 }

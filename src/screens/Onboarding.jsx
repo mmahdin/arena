@@ -3,7 +3,7 @@ import { Check, ChevronLeft, ChevronRight, Flame, Landmark } from 'lucide-react'
 import { AGE_RANGES, APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import { resistVoiceDrag, voiceSwipeTarget } from '../features/onboarding/voiceCarousel';
 import { TheiaMark } from '../components/TheiaBrand';
-import { TheiaInstrument, TheiaSigil } from '../components/TheiaSigil';
+import { LunarSphere, TheiaInstrument, TheiaSigil, useEarthshineDefs } from '../components/TheiaSigil';
 import {
   BackButton,
   ChoiceButton,
@@ -111,7 +111,7 @@ function Welcome({ navigate }) {
     <Shell theme="ink" className="welcome-screen" footer={(
       <Continue onClick={() => nextFrom('welcome', navigate)}>شروع</Continue>
     )}>
-      <Instrument state="welcome" className="ob-art--hero" label="حلقهٔ باز تیا، با ستاره‌ای از سپیده در مرکز" />
+      <Instrument state="welcome" className="ob-art--hero" label="هلال ماه با تابش زمین: بخش تاریک ماه با بازتاب نور زمین به‌آرامی دیده می‌شود" />
       <ObHeader
         epigraph="روشناییِ دوربرد"
         title="تیا را نمی‌بینی؛ با تیا می‌بینی."
@@ -275,7 +275,7 @@ function Privacy({ navigate, back, privacySharing = true, privacyLoading = false
         title="حریم تو، مثل این حلقه است."
         lede="فقط تو تعیین می‌کنی چقدر باز شود. برای اینکه پاسخ‌ها متناسب با تو باشند، گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شوند و اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شود."
       />
-      <Instrument state="veil" tone="paper" className="ob-art--small" label="پرده‌ای که در میانه باز شده و شکافی از نور را نشان می‌دهد" />
+      <Instrument state="veil" tone="paper" className="ob-art--small" label="سایه‌ای که در میانه کنار می‌رود و بخشی از ماه را روشن می‌کند" />
       <button
         type="button"
         className="privacy-card"
@@ -607,48 +607,36 @@ const MOODS = [
 ];
 
 function MoodScribble({ level }) {
-  // A continuous hand-drawn contour evolves from angular and tangled to round.
-  const path = React.useMemo(() => {
-    const points = [];
-    const turns = [9.5, 7.4, 5.0, 3.0, 2.2][level];
-    const count = 430;
-    for (let i = 0; i <= count; i++) {
-      const progress = i / count;
-      const theta = progress * turns * Math.PI * 2;
-      const rough = level <= 1 ? (1 + 0.24 * Math.sin(theta * 2.7) + 0.12 * Math.cos(theta * 4.3)) : 1;
-      const radius = (0.45 + progress * 0.50) * rough;
-      const tilt = level === 4 ? 0.15 : 0.38;
-      const x = 170 + 113 * radius * Math.cos(theta + tilt) + (level === 2 ? 13 * Math.sin(theta * 0.4) : 0);
-      const y = 150 + 105 * radius * Math.sin(theta) + (level === 0 ? 12 * Math.sin(theta * 1.5) : 0);
-      points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`);
-    }
-    return points.join(' ');
-  }, [level]);
-  // The line itself is the illustration: a tangled thread at the hard end of
-  // the scale, a nearly closed ring at the easy end, and a dawn-coloured light
-  // that grows as the contour untangles.
-  const tone = ['#8C94B8', '#B0A0A0', '#D2AE86', '#E3C48C', '#F2C98D'][level];
+  // Five phases of shadow and Earthshine revelation on warm ivory paper:
+  // even at the heaviest moment the Moon remains whole beneath its veil.
+  const { ids, defs } = useEarthshineDefs('ms', 'paper');
+  const sunPhase = [0.02, 0.1, 0.36, 0.72, 1][level];
+  const earthshine = [0.24, 0.36, 0.46, 0.56, 0.68][level];
+  const goldReveal = [0.04, 0.14, 0.28, 0.46, 0.68][level];
+  const mariaStrength = [0.2, 0.28, 0.34, 0.38, 0.42][level];
+  const haloOpacity = [0.16, 0.28, 0.46, 0.68, 0.9][level];
+  const veilOpacity = [0.54, 0.34, 0.16, 0.05, 0][level];
   return (
     <svg className="mood-scribble" viewBox="0 0 340 300" aria-hidden="true" focusable="false">
-      <defs>
-        <linearGradient id="mood-line" x1="40" y1="270" x2="300" y2="40" gradientUnits="userSpaceOnUse">
-          <stop stopColor={tone} stopOpacity="0.55" />
-          <stop offset="0.55" stopColor={tone} />
-          <stop offset="1" stopColor="#F7E7C6" />
-        </linearGradient>
-        <radialGradient id="mood-halo" cx="50%" cy="50%" r="50%">
-          <stop stopColor="#F3D8A3" stopOpacity={0.1 + level * 0.11} />
-          <stop offset="1" stopColor="#F3D8A3" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <circle cx="170" cy="150" r="128" fill="url(#mood-halo)" />
-      <path d={path} fill="none" stroke="url(#mood-line)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-      {level >= 3 && (
-        <path
-          d="M170 137L172.6 144.8L180.4 147.4L172.6 150L170 157.8L167.4 150L159.6 147.4L167.4 144.8L170 137Z"
-          fill={tone}
-          opacity={level === 4 ? '0.95' : '0.5'}
-        />
+      {defs}
+      <circle cx="170" cy="148" r="118" fill={`url(#${ids.corona})`} opacity={haloOpacity} />
+      <LunarSphere
+        ids={ids}
+        cx={170}
+        cy={148}
+        radius={74}
+        tilt={-24}
+        sunPhase={sunPhase}
+        earthshine={earthshine}
+        goldReveal={goldReveal}
+        mariaStrength={mariaStrength}
+        tone="paper"
+      />
+      {veilOpacity > 0 && (
+        <g opacity={veilOpacity} filter={`url(#${ids.softLg})`}>
+          <ellipse cx="154" cy="166" rx="76" ry="30" fill="#2B2C32" opacity="0.58" />
+          <ellipse cx="188" cy="134" rx="64" ry="22" fill="#464A55" opacity="0.38" />
+        </g>
       )}
     </svg>
   );
@@ -692,7 +680,7 @@ function CheckinsScreen({ navigate, back }) {
         title="یادآوری، درست وقتی لازم است."
         lede="تیا می‌تواند گاهی حالت را بپرسد. هر وقت بخواهی می‌توانی یادآوری‌ها را خاموش کنی."
       />
-      <Instrument state="pulse" tone="paper" className="ob-art--small" label="حلقه‌ای که نورش بازمی‌گردد" />
+      <Instrument state="pulse" tone="paper" className="ob-art--small" label="بازتاب آرام هلال ماه در آبِ ساکن" />
     </Shell>
   );
 }
@@ -1036,7 +1024,7 @@ function Ready({ navigate, savingProfile = false }) {
       )}
     >
       <p className="ob-chapter">فصل شش · حلقه</p>
-      <Instrument state="seal" className="ob-art--hero" label="حلقهٔ کامل تیا؛ دایره بسته می‌شود و ستاره در مرکز می‌درخشد" />
+      <Instrument state="seal" className="ob-art--hero" label="آشکارشدن کامل: همان ماهِ همیشگی، این‌بار یکسره دیده و روشن با رگه‌های طلاییِ درونی" />
       <ObHeader
         title="حلقه کامل می‌شود."
         lede="از این‌جا با هم شروع می‌کنیم. پاسخ‌های آشنایی اولیه‌ات ذخیره می‌شوند و برای شخصی‌سازی گفت‌وگو در اختیار سرویس هوش مصنوعی قرار می‌گیرند."

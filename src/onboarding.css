@@ -35,15 +35,38 @@
   color: #efeae1;
 }
 
-/* Dawn at the bottom of night, and a cool lift at the top: depth without noise. */
+/* Earthshine at the upper horizon and subtle warm gold below: depth without noise. */
 .onboarding-screen.ob-ink::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(120% 62% at 50% 108%, rgb(214 165 96 / 12%), transparent 70%),
-    radial-gradient(90% 50% at 50% -6%, rgb(150 168 200 / 7%), transparent 72%);
+    radial-gradient(120% 62% at 50% 108%, rgb(214 165 96 / 10%), transparent 70%),
+    radial-gradient(96% 56% at 44% 24%, rgb(138 172 214 / 8%), transparent 72%);
+}
+
+.onboarding-screen.art-night::before {
+  background:
+    radial-gradient(90% 50% at 50% 34%, rgb(82 104 140 / 5%), transparent 74%);
+}
+
+.onboarding-screen.art-sight::before {
+  background:
+    radial-gradient(110% 64% at 24% 66%, rgb(136 184 222 / 11%), transparent 68%),
+    radial-gradient(90% 50% at 62% 24%, rgb(162 192 226 / 8%), transparent 70%);
+}
+
+.onboarding-screen.art-dawn::before {
+  background:
+    radial-gradient(125% 58% at 50% 96%, rgb(228 172 112 / 14%), transparent 68%),
+    radial-gradient(85% 48% at 50% 22%, rgb(146 174 210 / 7%), transparent 72%);
+}
+
+.onboarding-screen.ready-screen::before {
+  background:
+    radial-gradient(115% 60% at 50% 42%, rgb(228 192 126 / 12%), transparent 66%),
+    radial-gradient(100% 56% at 50% 106%, rgb(214 165 96 / 11%), transparent 70%);
 }
 
 .onboarding-screen.ob-ink::after {
@@ -284,35 +307,26 @@
   to { opacity: 1; transform: none; }
 }
 
-.ti-drift,
-.ti-rays {
+.ti-earthshine-breathe {
   transform-box: view-box;
   transform-origin: center;
+  animation: ob-earthshine-breathe 10s ease-in-out infinite;
 }
-.ti-drift { animation: ob-rotate 260s linear infinite; }
-.ti-rays { animation: ob-rotate 140s linear infinite reverse; }
-@keyframes ob-rotate { to { transform: rotate(360deg); } }
-
-.ti-sight-ring {
-  transform-box: view-box;
-  transform-origin: center;
-  animation: ob-sight 9s ease-in-out infinite;
-}
-@keyframes ob-sight {
-  0%, 100% { transform: scale(0.82); opacity: 0.5; }
-  50% { transform: scale(1.3); opacity: 0.08; }
+@keyframes ob-earthshine-breathe {
+  0%, 100% { transform: scale(0.97); opacity: 0.84; }
+  50% { transform: scale(1.03); opacity: 1; }
 }
 
-.ti-pulse {
+.ti-ripple {
   transform-box: view-box;
   transform-origin: center;
-  animation: ob-pulse 8s cubic-bezier(.2,.6,.3,1) infinite;
+  animation: ob-ripple 8.5s cubic-bezier(.2,.6,.3,1) infinite;
 }
-.ti-pulse--late { animation-delay: 4s; }
-@keyframes ob-pulse {
-  0% { transform: scale(0.9); opacity: 0.5; }
-  60% { opacity: 0; }
-  100% { transform: scale(1.28); opacity: 0; }
+.ti-ripple--late { animation-delay: 4.25s; }
+@keyframes ob-ripple {
+  0% { transform: scaleX(0.86) scaleY(0.86); opacity: 0.52; }
+  65% { opacity: 0.12; }
+  100% { transform: scaleX(1.22) scaleY(1.18); opacity: 0; }
 }
 
 /* The brand mark inside the product keeps its frame geometry. */
@@ -713,10 +727,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .theia-instrument,
-  .ti-drift,
-  .ti-rays,
-  .ti-pulse,
-  .ti-sight-ring {
+  .ti-earthshine-breathe,
+  .ti-ripple {
     animation: none !important;
   }
   .ob-seam i { transition: none; }

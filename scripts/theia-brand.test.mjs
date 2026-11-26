@@ -105,3 +105,16 @@ test('active UI keeps the Theia visual vocabulary', () => {
   assert.ok(activeSource.includes('TheiaSealIcon'));
   assert.ok(activeSource.includes('TheiaLetterEmpty'));
 });
+
+test('onboarding imagery follows Earthshine revelation narrative without generic astrolabe rings', () => {
+  const sigil = read('src/components/TheiaSigil.jsx');
+  const onboarding = read('src/screens/Onboarding.jsx');
+  assert.match(sigil, /function LunarSphere\(/);
+  assert.match(sigil, /LUNAR_MARIA/);
+  assert.match(sigil, /GOLD_VEINS/);
+  assert.match(sigil, /function lunarLitPath\(/);
+  assert.ok(!sigil.includes('ti-ticks'), 'astrolabe ticks should not appear in Earthshine imagery');
+  assert.ok(!sigil.includes('ti-rays'), 'decorative radial rays should not appear in Earthshine imagery');
+  assert.ok(onboarding.includes('useEarthshineDefs') && onboarding.includes('<LunarSphere'));
+});
+
