@@ -2,8 +2,7 @@ import React, { useCallback, useContext, useEffect, useLayoutEffect, useRef, use
 import { Check, ChevronLeft, ChevronRight, Flame, Landmark } from 'lucide-react';
 import { AGE_RANGES, APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import { resistVoiceDrag, voiceSwipeTarget } from '../features/onboarding/voiceCarousel';
-import { TheiaMark } from '../components/TheiaBrand';
-import { TheiaInstrument, TheiaSigil } from '../components/TheiaSigil';
+import { EarthshineGlyph, TheiaInstrument } from '../components/TheiaSigil';
 import {
   BackButton,
   ChoiceButton,
@@ -73,7 +72,7 @@ function Shell({ theme = 'paper', back, children, className = '', footer }) {
       <div className="ob-chrome">
         {back
           ? <BackButton onClick={back} dark={dark} />
-          : <span className="ob-chrome__sigil" aria-hidden="true"><TheiaSigil size={19} /></span>}
+          : <span className="ob-chrome__sigil" aria-hidden="true"><EarthshineGlyph size={19} /></span>}
         <ChapterSeam index={chapterIndexFor(route)} />
         <span className="ob-chrome__tail" aria-hidden="true" />
       </div>
@@ -995,7 +994,7 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
               aria-hidden={index !== active}
               inert={index !== active}
             >
-              <span className="approach-mark" aria-hidden="true"><TheiaMark size={18} /></span>
+              <span className="approach-mark" aria-hidden="true"><EarthshineGlyph size={18} /></span>
               <p className="approach-response">{item.exampleResponse || item.response}</p>
             </article>
           ))}

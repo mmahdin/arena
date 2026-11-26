@@ -1,5 +1,7 @@
 # تیا — Onboarding redesign, 2026-11
 
+> **Update (2026-11-26):** the *imagery* described in §4 and §6 has been superseded by the Earthshine direction — one moon revealed by reflected light, no astrolabe geometry. See `EARTHSHINE_ONBOARDING_2026_11.md`. The six chapters, the narrative table, all copy, routing, server-owned progress, answer handling and the accessibility rules below remain exactly as described. This document is kept as the reasoning behind the structure.
+
 **Scope:** the entire pre-Home journey (26 routes in `FLOW`), plus the sign-in entry
 that precedes it. Routing, server-owned progress, answer storage, and every
 network boundary are unchanged. This document records the identity, the story,
