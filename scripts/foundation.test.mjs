@@ -11,7 +11,11 @@ test('designer routes and visual assets remain present', () => {
   for (const r of ['welcome','privacy','age','therapist','voice','approach','ready','home']) assert.match(data,new RegExp(`'${r}'`));
   assert.match(app,/routeFromHash/);
   assert.match(app,/dir="rtl"/);
-  assert.equal(readdirSync(new URL('public/assets/',root)).length,9);
+  // The Earthshine redesign retired eight raster story images; every onboarding
+  // still is now drawn in SVG by src/components/EarthshineScene.jsx.
+  const assets = readdirSync(new URL('public/assets/',root));
+  assert.equal(assets.length, 1, `unexpected public assets: ${assets.join(', ')}`);
+  assert.ok(assets.includes('checkins-handdrawn.svg'));
 });
 
 test('handoff defines synthetic-only release scope and future API integration', () => {

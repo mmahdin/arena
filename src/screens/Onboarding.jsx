@@ -2,8 +2,9 @@ import React, { useCallback, useContext, useEffect, useLayoutEffect, useRef, use
 import { Check, ChevronLeft, ChevronRight, Flame, Landmark } from 'lucide-react';
 import { AGE_RANGES, APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import { resistVoiceDrag, voiceSwipeTarget } from '../features/onboarding/voiceCarousel';
+import { EarthshineScene, HeldMoonFigure, HeldMoonGlyph, MoonProgress } from '../components/EarthshineScene';
+import { TheiaSigil } from '../components/TheiaSigil';
 import { TheiaMark } from '../components/TheiaBrand';
-import { TheiaInstrument, TheiaSigil } from '../components/TheiaSigil';
 import {
   BackButton,
   ChoiceButton,
@@ -23,11 +24,18 @@ const nextFrom = (route, navigate) => {
 const fa = (value) => Number(value).toLocaleString('fa-IR');
 
 /**
- * The onboarding tells one quiet story: Theia, the faceless Greek Titaness of
- * sight and far-shining light, never appears as a body — only as an open ring,
- * an aperture of light and the horizon it measures. Six chapters carry the
- * metaphor from night to a completed circle; each chapter names the emotional
- * movement ("not knowing is where seeing begins") instead of decorating it.
+ * Earthshine — The Last Hours of the Night.
+ *
+ * The whole onboarding is one pre-dawn, seen from one fixed place under one
+ * moon: a flat roof facing east, a low parapet, a kilim, a cypress beyond the
+ * wall. A thin waning crescent rises only in the last hours before sunrise, so
+ * the entire story fits inside a single night's ending.
+ *
+ * Every scene is the same camera with different light (`EarthshineScene`), and
+ * the story's progress bar is the legibility of the ashen disc — the Earth's
+ * light coming back off the unlit part of the moon. Theia is never drawn: she is
+ * the seeing, the patience of the eye adjusting, the dark that lets faint things
+ * show. Her signature is the earthshine itself.
  */
 const CHAPTERS = [
   { name: 'آغاز', routes: ['welcome', 'privacy'] },
@@ -38,43 +46,90 @@ const CHAPTERS = [
   { name: 'حلقه', routes: ['ready'] },
 ];
 
+/** Which of the eight stills lights each route. */
+const SCENE_FOR_ROUTE = {
+  welcome: 'welcome',
+  privacy: 'privacy',
+  'simple-intro': 'night',
+  name: 'night',
+  age: 'night',
+  identity: 'night',
+  therapist: 'night',
+  'deeper-intro': 'seeing',
+  // the mood screen holds the moon itself at large size, so its backdrop is the
+  // roof with the moon taken out of the sky: two moons would fight
+  mood: 'mood',
+  concerns: 'seeing',
+  focus: 'seeing',
+  feelings: 'seeing',
+  'know-intro': 'dawn',
+  faith: 'dawn',
+  neurodivergent: 'dawn',
+  relationships: 'dawn',
+  interests: 'dawn',
+  strengths: 'dawn',
+  barriers: 'dawn',
+  recharge: 'dawn',
+  'almost-intro': 'three',
+  approach: 'three',
+  voice: 'three',
+  checkins: 'checkins',
+  referral: 'checkins',
+  ready: 'final',
+};
+
 function chapterIndexFor(route) {
   const index = CHAPTERS.findIndex((chapter) => chapter.routes.includes(route));
   return index < 0 ? 0 : index;
 }
 
+function progressFor(route) {
+  const index = FLOW.indexOf(route);
+  if (index < 0) return 0;
+  return Math.max(0.02, Math.min(1, (index + 1) / (FLOW.length - 1)));
+}
+
 const OnboardingRouteContext = React.createContext('welcome');
 
-function ChapterSeam({ index }) {
-  const chapter = CHAPTERS[index];
+/**
+ * The story's progress is the legibility of the ashen disc, not a percentage:
+ * a small moon in the chrome whose unlit half brightens from nearly invisible
+ * to fully readable, with the travelled arc drawn as a single thread of dawn.
+ */
+function StoryProgress({ route }) {
+  const chapter = chapterIndexFor(route);
+  const item = CHAPTERS[chapter];
   return (
-    <div className="ob-seam" role="group" aria-label={`فصل ${chapter.name}`}>
-      {CHAPTERS.map((item, position) => (
-        <i
-          key={item.name}
-          aria-hidden="true"
-          className={position < index ? 'is-past' : position === index ? 'is-now' : ''}
-        />
-      ))}
+    <div className="ob-progress" role="group" aria-label={`فصل ${item.name}`}>
+      <MoonProgress route={route} progress={progressFor(route)} />
+      <span className="ob-progress__chapter">{item.name}</span>
       <span className="sr-only" aria-live="polite">
-        {`فصل ${fa(index + 1)} از ${fa(CHAPTERS.length)}`}
+        {`فصل ${fa(chapter + 1)} از ${fa(CHAPTERS.length)}`}
       </span>
     </div>
   );
 }
 
-function Shell({ theme = 'paper', back, children, className = '', footer }) {
+function Shell({ theme = 'night', back, children, className = '', footer, scene, frame = 'band' }) {
   const route = useContext(OnboardingRouteContext);
-  const dark = theme === 'ink' || theme === 'dark' || theme === 'black';
-  const surface = dark ? 'ink' : 'paper';
+  const night = theme !== 'paper';
+  const still = scene ?? SCENE_FOR_ROUTE[route] ?? 'welcome';
   return (
-    <section className={`app-screen onboarding-screen ob-shell ob-${surface} ${className}`.trim()} data-ob-theme={surface}>
+    <section
+      className={`app-screen onboarding-screen ob-shell ob-${night ? 'night' : 'paper'} ob-frame-${frame} ${className}`.trim()}
+      data-ob-theme={night ? 'night' : 'paper'}
+      data-ob-scene={still}
+    >
+      <div className="ob-world" aria-hidden="true">
+        <EarthshineScene scene={still} />
+      </div>
+      <div className="ob-wash" aria-hidden="true" />
       <StatusBar />
       <div className="ob-chrome">
         {back
-          ? <BackButton onClick={back} dark={dark} />
-          : <span className="ob-chrome__sigil" aria-hidden="true"><TheiaSigil size={19} /></span>}
-        <ChapterSeam index={chapterIndexFor(route)} />
+          ? <BackButton onClick={back} dark={night} />
+          : <span className="ob-chrome__moon" aria-hidden="true"><HeldMoonGlyph size={18} /></span>}
+        <StoryProgress route={route} />
         <span className="ob-chrome__tail" aria-hidden="true" />
       </div>
       <div className="ob-flow">{children}</div>
@@ -94,36 +149,35 @@ function ObHeader({ title, lede, epigraph, align = 'start', className = '' }) {
   );
 }
 
-function Instrument({ state, tone = 'ink', className = '', label }) {
-  return (
-    <div className={`ob-art ${className}`.trim()}>
-      <TheiaInstrument state={state} tone={tone} label={label} />
-    </div>
-  );
-}
-
 function Continue({ children, ...rest }) {
   return <PrimaryButton {...rest}>{children}</PrimaryButton>;
 }
 
+/**
+ * Scene 1 — Welcome. The deepest dark, the crescent low in the east, its ashen
+ * disc almost below the threshold of perception, a kilim that says somebody has
+ * been sitting here. The first emotion must be stillness, not promise.
+ */
 function Welcome({ navigate }) {
   return (
-    <Shell theme="ink" className="welcome-screen" footer={(
+    <Shell theme="night" frame="full" className="welcome-screen" footer={(
       <Continue onClick={() => nextFrom('welcome', navigate)}>شروع</Continue>
     )}>
-      <Instrument state="welcome" className="ob-art--hero" label="حلقهٔ باز تیا، با ستاره‌ای از سپیده در مرکز" />
+      <div className="ob-void" aria-hidden="true" />
       <ObHeader
-        epigraph="روشناییِ دوربرد"
+        className="ob-caption ob-caption--welcome"
+        epigraph="سپیده‌دم، پیش از آن‌که کسی بیدار شود"
         title="تیا را نمی‌بینی؛ با تیا می‌بینی."
-        lede="تیا، الههٔ یونانیِ نور و دیدن، هیچ تصویری از خودش ندارد؛ تنها چیزی که از او مانده روشنایی است. این‌جا هم همین‌طور است: نه یک چهره، بلکه نوری که کمک می‌کند خودت را واضح‌تر ببینی."
+        lede="در اسطوره‌ها، تیا الههٔ نور و دیدن بود. این‌جا چهره‌ای ندارد؛ همراهی است که کمک می‌کند آن‌چه از پیش در توست، روشن‌تر دیده شود."
       />
+      <p className="ob-disclosure">تیا یک همراهِ هوش مصنوعی است، نه درمانگر.</p>
     </Shell>
   );
 }
 
 function Testimonials({ navigate, back }) {
   return (
-    <Shell theme="beige" back={back} className="testimonials-screen scrolling-screen">
+    <Shell theme="paper" frame="sheet" scene="dawn" back={back} className="testimonials-screen scrolling-screen">
       <PageHeader
         title="بقیه دربارهٔ تیا چی می‌گن؟"
         description="نظر کاربران تیا"
@@ -147,7 +201,7 @@ function Testimonials({ navigate, back }) {
 
 function Research({ navigate, back }) {
   return (
-    <Shell theme="dark" back={back} className="research-screen">
+    <Shell theme="night" frame="sheet" scene="three" back={back} className="research-screen">
       <PageHeader
         title="تیا با کمک پژوهش‌های علمی طراحی شده."
         description="پژوهش‌های مرتبط با تیا"
@@ -168,7 +222,7 @@ function Research({ navigate, back }) {
 
 function Experts({ navigate, back }) {
   return (
-    <Shell theme="dark" back={back} className="experts-screen">
+    <Shell theme="night" frame="sheet" scene="three" back={back} className="experts-screen">
       <PageHeader title="با کمک متخصصان" />
       <div className="experts-gallery">
         <article className="expert-card">
@@ -219,30 +273,34 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
   );
 }
 
+/**
+ * The four chapter openings. Each is a still from the same window at a later
+ * hour, and each names one emotional movement rather than describing a scene.
+ */
 const INTERSTITIALS = {
   'simple-intro': {
-    state: 'night',
+    scene: 'night',
     chapter: 'فصل دو · شب',
     title: 'از تاریکی شروع می‌کنیم.',
-    lede: 'نه چون چیزی خراب است؛ چون هر دیدن از ندیدن آغاز می‌شود. این‌جا لازم نیست از قبل بدانی چه چیزی در تو می‌گذرد.',
+    lede: 'نه چون چیزی خراب است؛ چون هر دیدنی از ندیدن شروع می‌شود. لازم نیست از پیش بدانی در تو چه می‌گذرد؛ چشم که عادت کند، چیزها کم‌کم پیدا می‌شوند.',
   },
   'deeper-intro': {
-    state: 'sight',
+    scene: 'seeing',
     chapter: 'فصل سه · دیدن',
-    title: 'تیا نور را نمی‌سازد؛ آن را می‌بیند.',
-    lede: 'پس چیزی به تو اضافه نمی‌کند و چیزی هم از تو نمی‌گیرد. فقط کمک می‌کند آن‌چه هست را واضح‌تر ببینی — حتی وقتی واضح دیدن راحت نیست.',
+    title: 'آن‌چه تاریک به نظر می‌رسد، خالی نیست.',
+    lede: 'بخشِ تاریکِ ماه هم کمی روشن است: نوری که از زمین به آن می‌رسد، به چشم تو برمی‌گردد. تیا چیزی به تو اضافه نمی‌کند و چیزی از تو نمی‌گیرد؛ فقط کمک می‌کند آن‌چه هست واضح‌تر دیده شود، حتی وقتی دیدنش آسان نیست.',
   },
   'know-intro': {
-    state: 'dawn',
+    scene: 'dawn',
     chapter: 'فصل چهار · سپیده',
     title: 'سپیده یک‌باره نمی‌آید.',
-    lede: 'کم‌کم روشن می‌شود، آن‌قدر آرام که اول متوجهش نمی‌شوی. حال آدم هم همین‌طور عوض می‌شود.',
+    lede: 'کم‌کم روشن می‌شود، آن‌قدر آرام که اول متوجهش نمی‌شوی. گاهی نوری می‌آید و دوباره پس می‌رود؛ آن هم بخشی از راه است. حال آدم هم اغلب همین‌طور عوض می‌شود.',
   },
   'almost-intro': {
-    state: 'orbits',
+    scene: 'three',
     chapter: 'فصل پنج · سه نور',
-    title: 'خورشید، ماه، سپیده.',
-    lede: 'هر سه فرزندان تیا بودند؛ سه حالتِ نور، و هیچ‌کدام همیشگی نبود. حال تو هم همین‌طور است: می‌آید و می‌رود و هیچ‌کدام تمامِ تو نیست.',
+    title: 'سه نور؛ و هیچ‌کدام همیشگی نیست.',
+    lede: 'خورشید، ماه و سپیده، هر سه فرزندانِ تیا بودند: سه حالتِ یک نور. حال‌های تو هم همین‌طورند: می‌آیند و می‌روند، و هیچ‌کدام تمامِ تو نیست.',
   },
 };
 
@@ -250,32 +308,42 @@ function Interstitial({ route, navigate, back }) {
   const item = INTERSTITIALS[route];
   return (
     <Shell
-      theme="ink"
+      theme="night"
+      frame="hero"
       back={back}
-      className={`interstitial-screen art-${item.state}`}
+      scene={item.scene}
+      className={`interstitial-screen scene-${item.scene}`}
       footer={<Continue onClick={() => nextFrom(route, navigate)}>ادامه</Continue>}
     >
       <p className="ob-chapter">{item.chapter}</p>
-      <Instrument state={item.state} className="ob-art--hero" />
-      <ObHeader title={item.title} lede={item.lede} />
+      <div className="ob-void" aria-hidden="true" />
+      <ObHeader className="ob-caption" title={item.title} lede={item.lede} />
     </Shell>
   );
 }
 
+/**
+ * Scene 2 — Privacy. The same sky, now through a window with two shutter leaves
+ * and a gap between them that is exactly as wide as the user chooses. A window,
+ * not a vault: you choose what passes through, and the screen says plainly where
+ * the data actually goes.
+ */
 function Privacy({ navigate, back, privacySharing = true, privacyLoading = false, privacySaving = false,
   privacyLoaded = false, privacyError = false, onTogglePrivacy, onRetryPrivacy }) {
   const sharing = privacySharing;
   return (
     <Shell
+      theme="night"
+      frame="sheet"
       back={back}
       className="privacy-screen"
       footer={<Continue onClick={() => nextFrom('privacy', navigate)}>ادامه</Continue>}
     >
       <ObHeader
-        title="حریم تو، مثل این حلقه است."
-        lede="فقط تو تعیین می‌کنی چقدر باز شود. برای اینکه پاسخ‌ها متناسب با تو باشند، گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شوند و اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شود."
+        className="ob-caption"
+        title="چه‌قدر بگویی، انتخاب توست."
+        lede="فقط تو تعیین می‌کنی چه‌قدر از خودت بگویی. برای اینکه پاسخ‌ها به تو نزدیک‌تر باشند، گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شوند و اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شود."
       />
-      <Instrument state="veil" tone="paper" className="ob-art--small" label="پرده‌ای که در میانه باز شده و شکافی از نور را نشان می‌دهد" />
       <button
         type="button"
         className="privacy-card"
@@ -595,9 +663,17 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
   );
 }
 
-// Deliberately drawn as native SVG, not screenshots, so it stays sharp and
-// changes smoothly at all five mood positions. Direction follows the reference:
-// left is struggling and right is generally good, regardless of page RTL.
+/**
+ * Mood is shown as terrain, not a switch: the Moon's named seas as a small map
+ * of the inner weather. The same five positions as before, the same answer, the
+ * same slider semantics — only the picture changed from an abstract scribble to
+ * the moon the whole story has been about.
+ */
+/**
+ * The five answers, and the sea each one moves to. The order is the order of the
+ * slider and of the seas themselves — crises, cold, clouds, tranquility, serenity
+ * — so the light always travels in the direction the answer does.
+ */
 const MOODS = [
   { label: 'این روزها سخت می‌گذرد', note: 'لازم نیست توضیح بدهی. از همین‌جا شروع می‌کنیم.' },
   { label: 'انرژی زیادی ندارم', note: 'با چیزهای کوچک شروع می‌کنیم؛ لازم نیست بزرگ باشد.' },
@@ -606,51 +682,84 @@ const MOODS = [
   { label: 'در کل حالم خوب است', note: 'خوب است. بگذار بیشتر بشناسیمش.' },
 ];
 
-function MoodScribble({ level }) {
-  // A continuous hand-drawn contour evolves from angular and tangled to round.
-  const path = React.useMemo(() => {
-    const points = [];
-    const turns = [9.5, 7.4, 5.0, 3.0, 2.2][level];
-    const count = 430;
-    for (let i = 0; i <= count; i++) {
-      const progress = i / count;
-      const theta = progress * turns * Math.PI * 2;
-      const rough = level <= 1 ? (1 + 0.24 * Math.sin(theta * 2.7) + 0.12 * Math.cos(theta * 4.3)) : 1;
-      const radius = (0.45 + progress * 0.50) * rough;
-      const tilt = level === 4 ? 0.15 : 0.38;
-      const x = 170 + 113 * radius * Math.cos(theta + tilt) + (level === 2 ? 13 * Math.sin(theta * 0.4) : 0);
-      const y = 150 + 105 * radius * Math.sin(theta) + (level === 0 ? 12 * Math.sin(theta * 1.5) : 0);
-      points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`);
-    }
-    return points.join(' ');
-  }, [level]);
-  // The line itself is the illustration: a tangled thread at the hard end of
-  // the scale, a nearly closed ring at the easy end, and a dawn-coloured light
-  // that grows as the contour untangles.
-  const tone = ['#8C94B8', '#B0A0A0', '#D2AE86', '#E3C48C', '#F2C98D'][level];
+/**
+ * The five seas of the held moon (دریاهای ماه), which the story has already named:
+ * Crises, Cold, Clouds, Tranquility and Serenity. The slider moves between them,
+ * so the answer is a place on the moon rather than a number — and the ashen disc
+ * brightens as the answer does, exactly like the progress bar across the journey.
+ * Positions are (x, y) in disc radii; the drawing is the real maria, in the same
+ * blue-grey as the still behind it.
+ */
+const MOOD_SEAS = [
+  {
+    key: 'crises', name: 'دریای بحران‌ها', x: 0.34, y: -0.42, rx: 0.34, ry: 0.26,
+    aria: 'دریای بحران‌ها؛ جای طوفان‌ها و تنگه‌ها',
+  },
+  {
+    key: 'cold', name: 'دریای سرما', x: -0.44, y: -0.34, rx: 0.4, ry: 0.28,
+    aria: 'دریای سرما؛ سمت سرد و آرام ماه',
+  },
+  {
+    key: 'clouds', name: 'دریای ابرها', x: 0.16, y: 0.46, rx: 0.36, ry: 0.2,
+    aria: 'دریای ابرها؛ جایی که هوا روی هم می‌نشیند',
+  },
+  {
+    key: 'tranquility', name: 'دریای آرامش', x: 0.46, y: 0.04, rx: 0.44, ry: 0.4,
+    aria: 'دریای آرامش؛ دشت بزرگ و باز ماه',
+  },
+  {
+    key: 'serenity', name: 'دریای آسودگی', x: -0.16, y: -0.06, rx: 0.5, ry: 0.34,
+    aria: 'دریای آسودگی؛ بخش روشن و هموار ماه',
+  },
+];
+
+/**
+ * A sea is a lobed lava plain, not an ellipse. The outline is a closed spline
+ * through 14 points whose radii wobble on two frequencies, so the shape has bays
+ * and headlands the way the real maria do — and no shape ever repeats.
+ */
+function seaPath(x, y, rx, ry, seed = 1) {
+  const wobble = (k) => 1 + Math.sin(seed * 3.7 + k * 1.9) * 0.13 + Math.sin(seed * 7.1 + k * 4.3) * 0.07;
+  const N = 14;
+  const pts = Array.from({ length: N }, (_, i) => {
+    const a = (i / N) * Math.PI * 2;
+    const k = wobble(i);
+    return [x + Math.cos(a) * rx * k, y + Math.sin(a) * ry * k];
+  });
+  // Catmull–Rom through the points, rendered as cubic Béziers
+  const at = (i) => pts[(i + N) % N];
+  let d = `M${at(0)[0].toFixed(2)} ${at(0)[1].toFixed(2)}`;
+  for (let i = 0; i < N; i += 1) {
+    const p0 = at(i - 1);
+    const p1 = at(i);
+    const p2 = at(i + 1);
+    const p3 = at(i + 2);
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += `C${c1[0].toFixed(2)} ${c1[1].toFixed(2)} ${c2[0].toFixed(2)} ${c2[1].toFixed(2)} ${p2[0].toFixed(2)} ${p2[1].toFixed(2)}`;
+  }
+  return `${d}Z`;
+}
+
+function MoodMoon({ level }) {
+  // The same moon as the still behind the screen — same geometry, same palette —
+  // and only the disc's legibility changes with the answer.
+  const ash = 0.24 + level * 0.19;         // 0.24 → 1.0, the shared scale
+  const R = 96;
+  const active = MOOD_SEAS[level];
+  const activeIndex = level;
+  const seas = MOOD_SEAS.map((sea, index) => ({
+    key: sea.key,
+    d: seaPath(sea.x * R, sea.y * R, sea.rx * R, sea.ry * R, index + 3),
+  }));
   return (
-    <svg className="mood-scribble" viewBox="0 0 340 300" aria-hidden="true" focusable="false">
-      <defs>
-        <linearGradient id="mood-line" x1="40" y1="270" x2="300" y2="40" gradientUnits="userSpaceOnUse">
-          <stop stopColor={tone} stopOpacity="0.55" />
-          <stop offset="0.55" stopColor={tone} />
-          <stop offset="1" stopColor="#F7E7C6" />
-        </linearGradient>
-        <radialGradient id="mood-halo" cx="50%" cy="50%" r="50%">
-          <stop stopColor="#F3D8A3" stopOpacity={0.1 + level * 0.11} />
-          <stop offset="1" stopColor="#F3D8A3" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <circle cx="170" cy="150" r="128" fill="url(#mood-halo)" />
-      <path d={path} fill="none" stroke="url(#mood-line)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-      {level >= 3 && (
-        <path
-          d="M170 137L172.6 144.8L180.4 147.4L172.6 150L170 157.8L167.4 150L159.6 147.4L167.4 144.8L170 137Z"
-          fill={tone}
-          opacity={level === 4 ? '0.95' : '0.5'}
-        />
-      )}
-    </svg>
+    <HeldMoonFigure
+      className="mood-moon"
+      ash={ash}
+      seas={seas}
+      activeIndex={activeIndex}
+      label={`ماهِ در آغوش؛ جای این روزهای تو: ${active.name}. ${active.aria}`}
+    />
   );
 }
 
@@ -658,15 +767,22 @@ function MoodScreen({ navigate, back, answers, setAnswer }) {
   const mood = Number.isInteger(answers.mood) && answers.mood >= 0 && answers.mood <= 4 ? answers.mood : 2;
   return (
     <Shell
+      theme="night"
+      frame="sheet"
+      scene="mood"
       back={back}
       className="mood-screen"
       footer={<Continue onClick={() => { setAnswer('mood', mood); nextFrom('mood', navigate); }}>ادامه</Continue>}
     >
-      <ObHeader title="این روزها چه حالی داری؟" lede="نوار را بکش تا نزدیک‌ترین حالت را پیدا کنی؛ لازم نیست دقیق باشد." />
+      <ObHeader
+        className="mood-head"
+        title="این روزها چه حالی داری؟"
+        lede="نوار را بکش تا نزدیک‌ترین حالت را پیدا کنی؛ لازم نیست دقیق باشد."
+      />
       <div className="mood-stage">
-        <div className="mood-glow" data-mood-level={mood} aria-hidden="true" />
-        <MoodScribble level={mood} />
+        <MoodMoon level={mood} />
         <h2 aria-live="polite">{MOODS[mood].label}</h2>
+        <p className="mood-sea-name" aria-hidden="true">{MOOD_SEAS[mood].name}</p>
         <div className="mood-slider-wrap" dir="ltr">
           <div className="mood-ticks" aria-hidden="true">
             {MOODS.map((item, index) => <i key={index} style={{ '--tick-index': index }} className={index === mood ? 'is-active' : ''} />)}
@@ -684,15 +800,19 @@ function MoodScreen({ navigate, back, answers, setAnswer }) {
 function CheckinsScreen({ navigate, back }) {
   return (
     <Shell
+      theme="night"
+      frame="band"
+      scene="checkins"
       back={back}
       className="checkins-screen"
       footer={<Continue onClick={() => nextFrom('checkins', navigate)}>ادامه</Continue>}
     >
+      <div className="ob-void" aria-hidden="true" />
       <ObHeader
-        title="یادآوری، درست وقتی لازم است."
-        lede="تیا می‌تواند گاهی حالت را بپرسد. هر وقت بخواهی می‌توانی یادآوری‌ها را خاموش کنی."
+        className="ob-caption"
+        title="اگر بخواهی، چراغ روشن می‌ماند."
+        lede="تیا می‌تواند گاهی سراغ حالت را بگیرد، بی‌اصرار. هر وقت بخواهی می‌توانی یادآوری‌ها را خاموش کنی."
       />
-      <Instrument state="pulse" tone="paper" className="ob-art--small" label="حلقه‌ای که نورش بازمی‌گردد" />
     </Shell>
   );
 }
@@ -827,7 +947,9 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
 
   return (
     <Shell
-      theme="ink"
+      theme="night"
+      frame="band"
+      scene="three"
       back={back}
       className="voice-screen"
       footer={(
@@ -937,7 +1059,7 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
   };
 
   return (
-    <Shell theme="ink" back={back} className="approach-screen">
+    <Shell theme="night" frame="sheet" scene="three" back={back} className="approach-screen">
       <ObHeader title="چطور با تو حرف بزنم؟" lede="لحن تیا را انتخاب کن؛ این‌ها فقط نمونه‌اند و چیزی فرستاده نمی‌شود." />
       <div
         className="approach-stage"
@@ -1024,10 +1146,18 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
   );
 }
 
+/**
+ * Scene 8 — the ring closes. The welcome frame again, now at first light: the
+ * sun's ray reaches the kilim where somebody was sitting, the stair door stands
+ * open, and the moon is still there, because the moon does not leave when the
+ * day comes.
+ */
 function Ready({ navigate, savingProfile = false }) {
   return (
     <Shell
-      theme="ink"
+      theme="night"
+      frame="full"
+      scene="final"
       className="ready-screen"
       footer={(
         <Continue disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>
@@ -1035,11 +1165,12 @@ function Ready({ navigate, savingProfile = false }) {
         </Continue>
       )}
     >
-      <p className="ob-chapter">فصل شش · حلقه</p>
-      <Instrument state="seal" className="ob-art--hero" label="حلقهٔ کامل تیا؛ دایره بسته می‌شود و ستاره در مرکز می‌درخشد" />
+      <div className="ob-void" aria-hidden="true" />
+      <p className="ob-chapter">فصل شش · آغاز مسیر</p>
       <ObHeader
-        title="حلقه کامل می‌شود."
-        lede="از این‌جا با هم شروع می‌کنیم. پاسخ‌های آشنایی اولیه‌ات ذخیره می‌شوند و برای شخصی‌سازی گفت‌وگو در اختیار سرویس هوش مصنوعی قرار می‌گیرند."
+        className="ob-caption ob-caption--ready"
+        title="از این‌جا شروع می‌کنیم."
+        lede="آسمان همان است؛ فقط چشمت عادت کرده. پاسخ‌های آشنایی اولیه‌ات ذخیره می‌شوند و برای شخصی‌سازی گفت‌وگو در اختیار سرویس هوش مصنوعی قرار می‌گیرند."
       />
     </Shell>
   );

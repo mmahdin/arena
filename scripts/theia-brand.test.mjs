@@ -41,15 +41,27 @@ test('the open-ring mark is the only Theia identity in the UI', () => {
   for (const retired of ['photo_2026-11-12_19-20-10.jpg', 'theia-welcome.png', 'theia-story-1.png', 'theia-story-2.png', 'theia-story-3.png', 'theia-story-4.png', 'theia-privacy.png', 'theia-ready.png', 'theia-checkins.png']) {
     assert.ok(!active.includes(retired), `Retired female figure still referenced: ${retired}`);
   }
-  // No illustration may depict a person: the story is told by the instrument.
+  // No illustration may depict a person. Since the Earthshine redesign the story
+  // is told by one drawn place — the roof, the sky, and the held moon — and Theia
+  // is the seeing, never a figure. The moon mark is the only identity in the UI.
   const onboarding = read('src/screens/Onboarding.jsx');
-  assert.match(onboarding, /<TheiaInstrument state=\{state\} tone=\{tone\}/);
-  for (const state of ['night', 'sight', 'dawn', 'orbits', 'veil', 'pulse', 'seal']) {
-    assert.ok(onboarding.includes(`state="${state}"`) || onboarding.includes(`state: '${state}'`), `Missing instrument state ${state}`);
+  const scene = read('src/components/EarthshineScene.jsx');
+  assert.match(onboarding, /<EarthshineScene scene=\{still\}/);
+  assert.match(onboarding, /data-ob-scene=\{still\}/);
+  assert.match(scene, /export function EarthshineScene/);
+  assert.match(scene, /export function MoonProgress/);
+  assert.match(scene, /export function HeldMoonGlyph/);
+  // all eight stills, and the route table that lights them
+  for (const still of ['welcome', 'privacy', 'night', 'seeing', 'dawn', 'three', 'checkins', 'final']) {
+    assert.ok(scene.includes(`${still}:`) || scene.includes(`scene = '${still}'`) || scene.includes(`${still}: {`), `Missing still ${still}`);
+    assert.ok(onboarding.includes(`'${still}'`) || onboarding.includes(`= '${still}'`), `Route table does not reference still ${still}`);
   }
   // Only the two legacy expert portraits (outside the active flow) remain raster;
-  // every Theia story screen is drawn by the instrument.
+  // every Theia story screen is drawn.
   assert.equal((onboarding.match(/<img/g) || []).length, 2, 'Theia story screens must stay vector-only');
+  // Theia is never drawn: the stills are pure vector, with no photograph or
+  // raster image anywhere in the world.
+  assert.doesNotMatch(scene, /<img|<image/);
 });
 
 test('HTML head, manifest and entry copy reflect the Persian RTL Theia (تیا) brand', () => {
@@ -80,10 +92,13 @@ test('HTML head, manifest and entry copy reflect the Persian RTL Theia (تیا) 
   assert.match(devLogin, /به تیا خوش آمدی/);
   assert.match(data, /چطور با تیا آشنا شدی؟/);
 
-  // The four story chapters are wired in sequence through the shared instrument.
-  for (const state of ['night', 'sight', 'dawn', 'orbits']) {
-    assert.ok(onboarding.includes(`state: '${state}'`), `Onboarding missing ${state} chapter`);
+  // The four story chapters are wired in sequence onto the one still world:
+  // night → seeing → dawn → three lights, in that order, each in its own chapter.
+  for (const sceneKey of ["scene: 'night'", "scene: 'seeing'", "scene: 'dawn'", "scene: 'three'"]) {
+    assert.ok(onboarding.includes(sceneKey), `Onboarding missing ${sceneKey} chapter`);
   }
+  const order = ['night', 'seeing', 'dawn', 'three'].map((k) => onboarding.indexOf(`scene: '${k}'`));
+  assert.deepEqual(order, [...order].sort((a, b) => a - b), 'Chapters must run night → seeing → dawn → three');
 });
 
 test('active UI keeps the Theia visual vocabulary', () => {
