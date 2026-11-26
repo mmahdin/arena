@@ -9,6 +9,9 @@
 | `src/components/UI.jsx` | Original buttons, icons, illustrations, lettering, artwork | Reuse existing primitives |
 | `src/data.js` | `FLOW`, question/voice/approach options, reviews and sample messages | DEMO data, not verified facts or server truth |
 | `src/styles.css` | Responsive mobile shell, theme/color tokens, visual treatment | Source of truth for visual system |
+| `src/onboarding.css` | Earthshine onboarding sheet: per-scene sky tones, night/day control tokens, Moon and window styling | Onboarding visual layer, loaded after `styles.css` |
+| `src/components/TheiaSky.jsx` | The Moon and the eight skies as hand-authored SVG | Onboarding art |
+| `src/features/onboarding/earthshine.js` | Scene routes, copy and art-direction values | Onboarding story data |
 | `public/assets/` | 9 floral/portrait PNG/JPG assets | Preserve intact; names/persona credentials need copy review |
 | `vite.config.js` | React/Vite dev/preview config, localhost API proxy (handoff addition) | Do not expose local API to LAN |
 | `contracts/openapi/` | Task07-derived backend contract snapshot | Sync from actual server before wire-up |

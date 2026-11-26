@@ -222,7 +222,7 @@ export default function App() {
   useEffect(() => {
     if (!active) return;
     window.scrollTo(0, 0);
-    document.documentElement.style.colorScheme = ['home', 'survey', 'day', 'letter', 'history', 'saved', 'settings', 'menu', 'chat', 'insight', 'research', 'experts', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro', 'voice'].includes(route) ? 'dark' : 'light';
+    document.documentElement.style.colorScheme = ['home', 'survey', 'day', 'letter', 'history', 'saved', 'settings', 'menu', 'chat', 'insight', 'research', 'experts', 'welcome', 'privacy', 'simple-intro', 'name', 'age', 'identity', 'therapist', 'deeper-intro', 'mood', 'concerns', 'focus', 'feelings', 'know-intro', 'faith', 'neurodivergent', 'relationships', 'interests', 'strengths', 'barriers', 'recharge'].includes(route) ? 'dark' : 'light';
   }, [active, route]);
 
   // Keep the mobile composer above the visual viewport when the keyboard opens.

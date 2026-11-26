@@ -1,3 +1,34 @@
+## 2026-11-26 — Earthshine onboarding (one sky, the Moon)
+
+The eight onboarding scenes were rebuilt as one continuous sky: the Moon is the
+only subject, the unlit (earthlit) part of the disc is the only variable that
+progresses, and warmth is rationed until scenes 6–8. All 26 onboarding routes,
+their questions, local answers, routing order and backend calls are unchanged;
+only art, copy and layout moved. See
+[the art direction](docs/design/EARTHSHINE_2026_11.md).
+
+- **PASSED:** `npm test` — 122/122, including the new `scripts/earthshine.test.mjs`
+  (scene table, route coverage, honesty guardrails, `aria-hidden` sky, grain, no
+  glow filters, no crescent-and-star emblem) and the updated screen-transition,
+  brand and foundation guards.
+- **PASSED:** `npm run build` (Vite, 2.5 s). `git diff --check` clean.
+- **PASSED (structural):** server-render smoke of all 26 onboarding routes —
+  every scene renders, `data-scene`/`data-tone` match the scene table, no
+  missing-module or SSR errors; `age` (previously undefined `AGE_FALLBACK`) now
+  renders.
+- **PASSED (approximate):** off-browser rasterisation of scenes 1/3/4/5/6/7/8 via
+  `/tmp/vis` (esbuild + `@resvg/resvg-js`) with pixel probes for sky-vs-disc
+  values; used to fix moon geometry, maria, day-sky silhouette palette and halo
+  placement. This check is discarded tooling, not shipped.
+- **BLOCKED:** automated browser screenshots — `npx playwright install chromium`
+  cannot download in this sandbox. Final visual QA is manual in the running
+  preview (`npm run preview:theia`).
+- **FAILED (existing, environmental):** `npm run check:foundation` — `ENOENT`
+  on `.agents/skills`; unrelated to this change.
+- **NOT RUN:** live Go/MSSQL/OpenAI E2E, real-device verification, and a
+  physical-device keyboard pass. No backend, API or data-collection change was
+  made for this work.
+
 ## 2026-11-12 — User-selected logo
 
 The official logo is now `public/brand/photo_2026-11-12_19-20-10.jpg`.

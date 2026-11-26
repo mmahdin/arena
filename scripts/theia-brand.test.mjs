@@ -25,15 +25,22 @@ test('faceless Theia identity assets, app icons and manifest exist', () => {
   }
 });
 
-test('the open-ring mark is the only Theia identity in the UI', () => {
+test('the faceless identity: ring brand mark, Moon story art, no figure anywhere', () => {
   const brand = read('src/components/TheiaBrand.jsx');
   const sigil = read('src/components/TheiaSigil.jsx');
+  const onboarding = read('src/screens/Onboarding.jsx');
+  const sky = read('src/components/TheiaSky.jsx');
   assert.match(brand, /THEIA_LOGO_SRC = '\/brand\/theia-sigil\.svg'/);
   assert.match(sigil, /openRing/);
-  assert.match(sigil, /State|STATE_LABEL/);
+  // The 2026-11 Earthshine pass retires the ring/aperture instrument from the
+  // story: the Moon is the only subject of the onboarding artwork now.
+  assert.ok(!sigil.includes('TheiaInstrument'), 'the ring instrument is retired');
+  assert.ok(!onboarding.includes('TheiaInstrument'), 'onboarding artwork must be the Moon, not the ring');
+  assert.match(onboarding, /<TheiaSky scene=\{scene\}>/);
+  assert.match(sky, /export function TheiaMoon/);
   const active = [
     read('src/components/UI.jsx'),
-    read('src/screens/Onboarding.jsx'),
+    onboarding,
     read('src/screens/Main.jsx'),
     read('src/screens/Letters.jsx'),
     read('src/features/devsession/DevLogin.jsx'),
@@ -41,14 +48,7 @@ test('the open-ring mark is the only Theia identity in the UI', () => {
   for (const retired of ['photo_2026-11-12_19-20-10.jpg', 'theia-welcome.png', 'theia-story-1.png', 'theia-story-2.png', 'theia-story-3.png', 'theia-story-4.png', 'theia-privacy.png', 'theia-ready.png', 'theia-checkins.png']) {
     assert.ok(!active.includes(retired), `Retired female figure still referenced: ${retired}`);
   }
-  // No illustration may depict a person: the story is told by the instrument.
-  const onboarding = read('src/screens/Onboarding.jsx');
-  assert.match(onboarding, /<TheiaInstrument state=\{state\} tone=\{tone\}/);
-  for (const state of ['night', 'sight', 'dawn', 'orbits', 'veil', 'pulse', 'seal']) {
-    assert.ok(onboarding.includes(`state="${state}"`) || onboarding.includes(`state: '${state}'`), `Missing instrument state ${state}`);
-  }
-  // Only the two legacy expert portraits (outside the active flow) remain raster;
-  // every Theia story screen is drawn by the instrument.
+  // No illustration may depict a person: the story is told by the sky.
   assert.equal((onboarding.match(/<img/g) || []).length, 2, 'Theia story screens must stay vector-only');
 });
 
@@ -69,21 +69,24 @@ test('HTML head, manifest and entry copy reflect the Persian RTL Theia (تیا) 
   assert.equal(manifest.background_color, '#0A0B0D');
 
   const onboarding = read('src/screens/Onboarding.jsx');
+  const story = read('src/features/onboarding/earthshine.js');
   const main = read('src/screens/Main.jsx');
   const letters = read('src/screens/Letters.jsx');
   const devLogin = read('src/features/devsession/DevLogin.jsx');
   const data = read('src/data.js');
 
-  assert.match(onboarding, /تیا را نمی‌بینی؛ با تیا می‌بینی/);
+  assert.match(story, /تیا را نمی‌بینی؛ با تیا می‌بینی/);
+  assert.match(onboarding, /AI_TRANSPARENCY/);
   assert.match(main, /نامه‌های تیا/);
   assert.match(letters, /نامه‌های تیا/);
   assert.match(devLogin, /به تیا خوش آمدی/);
   assert.match(data, /چطور با تیا آشنا شدی؟/);
 
-  // The four story chapters are wired in sequence through the shared instrument.
-  for (const state of ['night', 'sight', 'dawn', 'orbits']) {
-    assert.ok(onboarding.includes(`state: '${state}'`), `Onboarding missing ${state} chapter`);
+  // The eight scenes are wired in sequence through one sky.
+  for (const name of ['آغاز', 'حریم خصوصی', 'شب', 'دیدن', 'سپیده', 'سه نور', 'یادآوری', 'آغاز مسیر']) {
+    assert.ok(story.includes(`name: '${name}'`), `Missing scene ${name}`);
   }
+  assert.match(onboarding, /SCENE_COUNT/);
 });
 
 test('active UI keeps the Theia visual vocabulary', () => {
