@@ -1907,3 +1907,21 @@ svg { flex-shrink: 0; }
   opacity: .85;
 }
 
+
+/* Theia onboarding: light as a metaphor for attention, not a character. */
+.theia-story {
+  display: grid; place-items: center; position: relative; width: min(100%, 360px);
+  margin-inline: auto; color: #d9c8b0; isolation: isolate;
+}
+.theia-story svg { display: block; width: 100%; height: auto; overflow: visible; }
+.theia-story-caption {
+  margin-top: -13px; color: #b9a891; font-size: 12px; letter-spacing: .08em;
+  text-align: center; opacity: .86;
+}
+.theia-story circle, .theia-story path, .theia-story ellipse { transition: stroke-opacity .7s ease, fill-opacity .7s ease; }
+.welcome-artwork { width: min(76vw, 340px); margin: 24px auto 15px; }
+.interstitial-artwork { position: absolute; inset: 29% 0 auto; width: min(78vw, 330px); margin: auto; }
+.privacy-artwork { position: absolute; width: min(42vw, 170px); top: 56%; left: 50%; transform: translate(-50%,-50%); }
+.checkins-artwork, .ready-artwork { width: min(74vw, 330px); margin: 20px auto; }
+.theme-dark .theia-story-caption { color: #c5b49e; }
+@media (prefers-reduced-motion: reduce) { .theia-story * { transition: none !important; } }
