@@ -203,7 +203,6 @@ const targets = [
   ['public/brand/theia-sigil-192.png', 192],
   ['public/brand/theia-sigil-512.png', 512],
   ['public/apple-touch-icon.png', 180],
-  ['public/brand/theia-sigil-1024.png', 1024],
 ];
 
 for (const [path, size] of targets) {
