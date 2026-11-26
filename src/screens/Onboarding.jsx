@@ -3,7 +3,15 @@ import { Check, ChevronLeft, ChevronRight, Flame, Landmark } from 'lucide-react'
 import { AGE_RANGES, APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import { resistVoiceDrag, voiceSwipeTarget } from '../features/onboarding/voiceCarousel';
 import { TheiaMark } from '../components/TheiaBrand';
-import { TheiaInstrument, TheiaSigil } from '../components/TheiaSigil';
+import { TheiaSky } from '../components/TheiaSky';
+import {
+  AI_TRANSPARENCY,
+  APERTURE_NOTE,
+  SCENES,
+  SCENE_COUNT,
+  sceneById,
+  sceneForRoute,
+} from '../features/onboarding/earthshine';
 import {
   BackButton,
   ChoiceButton,
@@ -23,83 +31,110 @@ const nextFrom = (route, navigate) => {
 const fa = (value) => Number(value).toLocaleString('fa-IR');
 
 /**
- * The onboarding tells one quiet story: Theia, the faceless Greek Titaness of
- * sight and far-shining light, never appears as a body — only as an open ring,
- * an aperture of light and the horizon it measures. Six chapters carry the
- * metaphor from night to a completed circle; each chapter names the emotional
- * movement ("not knowing is where seeing begins") instead of decorating it.
+ * Earthshine, as screens.
+ *
+ * One sky for the whole journey: the Moon above, the earthlit part of it slowly
+ * becoming readable, one warm light held back until the end. Theia is never
+ * drawn; only what becomes visible is. Eight scenes carry the preserved
+ * 26-step flow — the art changes, the questions, answers, routing and backend
+ * wiring do not.
  */
-const CHAPTERS = [
-  { name: 'آغاز', routes: ['welcome', 'privacy'] },
-  { name: 'شب', routes: ['simple-intro', 'name', 'age', 'identity', 'therapist'] },
-  { name: 'دیدن', routes: ['deeper-intro', 'mood', 'concerns', 'focus', 'feelings'] },
-  { name: 'سپیده', routes: ['know-intro', 'faith', 'neurodivergent', 'relationships', 'interests', 'strengths', 'barriers', 'recharge'] },
-  { name: 'سه نور', routes: ['almost-intro', 'approach', 'voice', 'checkins', 'referral'] },
-  { name: 'حلقه', routes: ['ready'] },
-];
-
-function chapterIndexFor(route) {
-  const index = CHAPTERS.findIndex((chapter) => chapter.routes.includes(route));
-  return index < 0 ? 0 : index;
-}
-
 const OnboardingRouteContext = React.createContext('welcome');
 
 function ChapterSeam({ index }) {
-  const chapter = CHAPTERS[index];
+  const scene = SCENES[index];
   return (
-    <div className="ob-seam" role="group" aria-label={`فصل ${chapter.name}`}>
-      {CHAPTERS.map((item, position) => (
+    <div className="ob-seam" role="group" aria-label={`صحنهٔ ${scene.name}`}>
+      {SCENES.map((item, position) => (
         <i
-          key={item.name}
+          key={item.id}
           aria-hidden="true"
           className={position < index ? 'is-past' : position === index ? 'is-now' : ''}
         />
       ))}
       <span className="sr-only" aria-live="polite">
-        {`فصل ${fa(index + 1)} از ${fa(CHAPTERS.length)}`}
+        {`صحنهٔ ${fa(index + 1)} از ${fa(SCENE_COUNT)} — ${scene.name}`}
       </span>
     </div>
   );
 }
 
-function Shell({ theme = 'paper', back, children, className = '', footer }) {
+/**
+ * The frame never changes: status inset, chrome, one field of sky, then the
+ * questions resting on the tonal field beneath it. `variant` only decides how
+ * much of the screen the sky is allowed to hold.
+ */
+function Shell({
+  sceneId,
+  variant = 'form',
+  back,
+  children,
+  className = '',
+  footer,
+  skyOverlay = null,
+  legacy = false,
+  legacyTone = 'paper',
+}) {
   const route = useContext(OnboardingRouteContext);
-  const dark = theme === 'ink' || theme === 'dark' || theme === 'black';
-  const surface = dark ? 'ink' : 'paper';
+  const scene = sceneById(sceneId) || sceneForRoute(route) || SCENES[0];
+  if (legacy) {
+    return (
+      <section className={`app-screen onboarding-screen ob-legacy ob-legacy--${legacyTone} ${className}`.trim()}>
+        <StatusBar />
+        <div className="ob-chrome">
+          {back ? <BackButton onClick={back} dark={legacyTone !== 'paper'} /> : <span className="ob-chrome__pad" aria-hidden="true" />}
+          <span className="ob-chrome__pad" aria-hidden="true" />
+        </div>
+        <div className="ob-flow">{children}</div>
+        {footer ? <div className="ob-footer">{footer}</div> : null}
+      </section>
+    );
+  }
   return (
-    <section className={`app-screen onboarding-screen ob-shell ob-${surface} ${className}`.trim()} data-ob-theme={surface}>
+    <section
+      className={`app-screen onboarding-screen ob-shell ob-shell--${variant} ${className}`.trim()}
+      data-scene={scene.id}
+      data-tone={scene.tone}
+    >
       <StatusBar />
+      <TheiaSky scene={scene}>{skyOverlay}</TheiaSky>
       <div className="ob-chrome">
         {back
-          ? <BackButton onClick={back} dark={dark} />
-          : <span className="ob-chrome__sigil" aria-hidden="true"><TheiaSigil size={19} /></span>}
-        <ChapterSeam index={chapterIndexFor(route)} />
-        <span className="ob-chrome__tail" aria-hidden="true" />
+          ? <BackButton onClick={back} dark={scene.tone === 'night'} />
+          : <span className="ob-chrome__pad" aria-hidden="true" />}
+        <ChapterSeam index={scene.id - 1} />
+        <span className="ob-chrome__pad" aria-hidden="true" />
       </div>
+      <div className="ob-sky-gap" aria-hidden="true" />
       <div className="ob-flow">{children}</div>
       {footer ? <div className="ob-footer">{footer}</div> : null}
     </section>
   );
 }
 
-/** One heading, one quiet paragraph. The chapter word is carried by the seam. */
-function ObHeader({ title, lede, epigraph, align = 'start', className = '' }) {
+/** One heading, one quiet paragraph. The scene word is carried by the seam. */
+function ObHeader({ title, lede, className = '', align = 'start' }) {
   return (
     <header className={`ob-header ob-header--${align} ${className}`.trim()}>
-      {epigraph && <p className="ob-epigraph">{epigraph}</p>}
       <h1>{title}</h1>
-      {lede && <p className="ob-lede">{lede}</p>}
+      {lede ? <p className="ob-lede">{lede}</p> : null}
     </header>
   );
 }
 
-function Instrument({ state, tone = 'ink', className = '', label }) {
+/** Plain language, kept apart from the story: what the product actually is. */
+function Disclosure() {
   return (
-    <div className={`ob-art ${className}`.trim()}>
-      <TheiaInstrument state={state} tone={tone} label={label} />
-    </div>
+    <aside className="ob-disclosure" aria-label={AI_TRANSPARENCY.lead}>
+      <span className="ob-disclosure__rule" aria-hidden="true" />
+      <p>{AI_TRANSPARENCY.text}</p>
+    </aside>
   );
+}
+
+/** Scene name, set as a stage direction rather than a title. */
+function SceneLabel({ scene }) {
+  return <p className="ob-chapter">{scene.name}</p>;
 }
 
 function Continue({ children, ...rest }) {
@@ -107,23 +142,24 @@ function Continue({ children, ...rest }) {
 }
 
 function Welcome({ navigate }) {
+  const scene = sceneById(1);
   return (
-    <Shell theme="ink" className="welcome-screen" footer={(
-      <Continue onClick={() => nextFrom('welcome', navigate)}>شروع</Continue>
-    )}>
-      <Instrument state="welcome" className="ob-art--hero" label="حلقهٔ باز تیا، با ستاره‌ای از سپیده در مرکز" />
-      <ObHeader
-        epigraph="روشناییِ دوربرد"
-        title="تیا را نمی‌بینی؛ با تیا می‌بینی."
-        lede="تیا، الههٔ یونانیِ نور و دیدن، هیچ تصویری از خودش ندارد؛ تنها چیزی که از او مانده روشنایی است. این‌جا هم همین‌طور است: نه یک چهره، بلکه نوری که کمک می‌کند خودت را واضح‌تر ببینی."
-      />
+    <Shell
+      sceneId={1}
+      variant="hero"
+      footer={<Continue onClick={() => nextFrom('welcome', navigate)}>شروع</Continue>}
+    >
+      <div className="ob-hero">
+        <ObHeader title={scene.title} lede={scene.body} />
+        <Disclosure />
+      </div>
     </Shell>
   );
 }
 
 function Testimonials({ navigate, back }) {
   return (
-    <Shell theme="beige" back={back} className="testimonials-screen scrolling-screen">
+    <Shell legacy legacyTone="paper" back={back} className="testimonials-screen scrolling-screen">
       <PageHeader
         title="بقیه دربارهٔ تیا چی می‌گن؟"
         description="نظر کاربران تیا"
@@ -147,7 +183,7 @@ function Testimonials({ navigate, back }) {
 
 function Research({ navigate, back }) {
   return (
-    <Shell theme="dark" back={back} className="research-screen">
+    <Shell legacy legacyTone="dark" back={back} className="research-screen">
       <PageHeader
         title="تیا با کمک پژوهش‌های علمی طراحی شده."
         description="پژوهش‌های مرتبط با تیا"
@@ -168,7 +204,7 @@ function Research({ navigate, back }) {
 
 function Experts({ navigate, back }) {
   return (
-    <Shell theme="dark" back={back} className="experts-screen">
+    <Shell legacy legacyTone="dark" back={back} className="experts-screen">
       <PageHeader title="با کمک متخصصان" />
       <div className="experts-gallery">
         <article className="expert-card">
@@ -195,6 +231,7 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
   };
   return (
     <Shell
+      sceneId={3}
       back={back}
       className="name-screen"
       footer={<Continue type="submit" form="onboarding-name" disabled={!name.trim() || savingProfile}>{savingProfile ? 'در حال ذخیره…' : profileEdit ? 'ذخیرهٔ نام' : 'ادامه'}</Continue>}
@@ -219,70 +256,70 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
   );
 }
 
-const INTERSTITIALS = {
-  'simple-intro': {
-    state: 'night',
-    chapter: 'فصل دو · شب',
-    title: 'از تاریکی شروع می‌کنیم.',
-    lede: 'نه چون چیزی خراب است؛ چون هر دیدن از ندیدن آغاز می‌شود. این‌جا لازم نیست از قبل بدانی چه چیزی در تو می‌گذرد.',
-  },
-  'deeper-intro': {
-    state: 'sight',
-    chapter: 'فصل سه · دیدن',
-    title: 'تیا نور را نمی‌سازد؛ آن را می‌بیند.',
-    lede: 'پس چیزی به تو اضافه نمی‌کند و چیزی هم از تو نمی‌گیرد. فقط کمک می‌کند آن‌چه هست را واضح‌تر ببینی — حتی وقتی واضح دیدن راحت نیست.',
-  },
-  'know-intro': {
-    state: 'dawn',
-    chapter: 'فصل چهار · سپیده',
-    title: 'سپیده یک‌باره نمی‌آید.',
-    lede: 'کم‌کم روشن می‌شود، آن‌قدر آرام که اول متوجهش نمی‌شوی. حال آدم هم همین‌طور عوض می‌شود.',
-  },
-  'almost-intro': {
-    state: 'orbits',
-    chapter: 'فصل پنج · سه نور',
-    title: 'خورشید، ماه، سپیده.',
-    lede: 'هر سه فرزندان تیا بودند؛ سه حالتِ نور، و هیچ‌کدام همیشگی نبود. حال تو هم همین‌طور است: می‌آید و می‌رود و هیچ‌کدام تمامِ تو نیست.',
-  },
-};
+/**
+ * The privacy window: a flat dark plane over the sky with one vertical opening.
+ * Its width is the user's own gesture, and it is only ever a symbol — the real
+ * sharing preference is the switch below, and the note next to the slider says
+ * so in plain words. A lock or a sealed vault would promise more than the
+ * product delivers; an opening you control says "how much do I choose to show".
+ */
+const APERTURE_MIN = 4;
+const APERTURE_MAX = 100;
+const APERTURE_START = 16;
 
-function Interstitial({ route, navigate, back }) {
-  const item = INTERSTITIALS[route];
+function ApertureWindow({ value }) {
+  // 44% keeps even a narrow opening over the lit limb, not over empty sky.
+  const slit = 3 + (value - APERTURE_MIN) * 0.44;
   return (
-    <Shell
-      theme="ink"
-      back={back}
-      className={`interstitial-screen art-${item.state}`}
-      footer={<Continue onClick={() => nextFrom(route, navigate)}>ادامه</Continue>}
-    >
-      <p className="ob-chapter">{item.chapter}</p>
-      <Instrument state={item.state} className="ob-art--hero" />
-      <ObHeader title={item.title} lede={item.lede} />
-    </Shell>
+    <div className="ob-window" style={{ '--ob-slit': `${slit}%` }}>
+      <span className="ob-window__panel ob-window__panel--start" />
+      <span className="ob-window__panel ob-window__panel--end" />
+    </div>
   );
 }
 
 function Privacy({ navigate, back, privacySharing = true, privacyLoading = false, privacySaving = false,
   privacyLoaded = false, privacyError = false, onTogglePrivacy, onRetryPrivacy }) {
   const sharing = privacySharing;
+  const scene = sceneById(2);
+  const [aperture, setAperture] = useState(APERTURE_START);
+  const toggleBusy = !privacyLoaded || privacyLoading || privacySaving;
   return (
     <Shell
+      sceneId={2}
+      variant="privacy"
       back={back}
       className="privacy-screen"
+      skyOverlay={<ApertureWindow value={aperture} />}
       footer={<Continue onClick={() => nextFrom('privacy', navigate)}>ادامه</Continue>}
     >
-      <ObHeader
-        title="حریم تو، مثل این حلقه است."
-        lede="فقط تو تعیین می‌کنی چقدر باز شود. برای اینکه پاسخ‌ها متناسب با تو باشند، گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شوند و اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شود."
-      />
-      <Instrument state="veil" tone="paper" className="ob-art--small" label="پرده‌ای که در میانه باز شده و شکافی از نور را نشان می‌دهد" />
+      <ObHeader title={scene.title} lede={scene.body} />
+      <div className="ob-aperture">
+        <div className="ob-aperture__row">
+          <label htmlFor="aperture">پهنهٔ پنجره</label>
+          <span aria-hidden="true">باز و بسته کن</span>
+        </div>
+        <input
+          id="aperture"
+          className="ob-aperture__slider"
+          type="range"
+          min={APERTURE_MIN}
+          max={APERTURE_MAX}
+          step="1"
+          value={aperture}
+          onChange={(event) => setAperture(Number(event.target.value))}
+          aria-describedby="aperture-note"
+          aria-valuetext={aperture < 34 ? 'کمی باز' : aperture < 68 ? 'نیمه‌باز' : 'باز'}
+        />
+        <p id="aperture-note" className="ob-aperture__note">{APERTURE_NOTE}</p>
+      </div>
       <button
         type="button"
         className="privacy-card"
         role="switch"
         aria-checked={sharing}
-        aria-disabled={!privacyLoaded || privacyLoading || privacySaving}
-        disabled={!privacyLoaded || privacyLoading || privacySaving}
+        aria-disabled={toggleBusy}
+        disabled={toggleBusy}
         onClick={onTogglePrivacy}
       >
         <span className={`toggle ${sharing ? 'is-on' : ''}`} aria-hidden="true"><span /></span>
@@ -296,17 +333,38 @@ function Privacy({ navigate, back, privacySharing = true, privacyLoading = false
   );
 }
 
-// The age step is a physical wheel, not a list that re-stacks itself. One native
-// scroll container holds all ranges with snap points, so touch momentum,
-// trackpad and wheel input behave exactly like the platform. Every range is
-// scaled, tilted and faded from its live distance to the centre instead of
-// being placed with precomputed pixel offsets, so the selection glides.
+/** A scene card: the sky moves, the words stay still. */
+const INTERSTITIAL_ROUTES = ['simple-intro', 'deeper-intro', 'know-intro', 'almost-intro'];
+
+function Interstitial({ route, navigate, back }) {
+  const scene = sceneForRoute(route);
+  return (
+    <Shell
+      sceneId={scene.id}
+      variant="hero"
+      back={back}
+      className="interstitial-screen"
+      footer={<Continue onClick={() => nextFrom(route, navigate)}>ادامه</Continue>}
+    >
+      <div className="ob-hero">
+        <SceneLabel scene={scene} />
+        <ObHeader title={scene.title} lede={scene.body} />
+      </div>
+    </Shell>
+  );
+}
+
 const AGE_FALLBACK = '۲۵–۲۹';
 
 const reducedMotion = () => (typeof window === 'undefined'
   ? false
   : Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches));
 
+// The age step is a physical wheel, not a list that re-stacks itself. One native
+// scroll container holds all ranges with snap points, so touch momentum,
+// trackpad and wheel input behave exactly like the platform. Every range is
+// scaled, tilted and faded from its live distance to the centre instead of
+// being placed with precomputed pixel offsets, so the selection glides.
 function AgeScreen({ navigate, back, answers, setAnswer }) {
   const startValue = AGE_RANGES.includes(answers.age) ? answers.age : AGE_FALLBACK;
   const startIndex = Math.max(0, AGE_RANGES.indexOf(startValue));
@@ -497,6 +555,8 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
 
   return (
     <Shell
+      sceneId={3}
+      variant="focus"
       back={back}
       className="age-screen"
       footer={<Continue onClick={() => { setAnswer('age', AGE_RANGES[activeRef.current]); nextFrom('age', navigate); }}>ادامه</Continue>}
@@ -562,6 +622,7 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
 
   return (
     <Shell
+      sceneId={sceneForRoute(route)?.id}
       back={back}
       className={`question-screen question-${route} ${config.skip ? 'question-screen--skip' : ''}`}
       footer={(
@@ -606,67 +667,19 @@ const MOODS = [
   { label: 'در کل حالم خوب است', note: 'خوب است. بگذار بیشتر بشناسیمش.' },
 ];
 
-function MoodScribble({ level }) {
-  // A continuous hand-drawn contour evolves from angular and tangled to round.
-  const path = React.useMemo(() => {
-    const points = [];
-    const turns = [9.5, 7.4, 5.0, 3.0, 2.2][level];
-    const count = 430;
-    for (let i = 0; i <= count; i++) {
-      const progress = i / count;
-      const theta = progress * turns * Math.PI * 2;
-      const rough = level <= 1 ? (1 + 0.24 * Math.sin(theta * 2.7) + 0.12 * Math.cos(theta * 4.3)) : 1;
-      const radius = (0.45 + progress * 0.50) * rough;
-      const tilt = level === 4 ? 0.15 : 0.38;
-      const x = 170 + 113 * radius * Math.cos(theta + tilt) + (level === 2 ? 13 * Math.sin(theta * 0.4) : 0);
-      const y = 150 + 105 * radius * Math.sin(theta) + (level === 0 ? 12 * Math.sin(theta * 1.5) : 0);
-      points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`);
-    }
-    return points.join(' ');
-  }, [level]);
-  // The line itself is the illustration: a tangled thread at the hard end of
-  // the scale, a nearly closed ring at the easy end, and a dawn-coloured light
-  // that grows as the contour untangles.
-  const tone = ['#8C94B8', '#B0A0A0', '#D2AE86', '#E3C48C', '#F2C98D'][level];
-  return (
-    <svg className="mood-scribble" viewBox="0 0 340 300" aria-hidden="true" focusable="false">
-      <defs>
-        <linearGradient id="mood-line" x1="40" y1="270" x2="300" y2="40" gradientUnits="userSpaceOnUse">
-          <stop stopColor={tone} stopOpacity="0.55" />
-          <stop offset="0.55" stopColor={tone} />
-          <stop offset="1" stopColor="#F7E7C6" />
-        </linearGradient>
-        <radialGradient id="mood-halo" cx="50%" cy="50%" r="50%">
-          <stop stopColor="#F3D8A3" stopOpacity={0.1 + level * 0.11} />
-          <stop offset="1" stopColor="#F3D8A3" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <circle cx="170" cy="150" r="128" fill="url(#mood-halo)" />
-      <path d={path} fill="none" stroke="url(#mood-line)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-      {level >= 3 && (
-        <path
-          d="M170 137L172.6 144.8L180.4 147.4L172.6 150L170 157.8L167.4 150L159.6 147.4L167.4 144.8L170 137Z"
-          fill={tone}
-          opacity={level === 4 ? '0.95' : '0.5'}
-        />
-      )}
-    </svg>
-  );
-}
-
 function MoodScreen({ navigate, back, answers, setAnswer }) {
   const mood = Number.isInteger(answers.mood) && answers.mood >= 0 && answers.mood <= 4 ? answers.mood : 2;
   return (
     <Shell
+      sceneId={4}
+      variant="focus"
       back={back}
       className="mood-screen"
       footer={<Continue onClick={() => { setAnswer('mood', mood); nextFrom('mood', navigate); }}>ادامه</Continue>}
     >
       <ObHeader title="این روزها چه حالی داری؟" lede="نوار را بکش تا نزدیک‌ترین حالت را پیدا کنی؛ لازم نیست دقیق باشد." />
       <div className="mood-stage">
-        <div className="mood-glow" data-mood-level={mood} aria-hidden="true" />
-        <MoodScribble level={mood} />
-        <h2 aria-live="polite">{MOODS[mood].label}</h2>
+        <p className="mood-value" aria-live="polite">{MOODS[mood].label}</p>
         <div className="mood-slider-wrap" dir="ltr">
           <div className="mood-ticks" aria-hidden="true">
             {MOODS.map((item, index) => <i key={index} style={{ '--tick-index': index }} className={index === mood ? 'is-active' : ''} />)}
@@ -675,24 +688,26 @@ function MoodScreen({ navigate, back, answers, setAnswer }) {
             value={mood} onChange={event => setAnswer('mood', Number(event.target.value))}
             aria-label="حس این روزهای من" aria-valuetext={MOODS[mood].label} />
         </div>
+        <p className="mood-footnote" aria-live="polite">{MOODS[mood].note}</p>
       </div>
-      <p className="mood-footnote" aria-live="polite">{MOODS[mood].note}</p>
     </Shell>
   );
 }
 
 function CheckinsScreen({ navigate, back }) {
+  const scene = sceneById(7);
   return (
     <Shell
+      sceneId={7}
+      variant="hero"
       back={back}
       className="checkins-screen"
       footer={<Continue onClick={() => nextFrom('checkins', navigate)}>ادامه</Continue>}
     >
-      <ObHeader
-        title="یادآوری، درست وقتی لازم است."
-        lede="تیا می‌تواند گاهی حالت را بپرسد. هر وقت بخواهی می‌توانی یادآوری‌ها را خاموش کنی."
-      />
-      <Instrument state="pulse" tone="paper" className="ob-art--small" label="حلقه‌ای که نورش بازمی‌گردد" />
+      <div className="ob-hero">
+        <SceneLabel scene={scene} />
+        <ObHeader title={scene.title} lede={scene.body} />
+      </div>
     </Shell>
   );
 }
@@ -827,7 +842,8 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
 
   return (
     <Shell
-      theme="ink"
+      sceneId={6}
+      variant="focus"
       back={back}
       className="voice-screen"
       footer={(
@@ -937,7 +953,7 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
   };
 
   return (
-    <Shell theme="ink" back={back} className="approach-screen">
+    <Shell sceneId={6} variant="focus" back={back} className="approach-screen">
       <ObHeader title="چطور با تو حرف بزنم؟" lede="لحن تیا را انتخاب کن؛ این‌ها فقط نمونه‌اند و چیزی فرستاده نمی‌شود." />
       <div
         className="approach-stage"
@@ -1025,9 +1041,11 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
 }
 
 function Ready({ navigate, savingProfile = false }) {
+  const scene = sceneById(8);
   return (
     <Shell
-      theme="ink"
+      sceneId={8}
+      variant="hero"
       className="ready-screen"
       footer={(
         <Continue disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>
@@ -1035,12 +1053,10 @@ function Ready({ navigate, savingProfile = false }) {
         </Continue>
       )}
     >
-      <p className="ob-chapter">فصل شش · حلقه</p>
-      <Instrument state="seal" className="ob-art--hero" label="حلقهٔ کامل تیا؛ دایره بسته می‌شود و ستاره در مرکز می‌درخشد" />
-      <ObHeader
-        title="حلقه کامل می‌شود."
-        lede="از این‌جا با هم شروع می‌کنیم. پاسخ‌های آشنایی اولیه‌ات ذخیره می‌شوند و برای شخصی‌سازی گفت‌وگو در اختیار سرویس هوش مصنوعی قرار می‌گیرند."
-      />
+      <div className="ob-hero">
+        <SceneLabel scene={scene} />
+        <ObHeader title={scene.title} lede={scene.body} />
+      </div>
     </Shell>
   );
 }
@@ -1061,7 +1077,7 @@ function OnboardingRoute(props) {
   if (route === 'research') return <Research {...props} />;
   if (route === 'experts') return <Experts {...props} />;
   if (route === 'name') return <NameScreen {...props} />;
-  if (INTERSTITIALS[route]) return <Interstitial {...props} />;
+  if (INTERSTITIAL_ROUTES.includes(route)) return <Interstitial {...props} />;
   if (route === 'privacy') return <Privacy {...props} />;
   if (route === 'age') return <AgeScreen {...props} />;
   if (route === 'mood') return <MoodScreen {...props} />;

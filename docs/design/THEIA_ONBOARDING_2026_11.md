@@ -1,5 +1,12 @@
 # تیا — Onboarding redesign, 2026-11
 
+> **Superseded for onboarding art, 2026-11-26:** the ring-and-aperture
+> instrument described below was replaced by **Earthshine** — one sky, one Moon,
+> one variable, one rationed warm light. Routing, copy strategy, the faceless
+> principle and the accessibility work below still hold; for the current visual
+> system read `docs/design/EARTHSHINE_2026_11.md`. The small open-ring brand mark
+> used in Home, Letters and menus is unchanged.
+
 **Scope:** the entire pre-Home journey (26 routes in `FLOW`), plus the sign-in entry
 that precedes it. Routing, server-owned progress, answer storage, and every
 network boundary are unchanged. This document records the identity, the story,
