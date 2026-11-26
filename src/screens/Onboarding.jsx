@@ -2,10 +2,12 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 import { Check, ChevronLeft, ChevronRight, Flame, Landmark } from 'lucide-react';
 import { AGE_RANGES, APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import { resistVoiceDrag, voiceSwipeTarget } from '../features/onboarding/voiceCarousel';
-import { TheiaMark } from '../components/TheiaBrand';
+import { TheiaMark, TheiaSealedEye, TheiaCheckinGlow } from '../components/TheiaBrand';
+import DawnScene, { DAWN_STAGES } from '../components/DawnScene';
 import {
   BackButton,
   ChoiceButton,
+  DawnProgress,
   PageHeader,
   PagerDots,
   PrimaryButton,
@@ -19,35 +21,37 @@ const nextFrom = (route, navigate) => {
   if (nextIndex > 0 && nextIndex < FLOW.length) navigate(FLOW[nextIndex]);
 };
 
-function Shell({ theme = 'light', back, children, className = '' }) {
+function Shell({ theme = 'light', back, children, className = '', route }) {
   const dark = theme === 'dark';
   return (
     <section className={`app-screen theme-${theme} ${className}`}>
       <StatusBar dark={dark} />
+      <DawnProgress route={route} />
       {back && <BackButton onClick={back} dark={dark} />}
       {children}
     </section>
   );
 }
 
-function Welcome({ navigate }) {
+function Welcome({ navigate, route }) {
   return (
-    <Shell className="welcome-screen">
+    <Shell theme="dark" route={route} className="welcome-screen">
       <PageHeader
-        title="با تیا آشنا شو"
-        description="تیا کمک می‌کنه دربارهٔ احساساتت حرف بزنی و خودت رو بهتر بشناسی."
+        eyebrow="تیا · Θεία"
+        title="خودت رو با نور ببین"
+        description="تیا آرام و بی‌قضاوت کنارت می‌ماند تا از احساست بگویی و درونت را روشن‌تر ببینی."
       />
-      <div className="welcome-art artwork-wrap">
-        <img src="/brand/theia-welcome.png" alt="تیا، الههٔ روشنایی و بینش با گوی نور سحرگاهی" />
+      <div className="welcome-art" role="img" aria-label="شبی پرستاره بر فراز حوضِ آرام؛ هلال ماه بر فراز کوه‌ها، پیش از طلوع.">
+        <DawnScene progress={DAWN_STAGES.welcome} />
       </div>
-      <PrimaryButton onClick={() => nextFrom('welcome', navigate)}>شروع</PrimaryButton>
+      <PrimaryButton light onClick={() => nextFrom('welcome', navigate)}>شروع</PrimaryButton>
     </Shell>
   );
 }
 
-function Testimonials({ navigate, back }) {
+function Testimonials({ navigate, back, route }) {
   return (
-    <Shell theme="beige" back={back} className="testimonials-screen scrolling-screen">
+    <Shell theme="beige" back={back} route={route} className="testimonials-screen scrolling-screen">
       <PageHeader
         title="بقیه دربارهٔ تیا چی می‌گن؟"
         description="نظر کاربران تیا"
@@ -69,9 +73,9 @@ function Testimonials({ navigate, back }) {
   );
 }
 
-function Research({ navigate, back }) {
+function Research({ navigate, back, route }) {
   return (
-    <Shell theme="dark" back={back} className="research-screen">
+    <Shell theme="dark" back={back} route={route} className="research-screen">
       <PageHeader
         title="تیا با کمک پژوهش‌های علمی طراحی شده."
         description="پژوهش‌های مرتبط با تیا"
@@ -90,9 +94,9 @@ function Research({ navigate, back }) {
   );
 }
 
-function Experts({ navigate, back }) {
+function Experts({ navigate, back, route }) {
   return (
-    <Shell theme="dark" back={back} className="experts-screen">
+    <Shell theme="dark" back={back} route={route} className="experts-screen">
       <PageHeader title="با کمک متخصصان" />
       <div className="experts-gallery">
         <article className="expert-card">
@@ -109,7 +113,7 @@ function Experts({ navigate, back }) {
   );
 }
 
-function NameScreen({ navigate, back, name, setName, profileEdit = false, savingProfile = false, onSaveName, onSaveOnboardingName }) {
+function NameScreen({ navigate, back, route, name, setName, profileEdit = false, savingProfile = false, onSaveName, onSaveOnboardingName }) {
   const submit = (event) => {
     event.preventDefault();
     if (name.trim()) {
@@ -118,7 +122,7 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
     }
   };
   return (
-    <Shell back={back} className="name-screen">
+    <Shell back={back} route={route} className="name-screen">
       <PageHeader title="دوست داری چی صدات کنم؟" description="با همین اسم صدات می‌کنم." />
       <form onSubmit={submit}>
         <label className="sr-only" htmlFor="name">اسمت</label>
@@ -139,58 +143,60 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
 
 const INTERSTITIALS = {
   'simple-intro': {
+    eyebrow: 'سپیدهٔ اول',
     title: 'اول چند سؤال ساده بپرسم.',
-    description: 'جواب‌هات کمک می‌کنن بهتر بشناسمت.',
-    art: 'small',
-    src: '/brand/theia-story-1.png',
-    alt: 'تیا در آرامش شب زیر هلال ماه و نخستین اخگر نور',
+    description: 'هر جواب، چراغِ کوچکی در این صبح روشن می‌کند.',
+    progress: DAWN_STAGES.simpleIntro,
+    alt: 'سپیده‌ای که افق کوه‌ها را خط می‌کشد؛ نخستین نور، هنوز پشت خط کوه‌ها.',
   },
   'deeper-intro': {
+    eyebrow: 'صبح‌هنگام',
     title: 'حالا بیشتر دربارهٔ خودت بگو.',
-    description: 'با چند سؤال کوتاه کمکم کن بفهمم چرا اینجایی و چه چیزهایی برات مهم‌ترن.',
-    art: 'medium',
-    src: '/brand/theia-story-2.png',
-    alt: 'تیا در پرتو ماه و بازتاب آرام درون',
+    description: 'با چند سؤال کوتاه کمکم کن بفهمم چرا اینجایی و چه چیزهایی برایت مهم‌ترند.',
+    progress: DAWN_STAGES.deeperIntro,
+    alt: 'نیم‌دایرهٔ خورشید از پشت کوه بالا آمده؛ بازتابی در حوض شکل گرفته است.',
   },
   'know-intro': {
+    eyebrow: 'سپیده‌دم',
     title: 'بذار بیشتر بشناسمت.',
-    description: '',
-    art: 'large',
-    src: '/brand/theia-story-3.png',
-    alt: 'طلوع نخستین نور سحرگاه پشت سر تیا',
+    description: 'هنوز چند قدم تا طلوع؛ هر جواب تصویرت را کامل‌تر می‌کند.',
+    progress: DAWN_STAGES.knowIntro,
+    alt: 'خورشید بر فراز خط کوه‌ها؛ نور و بازتاب هر دو جا افتاده‌اند.',
   },
   'almost-intro': {
+    eyebrow: 'طلوعِ نزدیک',
     title: 'دیگه چیزی نمونده!',
-    description: 'حالا صدا و سبک حرف زدنم رو انتخاب کن.',
-    art: 'tall',
-    src: '/brand/theia-story-4.png',
-    alt: 'هم‌نشینی خورشید، ماه و سپیده‌دم در کنار تیا',
+    description: 'حالا صدا و سبک حرف زدنم رو انتخاب کن؛ صبح کامل، همین نزدیکی است.',
+    progress: DAWN_STAGES.almostIntro,
+    alt: 'خورشید کاملِ طلوع‌شده بر فراز حوض؛ حلقه‌های نور روی آب نشسته‌اند.',
   },
 };
 
 function Interstitial({ route, navigate, back }) {
   const item = INTERSTITIALS[route];
   return (
-    <Shell theme="dark" back={back} className={`interstitial-screen art-${item.art}`}>
-      <PageHeader title={item.title} description={item.description} />
-      <div className="interstitial-art artwork-wrap">
-        <img src={item.src} alt={item.alt} />
+    <Shell theme="dark" back={back} route={route} className="interstitial-screen">
+      <PageHeader eyebrow={item.eyebrow} title={item.title} description={item.description} />
+      <div className="interstitial-art" role="img" aria-label={item.alt}>
+        <DawnScene progress={item.progress} />
       </div>
       <PrimaryButton light onClick={() => nextFrom(route, navigate)}>ادامه</PrimaryButton>
     </Shell>
   );
 }
 
-function Privacy({ navigate, back, privacySharing = true, privacyLoading = false, privacySaving = false,
+function Privacy({ navigate, back, route, privacySharing = true, privacyLoading = false, privacySaving = false,
   privacyLoaded = false, privacyError = false, onTogglePrivacy, onRetryPrivacy }) {
   const sharing = privacySharing;
   return (
-    <Shell back={back} className="privacy-screen">
+    <Shell back={back} route={route} className="privacy-screen">
       <PageHeader
-        title="حریم خصوصی تو مهمه."
+        title="این‌جا امن است."
         description="گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شن. برای پاسخ متناسب با تو، اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شن."
       />
-      <img className="privacy-art" src="/brand/theia-privacy.png" alt="نماد حریم خصوصی تیا با هلال ماه و ستارهٔ کلیددار" />
+      <div className="privacy-art" role="img" aria-label="مهرِ تیا؛ چشمِ آرامِ نشسته در هشت‌پرِ خاتم، با ستاره‌ای در جای مردمک">
+        <TheiaSealedEye size={124} />
+      </div>
       <button
         type="button"
         className="privacy-card"
@@ -223,7 +229,7 @@ const reducedMotion = () => (typeof window === 'undefined'
   ? false
   : Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches));
 
-function AgeScreen({ navigate, back, answers, setAnswer }) {
+function AgeScreen({ navigate, back, route, answers, setAnswer }) {
   const startValue = AGE_RANGES.includes(answers.age) ? answers.age : AGE_FALLBACK;
   const startIndex = Math.max(0, AGE_RANGES.indexOf(startValue));
   const [active, setActive] = useState(startIndex);
@@ -412,7 +418,7 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
   }, [answers.age, scrollToIndex]);
 
   return (
-    <Shell back={back} className="age-screen">
+    <Shell back={back} route={route} className="age-screen">
       <PageHeader title="چند سالته؟" description="بکش یا اسکرول کن تا بازهٔ سنیت رو انتخاب کنی." />
       <div className="age-stage">
         <span key={`age-marker-${tick}`} className="age-marker" aria-hidden="true" />
@@ -475,7 +481,7 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
   };
 
   return (
-    <Shell theme={theme} back={back} className={`question-screen question-${route} ${config.skip ? 'question-screen--skip' : ''}`}>
+    <Shell theme={theme} back={back} route={route} className={`question-screen question-${route} ${config.skip ? 'question-screen--skip' : ''}`}>
       <PageHeader title={config.title} description={config.description} />
       <div className="choice-scroll">
         <div className={`choice-list ${config.type === 'single' ? 'choice-list--single' : ''}`}>
@@ -546,10 +552,10 @@ function MoodScribble({ level }) {
   );
 }
 
-function MoodScreen({ navigate, back, answers, setAnswer }) {
+function MoodScreen({ navigate, back, route, answers, setAnswer }) {
   const mood = Number.isInteger(answers.mood) && answers.mood >= 0 && answers.mood <= 4 ? answers.mood : 2;
   return (
-    <Shell back={back} className="mood-screen">
+    <Shell back={back} route={route} className="mood-screen">
       <PageHeader title="این روزها چه حسی داشتی؟" description="نوار رو بکش تا به حالت نزدیک‌تر بشه." />
       <div className="mood-stage">
         <div className="mood-glow" data-mood-level={mood} aria-hidden="true" />
@@ -570,19 +576,19 @@ function MoodScreen({ navigate, back, answers, setAnswer }) {
   );
 }
 
-function CheckinsScreen({ navigate, back }) {
+function CheckinsScreen({ navigate, back, route }) {
   return (
-    <Shell back={back} className="checkins-screen">
+    <Shell back={back} route={route} className="checkins-screen">
       <PageHeader title="یه یادآوری، درست وقتی لازمه." description="تیا می‌تونه گاهی حالت رو بپرسه. هر وقت بخوای می‌تونی یادآوری‌ها رو خاموش کنی." />
-      <div className="checkins-art" aria-hidden="true">
-        <img src="/brand/theia-checkins.png" alt="" />
+      <div className="checkins-art" role="img" aria-label="قطره‌ای از نور که بر آبِ آرام فرود می‌آید و حلقه‌هایی پدید می‌آورد">
+        <TheiaCheckinGlow size={158} />
       </div>
       <PrimaryButton onClick={() => nextFrom('checkins', navigate)}>ادامه</PrimaryButton>
     </Shell>
   );
 }
 
-function VoiceScreen({ navigate, back, answers, setAnswer }) {
+function VoiceScreen({ navigate, back, route, answers, setAnswer }) {
   const initial = Math.max(0, VOICES.findIndex((item) => item.name === answers.voice));
   const [active, setActive] = useState(initial);
   const [drag, setDrag] = useState(0);
@@ -711,7 +717,7 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
   const offset = drag - active * cardMetrics.step - cardMetrics.width / 2;
 
   return (
-    <Shell theme="dark" back={back} className="voice-screen">
+    <Shell theme="dark" back={back} route={route} className="voice-screen">
       <PageHeader title="دوست داری چه صدایی داشته باشم؟" />
       <div
         className={`voice-carousel ${dragging ? 'is-dragging' : ''}`}
@@ -768,7 +774,7 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
   );
 }
 
-function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = false, savingProfile = false, onSaveApproach }) {
+function ApproachScreen({ navigate, back, route, answers, setAnswer, profileEdit = false, savingProfile = false, onSaveApproach }) {
   const initial = answers.approach ? Math.max(0, APPROACHES.findIndex((item) => item.name === answers.approach)) : 2;
   const [active, setActive] = useState(initial);
   const [drag, setDrag] = useState(0);
@@ -811,7 +817,7 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
   };
 
   return (
-    <Shell theme="beige" back={back} className="approach-screen">
+    <Shell theme="beige" back={back} route={route} className="approach-screen">
       <PageHeader title="چطور باهات حرف بزنم؟" />
       <div
         className="approach-stage"
@@ -898,15 +904,18 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
   );
 }
 
-function Ready({ navigate, savingProfile = false }) {
+function Ready({ navigate, route, savingProfile = false }) {
   return (
-    <Shell className="ready-screen">
+    <Shell theme="dark" route={route} className="ready-screen">
       <PageHeader
-        title="من آماده‌ام!"
-        description="با شروع گفت‌وگو، پاسخ‌های آشنایی اولیه‌ات ذخیره می‌شن و برای شخصی‌سازی چت در اختیار سرویس هوش مصنوعی قرار می‌گیرن."
+        eyebrow="طلوع"
+        title="صبحِ تو شروع شد"
+        description="با شروع گفت‌وگو، پاسخ‌های آشنایی‌ات ذخیره می‌شن و برای شخصی‌سازی چت در اختیار سرویس هوش مصنوعی قرار می‌گیرن."
       />
-      <div className="ready-art artwork-wrap"><img src="/brand/theia-ready.png" alt="تیا با هالهٔ خورشید، ماه و ستارهٔ صبحگاهی" /></div>
-      <PrimaryButton disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>{savingProfile ? 'در حال ذخیره…' : 'شروع گفت‌وگو'}</PrimaryButton>
+      <div className="ready-art" role="img" aria-label="طلوعِ کامل؛ خورشید بر فراز حوض، و آب که به طلا نشسته است.">
+        <DawnScene progress={DAWN_STAGES.ready} />
+      </div>
+      <PrimaryButton light disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>{savingProfile ? 'در حال ذخیره…' : 'شروع گفت‌وگو'}</PrimaryButton>
     </Shell>
   );
 }

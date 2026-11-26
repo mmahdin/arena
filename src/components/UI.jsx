@@ -7,6 +7,7 @@ import {
   X,
 } from 'lucide-react';
 import { TheiaMark } from './TheiaBrand';
+import { FLOW } from '../data';
 
 export function StatusBar() {
   // Keep the shared header spacing and safe area; device chrome belongs to the OS.
@@ -40,12 +41,28 @@ export function PrimaryButton({ children, onClick, disabled = false, light = fal
   );
 }
 
-export function PageHeader({ title, description, className = '' }) {
+export function PageHeader({ title, description, eyebrow, className = '' }) {
   return (
     <header className={`page-header ${className}`}>
+      {eyebrow && <p className="page-eyebrow">{eyebrow}</p>}
       <h1>{title}</h1>
       {description && <p>{description}</p>}
     </header>
+  );
+}
+
+/**
+ * A hairline of dawn that widens as the user moves through the onboarding
+ * journey — the same sun rising, screen by screen, from night to radiance.
+ */
+export function DawnProgress({ route }) {
+  const index = FLOW.indexOf(route);
+  if (index < 0) return null;
+  const value = Math.round((index / (FLOW.length - 1)) * 100);
+  return (
+    <div className="dawn-progress" aria-hidden="true">
+      <span style={{ width: `${value}%` }} />
+    </div>
   );
 }
 

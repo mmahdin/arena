@@ -63,6 +63,7 @@ svg { flex-shrink: 0; }
 .theme-light { background: var(--light); color: var(--ink); }
 .theme-beige { background: var(--beige); color: var(--ink); }
 .theme-dark { background: var(--dark); color: #f4f3ef; }
+.theme-dark .page-header p { color: #d2cec4; }
 .scrolling-screen { overflow-y: auto; overscroll-behavior: contain; }
 .sr-only {
   position: absolute;
@@ -141,6 +142,39 @@ svg { flex-shrink: 0; }
   white-space: nowrap;
 }
 .artwork-wrap { pointer-events: none; }
+
+/* The rising hairline of dawn — every onboarding screen advances the light. */
+.dawn-progress {
+  position: absolute;
+  z-index: 30;
+  top: 0;
+  inset-inline: 0;
+  height: 2px;
+  background: rgb(35 32 27 / 8%);
+  pointer-events: none;
+  direction: ltr;
+}
+.dawn-progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #a9853f, #d8a76c 55%, #f6cf98);
+  transition: width 260ms ease;
+}
+.theme-dark .dawn-progress { background: rgb(246 207 152 / 12%); }
+.theme-dark .dawn-progress span { background: linear-gradient(90deg, #8a5f2a, #d8a76c 50%, #ffdf9e); }
+@media (prefers-reduced-motion: reduce) {
+  .dawn-progress span { transition: none; }
+  .dawn-rays { animation: none; }
+}
+
+/* Chapter eyebrow — quiet Persian small-caps rhythm above the title. */
+.page-eyebrow {
+  margin: 0 0 10px;
+  font-size: 11.5px;
+  font-weight: 620;
+  letter-spacing: .04em;
+  color: var(--theia-gold);
+}
 .artwork-wrap img { width: 100%; height: 100%; object-fit: contain; }
 .pager-dots {
   display: flex;
@@ -155,9 +189,24 @@ svg { flex-shrink: 0; }
 .pager-dots--dark button.is-active { background: #fff; }
 
 /* ---------- Welcome & social proof ---------- */
-.welcome-art { position: absolute; top: 30%; bottom: 100px; inset-inline: 29px; }
-.welcome-screen .page-header h1 { font-size: 32px; }
-.welcome-screen .page-header p { max-width: 335px; }
+.welcome-screen,
+.ready-screen,
+.interstitial-screen {
+  background: #05070d;
+  overflow: hidden;
+}
+.welcome-art,
+.interstitial-art,
+.ready-art { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.dawn-scene { display: block; width: 100%; height: 100%; }
+.dawn-rays { transform-box: fill-box; transform-origin: center; animation: dawn-rays-turn 140s linear infinite; }
+@keyframes dawn-rays-turn { to { transform: rotate(360deg); } }
+.welcome-screen .page-header { padding-top: clamp(72px, 11dvh, 108px); }
+.welcome-screen .page-header h1 { font-size: 33px; font-weight: 620; letter-spacing: -.4px; max-width: 340px; }
+.welcome-screen .page-header p { max-width: 335px; color: #d8d4ca; }
+.ready-screen .page-header { padding-top: clamp(64px, 10dvh, 100px); }
+.ready-screen .page-header h1 { font-weight: 640; }
+.ready-screen .page-header p { color: #d8d4ca; }
 .reviews-list { display: grid; gap: 16px; margin: 72px 20px 94px; }
 .review-card { padding: 19px 20px 18px; background: #fff; border-radius: 18px; }
 .review-meta { display: flex; align-items: center; gap: 12px; }
@@ -167,7 +216,7 @@ svg { flex-shrink: 0; }
 .review-card p { margin-top: 13px; font-size: 14px; font-weight: 390; line-height: 1.75; }
 
 /* ---------- Research & experts ---------- */
-.research-screen, .experts-screen, .interstitial-screen, .voice-screen { background: #000; }
+.research-screen, .experts-screen, .voice-screen { background: #000; }
 .research-screen .page-header h1 { font-size: 28px; }
 .research-screen .page-header p { color: #d4d2ce; }
 .research-logos {
@@ -242,12 +291,17 @@ svg { flex-shrink: 0; }
   font-weight: 560;
 }
 .name-input:focus { border-bottom-color: #575750; }
-.interstitial-art { position: absolute; inset-inline: 42px; bottom: 100px; }
-.art-small .interstitial-art { top: 54%; }
-.art-medium .interstitial-art { top: 51%; }
-.art-large .interstitial-art { top: 44%; }
-.art-tall .interstitial-art { top: 28%; inset-inline: 38px; }
-.privacy-art { position: absolute; top: 49%; inset-inline-start: 50%; width: 102px; height: 116px; transform: translateX(50%); object-fit: contain; }
+.interstitial-screen .page-header p { color: #d8d4ca; max-width: 330px; }
+.interstitial-screen .page-header h1 { font-weight: 640; }
+.privacy-art {
+  position: absolute;
+  top: 45%;
+  inset-inline-start: 50%;
+  transform: translateX(50%) translateY(-50%);
+  display: flex;
+  pointer-events: none;
+}
+.theia-sealed-eye { filter: drop-shadow(0 10px 22px rgb(195 154 84 / 24%)); }
 .privacy-card {
   position: absolute;
   inset-inline: 24px;
@@ -413,7 +467,6 @@ svg { flex-shrink: 0; }
 .voice-copy h2 { font-size: 25px; font-weight: 650; }
 .voice-copy p { margin-top: 8px; white-space: pre-line; font-size: 14px; line-height: 1.75; color: #e0ded9; }
 .voice-screen > .pager-dots { position: absolute; bottom: 137px; inset-inline: 0; }
-.ready-art { position: absolute; top: 36%; bottom: 96px; inset-inline: 28px; }
 
 /* ---------- Home ---------- */
 .home-menu-button {
@@ -670,7 +723,6 @@ svg { flex-shrink: 0; }
 .question-neurodivergent .choice-scroll { margin-top: 14px; }
 .question-faith .choice-scroll { margin-top: 50px; }
 .question-interests > .skip-button { bottom: 28px; }
-.art-tall .interstitial-art { top: 30%; }
 .question-therapist,
 .question-neurodivergent,
 .question-faith { padding-bottom: 24px; }
@@ -682,8 +734,19 @@ svg { flex-shrink: 0; }
 .app-shell:has(> .dev-login-screen) { min-height: 0; }
 .dev-login-screen { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
 .dev-login-screen .page-header { flex-shrink: 0; padding-top: clamp(20px, 5dvh, 44px); }
-.dev-login-art { position: relative; flex: 1 0 96px; min-height: 96px; pointer-events: none; }
-.dev-login-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.dev-login-art {
+  position: relative;
+  flex: 1 0 168px;
+  min-height: 150px;
+  margin-inline: 22px;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #05070d;
+  border: 1px solid rgb(255 255 255 / 6%);
+  box-shadow: 0 14px 34px rgb(5 7 13 / 26%), inset 0 0 0 1px rgb(5 7 13 / 40%);
+  pointer-events: none;
+}
+.dev-login-scene { position: absolute; inset: 0; width: 100%; height: 100%; }
 .dev-login-panel { position: relative; z-index: 2; flex-shrink: 0; margin: 0 24px max(24px, env(safe-area-inset-bottom)); padding: 20px; background: #fff; border-radius: 24px; box-shadow: 0 8px 26px rgb(35 32 27 / 7%); }
 .dev-login-heading { display: flex; align-items: center; gap: 10px; font-size: 17px; }
 .dev-login-panel > p { color: #615d57; font-size: 13px; line-height: 1.9; margin: 10px 0 16px; }
@@ -914,15 +977,15 @@ svg { flex-shrink: 0; }
 }
 .checkins-art {
   position: absolute;
-  inset-inline: 24px;
-  top: clamp(285px, 42vh, 370px);
-  height: min(35vh, 310px);
-  max-height: calc(100% - 390px);
-  border-radius: 18px;
-  overflow: hidden;
-  background: var(--beige);
+  inset-inline: 0;
+  top: clamp(262px, 36vh, 345px);
+  height: min(30vh, 220px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
 }
-.checkins-art img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.theia-checkin-glow { filter: drop-shadow(0 10px 20px rgb(35 32 27 / 12%)); }
 .onboarding-welcome .message-text { white-space: normal; }
 @media (max-height: 700px) {
   .mood-screen .page-header, .checkins-screen .page-header { padding-top: 99px; }
@@ -931,7 +994,7 @@ svg { flex-shrink: 0; }
   .mood-stage h2 { font-size: 17px; }
   .mood-slider-wrap { height: 43px; flex-basis: 43px; }
   .mood-footnote { bottom: 88px; font-size: 13px; }
-  .checkins-art { top: 265px; height: min(31vh, 220px); max-height: calc(100% - 340px); }
+  .checkins-art { top: 245px; height: min(26vh, 190px); }
 }
 
 /* ---------- UX refinement: letters, chat continuity, onboarding clarity ---------- */
@@ -1167,7 +1230,7 @@ svg { flex-shrink: 0; }
 .mood-slider:focus-visible { outline: none; }
 .mood-slider:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgb(133 141 197 / 55%); }
 .mood-slider:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px rgb(133 141 197 / 55%); }
-.checkins-art { top: clamp(260px, 38vh, 330px); }
+.checkins-art { top: clamp(248px, 34vh, 325px); }
 
 /* Chat: quiet header, bubble-free assistant text, inline message tools, floating composer. */
 .chat-screen { --composer-height: 78px; --chat-header-h: calc(max(18px, env(safe-area-inset-top, 0px)) + 58px); }
@@ -1477,8 +1540,8 @@ svg { flex-shrink: 0; }
 .home-orbit-point { fill: #d5d9f7; }
 .home-conversation-mark {
   position: relative;
-  color: #e2deed;
-  filter: drop-shadow(0 0 12px rgb(213 217 247 / 11%));
+  color: #f6cf98;
+  filter: drop-shadow(0 0 18px rgb(246 207 152 / 32%));
   animation: home-mark-breathe 5s ease-in-out infinite;
 }
 .home-start-label { font-size: 20px; font-weight: 590; letter-spacing: -.2px; }
@@ -1822,20 +1885,13 @@ svg { flex-shrink: 0; }
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
-  border-radius: 50%;
   vertical-align: middle;
-  background: #080808;
+  background: transparent;
+  color: var(--ink);
 }
-.theia-mark img {
-  display: block;
-  flex-shrink: 0;
-  /* Use the original photo; frame its mark by reducing only outer black space. */
-  width: 165%;
-  height: 165%;
-  max-width: none;
-  object-fit: contain;
-}
+.theia-mark svg { display: block; width: 100%; height: 100%; }
+.theia-mark--luminous { color: var(--theia-dawn); }
+.theia-mark--luminous svg { filter: drop-shadow(0 0 4px rgb(246 207 152 / 22%)); }
 
 :root {
   --theia-dawn: #f6cf98;
@@ -1843,17 +1899,10 @@ svg { flex-shrink: 0; }
   --theia-gold: #d8a76c;
 }
 
-.privacy-art {
-  top: 43%;
-  width: 142px;
-  height: 164px;
-}
+.privacy-art { top: 44%; }
 @media (max-height: 700px) {
-  .privacy-art {
-    top: 45%;
-    width: 112px;
-    height: 130px;
-  }
+  .privacy-art { top: 46%; }
+  .privacy-art svg { width: 100px; height: 100px; }
 }
 
 .mood-glow[data-mood-level="3"] {
@@ -1876,7 +1925,7 @@ svg { flex-shrink: 0; }
 }
 .drawer-brand-mark {
   flex-shrink: 0;
-  filter: drop-shadow(0 0 10px rgb(246 207 152 / 14%));
+  filter: drop-shadow(0 0 12px rgb(246 207 152 / 30%));
 }
 
 .home-conversation-art::before {
@@ -1890,7 +1939,7 @@ svg { flex-shrink: 0; }
   opacity: .86;
 }
 .theia-home-emblem {
-  filter: drop-shadow(0 0 16px rgb(246 207 152 / 12%));
+  filter: drop-shadow(0 0 26px rgb(246 207 152 / 30%));
 }
 .home-letter-seal {
   background: var(--theia-gold);
@@ -1904,6 +1953,7 @@ svg { flex-shrink: 0; }
   gap: 9px;
 }
 .letter-signature-mark {
-  opacity: .85;
+  opacity: .92;
+  filter: drop-shadow(0 0 5px rgb(246 207 152 / 28%));
 }
 
