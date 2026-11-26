@@ -3,8 +3,8 @@
    -------------------------------------------------------------------------
    A single narrative surface system for the pre-Home journey. Loaded after
    styles.css so the legacy designer sheets stay intact as history while this
-   file owns the onboarding look: ivory paper, night ink, dawn gold, one
-   faceless instrument of light, and no human figure anywhere.
+   file owns the onboarding look: ivory paper, night ink, dawn gold, and one
+   moon whose dark side is revealed by earthshine — no human figure anywhere.
    ========================================================================= */
 
 .onboarding-screen {
@@ -253,67 +253,128 @@
   opacity: 0.7;
 }
 
-/* ---------- the instrument ---------- */
-.ob-art {
+/* ---------- Earthshine: one moon, revealed by reflected light ---------- */
+/* No rings, no orbits, no sparks. A single photograph of a single moon is
+   re-read in eight states; only the amount of light that reaches its dark
+   side changes. The plate dissolves into the surface instead of sitting on
+   it as a card. See src/components/EarthshineInstrument.jsx. */
+.earthshine {
+  --es-fold: #07090c;
+  --es-shadow-color: #05070a;
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 0;
-}
-.ob-art--hero {
-  flex: 1 1 auto;
-  padding: clamp(2px, 1.4vh, 14px) 0 clamp(6px, 2vh, 20px);
-}
-.ob-art--hero .theia-instrument {
   width: 100%;
   height: 100%;
-  max-width: 330px;
-  max-height: 330px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  isolation: isolate;
+  background: transparent;
+  -webkit-mask-image: radial-gradient(ellipse 66% 60% at 50% 50%, #000 26%, rgb(0 0 0 / .9) 48%, rgb(0 0 0 / .35) 72%, transparent 92%);
+  mask-image: radial-gradient(ellipse 66% 60% at 50% 50%, #000 26%, rgb(0 0 0 / .9) 48%, rgb(0 0 0 / .35) 72%, transparent 92%);
+  animation: es-enter 1200ms cubic-bezier(.2, .8, .2, 1) both;
 }
-.ob-art--small {
-  flex: 0 1 auto;
-  height: clamp(150px, 26vh, 244px);
-  margin: clamp(14px, 3.4vh, 30px) 0;
-}
-.ob-art--small .theia-instrument { width: 100%; height: 100%; max-width: 244px; max-height: 244px; }
-
-.theia-instrument { animation: ob-instrument-in 900ms cubic-bezier(.2,.8,.2,1) both; }
-@keyframes ob-instrument-in {
-  from { opacity: 0; transform: scale(0.975) translateY(6px); }
+@keyframes es-enter {
+  from { opacity: 0; transform: scale(.985); }
   to { opacity: 1; transform: none; }
 }
 
-.ti-drift,
-.ti-rays {
-  transform-box: view-box;
-  transform-origin: center;
-}
-.ti-drift { animation: ob-rotate 260s linear infinite; }
-.ti-rays { animation: ob-rotate 140s linear infinite reverse; }
-@keyframes ob-rotate { to { transform: rotate(360deg); } }
-
-.ti-sight-ring {
-  transform-box: view-box;
-  transform-origin: center;
-  animation: ob-sight 9s ease-in-out infinite;
-}
-@keyframes ob-sight {
-  0%, 100% { transform: scale(0.82); opacity: 0.5; }
-  50% { transform: scale(1.3); opacity: 0.08; }
+.earthshine--tone-paper {
+  --es-fold: #e9e0cf;
+  --es-shadow-color: #f4eee2;
 }
 
-.ti-pulse {
-  transform-box: view-box;
-  transform-origin: center;
-  animation: ob-pulse 8s cubic-bezier(.2,.6,.3,1) infinite;
+.earthshine__plate {
+  position: absolute;
+  inset: 0;
+  background-image: var(--es-image);
+  background-repeat: no-repeat;
+  /* A quiet crop, so the moon is a presence rather than a distant dot. */
+  background-size: 165% auto;
+  background-position: 50% 50%;
+  filter: brightness(var(--es-light)) saturate(var(--es-saturation)) contrast(1.02);
+  transform: translateZ(0);
+  pointer-events: none;
 }
-.ti-pulse--late { animation-delay: 4s; }
-@keyframes ob-pulse {
-  0% { transform: scale(0.9); opacity: 0.5; }
-  60% { opacity: 0; }
-  100% { transform: scale(1.28); opacity: 0; }
+/* The three-lights chapter lowers the frame to include the dark limb of the
+   Earth: the light on the Moon is shown to have come from somewhere. */
+.earthshine--orbits .earthshine__plate {
+  background-size: 140% auto;
+  background-position: 50% 78%;
 }
+.earthshine--tone-paper .earthshine__plate {
+  background-size: 168% auto;
+  opacity: .94;
+  filter: brightness(var(--es-light)) saturate(var(--es-saturation)) contrast(.96) sepia(.06);
+}
+
+/* Sunlight reflected off the Earth, arriving from below the frame. */
+.earthshine__glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 92% 52% at 50% 116%, rgb(226 178 110 / var(--es-warmth)) 0%, rgb(210 162 100 / calc(var(--es-warmth) * .35)) 42%, transparent 76%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+.earthshine--tone-paper .earthshine__glow {
+  background: linear-gradient(to top, rgb(180 134 72 / var(--es-warmth)), transparent 48%);
+  mix-blend-mode: multiply;
+}
+
+/* The not-knowing lifts. Nothing is drawn or added: a veil simply thins. */
+.earthshine__shadow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 66% at 50% 46%, var(--es-shadow-color) 0%, transparent 82%);
+  opacity: var(--es-shadow);
+  animation: es-reveal 2800ms cubic-bezier(.2, .7, .2, 1) both;
+  pointer-events: none;
+}
+@keyframes es-reveal {
+  from { opacity: .9; }
+  to { opacity: var(--es-shadow); }
+}
+
+/* Only the privacy chapter parts a shadow; the opening is chosen by you. */
+.earthshine__fold { display: none; }
+.earthshine--veil .earthshine__fold {
+  display: block;
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, var(--es-fold) 0%, transparent 46%),
+    linear-gradient(to left, var(--es-fold) 0%, transparent 46%);
+  opacity: .4;
+  pointer-events: none;
+}
+
+.earthshine__grain {
+  position: absolute;
+  inset: 0;
+  opacity: .05;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23g)' opacity='0.65'/></svg>");
+  pointer-events: none;
+}
+
+/* The light arrives slowly; it never announces itself. */
+.earthshine--welcome .earthshine__plate,
+.earthshine--sight .earthshine__plate,
+.earthshine--seal .earthshine__plate {
+  animation: es-light-in 3200ms ease-out both;
+}
+@keyframes es-light-in {
+  from { filter: brightness(.5) saturate(.7) contrast(1.02); }
+  to { filter: brightness(var(--es-light)) saturate(var(--es-saturation)) contrast(1.02); }
+}
+.earthshine--dawn .earthshine__glow { animation: es-earthlight 18s ease-in-out infinite alternate; }
+.earthshine--pulse .earthshine__glow { animation: es-breathe 9s ease-in-out infinite; }
+@keyframes es-earthlight { from { opacity: .28; } to { opacity: 1; } }
+@keyframes es-breathe { 0%, 100% { opacity: .38; } 50% { opacity: 1; } }
+
+/* The hairline crescent used in the chrome answers to the same moon. */
+.ob-chrome__sigil .earthshine-glyph,
+.approach-mark .earthshine-glyph { display: block; }
+
 
 /* The brand mark inside the product keeps its frame geometry. */
 .theia-mark {
@@ -712,11 +773,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .theia-instrument,
-  .ti-drift,
-  .ti-rays,
-  .ti-pulse,
-  .ti-sight-ring {
+  .earthshine,
+  .earthshine__plate,
+  .earthshine__glow,
+  .earthshine__shadow {
     animation: none !important;
   }
   .ob-seam i { transition: none; }
