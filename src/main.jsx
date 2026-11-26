@@ -6,6 +6,7 @@ import '@fontsource-variable/noto-naskh-arabic';
 import App from './App';
 import './styles.css';
 import './onboarding.css';
+import './earthshine.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

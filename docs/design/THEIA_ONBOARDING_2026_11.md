@@ -1,5 +1,11 @@
 # تیا — Onboarding redesign, 2026-11
 
+> **Superseded by Earthshine (2026-11-26).** This document records the earlier
+> open-ring instrument identity. The active onboarding now tells one pre-dawn
+> story under a natural Held Moon; see
+> [`EARTHSHINE_ONBOARDING_2026_11.md`](./EARTHSHINE_ONBOARDING_2026_11.md).
+> The old instrument component and assets remain in the repository as history.
+
 **Scope:** the entire pre-Home journey (26 routes in `FLOW`), plus the sign-in entry
 that precedes it. Routing, server-owned progress, answer storage, and every
 network boundary are unchanged. This document records the identity, the story,

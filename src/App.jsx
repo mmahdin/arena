@@ -3,7 +3,7 @@ import { CheckCircle2 } from 'lucide-react';
 import { FLOW, LEGACY_INFO_ROUTES } from './data';
 import { createOnboardingGreeting } from './features/profile/onboardingGreeting';
 import { buildOnboardingAnswers } from './features/profile/onboardingAnswers';
-import { VALID_ROUTES, ONBOARDING_ROUTES, canOpenRoute, canVisitOnboarding, onboardingMove, visibleOnboardingRoute, previousOnboardingRoute } from './features/profile/navigation';
+import { VALID_ROUTES, ONBOARDING_ROUTES, ONBOARDING_SET, canOpenRoute, canVisitOnboarding, onboardingMove, visibleOnboardingRoute, previousOnboardingRoute } from './features/profile/navigation';
 import { approachForStyle, styleForApproach, validateDisplayName } from './features/profile/preferences';
 import OnboardingScreen from './screens/Onboarding';
 import MainScreen from './screens/Main';
@@ -222,7 +222,7 @@ export default function App() {
   useEffect(() => {
     if (!active) return;
     window.scrollTo(0, 0);
-    document.documentElement.style.colorScheme = ['home', 'survey', 'day', 'letter', 'history', 'saved', 'settings', 'menu', 'chat', 'insight', 'research', 'experts', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro', 'voice'].includes(route) ? 'dark' : 'light';
+    document.documentElement.style.colorScheme = ONBOARDING_SET.has(route) || screenSurfaceForRoute(route) !== 'light' ? 'dark' : 'light';
   }, [active, route]);
 
   // Keep the mobile composer above the visual viewport when the keyboard opens.

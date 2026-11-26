@@ -1,3 +1,16 @@
+## Earthshine onboarding visual system (2026-11-26)
+
+The active onboarding and sign-in visual narrative is **Earthshine — The Last
+Hours of the Night**: eight full-bleed pre-dawn plates under one natural waning
+crescent, with the ashen disc becoming legible as the eye adapts. Theia is never
+an object in the frame. The old open-ring instrument remains available for
+non-onboarding product surfaces and as history, but must not be reintroduced to
+onboarding. Copy and scene mapping live in
+`src/features/onboarding/earthshine.js`; see
+`docs/design/EARTHSHINE_ONBOARDING_2026_11.md` for the creative foundation.
+`FLOW`, all questions, answer allowlists, server progress, privacy controls and
+final profile completion remain unchanged.
+
 ## Approved onboarding personalization amendment (2026-11-11)
 
 The user explicitly requested using onboarding information throughout chat. This
