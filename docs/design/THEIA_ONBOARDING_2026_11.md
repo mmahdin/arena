@@ -70,23 +70,28 @@ mysticism, floral ornament, neon gradients, and any female silhouette.
 of dawn at its centre and a hairline horizon beneath it. The opening is the
 promise: the product does not complete you, contain you, or close around you.
 
-**The instrument.** The same drawing appears in eight states across the story:
-night, veil, sight, dawn, orbits, pulse, seal, welcome. One object, changing
-light — so the story has continuity instead of eight unrelated illustrations.
-Every state is hand-authored SVG (`src/components/TheiaSigil.jsx`), so it stays
-crisp, animates, and re-tones itself for dark ("ink") and light ("paper")
-surfaces.
+**The instrument.** One *place*, seen at eight hours. The scenes are a single
+celestial shore: a wide sky, two low ridges, still water, and a headland carrying
+a stand of cypress. Nothing in the place changes between screens — only the
+light, the water and the hour. That is what gives the flow continuity instead of
+eight unrelated illustrations: by the last screen the person recognises the
+shore, and recognises what has happened to the light on it.
+
+The place is drawn once and re-toned twice: a night reading for ink surfaces and
+an etching of the same view for ivory paper. Every state is hand-authored SVG
+(`src/components/TheiaSigil.jsx`), so it stays crisp, animates slowly, and never
+needs a raster.
 
 | State | Where | What it says |
 | --- | --- | --- |
-| `welcome` | first screen | an open ring with one spark: an invitation, not a face |
-| `night` | chapter ۲ | almost nothing is visible; not-knowing is the starting point |
-| `veil` | privacy | a curtain parted at the middle: the opening is chosen by you |
-| `sight` | chapter ۳ | an eye drawn from two hairlines and a lit pupil |
-| `dawn` | chapter ۴ | light arriving at the horizon, gradually, without announcement |
-| `orbits` | chapter ۵ | Helios, Selene and Eos in three separate orbits |
-| `pulse` | reminders | a ring whose light returns |
-| `seal` | ready | the ring closes on its own terms; the circle becomes complete |
+| `welcome` | first screen | first light: the sun on the horizon inside the open ring, its corona stopping short of closing |
+| `night` | chapter ۲ | almost nothing is visible; a crescent, the same trees, one ember far out on the water |
+| `veil` | privacy | two curtains drawn apart on the same shore, with the ring held open between them: the opening is chosen by you |
+| `sight` | chapter ۳ | an eye drawn from two hairlines, its pupil the rising sun |
+| `dawn` | chapter ۴ | light arriving over the ridges, in short rays and a path on the water |
+| `orbits` | chapter ۵ | Helios, Selene and Eos — sun, moon, dawn star — threaded by one faint course |
+| `pulse` | reminders | a lighthouse on the far point: light that returns |
+| `seal` | ready | the same ring, now closed, around a full sun; the one closed circle in the product |
 
 **Palette** — night ink `#0A0B0D`, warm ivory paper `#F2EDE4`, dawn gold
 `#D9B679` → `#B1874E`, muted graphite `#A29D93` on dark and `#7B746A` on paper.
@@ -101,9 +106,9 @@ sits in normal flow (not floating over content), so the composition never
 collides on short screens. A six-chapter seam of light at the top replaces the
 implicit "where am I?" — chapters, not a percentage.
 
-**Motion** — an instrument that fades in over 900ms, a 260-second rotation of
-the astrolabe rete, and slow pulse rings. All of it is disabled under
-`prefers-reduced-motion`.
+**Motion** — the scene fades in over 900ms, then only light moves: the sun's
+corona breathes, a few stars twinkle, the path on the water shimmers, and the
+lighthouse beam returns. All of it is disabled under `prefers-reduced-motion`.
 
 ## 5. The narrative
 
@@ -139,9 +144,10 @@ never as trivia:
   behaviour. Choices become ivory cards with a hairline, selected = ink with a
   gold seam; the age wheel keeps its physics with a gold-tinted marker; single
   choice still advances after the same 160ms.
-- **Mood:** the contour is now the drawing — a tangled thread at the hard end and
-  a near-ring at the easy end, in a dawn-to-ash gradient; slider and ticks are
-  ink on paper.
+- **Mood:** the slider moves the same shore through five hours — a fading moon
+  over dark water at the hard end, the sun risen over the ridge at the easy end,
+  with stars, warmth and the path of light fading in and out; slider and ticks
+  are ink on paper.
 - **Voice:** waveforms in gold on ink cards. Copy states plainly that audio is
   not played yet (no fake TTS).
 - **Approach:** same five styles, same sample prompt, same swipe/keyboard
@@ -182,7 +188,9 @@ contract, name persistence, the five style keys, and the legacy info routes
 
 ## 9. Implementation map
 
-- `src/components/TheiaSigil.jsx` — the mark and the eight instrument states.
+- `src/components/TheiaSigil.jsx` — the mark, and the single shore drawn in eight
+  states (sky ramps, palettes, ridges, water, cypress headland, curtains,
+  lighthouse, corona ring).
 - `src/components/TheiaBrand.jsx` — `THEIA_LOGO_SRC` now points to
   `/brand/theia-sigil.svg`; `TheiaMark` renders the vector mark.
 - `src/screens/Onboarding.jsx` — new shell (chrome + seam + flow + footer), new

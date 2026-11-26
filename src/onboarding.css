@@ -278,41 +278,62 @@
 }
 .ob-art--small .theia-instrument { width: 100%; height: 100%; max-width: 244px; max-height: 244px; }
 
-.theia-instrument { animation: ob-instrument-in 900ms cubic-bezier(.2,.8,.2,1) both; }
+.theia-instrument {
+  display: block;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 26px 62px -30px rgb(0 0 0 / 58%),
+    0 0 0 1px rgb(217 182 121 / 16%);
+  animation: ob-instrument-in 900ms cubic-bezier(.2,.8,.2,1) both;
+}
+/* The etching on paper carries its own vignette and hairline; only a quiet
+   shadow is needed so it sits on the page rather than floating. */
+.onboarding-screen.ob-paper .theia-instrument,
+.onboarding-screen:not(.ob-ink) .theia-instrument {
+  box-shadow: 0 22px 54px -34px rgb(38 35 28 / 38%);
+}
 @keyframes ob-instrument-in {
   from { opacity: 0; transform: scale(0.975) translateY(6px); }
   to { opacity: 1; transform: none; }
 }
 
-.ti-drift,
-.ti-rays {
-  transform-box: view-box;
+/* The landscape breathes: sun glow, star twinkle, beacon beam, sea shimmer.
+   Only transform/opacity animate, so every state's own light level is kept. */
+.ti-sun-glow {
+  transform-box: fill-box;
   transform-origin: center;
+  animation: ti-breathe 7s ease-in-out infinite;
 }
-.ti-drift { animation: ob-rotate 260s linear infinite; }
-.ti-rays { animation: ob-rotate 140s linear infinite reverse; }
-@keyframes ob-rotate { to { transform: rotate(360deg); } }
-
-.ti-sight-ring {
-  transform-box: view-box;
-  transform-origin: center;
-  animation: ob-sight 9s ease-in-out infinite;
-}
-@keyframes ob-sight {
-  0%, 100% { transform: scale(0.82); opacity: 0.5; }
-  50% { transform: scale(1.3); opacity: 0.08; }
+@keyframes ti-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
 }
 
-.ti-pulse {
-  transform-box: view-box;
+.ti-twinkle {
+  transform-box: fill-box;
   transform-origin: center;
-  animation: ob-pulse 8s cubic-bezier(.2,.6,.3,1) infinite;
+  animation: ti-twinkle 4.5s ease-in-out infinite;
 }
-.ti-pulse--late { animation-delay: 4s; }
-@keyframes ob-pulse {
-  0% { transform: scale(0.9); opacity: 0.5; }
-  60% { opacity: 0; }
-  100% { transform: scale(1.28); opacity: 0; }
+@keyframes ti-twinkle {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+
+.ti-beam { animation: ti-beam 4.5s ease-in-out infinite; }
+@keyframes ti-beam {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.9; }
+}
+
+.ti-shimmer {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ti-shimmer 6s ease-in-out infinite;
+}
+@keyframes ti-shimmer {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(2px); }
 }
 
 /* The brand mark inside the product keeps its frame geometry. */
@@ -457,10 +478,25 @@
   gap: clamp(6px, 1.6vh, 14px);
 }
 .onboarding-screen .mood-glow {
-  inset: 6% 0 12%;
-  background: radial-gradient(circle at 50% 46%, rgb(226 180 120 / 26%), transparent 64%);
+  inset: 2% 0 10%;
+  background: radial-gradient(circle at 50% 52%, rgb(226 180 120 / 20%), transparent 66%);
 }
-.onboarding-screen .mood-scribble { width: min(100%, 318px); }
+/* The artwork carries its own light now, so the stage glow only lifts the
+   paper around it — it no longer floods the card with blue. */
+.onboarding-screen .mood-glow[data-mood-level="3"],
+.onboarding-screen .mood-glow[data-mood-level="4"] {
+  background: radial-gradient(circle at 50% 52%, rgb(236 190 128 / 30%), transparent 68%);
+}
+.onboarding-screen .mood-scribble {
+  width: min(100%, 318px);
+  display: block;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow:
+    0 20px 50px -28px rgb(38 35 28 / 45%),
+    0 0 0 1px rgb(177 135 78 / 22%);
+}
+.onboarding-screen .mood-fade { transition: opacity 600ms ease; }
 .onboarding-screen .mood-stage h2 { font-size: 19px; font-weight: 460; color: #232019; }
 .onboarding-screen .mood-slider-wrap { --mood-thumb: 34px; width: min(84%, 250px); height: 52px; flex-basis: 52px; }
 .onboarding-screen .mood-ticks { background: #cfc4b2; height: 1px; }
@@ -713,12 +749,13 @@
 
 @media (prefers-reduced-motion: reduce) {
   .theia-instrument,
-  .ti-drift,
-  .ti-rays,
-  .ti-pulse,
-  .ti-sight-ring {
+  .ti-sun-glow,
+  .ti-twinkle,
+  .ti-beam,
+  .ti-shimmer {
     animation: none !important;
   }
   .ob-seam i { transition: none; }
+  .onboarding-screen .mood-fade { transition: none; }
   .onboarding-screen * { scroll-behavior: auto !important; }
 }
