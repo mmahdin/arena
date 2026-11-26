@@ -106,6 +106,8 @@ continuous and never re-composed.
 | 7 | `checkins` | checkins, referral | the frame a little later; the **lantern** lit on the parapet, its pool on plaster and wool | «اگر بخواهی، چراغ روشن می‌ماند.» |
 | 8 | `final` | ready | first light: one low beam from the sunrise side onto the rug, the stair door open and warm, the moon still up | «از این‌جا شروع می‌کنیم.» |
 
+![The eight stills, in story order: welcome, privacy, night, seeing, dawn, three, checkins, final](stills/earthshine-eight-stills.jpg)
+
 A ninth, `mood`, exists only as a **backdrop** for the mood scale: the same roof
 with the moon taken out of the sky, because on that screen the moon comes forward
 and the user answers with it.
