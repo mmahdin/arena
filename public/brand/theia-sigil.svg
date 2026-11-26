@@ -1,13 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" fill="none">
   <defs>
-    <linearGradient id="g" x1="32" y1="28" x2="222" y2="232" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F7E7C6"/>
-      <stop offset=".46" stop-color="#E3C48C"/>
-      <stop offset="1" stop-color="#B98A4E"/>
+    <radialGradient id="ashen" cx="68%" cy="70%" r="76%">
+      <stop offset="0%" stop-color="#7C94B4"/>
+      <stop offset="48%" stop-color="#495C78"/>
+      <stop offset="100%" stop-color="#202B3D"/>
+    </radialGradient>
+    <radialGradient id="mareA" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#182233" stop-opacity="0.58"/>
+      <stop offset="100%" stop-color="#182233" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="crescent" x1="196" y1="202" x2="68" y2="68" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F6F9FE"/>
+      <stop offset="60%" stop-color="#DCE7F5"/>
+      <stop offset="100%" stop-color="#9FB5CF"/>
     </linearGradient>
+    <clipPath id="sphere">
+      <circle cx="128" cy="128" r="92"/>
+    </clipPath>
+    <mask id="limb">
+      <rect width="256" height="256" fill="#000"/>
+      <circle cx="128" cy="128" r="92" fill="#fff"/>
+      <circle cx="117.4" cy="116.6" r="89.8" fill="#000"/>
+    </mask>
   </defs>
-  <!-- An open ring: the circle of light never closes around the person using it. -->
-  <path d="M77.6 218.8A104 104 0 1 1 178.4 218.8" stroke="url(#g)" stroke-width="8.8" stroke-linecap="round"/>
-  <!-- The single spark of dawn at the centre; Theia's sight. -->
-  <path d="M128 84Q130.8 125.2 160.5 128Q130.8 130.8 128 172Q125.2 130.8 95.5 128Q125.2 125.2 128 84Z" fill="url(#g)"/>
+  <!-- The Held Moon (ماهِ در آغوش): cool blue-gray Earthshine sphere + slender waning crescent -->
+  <g clip-path="url(#sphere)" opacity="0.84">
+    <circle cx="128" cy="128" r="92" fill="url(#ashen)"/>
+    <ellipse cx="96" cy="104" rx="52" ry="44" transform="rotate(-24 96 104)" fill="url(#mareA)"/>
+    <ellipse cx="152" cy="112" rx="44" ry="36" transform="rotate(16 152 112)" fill="url(#mareA)"/>
+    <ellipse cx="116" cy="160" rx="44" ry="30" transform="rotate(8 116 160)" fill="url(#mareA)"/>
+  </g>
+  <circle cx="128" cy="128" r="91" stroke="#8FA6C4" stroke-width="2" opacity="0.34"/>
+  <circle cx="128" cy="128" r="92" fill="url(#crescent)" mask="url(#limb)"/>
 </svg>

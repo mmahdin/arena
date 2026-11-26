@@ -1,0 +1,120 @@
+/**
+ * Earthshine: The Last Hours of the Night (زمین‌تاب: ساعات پایانی شب)
+ *
+ * Pure narrative metadata, scene continuity map, and Earthshine legibility
+ * curve across the 26-step pre-Home onboarding flow.
+ */
+
+export const EARTHSHINE_SCENES = Object.freeze({
+  welcome: {
+    id: 'welcome',
+    src: '/brand/earthshine/01-welcome.webp',
+    next: '/brand/earthshine/02-privacy.webp',
+    earthshine: 0.08,
+    warmLight: 'none',
+    focus: '50% 58%',
+    label: 'آسمان تاریکِ پیش از سپیده بر فراز بام؛ هلال باریک ماه در افق شرقی و قرص خاکستریِ زمین‌تاب که به‌سختی دیده می‌شود، با گوشه‌ای از قالی روی بام',
+  },
+  privacy: {
+    id: 'privacy',
+    src: '/brand/earthshine/02-privacy.webp',
+    next: '/brand/earthshine/03-night.webp',
+    earthshine: 0.14,
+    warmLight: 'none',
+    focus: '50% 48%',
+    label: 'نمای درون اتاقی آرام و تاریک با دیوار کاهگلی و دو لنگه دریچهٔ چوبیِ نیمه‌باز که از میان شکاف آن هلال ماه و بام دیده می‌شود',
+  },
+  night: {
+    id: 'night',
+    src: '/brand/earthshine/03-night.webp',
+    next: '/brand/earthshine/04-seeing.webp',
+    earthshine: 0.20,
+    warmLight: 'far-plain',
+    focus: '50% 56%',
+    label: 'بام در دل شبِ لاجوردی پر از ستاره‌های کم‌سو؛ پتویی تاشده روی قالی، هلال ماهِ بالاتر رفته با سایه‌روشنِ ملایم زمین‌تاب و تک‌چراغی بسیار دور در دشت',
+  },
+  seeing: {
+    id: 'seeing',
+    src: '/brand/earthshine/04-seeing.webp',
+    next: '/brand/earthshine/05-dawn.webp',
+    earthshine: 0.50,
+    warmLight: 'none',
+    focus: '50% 45%',
+    label: 'نمای نزدیک و شاعرانه از ماهِ در آغوش بر فراز لبهٔ بام و نوک سرو؛ هلال روشن در پایین و قرص آبی-خاکستریِ زمین‌تاب که دریاهای خاموش ماه را آشکار کرده است',
+  },
+  dawn: {
+    id: 'dawn',
+    src: '/brand/earthshine/05-dawn.webp',
+    next: '/brand/earthshine/06-three-lights.webp',
+    earthshine: 0.70,
+    warmLight: 'horizon',
+    focus: '50% 54%',
+    label: 'نخستین روشنایی افق بر فراز بام‌ها و درخت سرو؛ نوار کمرنگِ خاکستری-گلی و مخروط محوِ صبح کاذب، با قرصِ خوانای زمین‌تاب در آسمان رو به روشنی',
+  },
+  'three-lights': {
+    id: 'three-lights',
+    src: '/brand/earthshine/06-three-lights.webp',
+    next: '/brand/earthshine/07-checkins.webp',
+    earthshine: 1.0,
+    warmLight: 'horizon-and-rim',
+    focus: '50% 54%',
+    label: 'سه نور در یک قاب آرام بر فراز بامِ سایه‌دار: نخستین لبهٔ تابناک خورشید بر خط افق، گسترش سپیده در پایین آسمان و ماهِ در آغوش با زمین‌تابِ کاملاً خوانا در بالا',
+  },
+  checkins: {
+    id: 'checkins',
+    src: '/brand/earthshine/07-checkins.webp',
+    dimSrc: '/brand/earthshine/07-checkins-dim.webp',
+    next: '/brand/earthshine/08-final.webp',
+    earthshine: 0.86,
+    warmLight: 'lantern',
+    focus: '50% 62%',
+    label: 'فانوسی کوچک روی جان‌پناه بام در گرگ‌ومیش صبح که تنها تکه‌ای از دیوار کاهگلی و گوشهٔ قالی را گرم روشن کرده و ماه همچنان در آسمان بالاست',
+  },
+  final: {
+    id: 'final',
+    src: '/brand/earthshine/08-final.webp',
+    next: null,
+    earthshine: 0.80,
+    warmLight: 'ray-on-rug',
+    focus: '50% 58%',
+    label: 'قاب آغازین بام در روشنایی آرامِ پگاه: درِ خرپشته رو به زندگی روزمره باز است، فانوس کوچک کم‌نیاز مانده، نخستین پرتو گرم صبح بر قالی افتاده و ماه هنوز در آسمان روشن پیداست',
+  },
+});
+
+export const EARTHSHINE_CHAPTERS = Object.freeze([
+  { key: 'begin', name: 'آغاز', warmth: 'none', routes: ['welcome', 'privacy'] },
+  { key: 'night', name: 'شب', warmth: 'none', routes: ['simple-intro', 'name', 'age', 'identity', 'therapist'] },
+  { key: 'seeing', name: 'دیدن', warmth: 'none', routes: ['deeper-intro', 'mood', 'concerns', 'focus', 'feelings'] },
+  { key: 'dawn', name: 'سپیده', warmth: 'horizon', routes: ['know-intro', 'faith', 'neurodivergent', 'relationships', 'interests', 'strengths', 'barriers', 'recharge'] },
+  { key: 'three-lights', name: 'سه نور', warmth: 'lantern', routes: ['almost-intro', 'approach', 'voice', 'checkins', 'referral'] },
+  { key: 'threshold', name: 'آغاز مسیر', warmth: 'ray', routes: ['ready'] },
+]);
+
+export const ROUTE_EARTHSHINE = Object.freeze({
+  welcome: 0.08,
+  privacy: 0.14,
+  'simple-intro': 0.20,
+  name: 0.24,
+  age: 0.28,
+  identity: 0.32,
+  therapist: 0.36,
+  'deeper-intro': 0.50,
+  mood: 0.54,
+  concerns: 0.58,
+  focus: 0.62,
+  feelings: 0.66,
+  'know-intro': 0.70,
+  faith: 0.73,
+  neurodivergent: 0.76,
+  relationships: 0.79,
+  interests: 0.82,
+  strengths: 0.85,
+  barriers: 0.88,
+  recharge: 0.92,
+  'almost-intro': 1.0,
+  approach: 0.96,
+  voice: 0.92,
+  checkins: 0.86,
+  referral: 0.84,
+  ready: 0.82,
+});

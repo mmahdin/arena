@@ -1,49 +1,120 @@
 /* =========================================================================
-   تیا — Onboarding, 2026-11
+   تیا — Earthshine: The Last Hours of the Night (زمین‌تاب)
    -------------------------------------------------------------------------
-   A single narrative surface system for the pre-Home journey. Loaded after
-   styles.css so the legacy designer sheets stay intact as history while this
-   file owns the onboarding look: ivory paper, night ink, dawn gold, one
-   faceless instrument of light, and no human figure anywhere.
+   Pre-Home narrative surface system. Loaded after styles.css so Home, Chat,
+   Letters and menus keep their original stylesheet untouched.
+
+   Color is strictly rationed across the pre-dawn arc:
+   - Chapters 1–3 (Welcome, Privacy, Night, Seeing): cool pre-dawn charcoal,
+     deep ultramarine, cool-white crescent, ocean-blue-gray Earthshine.
+     Zero warm sky accents.
+   - Chapters 4–5 (Dawn, Three Lights): soft rose-slate & pale horizon gold
+     enter only along the seam/horizon.
+   - Check-ins & Final (Chapter 5 lantern, Chapter 6 threshold): localized
+     warm amber for the parapet lantern and the single quiet morning ray.
    ========================================================================= */
 
 .onboarding-screen {
   --ob-paper: #f2ede4;
-  --ob-paper-raised: #fffdf8;
-  --ob-paper-line: #ded5c6;
-  --ob-ink: #0a0b0d;
-  --ob-ink-raised: #14161a;
-  --ob-ink-line: #262930;
-  --ob-gold: #d9b679;
-  --ob-gold-soft: #f0dcb4;
-  --ob-gold-deep: #b1874e;
-  --ob-muted: #7b746a;
-  --ob-muted-ink: #a29d93;
+  --ob-paper-raised: #fbf8f2;
+  --ob-paper-line: #ddd5c7;
+  --ob-ink: #080b11;
+  --ob-ink-raised: #111621;
+  --ob-ink-line: #212938;
 
+  /* Cool moonlight & Earthshine accents (default across nocturnal chapters) */
+  --ob-crescent: #eef3fb;
+  --ob-ashen: #7c94b4;
+  --ob-ashen-soft: #adc0d8;
+  --ob-ashen-deep: #4c617e;
+  --ob-accent: #9bb2cf;
+  --ob-accent-deep: #49607e;
+
+  /* Rationed warm accents (activated only on Dawn / Lantern / Final) */
+  --ob-dawn-rose: #cda792;
+  --ob-lantern: #dfa45e;
+  --ob-lantern-deep: #b37a39;
+
+  --ob-muted: #6f6a62;
+  --ob-muted-ink: #9ca4b2;
+
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  padding: 0 24px calc(14px + env(safe-area-inset-bottom, 0px));
+  padding: 0 22px calc(14px + env(safe-area-inset-bottom, 0px));
   background: var(--ob-paper);
-  color: #1a1916;
+  color: #181a1f;
   overflow: hidden;
+}
+
+/* Ration warm accents strictly by chapter */
+.onboarding-screen[data-ob-warmth="horizon"] {
+  --ob-accent: #ceb09a;
+  --ob-accent-deep: #7d6250;
+}
+.onboarding-screen[data-ob-warmth="lantern"],
+.onboarding-screen[data-ob-warmth="ray"] {
+  --ob-accent: #d9b484;
+  --ob-accent-deep: #8c693e;
 }
 
 .onboarding-screen.ob-ink {
   background: var(--ob-ink);
-  color: #efeae1;
+  color: #eceff4;
 }
 
-/* Dawn at the bottom of night, and a cool lift at the top: depth without noise. */
+/* Individual nocturnal / twilight skies per scene */
+.onboarding-screen.story-screen--welcome {
+  background: #07090f;
+}
+.onboarding-screen.story-screen--privacy {
+  /* The only warm-dark earthen plaster interior room */
+  background: #100d0b;
+  color: #ede7df;
+  --ob-muted-ink: #a89f95;
+  --ob-ink-raised: #1b1613;
+  --ob-ink-line: #2e2621;
+}
+.onboarding-screen.story-screen--night {
+  background: #080d18;
+}
+.onboarding-screen.story-screen--seeing {
+  background: #080e1a;
+}
+.onboarding-screen.story-screen--dawn {
+  background: linear-gradient(180deg, #0b1220 0%, #141a28 72%, #1d1c24 100%);
+}
+.onboarding-screen.story-screen--three-lights {
+  background: linear-gradient(180deg, #0e1626 0%, #171f30 68%, #231f26 100%);
+}
+.onboarding-screen.story-screen--checkins {
+  background: linear-gradient(180deg, #0f1726 0%, #141b28 65%, #171618 100%);
+}
+.onboarding-screen.story-screen--final {
+  background: linear-gradient(180deg, #151e2c 0%, #1b222e 64%, #221f1d 100%);
+}
+
+/* Subtle atmospheric depth without premature gold on dark chapters */
 .onboarding-screen.ob-ink::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(120% 62% at 50% 108%, rgb(214 165 96 / 12%), transparent 70%),
-    radial-gradient(90% 50% at 50% -6%, rgb(150 168 200 / 7%), transparent 72%);
+    radial-gradient(100% 54% at 50% -8%, rgb(138 164 202 / 8%), transparent 72%);
+}
+.onboarding-screen.ob-ink[data-ob-warmth="horizon"]::before {
+  background:
+    radial-gradient(115% 56% at 50% 106%, rgb(205 167 146 / 10%), transparent 68%),
+    radial-gradient(95% 48% at 50% -8%, rgb(138 164 202 / 8%), transparent 72%);
+}
+.onboarding-screen.ob-ink[data-ob-warmth="lantern"]::before,
+.onboarding-screen.ob-ink[data-ob-warmth="ray"]::before {
+  background:
+    radial-gradient(115% 58% at 50% 108%, rgb(218 172 114 / 11%), transparent 68%),
+    radial-gradient(95% 48% at 50% -8%, rgb(152 176 210 / 9%), transparent 72%);
 }
 
 .onboarding-screen.ob-ink::after {
@@ -51,7 +122,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.035;
+  opacity: 0.028;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.6'/></svg>");
   mix-blend-mode: soft-light;
 }
@@ -63,20 +134,20 @@
 .onboarding-screen button:focus-visible,
 .onboarding-screen input:focus-visible,
 .onboarding-screen [tabindex]:focus-visible {
-  outline: 1.5px solid var(--ob-gold);
+  outline: 1.5px solid var(--ob-accent);
   outline-offset: 4px;
 }
 
-/* ---------- chrome: back / chapter seam / mark ---------- */
+/* ---------- chrome: back / Held Moon Earthshine seam ---------- */
 .ob-chrome {
   position: relative;
   z-index: 6;
   flex: 0 0 auto;
-  height: 54px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-inline: -8px;
+  margin-inline: -6px;
 }
 
 .ob-chrome .back-button {
@@ -86,41 +157,52 @@
   height: 40px;
   background: transparent;
   color: inherit;
-  opacity: 0.78;
-  transition: opacity 160ms ease;
+  opacity: 0.8;
+  transition: opacity 160ms ease, background 160ms ease;
 }
-.ob-chrome .back-button:hover { opacity: 1; background: rgb(128 118 100 / 8%); }
+.ob-chrome .back-button:hover { opacity: 1; background: rgb(140 154 176 / 10%); }
 .ob-chrome .back-button--dark { background: transparent; color: inherit; }
 .ob-chrome .back-button svg { width: 21px; height: 21px; stroke-width: 1.7; }
+.ob-chrome__tail { width: 40px; height: 40px; flex: 0 0 40px; }
 
-.ob-chrome__sigil {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  opacity: 0.9;
-}
-.ob-chrome__tail { width: 40px; height: 40px; }
-
-/* Six chapters drawn as a thread of light: past = lit, now = a longer seam. */
+/* Progress bar = legibility of the Held Moon's ashen disc + 6-chapter horizon thread */
 .ob-seam {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   direction: ltr;
 }
-.ob-seam::before {
+.ob-seam__moon {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgb(12 17 28 / 78%);
+  box-shadow: inset 0 0 0 1px rgb(164 186 216 / 18%);
+}
+.onboarding-screen.ob-ink .ob-seam__moon {
+  background: rgb(255 255 255 / 4%);
+  box-shadow: inset 0 0 0 1px rgb(200 216 238 / 14%);
+}
+.ob-seam__track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ob-seam__track::before {
   content: '';
   position: absolute;
-  inset-inline: -10px;
+  inset-inline: -6px;
   top: 50%;
   height: 1px;
   background: currentColor;
-  opacity: 0.12;
+  opacity: 0.11;
 }
 .ob-seam i {
   position: relative;
@@ -131,13 +213,20 @@
   opacity: 0.22;
   transition: width 320ms cubic-bezier(.2, .8, .2, 1), opacity 320ms ease, background 320ms ease;
 }
-.ob-seam i.is-past { background: var(--ob-gold); opacity: 0.6; }
+.ob-seam i.is-past {
+  background: var(--ob-ashen);
+  opacity: 0.65;
+}
 .ob-seam i.is-now {
-  width: 17px;
+  width: 18px;
   border-radius: 2px;
-  background: var(--ob-gold);
+  background: var(--ob-accent);
   opacity: 1;
-  box-shadow: 0 0 12px rgb(217 182 121 / 55%);
+  box-shadow: 0 0 10px rgb(155 178 207 / 42%);
+}
+.onboarding-screen[data-ob-warmth="lantern"] .ob-seam i.is-now,
+.onboarding-screen[data-ob-warmth="ray"] .ob-seam i.is-now {
+  box-shadow: 0 0 11px rgb(217 180 132 / 45%);
 }
 
 /* ---------- flow & footer ---------- */
@@ -160,36 +249,61 @@
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding-top: 14px;
+  gap: 6px;
+  padding-top: 12px;
 }
+
+/* Plain AI transparency disclosure outside the poetic layer */
+.ob-plain-note {
+  margin: 0 0 4px;
+  padding-top: 8px;
+  border-top: 1px solid rgb(208 218 234 / 10%);
+  color: #848e9f;
+  font-size: 12px;
+  font-weight: 380;
+  line-height: 1.7;
+  text-align: center;
+}
+
 .ob-footer .primary-button,
 .onboarding-screen .approach-actions .primary-button {
   position: static;
   inset: auto;
   width: 100%;
-  height: 56px;
+  height: 55px;
   border-radius: 14px;
   font-size: 15.5px;
   font-weight: 520;
   letter-spacing: 0;
-  background: #14140f;
-  color: #f5f0e7;
+  background: #151922;
+  color: #f4f1ea;
   transition: transform 150ms ease, background 150ms ease, opacity 150ms ease;
 }
 .onboarding-screen.ob-ink .primary-button,
 .onboarding-screen.ob-ink .approach-actions .primary-button {
-  background: #f2ede4;
-  color: #14140f;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+  background: #ebeef4;
+  color: #0e121a;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 45%);
+}
+.onboarding-screen.story-screen--privacy .primary-button {
+  background: #ebe4da;
+  color: #16120f;
+}
+.onboarding-screen.story-screen--final .primary-button {
+  background: #f1ece2;
+  color: #14171f;
 }
 .onboarding-screen .primary-button:active:not(:disabled) { transform: scale(0.988); }
 .onboarding-screen .primary-button:disabled {
-  background: #e3dbcd;
-  color: #a49c90;
+  background: #e1dacf;
+  color: #a19a8f;
   box-shadow: none;
 }
-.onboarding-screen.ob-ink .primary-button:disabled { background: #1c1f24; color: #6a675f; }
+.onboarding-screen.ob-ink .primary-button:disabled {
+  background: #191e28;
+  color: #636975;
+  box-shadow: none;
+}
 
 .onboarding-screen .skip-button {
   position: static;
@@ -205,117 +319,187 @@
 }
 .onboarding-screen.ob-ink .skip-button { color: var(--ob-muted-ink); }
 
-/* ---------- header rhythm ---------- */
-.ob-header { flex: 0 0 auto; padding-top: clamp(10px, 2.6vh, 22px); }
+/* ---------- header & typography rhythm ---------- */
+.ob-header {
+  flex: 0 0 auto;
+  padding-top: clamp(8px, 2vh, 18px);
+}
+.story-screen .ob-header {
+  padding-top: clamp(12px, 2.2vh, 20px);
+}
+.ob-chapter {
+  margin: 0 0 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--ob-accent-deep);
+  font-family: 'Noto Naskh Arabic Variable', 'Estedad Variable', serif;
+  font-size: 13px;
+  font-weight: 430;
+  line-height: 1.6;
+}
+.onboarding-screen.ob-ink .ob-chapter {
+  color: var(--ob-accent);
+}
+.ob-chapter::before {
+  content: '';
+  width: 16px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.65;
+}
+
 .ob-header h1 {
-  font-size: clamp(25px, 7.1vw, 30px);
-  font-weight: 480;
-  line-height: 1.55;
+  font-size: clamp(23px, 6.6vw, 28px);
+  font-weight: 500;
+  line-height: 1.52;
   letter-spacing: -0.2px;
   text-wrap: balance;
 }
 .ob-header .ob-lede {
-  margin-top: 13px;
-  max-width: 35ch;
-  font-size: 14.5px;
+  margin-top: 10px;
+  max-width: 37ch;
+  font-size: 14px;
   font-weight: 380;
-  line-height: 1.95;
+  line-height: 1.92;
   color: var(--ob-muted);
 }
 .onboarding-screen.ob-ink .ob-lede { color: var(--ob-muted-ink); }
 
-.ob-epigraph {
-  margin-bottom: 12px;
-  font-family: 'Noto Naskh Arabic Variable', 'Estedad Variable', serif;
-  font-size: 15px;
-  line-height: 1.9;
-  color: var(--ob-gold-deep);
-  letter-spacing: 0;
-}
-.onboarding-screen.ob-ink .ob-epigraph { color: #c9a068; }
-
-.ob-chapter {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-top: clamp(6px, 2vh, 18px);
-  color: #8e6534;
-  font-size: 12px;
-  font-weight: 430;
-}
-.onboarding-screen.ob-ink .ob-chapter { color: #b8955f; }
-.ob-chapter::before {
-  content: '';
-  width: 18px;
-  height: 1px;
-  background: currentColor;
-  opacity: 0.7;
-}
-
-/* ---------- the instrument ---------- */
-.ob-art {
+/* ---------- Earthshine narrative scenes ---------- */
+.earthshine-scene {
+  margin: 0;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 0;
+  user-select: none;
 }
-.ob-art--hero {
+
+.ob-scene--hero {
   flex: 1 1 auto;
-  padding: clamp(2px, 1.4vh, 14px) 0 clamp(6px, 2vh, 20px);
+  min-height: 184px;
+  max-height: 404px;
+  margin-top: 4px;
 }
-.ob-art--hero .theia-instrument {
+
+/* Scene 6 (Three Lights): widest, most expansive frame in the story */
+.ob-scene--panoramic {
+  margin-inline: -10px;
+  max-height: 416px;
+}
+
+/* Scene 2 (Privacy) & Scene 7 (Check-ins): leave vertical room for switch card */
+.ob-scene--aperture,
+.ob-scene--lantern {
+  flex: 1 1 auto;
+  min-height: 164px;
+  max-height: 318px;
+  margin-top: 2px;
+}
+
+.earthshine-scene__viewport {
+  position: relative;
   width: 100%;
   height: 100%;
-  max-width: 330px;
-  max-height: 330px;
-}
-.ob-art--small {
-  flex: 0 1 auto;
-  height: clamp(150px, 26vh, 244px);
-  margin: clamp(14px, 3.4vh, 30px) 0;
-}
-.ob-art--small .theia-instrument { width: 100%; height: 100%; max-width: 244px; max-height: 244px; }
-
-.theia-instrument { animation: ob-instrument-in 900ms cubic-bezier(.2,.8,.2,1) both; }
-@keyframes ob-instrument-in {
-  from { opacity: 0; transform: scale(0.975) translateY(6px); }
-  to { opacity: 1; transform: none; }
+  border-radius: 18px;
+  overflow: hidden;
+  background: #090d16;
+  box-shadow:
+    0 22px 48px -28px rgb(0 0 0 / 88%),
+    inset 0 0 0 1px rgb(214 226 245 / 9%);
+  animation: earthshine-eye-adapt 1050ms cubic-bezier(.22, .74, .24, 1) both;
 }
 
-.ti-drift,
-.ti-rays {
-  transform-box: view-box;
-  transform-origin: center;
-}
-.ti-drift { animation: ob-rotate 260s linear infinite; }
-.ti-rays { animation: ob-rotate 140s linear infinite reverse; }
-@keyframes ob-rotate { to { transform: rotate(360deg); } }
-
-.ti-sight-ring {
-  transform-box: view-box;
-  transform-origin: center;
-  animation: ob-sight 9s ease-in-out infinite;
-}
-@keyframes ob-sight {
-  0%, 100% { transform: scale(0.82); opacity: 0.5; }
-  50% { transform: scale(1.3); opacity: 0.08; }
+.story-screen--privacy .earthshine-scene__viewport {
+  background: #120e0b;
+  box-shadow:
+    0 22px 48px -26px rgb(0 0 0 / 92%),
+    inset 0 0 0 1px rgb(218 198 176 / 10%);
 }
 
-.ti-pulse {
-  transform-box: view-box;
-  transform-origin: center;
-  animation: ob-pulse 8s cubic-bezier(.2,.6,.3,1) infinite;
-}
-.ti-pulse--late { animation-delay: 4s; }
-@keyframes ob-pulse {
-  0% { transform: scale(0.9); opacity: 0.5; }
-  60% { opacity: 0; }
-  100% { transform: scale(1.28); opacity: 0; }
+.story-screen--final .earthshine-scene__viewport {
+  box-shadow:
+    0 22px 48px -26px rgb(0 0 0 / 78%),
+    inset 0 0 0 1px rgb(232 224 210 / 15%);
 }
 
-/* The brand mark inside the product keeps its frame geometry. */
+@keyframes earthshine-eye-adapt {
+  from {
+    opacity: 0.72;
+    filter: brightness(0.84) contrast(1.05);
+    transform: scale(0.992);
+  }
+  to {
+    opacity: 1;
+    filter: brightness(1) contrast(1);
+    transform: none;
+  }
+}
+
+.earthshine-scene__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.earthshine-scene__img--lit {
+  position: absolute;
+  inset: 0;
+  transition: opacity 680ms cubic-bezier(.22, .78, .24, 1);
+  will-change: opacity;
+}
+
+/* Privacy shutter aperture: gently narrows or widens the window slit */
+.earthshine-shutters {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.earthshine-shutters__leaf {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 44%;
+  background: linear-gradient(90deg, #100c09 0%, rgb(20 15 11 / 94%) 72%, rgb(20 15 11 / 0%) 100%);
+  opacity: 0;
+  transition: transform 620ms cubic-bezier(.22, .8, .24, 1), opacity 620ms ease;
+}
+.earthshine-shutters__leaf--left {
+  left: 0;
+  transform: translateX(-22%);
+}
+.earthshine-shutters__leaf--right {
+  right: 0;
+  background: linear-gradient(270deg, #100c09 0%, rgb(20 15 11 / 94%) 72%, rgb(20 15 11 / 0%) 100%);
+  transform: translateX(22%);
+}
+.earthshine-scene.is-shutter-narrow .earthshine-shutters__leaf--left {
+  opacity: 0.92;
+  transform: translateX(4%);
+}
+.earthshine-scene.is-shutter-narrow .earthshine-shutters__leaf--right {
+  opacity: 0.92;
+  transform: translateX(-4%);
+}
+
+/* Subtle bottom/edge vignette so the window melts into the surrounding surface */
+.earthshine-scene__matte {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgb(6 8 14 / 18%) 0%, transparent 18%, transparent 78%, rgb(6 8 14 / 44%) 100%);
+}
+.story-screen--final .earthshine-scene__matte {
+  background:
+    linear-gradient(180deg, rgb(18 24 34 / 10%) 0%, transparent 18%, transparent 80%, rgb(20 22 26 / 34%) 100%);
+}
+
+/* Brand mark inside chat, Home, Drawer & Letters */
 .theia-mark {
   display: inline-grid;
   place-items: center;
@@ -326,16 +510,13 @@
   vertical-align: middle;
 }
 .theia-mark svg { width: 100%; height: 100%; display: block; }
-.theia-mark--luminous { filter: drop-shadow(0 0 10px rgb(226 195 138 / 45%)); }
-
-/* ---------- welcome & interstitials ---------- */
-.welcome-screen .ob-header h1 { font-size: clamp(26px, 7.4vw, 31px); }
-.welcome-screen .ob-header .ob-lede { max-width: 36ch; }
-
-.interstitial-screen .ob-art--hero .theia-instrument { max-width: 300px; max-height: 300px; }
+.theia-mark--luminous { filter: drop-shadow(0 0 12px rgb(164 190 224 / 36%)); }
 
 /* ---------- name ---------- */
-.ob-name-form { margin-top: clamp(34px, 8vh, 62px); }
+.ob-name-form {
+  position: relative;
+  margin-top: clamp(34px, 8vh, 62px);
+}
 .onboarding-screen .name-input {
   width: 100%;
   margin: 0;
@@ -346,31 +527,32 @@
   background: transparent;
   color: inherit;
   font-size: clamp(24px, 6.6vw, 28px);
-  font-weight: 420;
-  caret-color: var(--ob-gold-deep);
+  font-weight: 430;
+  caret-color: var(--ob-ashen-deep);
   transition: border-color 220ms ease;
 }
-.onboarding-screen .name-input:focus { outline: none; border-bottom-color: var(--ob-gold-deep); }
-.ob-name-form { position: relative; }
+.onboarding-screen .name-input:focus {
+  outline: none;
+  border-bottom-color: var(--ob-ashen-deep);
+}
 .ob-name-form::after {
   content: '';
   position: absolute;
   inset-inline: 0;
   bottom: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--ob-gold), transparent);
+  background: linear-gradient(90deg, transparent, var(--ob-ashen), transparent);
   opacity: 0;
   transition: opacity 260ms ease;
   pointer-events: none;
 }
-.ob-name-form:focus-within::after { opacity: 0.85; }
-.onboarding-screen .name-input::placeholder { color: #9a9184; }
+.ob-name-form:focus-within::after { opacity: 0.9; }
+.onboarding-screen .name-input::placeholder { color: #9a9387; }
 
 /* ---------- questions ---------- */
-/* The option list is the only scroll container on intake screens. */
 .onboarding-screen.question-screen > .ob-flow { overflow: hidden; }
 .onboarding-screen .choice-scroll {
-  margin: clamp(20px, 4vh, 38px) 0 0;
+  margin: clamp(20px, 4vh, 36px) 0 0;
   padding-bottom: 10px;
   mask-image: linear-gradient(to bottom, #000 0, #000 93%, transparent 100%);
 }
@@ -383,7 +565,7 @@
   border: 1px solid var(--ob-paper-line);
   border-radius: 13px;
   background: var(--ob-paper-raised);
-  color: #232019;
+  color: #1f2126;
   text-align: start;
   font-size: 15px;
   font-weight: 420;
@@ -392,41 +574,88 @@
 }
 .onboarding-screen .choice-button:active { transform: none; }
 .onboarding-screen .choice-button.is-selected {
-  background: #16150f;
-  border-color: #16150f;
-  color: #f5f0e7;
-  box-shadow: inset 0 0 0 1px rgb(217 182 121 / 28%);
+  background: #141923;
+  border-color: #141923;
+  color: #f3f5f8;
+  box-shadow: inset 0 0 0 1px rgb(155 178 207 / 32%);
 }
-.onboarding-screen .choice-icon { color: #a89f92; }
-.onboarding-screen .choice-button.is-selected .choice-icon { color: var(--ob-gold); }
+.onboarding-screen .choice-icon { color: #9c968b; }
+.onboarding-screen .choice-button.is-selected .choice-icon { color: var(--ob-ashen-soft); }
 
-/* ---------- privacy ---------- */
-.onboarding-screen .privacy-card {
+/* ---------- privacy & check-ins switches ---------- */
+.onboarding-screen .privacy-card,
+.onboarding-screen .checkin-lantern-card {
   position: static;
   inset: auto;
-  margin-top: auto;
+  width: 100%;
+  margin-top: 14px;
   min-height: 0;
-  padding: 17px 18px;
-  gap: 16px;
-  border: 1px solid var(--ob-paper-line);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--ob-ink-line);
   border-radius: 13px;
-  background: var(--ob-paper-raised);
-  color: #232019;
+  background: var(--ob-ink-raised);
+  color: #ebe6dd;
   font-size: 14px;
   font-weight: 420;
-  line-height: 1.7;
+  line-height: 1.65;
   text-align: start;
 }
-.onboarding-screen .privacy-card .toggle { flex: 0 0 46px; height: 27px; background: #ddd3c3; }
-.onboarding-screen .privacy-card .toggle span { width: 21px; height: 21px; background: #fff; }
-.onboarding-screen .privacy-card .toggle.is-on { background: var(--ob-gold); }
-.onboarding-screen .privacy-card .toggle.is-on span { transform: translateX(19px); background: #16150f; }
-.onboarding-screen.ob-ink .privacy-card {
-  background: var(--ob-ink-raised);
-  border-color: var(--ob-ink-line);
-  color: #e9e3d8;
+.onboarding-screen .privacy-card .toggle,
+.onboarding-screen .checkin-lantern-card .toggle {
+  flex: 0 0 46px;
+  height: 27px;
+  background: #312c29;
 }
-.onboarding-screen .connected-notice { margin-top: 12px; }
+.onboarding-screen .privacy-card .toggle span,
+.onboarding-screen .checkin-lantern-card .toggle span {
+  width: 21px;
+  height: 21px;
+  background: #cfc9c0;
+}
+.onboarding-screen .privacy-card .toggle.is-on {
+  background: #8aa2c0;
+}
+.onboarding-screen .privacy-card .toggle.is-on span {
+  transform: translateX(19px);
+  background: #0e131c;
+}
+
+/* Lantern toggle uses the story's sole warm human light accent */
+.onboarding-screen .checkin-lantern-card {
+  border-color: rgb(223 164 94 / 22%);
+  background: rgb(22 25 34 / 86%);
+  transition: border-color 320ms ease, background 320ms ease;
+}
+.onboarding-screen.story-screen--checkins .checkin-lantern-card .toggle {
+  background: #272d3a;
+}
+.onboarding-screen .checkin-lantern-card .toggle--lantern.is-on {
+  background: var(--ob-lantern);
+  box-shadow: 0 0 14px rgb(223 164 94 / 32%);
+}
+.onboarding-screen .checkin-lantern-card .toggle--lantern.is-on span {
+  transform: translateX(19px);
+  background: #1a130b;
+}
+.checkin-lantern-card__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.checkin-lantern-card__copy strong {
+  font-size: 14px;
+  font-weight: 470;
+  color: #f0ece4;
+}
+.checkin-lantern-card__copy small {
+  font-size: 11.5px;
+  font-weight: 380;
+  color: #8f97a6;
+}
+.onboarding-screen .connected-notice { margin-top: 10px; }
 
 /* ---------- age wheel ---------- */
 .onboarding-screen.age-screen { padding-bottom: 0; }
@@ -435,54 +664,54 @@
 .onboarding-screen .age-option {
   font-size: 20px;
   font-weight: 420;
-  color: #a49b8e;
+  color: #9e978b;
   letter-spacing: 0;
 }
-.onboarding-screen .age-option.is-active { color: #17160f; font-weight: 500; }
-.onboarding-screen .age-option:hover { color: #6f675c; }
+.onboarding-screen .age-option.is-active { color: #161920; font-weight: 510; }
+.onboarding-screen .age-option:hover { color: #676259; }
 .onboarding-screen .age-marker {
   border-radius: 12px;
-  background: linear-gradient(90deg, rgb(217 182 121 / 8%), rgb(217 182 121 / 26%), rgb(217 182 121 / 8%));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%), inset 0 -1px 0 rgb(177 135 78 / 22%);
+  background: linear-gradient(90deg, rgb(124 148 180 / 9%), rgb(124 148 180 / 24%), rgb(124 148 180 / 9%));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 60%), inset 0 -1px 0 rgb(73 96 126 / 20%);
 }
 
-/* ---------- mood ---------- */
+/* ---------- mood (Chapter 3: Seeing — lunar seas terrain) ---------- */
 .onboarding-screen.mood-screen { padding-bottom: 0; }
 .onboarding-screen .mood-stage {
   position: static;
   inset: auto;
   flex: 1 1 auto;
   min-height: 0;
-  margin-top: clamp(10px, 2.4vh, 26px);
-  gap: clamp(6px, 1.6vh, 14px);
+  margin-top: clamp(8px, 2vh, 22px);
+  gap: clamp(6px, 1.5vh, 14px);
 }
 .onboarding-screen .mood-glow {
   inset: 6% 0 12%;
-  background: radial-gradient(circle at 50% 46%, rgb(226 180 120 / 26%), transparent 64%);
+  background: radial-gradient(circle at 50% 42%, rgb(122 146 178 / 20%), transparent 64%);
 }
 .onboarding-screen .mood-scribble { width: min(100%, 318px); }
-.onboarding-screen .mood-stage h2 { font-size: 19px; font-weight: 460; color: #232019; }
+.onboarding-screen .mood-stage h2 { font-size: 19px; font-weight: 470; color: #1d2129; }
 .onboarding-screen .mood-slider-wrap { --mood-thumb: 34px; width: min(84%, 250px); height: 52px; flex-basis: 52px; }
-.onboarding-screen .mood-ticks { background: #cfc4b2; height: 1px; }
-.onboarding-screen .mood-ticks i { width: 1px; height: 10px; background: #bdb2a0; }
-.onboarding-screen .mood-ticks i.is-active { height: 16px; background: var(--ob-gold-deep); }
+.onboarding-screen .mood-ticks { background: #cdc4b4; height: 1px; }
+.onboarding-screen .mood-ticks i { width: 1px; height: 10px; background: #b8ae9e; }
+.onboarding-screen .mood-ticks i.is-active { height: 16px; background: var(--ob-ashen-deep); }
 .onboarding-screen .mood-slider::-webkit-slider-thumb {
   width: 34px;
   height: 34px;
   margin-top: -17.5px;
-  background: radial-gradient(circle at 38% 32%, #fbf1dc, #d9b679 62%, #b1874e);
-  box-shadow: 0 4px 14px rgb(177 135 78 / 32%);
+  background: radial-gradient(circle at 66% 68%, #eff4fc 0%, #89a1c0 48%, #3c4f69 100%);
+  box-shadow: 0 4px 14px rgb(44 62 88 / 32%);
 }
 .onboarding-screen .mood-slider::-moz-range-thumb {
   width: 34px;
   height: 34px;
   border: 0;
-  background: radial-gradient(circle at 38% 32%, #fbf1dc, #d9b679 62%, #b1874e);
-  box-shadow: 0 4px 14px rgb(177 135 78 / 32%);
+  background: radial-gradient(circle at 66% 68%, #eff4fc 0%, #89a1c0 48%, #3c4f69 100%);
+  box-shadow: 0 4px 14px rgb(44 62 88 / 32%);
 }
 .onboarding-screen .mood-slider:focus-visible { outline: none; }
-.onboarding-screen .mood-slider:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgb(217 182 121 / 45%); }
-.onboarding-screen .mood-slider:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px rgb(217 182 121 / 45%); }
+.onboarding-screen .mood-slider:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgb(124 148 180 / 45%); }
+.onboarding-screen .mood-slider:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px rgb(124 148 180 / 45%); }
 .onboarding-screen .mood-footnote {
   position: static;
   inset: auto;
@@ -509,74 +738,70 @@
 .onboarding-screen .voice-card {
   border: 1px solid var(--ob-ink-line);
   border-radius: 14px;
-  background: #101216;
-  color: #d9d3c8;
+  background: #0e131d;
+  color: #d6dce6;
   opacity: 0.5;
   transform: scale(0.93);
 }
 .onboarding-screen .voice-card.is-active {
   opacity: 1;
   transform: scale(1);
-  border-color: rgb(217 182 121 / 42%);
-  box-shadow: 0 18px 40px -28px rgb(0 0 0 / 90%), inset 0 1px 0 rgb(255 255 255 / 5%);
+  border-color: rgb(168 190 218 / 44%);
+  box-shadow: 0 18px 40px -28px rgb(0 0 0 / 90%), inset 0 1px 0 rgb(255 255 255 / 6%);
 }
-.onboarding-screen .voice-wave { background: transparent; color: #6f6a61; }
-.onboarding-screen .voice-card.is-active .voice-wave { color: var(--ob-gold); }
+.onboarding-screen .voice-wave { background: transparent; color: #5b6577; }
+.onboarding-screen .voice-card.is-active .voice-wave { color: var(--ob-ashen-soft); }
 .onboarding-screen .voice-card .voice-wave { height: 112px; flex: 0 0 112px; }
 .onboarding-screen .voice-card .voice-wave svg { padding: 18px 14px; }
 .onboarding-screen .voice-card-copy { padding: 12px 16px 15px; gap: 3px; }
-.onboarding-screen .voice-card-copy strong { font-size: 19px; font-weight: 500; color: #f1ebe1; }
-.onboarding-screen .voice-card-copy small { color: #8d887e; font-size: 12.5px; }
+.onboarding-screen .voice-card-copy strong { font-size: 19px; font-weight: 500; color: #eef2f8; }
+.onboarding-screen .voice-card-copy small { color: #8b94a4; font-size: 12.5px; }
 .onboarding-screen .voice-card-check {
   top: 9px;
   right: 9px;
   width: 22px;
   height: 22px;
   background: transparent;
-  color: var(--ob-gold);
+  color: var(--ob-ashen-soft);
 }
-.ob-footer .pager-dots { position: static; margin: 2px auto 12px; }
-.onboarding-screen .pager-dots button { background: #4a4741; width: 5px; height: 5px; }
-.onboarding-screen .pager-dots button.is-active { width: 18px; background: var(--ob-gold); }
+.ob-footer .pager-dots { position: static; margin: 2px auto 10px; }
+.onboarding-screen .pager-dots button { background: #3b4352; width: 5px; height: 5px; }
+.onboarding-screen .pager-dots button.is-active { width: 18px; background: var(--ob-ashen-soft); }
 
 /* ---------- conversation style ---------- */
 .onboarding-screen.approach-screen {
-  padding-inline: 24px;
+  padding-inline: 22px;
   padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   overflow: hidden;
 }
-.onboarding-screen .approach-stage { margin-top: clamp(26px, 5vh, 46px); }
-.onboarding-screen .approach-picker { margin-bottom: clamp(24px, 3.6vh, 34px); }
-.onboarding-screen .approach-picker h2 { color: #efe9df; font-size: 18px; font-weight: 480; }
-.onboarding-screen .approach-direction { color: #857f75; }
-.onboarding-screen .approach-direction:hover:not(:disabled) { color: var(--ob-gold); }
+.onboarding-screen .approach-stage { margin-top: clamp(24px, 4.8vh, 44px); }
+.onboarding-screen .approach-picker { margin-bottom: clamp(22px, 3.4vh, 32px); }
+.onboarding-screen .approach-picker h2 { color: #edf1f7; font-size: 18px; font-weight: 480; }
+.onboarding-screen .approach-direction { color: #808999; }
+.onboarding-screen .approach-direction:hover:not(:disabled) { color: var(--ob-ashen-soft); }
 .onboarding-screen .approach-message--user {
-  background: #191c21;
-  border: 1px solid #24272d;
-  color: #e6dfd4;
+  background: #141b27;
+  border: 1px solid #232c3d;
+  color: #e4e9f1;
   border-radius: 16px;
   border-end-start-radius: 4px;
   font-size: 14.5px;
   line-height: 1.95;
 }
 .onboarding-screen .approach-response {
-  background: #121419;
-  border: 1px solid #24272d;
-  color: #eae3d8;
+  background: #0f141e;
+  border: 1px solid #222b3b;
+  color: #e7ecf4;
   border-radius: 16px;
   border-end-end-radius: 4px;
   font-size: 14.5px;
   line-height: 2;
 }
-.onboarding-screen .approach-mark { color: #8a847a; }
-.onboarding-screen .approach-position span { background: #45433e; }
-.onboarding-screen .approach-position span.is-active { background: var(--ob-gold); }
+.onboarding-screen .approach-mark { color: #8e9ab0; }
+.onboarding-screen .approach-position span { background: #363e4d; }
+.onboarding-screen .approach-position span.is-active { background: var(--ob-ashen-soft); }
 .onboarding-screen .approach-actions { padding-top: 22px; gap: 2px; }
-.onboarding-screen .approach-actions .skip-button { color: #8b857b; }
-
-/* ---------- ready ---------- */
-.ready-screen .ob-header h1 { font-size: clamp(26px, 7.4vw, 31px); }
-.ready-screen .ob-art--hero .theia-instrument { max-width: 320px; max-height: 320px; }
+.onboarding-screen .approach-actions .skip-button { color: #8c95a4; }
 
 /* ---------- legacy info routes reachable from the menu ---------- */
 .onboarding-screen .page-header { padding: 8px 0 0; }
@@ -590,18 +815,18 @@
   border-radius: 13px;
   color: #232019;
 }
-.onboarding-screen .review-avatar { background: #16150f; color: var(--ob-gold); }
-.onboarding-screen .rating-stars { color: var(--ob-gold); }
+.onboarding-screen .review-avatar { background: #141923; color: var(--ob-ashen-soft); }
+.onboarding-screen .rating-stars { color: var(--ob-ashen-deep); }
 .onboarding-screen.scrolling-screen { overflow: hidden; }
 
-/* ---------- sign-in entry (shares the identity, precedes welcome) ---------- */
+/* ---------- sign-in entry (shares the pre-dawn rooftop identity) ---------- */
 .dev-login-screen {
-  --ob-ink: #0a0b0d;
+  --ob-ink: #07090f;
   display: flex;
   flex-direction: column;
-  padding: 0 24px calc(22px + env(safe-area-inset-bottom, 0px));
-  background: #0a0b0d;
-  color: #efeae1;
+  padding: 0 22px calc(20px + env(safe-area-inset-bottom, 0px));
+  background: #07090f;
+  color: #eceff5;
   overflow: hidden;
 }
 .dev-login-screen::before {
@@ -609,31 +834,34 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(120% 55% at 50% 24%, rgb(214 165 96 / 10%), transparent 70%);
+  background: radial-gradient(110% 52% at 50% 22%, rgb(134 160 198 / 9%), transparent 70%);
 }
 .dev-login-screen .screen-top-inset { flex: 0 0 auto; }
 .dev-login-art {
   position: relative;
   flex: 1 1 auto;
-  min-height: 0;
-  display: grid;
-  place-items: center;
-  margin: 4px 0 8px;
+  min-height: 140px;
+  max-height: 290px;
+  display: flex;
+  margin: 6px 0 12px;
 }
-.dev-login-art .theia-instrument { width: 100%; height: 100%; max-width: 268px; max-height: 268px; }
-.dev-login-screen .page-header { position: relative; padding: 0 0 4px; }
+.dev-login-art .earthshine-scene {
+  width: 100%;
+  height: 100%;
+}
+.dev-login-screen .page-header { position: relative; padding: 0 0 10px; }
 .dev-login-screen .page-header h1 {
-  font-size: clamp(26px, 7.4vw, 31px);
-  font-weight: 480;
+  font-size: clamp(24px, 6.8vw, 28px);
+  font-weight: 500;
   line-height: 1.5;
   letter-spacing: -0.2px;
-  color: #f3eee5;
+  color: #f0f3f8;
 }
 .dev-login-screen .page-header p {
-  margin-top: 10px;
-  color: #a29d93;
-  font-size: 14px;
-  line-height: 1.95;
+  margin-top: 8px;
+  color: #9ba4b4;
+  font-size: 13.5px;
+  line-height: 1.9;
 }
 .dev-login-panel {
   position: relative;
@@ -642,43 +870,43 @@
   flex-direction: column;
   gap: 10px;
   margin: 0;
-  padding: 18px;
-  border: 1px solid #22252b;
+  padding: 16px 18px;
+  border: 1px solid #1e2533;
   border-radius: 16px;
-  background: rgb(20 22 26 / 88%);
-  backdrop-filter: blur(6px);
-  color: #e9e3d8;
+  background: rgb(14 19 29 / 90%);
+  backdrop-filter: blur(8px);
+  color: #e6ebf3;
   font-size: 13px;
 }
-.dev-login-heading { display: flex; align-items: center; gap: 9px; color: #cfc8bd; }
-.dev-login-heading strong { font-size: 13px; font-weight: 450; }
+.dev-login-heading { display: flex; align-items: center; gap: 9px; color: #c7d0df; }
+.dev-login-heading strong { font-size: 13px; font-weight: 460; }
 .dev-login-screen .dev-phone-form { display: flex; flex-direction: column; gap: 10px; }
-.dev-login-screen .dev-phone-form label { color: #8f8a80; font-size: 12px; }
+.dev-login-screen .dev-phone-form label { color: #8c95a5; font-size: 12px; }
 .dev-login-screen .dev-phone-form input {
   width: 100%;
   height: 48px;
   padding: 0 14px;
-  border: 1px solid #2b2f36;
+  border: 1px solid #263042;
   border-radius: 11px;
-  background: #0e1014;
-  color: #f1ebe1;
+  background: #0a0e16;
+  color: #eef2f8;
   font-size: 16px;
   letter-spacing: 0.12em;
-  caret-color: #d9b679;
+  caret-color: #9bb2cf;
 }
-.dev-login-screen .dev-phone-form input:focus { outline: none; border-color: rgb(217 182 121 / 55%); }
+.dev-login-screen .dev-phone-form input:focus { outline: none; border-color: rgb(155 178 207 / 58%); }
 .dev-login-screen .dev-phone-form .primary-button {
   position: static;
   width: 100%;
   height: 52px;
   border-radius: 12px;
-  background: #f2ede4;
-  color: #14140f;
+  background: #ebeef4;
+  color: #0e121a;
   font-size: 15px;
   font-weight: 520;
 }
-.dev-login-screen .dev-phone-form .primary-button:disabled { background: #1c1f24; color: #6a675f; }
-.dev-login-screen .dev-login-error { color: #e6b39a; font-size: 12px; line-height: 1.8; }
+.dev-login-screen .dev-phone-form .primary-button:disabled { background: #191f2b; color: #636b79; }
+.dev-login-screen .dev-login-error { color: #e4b29c; font-size: 12px; line-height: 1.8; }
 .dev-login-screen .dev-login-retry {
   display: inline-flex;
   align-items: center;
@@ -686,39 +914,47 @@
   min-height: 40px;
   padding: 0 4px;
   background: transparent;
-  color: var(--ob-gold, #d9b679);
+  color: #adc0d8;
   font-size: 13px;
 }
 
-/* ---------- responsive & motion ---------- */
-@media (max-height: 720px) {
-  .ob-header { padding-top: 4px; }
-  .ob-header h1 { font-size: 24px; }
-  .ob-header .ob-lede { margin-top: 10px; font-size: 13.5px; line-height: 1.85; }
-  .ob-art--hero .theia-instrument { max-width: 268px; max-height: 268px; }
-  .ob-art--small { height: 168px; margin: 10px 0; }
-  .ob-art--small .theia-instrument { max-width: 190px; max-height: 190px; }
+/* ---------- responsive & reduced-motion ---------- */
+@media (max-height: 740px) {
+  .ob-chrome { height: 44px; }
+  .ob-header { padding-top: 6px; }
+  .story-screen .ob-header { padding-top: 8px; }
+  .ob-chapter { margin-bottom: 4px; font-size: 12px; }
+  .ob-header h1 { font-size: 22px; line-height: 1.45; }
+  .ob-header .ob-lede { margin-top: 7px; font-size: 13px; line-height: 1.8; }
+  .ob-scene--hero { min-height: 150px; max-height: 292px; }
+  .ob-scene--aperture,
+  .ob-scene--lantern { min-height: 136px; max-height: 224px; }
+  .onboarding-screen .privacy-card,
+  .onboarding-screen .checkin-lantern-card { margin-top: 10px; padding: 11px 14px; }
   .ob-footer { padding-top: 8px; }
+  .ob-footer .primary-button,
+  .onboarding-screen .approach-actions .primary-button { height: 50px; }
   .onboarding-screen .voice-carousel { height: 196px; margin-top: 16px; }
-  .onboarding-screen .approach-stage { margin-top: 20px; }
+  .onboarding-screen .approach-stage { margin-top: 18px; }
   .onboarding-screen .mood-ticks { display: flex; }
+  .dev-login-art { min-height: 112px; max-height: 210px; margin: 2px 0 8px; }
 }
 
 @media (max-width: 374px) {
   .onboarding-screen { padding-inline: 18px; }
-  .ob-header h1 { font-size: 23px; }
+  .ob-header h1 { font-size: 21.5px; }
   .onboarding-screen .choice-button { font-size: 14px; }
-  .ob-seam { gap: 7px; }
+  .ob-seam__track { gap: 6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .theia-instrument,
-  .ti-drift,
-  .ti-rays,
-  .ti-pulse,
-  .ti-sight-ring {
+  .earthshine-scene__viewport {
     animation: none !important;
   }
-  .ob-seam i { transition: none; }
+  .earthshine-scene__img--lit,
+  .earthshine-shutters__leaf,
+  .ob-seam i {
+    transition: none !important;
+  }
   .onboarding-screen * { scroll-behavior: auto !important; }
 }
