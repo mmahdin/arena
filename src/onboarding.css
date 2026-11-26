@@ -35,7 +35,9 @@
   color: #efeae1;
 }
 
-/* Dawn at the bottom of night, and a cool lift at the top: depth without noise. */
+/* Dawn at the bottom of night, and a cool lift at the top: depth without noise.
+   Each chapter changes only this ambient light — same room, later hour — so the
+   story keeps one continuous atmosphere instead of eight separate posters. */
 .onboarding-screen.ob-ink::before {
   content: '';
   position: absolute;
@@ -44,6 +46,44 @@
   background:
     radial-gradient(120% 62% at 50% 108%, rgb(214 165 96 / 12%), transparent 70%),
     radial-gradient(90% 50% at 50% -6%, rgb(150 168 200 / 7%), transparent 72%);
+  transition: background 900ms ease;
+}
+/* ۱ آغاز — the room before first light */
+.onboarding-screen.ob-ink[data-ob-chapter="1"]::before {
+  background:
+    radial-gradient(130% 60% at 50% 112%, rgb(206 158 92 / 13%), transparent 72%),
+    radial-gradient(100% 58% at 50% -10%, rgb(126 145 186 / 9%), transparent 74%);
+}
+/* ۲ شب — the deepest hour: the haze is almost gone */
+.onboarding-screen.ob-ink[data-ob-chapter="2"]::before {
+  background:
+    radial-gradient(120% 50% at 50% 116%, rgb(176 132 76 / 7%), transparent 72%),
+    radial-gradient(90% 46% at 50% -8%, rgb(96 112 150 / 5%), transparent 74%);
+}
+/* ۳ دیدن — a cool light gathers at the centre, where the eye opens */
+.onboarding-screen.ob-ink[data-ob-chapter="3"]::before {
+  background:
+    radial-gradient(64% 46% at 50% 40%, rgb(146 163 203 / 9%), transparent 76%),
+    radial-gradient(120% 54% at 50% 112%, rgb(198 150 88 / 9%), transparent 72%);
+}
+/* ۴ سپیده — dawn arrives low and warm */
+.onboarding-screen.ob-ink[data-ob-chapter="4"]::before {
+  background:
+    radial-gradient(140% 72% at 50% 118%, rgb(224 156 108 / 14%), transparent 70%),
+    radial-gradient(90% 48% at 50% -6%, rgb(160 148 178 / 6%), transparent 74%);
+}
+/* ۵ سه نور — three quiet lights instead of one */
+.onboarding-screen.ob-ink[data-ob-chapter="5"]::before {
+  background:
+    radial-gradient(58% 44% at 78% 16%, rgb(238 200 140 / 9%), transparent 70%),
+    radial-gradient(50% 40% at 22% 26%, rgb(170 178 206 / 7%), transparent 72%),
+    radial-gradient(120% 58% at 50% 112%, rgb(214 165 96 / 11%), transparent 72%);
+}
+/* ۶ حلقه — the light is steady and closes on the centre */
+.onboarding-screen.ob-ink[data-ob-chapter="6"]::before {
+  background:
+    radial-gradient(86% 62% at 50% 44%, rgb(226 178 112 / 11%), transparent 72%),
+    radial-gradient(120% 56% at 50% 112%, rgb(214 165 96 / 13%), transparent 70%);
 }
 
 .onboarding-screen.ob-ink::after {
@@ -102,7 +142,9 @@
 }
 .ob-chrome__tail { width: 40px; height: 40px; }
 
-/* Six chapters drawn as a thread of light: past = lit, now = a longer seam. */
+/* Six chapters drawn as one graduated arc of an astrolabe: the travelled part
+   is lit gold, the current chapter is a longer lit grain, the rest is unlit
+   steel. It is the same instrument as the plate below, at nav scale. */
 .ob-seam {
   position: absolute;
   left: 50%;
@@ -110,31 +152,49 @@
   transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   direction: ltr;
 }
 .ob-seam::before {
   content: '';
   position: absolute;
-  inset-inline: -10px;
+  inset-inline: -12px;
   top: 50%;
   height: 1px;
-  background: currentColor;
-  opacity: 0.12;
+  background: linear-gradient(90deg, transparent, currentColor 18%, currentColor 82%, transparent);
+  opacity: 0.14;
+}
+.ob-seam::after {
+  content: '';
+  position: absolute;
+  left: -13px;
+  right: -13px;
+  top: 50%;
+  height: 7px;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  border-top: 1px solid currentColor;
+  opacity: 0.18;
+  pointer-events: none;
 }
 .ob-seam i {
   position: relative;
-  width: 4px;
-  height: 4px;
+  width: 3px;
+  height: 3px;
   border-radius: 50%;
   background: currentColor;
-  opacity: 0.22;
-  transition: width 320ms cubic-bezier(.2, .8, .2, 1), opacity 320ms ease, background 320ms ease;
+  opacity: 0.2;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0%);
+  transition: width 320ms cubic-bezier(.2, .8, .2, 1), height 320ms ease, opacity 320ms ease, background 320ms ease;
 }
-.ob-seam i.is-past { background: var(--ob-gold); opacity: 0.6; }
+.ob-seam i.is-past {
+  background: var(--ob-gold);
+  opacity: 0.62;
+  box-shadow: 0 0 6px rgb(217 182 121 / 30%);
+}
 .ob-seam i.is-now {
-  width: 17px;
-  border-radius: 2px;
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
   background: var(--ob-gold);
   opacity: 1;
   box-shadow: 0 0 12px rgb(217 182 121 / 55%);
@@ -268,8 +328,8 @@
 .ob-art--hero .theia-instrument {
   width: 100%;
   height: 100%;
-  max-width: 330px;
-  max-height: 330px;
+  max-width: 356px;
+  max-height: 356px;
 }
 .ob-art--small {
   flex: 0 1 auto;
@@ -279,36 +339,41 @@
 .ob-art--small .theia-instrument { width: 100%; height: 100%; max-width: 244px; max-height: 244px; }
 
 .theia-instrument { animation: ob-instrument-in 900ms cubic-bezier(.2,.8,.2,1) both; }
+
+/* The plate turns, and inside it the star ring turns slower. Both are so slow
+   that they register as liveliness rather than movement. */
+.ti-ring {
+  transform-box: view-box;
+  transform-origin: center;
+  animation: ob-rotate 300s linear infinite;
+}
+.ti-sight-rays { transform-box: view-box; transform-origin: center; animation: ob-rotate 180s linear infinite reverse; }
+.ti-look {
+  transform-box: view-box;
+  transform-origin: center;
+  animation: ob-look 11s ease-in-out infinite;
+}
+@keyframes ob-look {
+  0%, 100% { transform: scale(0.86); opacity: 0.12; }
+  50% { transform: scale(1.16); opacity: 0.3; }
+}
 @keyframes ob-instrument-in {
   from { opacity: 0; transform: scale(0.975) translateY(6px); }
   to { opacity: 1; transform: none; }
 }
 
-.ti-drift,
 .ti-rays {
   transform-box: view-box;
   transform-origin: center;
+  animation: ob-rotate 140s linear infinite reverse;
 }
-.ti-drift { animation: ob-rotate 260s linear infinite; }
-.ti-rays { animation: ob-rotate 140s linear infinite reverse; }
 @keyframes ob-rotate { to { transform: rotate(360deg); } }
-
-.ti-sight-ring {
-  transform-box: view-box;
-  transform-origin: center;
-  animation: ob-sight 9s ease-in-out infinite;
-}
-@keyframes ob-sight {
-  0%, 100% { transform: scale(0.82); opacity: 0.5; }
-  50% { transform: scale(1.3); opacity: 0.08; }
-}
 
 .ti-pulse {
   transform-box: view-box;
   transform-origin: center;
   animation: ob-pulse 8s cubic-bezier(.2,.6,.3,1) infinite;
 }
-.ti-pulse--late { animation-delay: 4s; }
 @keyframes ob-pulse {
   0% { transform: scale(0.9); opacity: 0.5; }
   60% { opacity: 0; }
@@ -332,7 +397,7 @@
 .welcome-screen .ob-header h1 { font-size: clamp(26px, 7.4vw, 31px); }
 .welcome-screen .ob-header .ob-lede { max-width: 36ch; }
 
-.interstitial-screen .ob-art--hero .theia-instrument { max-width: 300px; max-height: 300px; }
+.interstitial-screen .ob-art--hero .theia-instrument { max-width: 330px; max-height: 330px; }
 
 /* ---------- name ---------- */
 .ob-name-form { margin-top: clamp(34px, 8vh, 62px); }
@@ -388,14 +453,18 @@
   font-size: 15px;
   font-weight: 420;
   line-height: 1.6;
-  transition: background 170ms ease, color 170ms ease, border-color 170ms ease;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 60%) inset;
+  transition: background 170ms ease, color 170ms ease, border-color 170ms ease, box-shadow 170ms ease;
 }
 .onboarding-screen .choice-button:active { transform: none; }
 .onboarding-screen .choice-button.is-selected {
   background: #16150f;
   border-color: #16150f;
   color: #f5f0e7;
-  box-shadow: inset 0 0 0 1px rgb(217 182 121 / 28%);
+  box-shadow:
+    inset 0 0 0 1px rgb(217 182 121 / 30%),
+    inset 0 1px 0 rgb(255 255 255 / 4%),
+    0 12px 24px -20px rgb(0 0 0 / 80%);
 }
 .onboarding-screen .choice-icon { color: #a89f92; }
 .onboarding-screen .choice-button.is-selected .choice-icon { color: var(--ob-gold); }
@@ -410,12 +479,14 @@
   gap: 16px;
   border: 1px solid var(--ob-paper-line);
   border-radius: 13px;
-  background: var(--ob-paper-raised);
+  background:
+    linear-gradient(180deg, rgb(255 253 248 / 100%), rgb(252 248 240 / 100%));
   color: #232019;
   font-size: 14px;
   font-weight: 420;
   line-height: 1.7;
   text-align: start;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 70%) inset, 0 10px 26px -22px rgb(84 68 44 / 50%);
 }
 .onboarding-screen .privacy-card .toggle { flex: 0 0 46px; height: 27px; background: #ddd3c3; }
 .onboarding-screen .privacy-card .toggle span { width: 21px; height: 21px; background: #fff; }
@@ -440,11 +511,29 @@
 }
 .onboarding-screen .age-option.is-active { color: #17160f; font-weight: 500; }
 .onboarding-screen .age-option:hover { color: #6f675c; }
+/* The wheel is a measuring scale: the selected range sits on a lit hairline
+   between two small graduations, not under a highlighter band. */
 .onboarding-screen .age-marker {
-  border-radius: 12px;
-  background: linear-gradient(90deg, rgb(217 182 121 / 8%), rgb(217 182 121 / 26%), rgb(217 182 121 / 8%));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%), inset 0 -1px 0 rgb(177 135 78 / 22%);
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, transparent, rgb(177 135 78 / 16%) 12%, rgb(217 182 121 / 20%) 50%, rgb(177 135 78 / 16%) 88%, transparent);
+  box-shadow: none;
 }
+/* A short graduation on each side marks the selection without a box: the wheel
+   stays a measuring scale rather than a list with a highlighted row. */
+.onboarding-screen .age-marker::before,
+.onboarding-screen .age-marker::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 1px;
+  background: var(--ob-gold-deep);
+  opacity: 0.6;
+  transform: translateY(-50%);
+}
+.onboarding-screen .age-marker::before { inset-inline-start: -19px; }
+.onboarding-screen .age-marker::after { inset-inline-end: -19px; }
 
 /* ---------- mood ---------- */
 .onboarding-screen.mood-screen { padding-bottom: 0; }
@@ -458,14 +547,16 @@
 }
 .onboarding-screen .mood-glow {
   inset: 6% 0 12%;
-  background: radial-gradient(circle at 50% 46%, rgb(226 180 120 / 26%), transparent 64%);
+  background: radial-gradient(circle at 50% 46%, rgb(226 180 120 / 20%), transparent 66%);
+  mix-blend-mode: normal;
+  transition: background 420ms ease;
 }
 .onboarding-screen .mood-scribble { width: min(100%, 318px); }
 .onboarding-screen .mood-stage h2 { font-size: 19px; font-weight: 460; color: #232019; }
 .onboarding-screen .mood-slider-wrap { --mood-thumb: 34px; width: min(84%, 250px); height: 52px; flex-basis: 52px; }
-.onboarding-screen .mood-ticks { background: #cfc4b2; height: 1px; }
-.onboarding-screen .mood-ticks i { width: 1px; height: 10px; background: #bdb2a0; }
-.onboarding-screen .mood-ticks i.is-active { height: 16px; background: var(--ob-gold-deep); }
+.onboarding-screen .mood-ticks { background: #cfc4b2; height: 1px; opacity: 0.8; }
+.onboarding-screen .mood-ticks i { width: 1px; height: 8px; background: #bdb2a0; opacity: 0.8; }
+.onboarding-screen .mood-ticks i.is-active { height: 17px; background: var(--ob-gold-deep); opacity: 1; }
 .onboarding-screen .mood-slider::-webkit-slider-thumb {
   width: 34px;
   height: 34px;
@@ -520,10 +611,18 @@
   border-color: rgb(217 182 121 / 42%);
   box-shadow: 0 18px 40px -28px rgb(0 0 0 / 90%), inset 0 1px 0 rgb(255 255 255 / 5%);
 }
-.onboarding-screen .voice-wave { background: transparent; color: #6f6a61; }
-.onboarding-screen .voice-card.is-active .voice-wave { color: var(--ob-gold); }
-.onboarding-screen .voice-card .voice-wave { height: 112px; flex: 0 0 112px; }
-.onboarding-screen .voice-card .voice-wave svg { padding: 18px 14px; }
+/* A voice is drawn as light, not as audio: one thin gold line on ink. */
+.onboarding-screen .voice-line {
+  flex: 0 0 116px;
+  height: 116px;
+  display: block;
+  padding: 22px 16px 0;
+  color: #6d675d;
+  transition: color 240ms ease;
+}
+.onboarding-screen .voice-line .theia-voiceline { width: 100%; height: 100%; display: block; }
+.onboarding-screen .voice-card.is-active .voice-line { color: var(--ob-gold); }
+.onboarding-screen .voice-line + .voice-card-copy { padding-top: 6px; }
 .onboarding-screen .voice-card-copy { padding: 12px 16px 15px; gap: 3px; }
 .onboarding-screen .voice-card-copy strong { font-size: 19px; font-weight: 500; color: #f1ebe1; }
 .onboarding-screen .voice-card-copy small { color: #8d887e; font-size: 12.5px; }
@@ -609,7 +708,9 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(120% 55% at 50% 24%, rgb(214 165 96 / 10%), transparent 70%);
+  background:
+    radial-gradient(120% 55% at 50% 24%, rgb(214 165 96 / 10%), transparent 70%),
+    radial-gradient(130% 58% at 50% 112%, rgb(214 165 96 / 11%), transparent 72%);
 }
 .dev-login-screen .screen-top-inset { flex: 0 0 auto; }
 .dev-login-art {
@@ -620,7 +721,7 @@
   place-items: center;
   margin: 4px 0 8px;
 }
-.dev-login-art .theia-instrument { width: 100%; height: 100%; max-width: 268px; max-height: 268px; }
+.dev-login-art .theia-instrument { width: 100%; height: 100%; max-width: 300px; max-height: 300px; }
 .dev-login-screen .page-header { position: relative; padding: 0 0 4px; }
 .dev-login-screen .page-header h1 {
   font-size: clamp(26px, 7.4vw, 31px);
@@ -695,7 +796,7 @@
   .ob-header { padding-top: 4px; }
   .ob-header h1 { font-size: 24px; }
   .ob-header .ob-lede { margin-top: 10px; font-size: 13.5px; line-height: 1.85; }
-  .ob-art--hero .theia-instrument { max-width: 268px; max-height: 268px; }
+  .ob-art--hero .theia-instrument { max-width: 292px; max-height: 292px; }
   .ob-art--small { height: 168px; margin: 10px 0; }
   .ob-art--small .theia-instrument { max-width: 190px; max-height: 190px; }
   .ob-footer { padding-top: 8px; }
@@ -716,7 +817,10 @@
   .ti-drift,
   .ti-rays,
   .ti-pulse,
-  .ti-sight-ring {
+  .ti-sight-ring,
+  .ti-ring,
+  .ti-sight-rays,
+  .ti-look {
     animation: none !important;
   }
   .ob-seam i { transition: none; }

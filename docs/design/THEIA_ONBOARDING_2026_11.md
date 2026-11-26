@@ -205,3 +205,88 @@ contract, name persistence, the five style keys, and the legacy info routes
 - The legacy `testimonials/research/experts` screens still contain unverified
   claims and broken expert portraits. They stay outside the active flow and out
   of scope for this redesign; they must be corrected before any external use.
+
+## 11. Artwork pass — 2026-11-26 (visual only)
+
+Scope: illustrations, artwork and visual atmosphere only. **No onboarding copy,
+route, ordinal, answer or network behaviour changed.** All 89 Persian string
+literals in `src/screens/Onboarding.jsx` are byte-identical to the previous
+commit (verified by a literal-by-literal comparison); the six voice names added
+as illustration keys already exist in `src/data.js`.
+
+### What changed and why
+
+The first identity pass (sections 4–6) drew each chapter as a full plate: the
+same dark disc, the same heavy halo, the same ruled horizon line. At the roughly
+300px the screens actually render, the states lost their differences and the
+palette flattened into one mood. This pass rebuilds the drawing, not the idea.
+
+- **Sky plate instead of a filled disc.** The instrument is now engraved light on
+  the surface: a graduated astrolabe rim in hairlines, two star rings (one turns
+  once every five minutes, one every three), a meridian, and a *curved horizon*
+  — a planet limb rather than a ruled line — with two flat water-lines beneath
+  it. The one filled shape in any state is the dawn star.
+- **One object, six hours.** The plate is identical across chapters so the story
+  reads as the same instrument seen as the night passes:
+  - `welcome` — one open ring whose opening glows, with the ring's own gap facing
+    the viewer; the invitation is the gap.
+  - `night` — the instrument almost disappears; five faint stars and one ember.
+  - `veil` — a curtain of fine folds parted at the middle; light enters only
+    through the chosen slit.
+  - `sight` — an eye of hairlines with a shallow iris band and a lit pupil.
+  - `dawn` — the ring opens exactly at the horizon where the sun returns; one
+    radial dawn field, no concentric "tunnel".
+  - `orbits` — Helios (corona), Selene (crescent) and Eos (low seam) in three
+    separate closed orbits around the star, no longer crowded into the rim.
+  - `pulse` — a long returning seam and one breathing afterglow.
+  - `seal` — the ring closes inside the rim, with a completed measure of
+    graduations around it.
+- **Paper tone is re-engraved, not recoloured.** Hairlines that read as light on
+  night ink all but vanish on ivory, so the paper reading uses a heavier,
+  denser etching (`boost`) instead of a darker palette. The dawn glows are
+  slightly richer (`glow`) so the warm centre still carries on paper.
+- **Chapter atmosphere.** `data-ob-chapter` now exposes the chapter to CSS; each
+  chapter changes only the ambient light of the room (deepest at شب, cool at
+  دیدن, low and warm at سپیده, three lights at سه نور, steady at حلقه) with a
+  900ms transition. Same room, later hour — no new ornament.
+- **Mood is a horizon, not a scribble.** The five mood states are one sky at five
+  hours: at the hard end a low, trembling thread pressed to the water-line with
+  almost no light; at the good end an open dome with the dawn star above it.
+  Only the curve, its calm and its light change between states.
+- **Voice is drawn as light.** The generic audio squiggle is replaced by
+  `TheiaVoiceline`: one thin gold line in the instrument's stroke, ending in the
+  dawn star, with a different shape of breath per voice (still, measured, warm,
+  lifted, low). Copy and behaviour are untouched.
+- **Nav seam as a graduation.** The six-chapter indicator is now a graduated arc
+  with a faint crest, matching the plate at nav scale.
+- **Age wheel.** The highlighter band became an engraved scale: a lit hairline
+  between two small graduations, with top/bottom hairlines instead of a filled
+  bar.
+- **Cards.** Choice, privacy and voice cards gain a hairline top highlight and a
+  very soft lift, so ivory surfaces separate without shadows becoming UI.
+
+### Reference sheet
+
+`docs/design/onboarding-artwork-2026-11-26.png` — the eight instrument states, as
+the screens compose them at 390×844 with the real Estedad setting (the sample
+headings in that sheet are placeholders; the app keeps the existing copy).
+
+### Verification
+
+- `npm run build` — passes.
+- `npm test` — 114/115; the single failure (`designer routes and visual assets
+  remain present`, expects nine `public/assets` files while only one was ever
+  committed) is pre-existing and also fails on the base commit.
+- Every instrument state and the mood ladder were rasterised from the real React
+  modules with `@resvg/resvg-js` and inspected at 300px and 356px, dark and
+  paper, plus 390×844 screen composites with the real Estedad font.
+- No browser is available in this sandbox (no Chromium/NSS and the Playwright
+  CDN is unreachable), so runtime visual QA at 360/390/430px, keyboard and
+  reduced motion still needs a human pass on the live preview.
+
+### Deliberately unchanged
+
+Copy, routes, ordinals, progress/resume logic, answer handling, privacy copy and
+contract, the five conversation-style keys, focus behaviour, hit areas, and the
+reduced-motion contract (the new `.ti-ring`, `.ti-sight-rays` and `.ti-look`
+animations are disabled under `prefers-reduced-motion`).

@@ -3,7 +3,7 @@ import { Check, ChevronLeft, ChevronRight, Flame, Landmark } from 'lucide-react'
 import { AGE_RANGES, APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import { resistVoiceDrag, voiceSwipeTarget } from '../features/onboarding/voiceCarousel';
 import { TheiaMark } from '../components/TheiaBrand';
-import { TheiaInstrument, TheiaSigil } from '../components/TheiaSigil';
+import { TheiaInstrument, TheiaSigil, TheiaVoiceline } from '../components/TheiaSigil';
 import {
   BackButton,
   ChoiceButton,
@@ -12,7 +12,6 @@ import {
   PrimaryButton,
   RatingStars,
   StatusBar,
-  VoiceWave,
 } from '../components/UI';
 
 const nextFrom = (route, navigate) => {
@@ -68,7 +67,11 @@ function Shell({ theme = 'paper', back, children, className = '', footer }) {
   const dark = theme === 'ink' || theme === 'dark' || theme === 'black';
   const surface = dark ? 'ink' : 'paper';
   return (
-    <section className={`app-screen onboarding-screen ob-shell ob-${surface} ${className}`.trim()} data-ob-theme={surface}>
+    <section
+      className={`app-screen onboarding-screen ob-shell ob-${surface} ${className}`.trim()}
+      data-ob-theme={surface}
+      data-ob-chapter={chapterIndexFor(route) + 1}
+    >
       <StatusBar />
       <div className="ob-chrome">
         {back
@@ -92,6 +95,24 @@ function ObHeader({ title, lede, epigraph, align = 'start', className = '' }) {
       {lede && <p className="ob-lede">{lede}</p>}
     </header>
   );
+}
+
+/**
+ * Each voice is a different shape of breath, drawn with the instrument's own
+ * stroke instead of a generic audio squiggle: `wave` is the contour, `motion`
+ * is how fast it travels, and the copy keeps naming the tone as before.
+ */
+const VOICE_LINES = {
+  'بید': 'M0 78C22 78 34 60 52 62C72 64 78 96 104 96C130 96 132 56 158 54C184 52 186 92 212 92C234 92 250 70 280 72',
+  'سرو': 'M0 72C30 72 44 68 66 67C88 66 96 73 120 74C144 75 154 66 176 65C198 64 206 72 232 73C254 74 262 71 280 71',
+  'نسیم': 'M0 84C18 56 36 54 52 76C68 98 84 100 100 76C116 52 132 54 148 78C164 102 180 100 196 75C212 50 240 62 280 80',
+  'آواز': 'M0 96C24 104 32 70 52 60C72 50 78 94 98 86C120 76 112 24 140 28C168 32 158 98 186 98C216 98 230 48 280 58',
+  'سنگ': 'M0 66C26 62 32 94 54 92C78 90 78 63 102 66C126 68 132 88 154 82C180 76 176 38 202 40C228 42 238 90 280 86',
+  'برگ': 'M0 88C20 66 38 68 56 90C76 112 94 86 108 62C124 36 146 52 158 78C172 108 194 94 210 68C230 38 252 60 280 76',
+};
+
+function VoiceLine({ name, path, active }) {
+  return <TheiaVoiceline path={VOICE_LINES[name] || path} active={active} />;
 }
 
 function Instrument({ state, tone = 'ink', className = '', label }) {
@@ -606,49 +627,87 @@ const MOODS = [
   { label: 'در کل حالم خوب است', note: 'خوب است. بگذار بیشتر بشناسیمش.' },
 ];
 
+/**
+ * The mood drawing is a horizon, not a face: the same sky Theia measures on the
+ * chapter screens, seen at five different hours. At the hard end the line is a
+ * low, trembling thread pressed to the ground with almost no light; at the good
+ * end it lifts into an open dome with the dawn star above it. Nothing is added
+ * or removed between the five states — only the curve, its calm and its light
+ * change — so moving the slider feels like the same day passing, not five
+ * different illustrations.
+ */
+const MOOD_TONES = [
+  // five hours of one sky: pre-dawn blue-grey, ash, warm haze, gold, full dawn
+  { line: '#8A8FA6', light: '#A8AEC2', star: 0.1, lift: 0.14, rough: 9 },
+  { line: '#A99A96', light: '#C9A98A', star: 0.18, lift: 0.3, rough: 5 },
+  { line: '#C8A67C', light: '#E2B77F', star: 0.3, lift: 0.5, rough: 2.6 },
+  { line: '#C39858', light: '#F0C992', star: 0.6, lift: 0.72, rough: 1.1 },
+  { line: '#B7833F', light: '#F7DBA9', star: 1, lift: 0.94, rough: 0 },
+];
+const MOOD_BASELINE = 208;
+
 function MoodScribble({ level }) {
-  // A continuous hand-drawn contour evolves from angular and tangled to round.
+  const tone = MOOD_TONES[level];
   const path = React.useMemo(() => {
-    const points = [];
-    const turns = [9.5, 7.4, 5.0, 3.0, 2.2][level];
-    const count = 430;
-    for (let i = 0; i <= count; i++) {
-      const progress = i / count;
-      const theta = progress * turns * Math.PI * 2;
-      const rough = level <= 1 ? (1 + 0.24 * Math.sin(theta * 2.7) + 0.12 * Math.cos(theta * 4.3)) : 1;
-      const radius = (0.45 + progress * 0.50) * rough;
-      const tilt = level === 4 ? 0.15 : 0.38;
-      const x = 170 + 113 * radius * Math.cos(theta + tilt) + (level === 2 ? 13 * Math.sin(theta * 0.4) : 0);
-      const y = 150 + 105 * radius * Math.sin(theta) + (level === 0 ? 12 * Math.sin(theta * 1.5) : 0);
-      points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`);
+    const keys = [];
+    const steps = 68;
+    for (let i = 0; i <= steps; i += 1) {
+      const t = i / steps;
+      const dome = Math.pow(Math.sin(Math.PI * t), 1.35);
+      // roughness is brushed in at the hard end and settles out at the good end
+      const rough = tone.rough
+        * (0.55 + 0.45 * Math.sin(t * 7.7 + level * 1.9))
+        * (0.6 * Math.sin(t * 23.3 + 0.8) + 0.4 * Math.sin(t * 41.1 + 2.1))
+        * Math.min(1, t * 7, (1 - t) * 7);
+      const y = MOOD_BASELINE - tone.lift * 108 * dome + rough;
+      keys.push([22 + 296 * t, y]);
     }
-    return points.join(' ');
-  }, [level]);
-  // The line itself is the illustration: a tangled thread at the hard end of
-  // the scale, a nearly closed ring at the easy end, and a dawn-coloured light
-  // that grows as the contour untangles.
-  const tone = ['#8C94B8', '#B0A0A0', '#D2AE86', '#E3C48C', '#F2C98D'][level];
+    return keys.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
+  }, [level, tone]);
+  const peak = MOOD_BASELINE - tone.lift * 108;
   return (
     <svg className="mood-scribble" viewBox="0 0 340 300" aria-hidden="true" focusable="false">
       <defs>
-        <linearGradient id="mood-line" x1="40" y1="270" x2="300" y2="40" gradientUnits="userSpaceOnUse">
-          <stop stopColor={tone} stopOpacity="0.55" />
-          <stop offset="0.55" stopColor={tone} />
-          <stop offset="1" stopColor="#F7E7C6" />
+        <linearGradient id="mood-line" x1="22" y1="0" x2="318" y2="0" gradientUnits="userSpaceOnUse">
+          <stop stopColor={tone.line} stopOpacity="0.3" />
+          <stop offset="0.5" stopColor={tone.line} stopOpacity="0.95" />
+          <stop offset="1" stopColor={tone.line} stopOpacity="0.3" />
         </linearGradient>
-        <radialGradient id="mood-halo" cx="50%" cy="50%" r="50%">
-          <stop stopColor="#F3D8A3" stopOpacity={0.1 + level * 0.11} />
-          <stop offset="1" stopColor="#F3D8A3" stopOpacity="0" />
+        <linearGradient id="mood-sky" x1="170" y1="60" x2="170" y2="300" gradientUnits="userSpaceOnUse">
+          <stop stopColor={tone.light} stopOpacity={0.3 + level * 0.09} />
+          <stop offset="0.5" stopColor={tone.light} stopOpacity={0.08 + level * 0.04} />
+          <stop offset="1" stopColor={tone.light} stopOpacity="0" />
+        </linearGradient>
+        <radialGradient id="mood-halo" cx="50%" cy="60%" r="52%">
+          <stop stopColor={tone.light} stopOpacity={0.08 + level * 0.13} />
+          <stop offset="1" stopColor={tone.light} stopOpacity="0" />
         </radialGradient>
       </defs>
-      <circle cx="170" cy="150" r="128" fill="url(#mood-halo)" />
-      <path d={path} fill="none" stroke="url(#mood-line)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-      {level >= 3 && (
+      <circle cx="170" cy="150" r="134" fill="url(#mood-halo)" />
+      <path d={`${path}L318 300L22 300Z`} fill="url(#mood-sky)" />
+      <path d={path} fill="none" stroke="url(#mood-line)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      {level <= 1 && (
         <path
-          d="M170 137L172.6 144.8L180.4 147.4L172.6 150L170 157.8L167.4 150L159.6 147.4L167.4 144.8L170 137Z"
-          fill={tone}
-          opacity={level === 4 ? '0.95' : '0.5'}
+          d={`M22 ${MOOD_BASELINE + 16}C92 ${MOOD_BASELINE + 23} 150 ${MOOD_BASELINE + 9} 196 ${MOOD_BASELINE + 19}S282 ${MOOD_BASELINE + 24} 318 ${MOOD_BASELINE + 15}`}
+          fill="none"
+          stroke={tone.line}
+          strokeWidth="0.8"
+          strokeOpacity="0.24"
+          strokeLinecap="round"
         />
+      )}
+      {/* the water-line, shared with the instrument plate */}
+      <path d="M30 236H310" stroke="#B4A78F" strokeWidth="0.7" strokeOpacity="0.45" />
+      <path d="M60 244H280" stroke="#B4A78F" strokeWidth="0.6" strokeOpacity="0.22" />
+      {/* the dawn star appears only as the horizon opens */}
+      {level >= 2 && (
+        <g
+          transform={`translate(170 ${(peak - 26).toFixed(1)}) scale(${(0.6 + tone.star * 0.55).toFixed(2)})`}
+          opacity={(0.4 + tone.star * 0.6).toFixed(2)}
+        >
+          <circle cx="0" cy="0" r="26" fill="url(#mood-halo)" opacity="0.9" />
+          <path d="M0 -11Q1.3 -1.3 11 0Q1.3 1.3 0 11Q-1.3 1.3 -11 0Q-1.3 -1.3 0 -11Z" fill={tone.light} />
+        </g>
       )}
     </svg>
   );
@@ -879,7 +938,7 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
                 aria-pressed={index === active}
                 aria-label={`صدای ${item.name}، ${item.description}`}
               >
-                <VoiceWave path={item.path} />
+                <span className="voice-line"><VoiceLine name={item.name} path={item.path} active={index === active} /></span>
                 <span className="voice-card-copy" dir="rtl">
                   <strong>{item.name}</strong>
                   <small>{item.description}</small>

@@ -91,6 +91,23 @@ export function TheiaMark({ size = 24, luminous = false, complete = false, class
 
 /* ------------------------------------------------------------------ */
 /* The instrument: one drawing, changing state across the story arc.  */
+/*                                                                    */
+/* 2026-11-26 — second pass on the artwork. The first pass drew every */
+/* idea as a full plate: each state carried the same dark disc, the   */
+/* same heavy halo and the same ruled horizon. Rendered at the ~300px */
+/* the screens actually use, the states lost their differences and    */
+/* the palette flattened into one mood.                               */
+/*                                                                    */
+/* This pass keeps the identity — the open ring, the dawn star, the   */
+/* measured horizon — and rebuilds the drawing as a sky plate:        */
+/*   · a graduated astrolabe rim drawn in hairlines, no filled disc   */
+/*   · a curved horizon (a planet limb) with two flat water-lines     */
+/*   · slow star rings that keep the plate alive without noise        */
+/*   · one dawn star, the same glyph in every state, lit differently  */
+/*                                                                    */
+/* Each state is composed around negative space rather than a painted */
+/* circle, so the chapters read as one object seen at different hours */
+/* instead of eight unrelated illustrations.                          */
 /* ------------------------------------------------------------------ */
 
 const CX = 180;
@@ -101,116 +118,191 @@ function polar(radius, angle, cx = CX, cy = CY) {
   const theta = ((angle - 90) * Math.PI) / 180;
   return [cx + radius * Math.cos(theta), cy + radius * Math.sin(theta)];
 }
-
-function arcPath(radius, from, to) {
-  const [x1, y1] = polar(radius, from);
-  const [x2, y2] = polar(radius, to);
+const n2 = (value) => Number(value.toFixed(2));
+const pt = (radius, angle, cx = CX, cy = CY) => {
+  const [x, y] = polar(radius, angle, cx, cy);
+  return [n2(x), n2(y)];
+};
+function arcPath(radius, from, to, cx = CX, cy = CY) {
+  const [x1, y1] = polar(radius, from, cx, cy);
+  const [x2, y2] = polar(radius, to, cx, cy);
   const sweep = (to - from + 360) % 360;
   const large = sweep > 180 ? 1 : 0;
-  return `M${x1.toFixed(2)} ${y1.toFixed(2)}A${radius} ${radius} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+  return `M${n2(x1)} ${n2(y1)}A${radius} ${radius} 0 ${large} 1 ${n2(x2)} ${n2(y2)}`;
 }
 
-const STAR = (cx, cy, r) => {
-  const k = r * 0.09;
-  return `M${cx} ${cy - r}Q${cx + k} ${cy - k} ${cx + r} ${cy}Q${cx + k} ${cy + k} ${cx} ${cy + r}Q${cx - k} ${cy + k} ${cx - r} ${cy}Q${cx - k} ${cy - k} ${cx} ${cy - r}Z`;
-};
+/** The four-point dawn star; one glyph at every scale. */
+function starPath(cx, cy, r, k = Math.max(0.7, r * 0.12)) {
+  return [
+    `M${n2(cx)} ${n2(cy - r)}`,
+    `Q${n2(cx + k)} ${n2(cy - k)} ${n2(cx + r)} ${n2(cy)}`,
+    `Q${n2(cx + k)} ${n2(cy + k)} ${n2(cx)} ${n2(cy + r)}`,
+    `Q${n2(cx - k)} ${n2(cy + k)} ${n2(cx - r)} ${n2(cy)}`,
+    `Q${n2(cx - k)} ${n2(cy - k)} ${n2(cx)} ${n2(cy - r)}`,
+    'Z',
+  ].join('');
+}
+
+/**
+ * A voice is drawn as a light-line, not a waveform: the same thin gold stroke as
+ * the instrument's horizons and seams, ending in the dawn star. Each voice gets
+ * a different *shape* of breath — still, measured, warm, lifted, low — so the
+ * cards can be told apart at a glance without reading them.
+ */
+export function TheiaVoiceline({ path, active = false, className = '' }) {
+  const id = React.useId().replace(/[^a-zA-Z0-9_-]/g, '');
+  const gradient = `voiceline-${id}`;
+  return (
+    <svg
+      className={`theia-voiceline ${active ? 'is-active' : ''} ${className}`.trim()}
+      viewBox="0 0 280 140"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <defs>
+        <linearGradient id={gradient} x1="0" y1="0" x2="280" y2="0" gradientUnits="userSpaceOnUse">
+          <stop stopColor="currentColor" stopOpacity="0.05" />
+          <stop offset="0.18" stopColor="currentColor" stopOpacity="0.45" />
+          <stop offset="0.82" stopColor="currentColor" stopOpacity="0.45" />
+          <stop offset="1" stopColor="currentColor" stopOpacity="0.05" />
+        </linearGradient>
+      </defs>
+      <path d="M6 70H256" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.16" strokeDasharray="1 7" />
+      <path d={path} fill="none" stroke="currentColor" strokeWidth="6" strokeOpacity={active ? 0.12 : 0.06} strokeLinecap="round" strokeLinejoin="round" />
+      <path d={path} fill="none" stroke={`url(#${gradient})`} strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" />
+      {/* the line ends where the voice begins: at the dawn star */}
+      <circle cx="266" cy="70" r="16" fill="currentColor" fillOpacity={active ? 0.1 : 0.05} />
+      <path d={starPath(266, 70, 5.4)} fill="currentColor" fillOpacity={active ? 0.92 : 0.32} />
+    </svg>
+  );
+}
+
+/**
+ * The horizon is a shallow circular limb, not a ruled line: the plate looks
+ * down on a planet, and light is measured where a sky meets a surface.
+ */
+const HORIZON_Y = 250;
+const HORIZON_D = `M52 ${HORIZON_Y}Q180 ${HORIZON_Y + 26} 308 ${HORIZON_Y}`;
+const horizonY = (t) => HORIZON_Y + 4 * 6.5 * t * (1 - t);
+const horizonAt = (t) => [n2(52 + 256 * t), n2(horizonY(t))];
+
+/** A point on a rotated ellipse — the three orbits of Helios, Selene and Eos. */
+function orbitPoint(cx, cy, rx, ry, degrees, rotation) {
+  const t = (degrees * Math.PI) / 180;
+  const x = rx * Math.cos(t);
+  const y = ry * Math.sin(t);
+  const r = (rotation * Math.PI) / 180;
+  return [n2(cx + x * Math.cos(r) - y * Math.sin(r)), n2(cy + x * Math.sin(r) + y * Math.cos(r))];
+}
 
 /**
  * Two tonal readings of the same instrument: night (on ink surfaces) and an
- * ink etching (on ivory paper). Both are the same geometry, so the story keeps
- * one object while the light changes around it.
+ * etched ink (on ivory paper). Both are the same geometry, so the story keeps
+ * one object while the light around it changes.
  */
-const TONES = {
+const PALETTES = {
   ink: {
-    frame: '#EDE0C8',
-    frameSoft: '#E4D3B4',
-    disc: 'url(#ti-disc)',
-    rim: '#EBDCC0',
-    gold: 'url(#ti-gold)',
-    goldFlat: '#EBD8B2',
-    bright: '#FBEED4',
-    horizon: 'url(#ti-horizon)',
-    halo: 'url(#ti-halo)',
-    slit: 'url(#ti-slit-soft)',
-    glowFilter: 'url(#ti-soft-sm)',
     boost: 1,
+    glow: 1,
+    frame: '#E6DAC1',
+    frameSoft: '#AFA189',
+    gold: ['#FCEFD6', '#E7C990', '#B3834A'],
+    goldFlat: '#EFDAB2',
+    bright: '#FDF3DF',
+    ember: '#F0C992',
+    rose: '#E8AE8C',
+    haze: '#F3D8A3',
+    fade: '#08090B',
   },
   paper: {
-    frame: '#26231C',
-    frameSoft: '#332F27',
-    disc: 'url(#ti-disc-paper)',
-    rim: '#8D8474',
-    gold: 'url(#ti-gold-paper)',
+    // hairlines that read as light on night ink read as almost nothing on ivory,
+    // so the etching is drawn slightly heavier and denser instead of darker
+    boost: 2.1,
+    glow: 1.3,
+    frame: '#181511',
+    frameSoft: '#6F6658',
+    gold: ['#D8AC6D', '#B9854A', '#895B2B'],
     goldFlat: '#A9783F',
-    bright: '#8E5F2C',
-    horizon: 'url(#ti-horizon-paper)',
-    halo: 'url(#ti-halo-paper)',
-    slit: 'url(#ti-slit-paper)',
-    glowFilter: 'url(#ti-soft-sm)',
-    boost: 1.9,
+    bright: '#7A4F24',
+    ember: '#B07A42',
+    rose: '#AE775B',
+    haze: '#E7C089',
+    fade: '#F2EDE4',
   },
 };
 
-const ToneContext = React.createContext(TONES.ink);
-const useTone = () => React.useContext(ToneContext);
-
-function Frame({ detail = 1 }) {
-  const tone = useTone();
-  const boost = tone.boost || 1;
+/**
+ * The plate. Everything every chapter shares: the graduated rim, the star
+ * rings, the meridian, the planet limb. `detail` fades the instrument down on
+ * the night screen, where the point is how little can be seen.
+ */
+function Plate({ p, detail = 1 }) {
+  const alpha = (base) => n2(Math.min(1, base * detail * p.boost));
+  const ticks = [];
+  for (let i = 0; i < 60; i += 1) {
+    const angle = i * 6;
+    const long = angle % 30 === 0;
+    const inner = long ? 128 : 133;
+    const outer = 137.5;
+    const [x1, y1] = pt(inner, angle);
+    const [x2, y2] = pt(outer, angle);
+    ticks.push(
+      <line
+        key={`tick-${angle}`}
+        x1={x1}
+        y1={y1}
+        x2={x2}
+        y2={y2}
+        stroke={p.frame}
+        strokeWidth={long ? 0.75 : 0.5}
+        opacity={long ? alpha(0.32) : alpha(0.14)}
+      />,
+    );
+  }
+  const stars = [];
+  for (let i = 0; i < 24; i += 1) {
+    const [x, y] = polar(115.5, i * 15 + 7.5);
+    const bright = i % 6 === 0;
+    stars.push(
+      <circle
+        key={`star-${i}`}
+        cx={n2(x)}
+        cy={n2(y)}
+        r={bright ? 1.25 : 0.8}
+        fill={p.frame}
+        opacity={alpha(bright ? 0.34 : 0.18)}
+      />,
+    );
+  }
   return (
-    <g className="ti-frame">
-      <circle cx={CX} cy={CY} r="132" stroke={tone.frame} strokeWidth="0.6" opacity={0.16 * detail * boost} />
-      <circle cx={CX} cy={CY} r="126" stroke={tone.frame} strokeWidth="0.6" opacity={0.07 * detail * boost} />
-      <g className="ti-ticks" opacity={0.32 * detail * boost}>
-        {Array.from({ length: 60 }, (_, i) => {
-          const angle = i * 6;
-          const long = angle % 30 === 0;
-          const [x1, y1] = polar(long ? 126 : 129, angle);
-          const [x2, y2] = polar(132, angle);
-          return (
-            <line
-              key={angle}
-              x1={x1.toFixed(2)} y1={y1.toFixed(2)} x2={x2.toFixed(2)} y2={y2.toFixed(2)}
-              stroke={tone.frame} strokeWidth="0.6" opacity={long ? 0.55 : 0.28}
-            />
-          );
-        })}
-      </g>
-      <circle cx={CX} cy={CY} r="104" stroke={tone.frameSoft} strokeWidth="0.7" strokeDasharray="1 7" opacity={0.5 * detail * boost} className="ti-drift" />
-      <circle cx={CX} cy={CY} r="96" stroke={tone.frameSoft} strokeWidth="0.5" opacity={0.16 * detail * boost} />
-      <path d="M40 252H320" stroke={tone.horizon} strokeWidth="0.8" opacity={0.55 * detail} />
-      <path d="M40 258H320" stroke={tone.frameSoft} strokeWidth="0.4" opacity={0.12 * detail} />
+    <g className="ti-plate">
+      {/* plate edge: one hairline, then the graduated scale */}
+      <circle cx={CX} cy={CY} r="145" stroke={p.frame} strokeWidth="0.5" opacity={alpha(0.08)} />
+      <circle cx={CX} cy={CY} r="139" stroke={p.frame} strokeWidth="0.5" opacity={alpha(0.16)} />
+      <g>{ticks}</g>
+      {/* the star ring turns once every five minutes: motion sensed, not watched */}
+      <g className="ti-ring">{stars}</g>
+      <circle cx={CX} cy={CY} r="107" stroke={p.frameSoft} strokeWidth="0.45" strokeDasharray="1 8" opacity={alpha(0.45)} />
+      <circle cx={CX} cy={CY} r="88" stroke={p.frameSoft} strokeWidth="0.4" opacity={alpha(0.12)} />
+      {/* meridian */}
+      <path d={`M${CX} 48V${HORIZON_Y - 8}`} stroke={p.frame} strokeWidth="0.5" opacity={alpha(0.09)} />
+      {/* the horizon: a curved limb, then two flat water-lines echoing it */}
+      <path d={HORIZON_D} stroke={p.frame} strokeWidth="0.9" opacity={alpha(0.42)} />
+      <path d="M74 272H286" stroke={p.frame} strokeWidth="0.5" opacity={alpha(0.16)} />
+      <path d="M102 279H258" stroke={p.frame} strokeWidth="0.45" opacity={alpha(0.09)} />
     </g>
   );
 }
 
-function Star({ radius = 15, opacity = 1, glow = true }) {
-  const tone = useTone();
+/** The dawn star with its own light: the only filled shape in the drawing. */
+function DawnStar({ uid, p, r = 12, glow = 1, opacity = 1, cx = CX, cy = CY, halo = 5.2 }) {
   return (
     <g opacity={opacity}>
-      {glow && <circle cx={CX} cy={CY} r={radius * 3.4} fill={tone.halo} opacity="0.5" />}
-      <path d={STAR(CX, CY, radius)} fill={tone.gold} />
+      {glow > 0 && <circle cx={cx} cy={cy} r={n2(r * halo)} fill={`url(#ti-halo-${uid})`} opacity={n2(0.55 * glow)} />}
+      <circle cx={cx} cy={cy} r={n2(Math.max(6, r * 1.7))} fill={`url(#ti-core-${uid})`} opacity={n2(0.55 * glow)} />
+      <path d={starPath(cx, cy, r)} fill={`url(#ti-gold-${uid})`} />
     </g>
-  );
-}
-
-function Seam({ from, to, radius = 96, width = 1.8, opacity = 1 }) {
-  const tone = useTone();
-  return (
-    <g opacity={opacity}>
-      <path d={arcPath(radius, from, to)} stroke={tone.gold} strokeWidth={width * 3.4} strokeLinecap="round" opacity="0.22" filter="url(#ti-soft)" />
-      <path d={arcPath(radius, from, to)} stroke={tone.gold} strokeWidth={width} strokeLinecap="round" />
-    </g>
-  );
-}
-
-function Disc({ opacity = 1 }) {
-  const tone = useTone();
-  return (
-    <>
-      <circle cx={CX} cy={CY} r="92" fill={tone.disc} opacity={opacity} />
-      <circle cx={CX} cy={CY} r="92" stroke={tone.rim} strokeWidth="0.55" opacity="0.18" />
-    </>
   );
 }
 
@@ -223,220 +315,309 @@ const STATE_LABEL = {
   orbits: 'سه نور: خورشید، ماه و سپیده در سه مدار جدا',
   pulse: 'یادآوری: حلقه‌ای که نورش بازمی‌گردد',
   seal: 'حلقهٔ کامل: دایره بسته می‌شود و ستاره در مرکز می‌درخشد',
+  spark: 'اخگر تیا: ستاره‌ای تنها با کوتاه‌ترین پرتوها',
 };
 
 export function TheiaInstrument({ state = 'welcome', tone = 'ink', className = '', label }) {
-  const palette = TONES[tone] || TONES.ink;
+  const uid = React.useId().replace(/[^a-zA-Z0-9_-]/g, '');
+  const p = PALETTES[tone] || PALETTES.ink;
+  const detail = state === 'night' ? 0.5 : state === 'spark' ? 0.7 : 1;
+  const gold = `url(#ti-gold-${uid})`;
+  const frame = `url(#ti-frame-${uid})`;
+
   return (
-    <ToneContext.Provider value={palette}>
-      <svg
-        className={`theia-instrument theia-instrument--${state} theia-instrument--tone-${tone} ${className}`.trim()}
-        viewBox="0 0 360 360"
-        fill="none"
-        role="img"
-        aria-label={label || STATE_LABEL[state] || STATE_LABEL.welcome}
-        focusable="false"
-      >
-        <defs>
-          <radialGradient id="ti-disc" cx="50%" cy="42%" r="62%">
-            <stop stopColor="#181C23" />
-            <stop offset="0.62" stopColor="#0D0F13" />
-            <stop offset="1" stopColor="#090A0C" />
-          </radialGradient>
-          <radialGradient id="ti-disc-paper" cx="50%" cy="38%" r="64%">
-            <stop stopColor="#FFFCF4" />
-            <stop offset="0.68" stopColor="#F7F0E3" />
-            <stop offset="1" stopColor="#EFE6D5" />
-          </radialGradient>
-          <linearGradient id="ti-gold" x1="70" y1="60" x2="300" y2="312" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#F8EBCE" />
-            <stop offset="0.42" stopColor="#E3C48C" />
-            <stop offset="1" stopColor="#B0824A" />
-          </linearGradient>
-          <linearGradient id="ti-gold-paper" x1="70" y1="60" x2="300" y2="312" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#C79A5C" />
-            <stop offset="0.46" stopColor="#AC7B40" />
-            <stop offset="1" stopColor="#8A5C2C" />
-          </linearGradient>
-          <linearGradient id="ti-horizon" x1="40" y1="0" x2="320" y2="0" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#E4D3B4" stopOpacity="0" />
-            <stop offset="0.5" stopColor="#E4D3B4" stopOpacity="0.9" />
-            <stop offset="1" stopColor="#E4D3B4" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="ti-horizon-paper" x1="40" y1="0" x2="320" y2="0" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#3A352C" stopOpacity="0" />
-            <stop offset="0.5" stopColor="#3A352C" stopOpacity="0.5" />
-            <stop offset="1" stopColor="#3A352C" stopOpacity="0" />
-          </linearGradient>
-          <radialGradient id="ti-halo" cx="50%" cy="50%" r="50%">
-            <stop stopColor="#F3D8A3" stopOpacity="0.55" />
-            <stop offset="1" stopColor="#F3D8A3" stopOpacity="0" />
-          </radialGradient>
-          <radialGradient id="ti-halo-paper" cx="50%" cy="50%" r="50%">
-            <stop stopColor="#E7C089" stopOpacity="0.45" />
-            <stop offset="1" stopColor="#E7C089" stopOpacity="0" />
-          </radialGradient>
-          <radialGradient id="ti-dawn" cx="50%" cy="100%" r="78%">
-            <stop stopColor="#F2C98D" stopOpacity="0.55" />
-            <stop offset="0.55" stopColor="#C98D5A" stopOpacity="0.14" />
-            <stop offset="1" stopColor="#0A0B0D" stopOpacity="0" />
-          </radialGradient>
-          <linearGradient id="ti-slit-soft" x1="0" y1="86" x2="0" y2="274" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#F8EBCE" stopOpacity="0" />
-            <stop offset="0.32" stopColor="#F6E2BA" stopOpacity="0.85" />
-            <stop offset="0.62" stopColor="#F3D8A3" stopOpacity="0.6" />
-            <stop offset="1" stopColor="#F3D8A3" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="ti-slit-paper" x1="0" y1="86" x2="0" y2="274" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#D9B782" stopOpacity="0" />
-            <stop offset="0.34" stopColor="#D9B782" stopOpacity="0.55" />
-            <stop offset="0.64" stopColor="#C79A5C" stopOpacity="0.3" />
-            <stop offset="1" stopColor="#C79A5C" stopOpacity="0" />
-          </linearGradient>
-          <clipPath id="ti-disc-clip">
-            <circle cx={CX} cy={CY} r="92" />
-          </clipPath>
-          <linearGradient id="ti-fold-fade" x1="0" y1="88" x2="0" y2="272" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#fff" stopOpacity="0" />
-            <stop offset="0.28" stopColor="#fff" stopOpacity="1" />
-            <stop offset="0.72" stopColor="#fff" stopOpacity="1" />
-            <stop offset="1" stopColor="#fff" stopOpacity="0" />
-          </linearGradient>
-          <mask id="ti-fold-fade">
-            <rect x="80" y="80" width="200" height="200" fill="url(#ti-fold-fade)" />
-          </mask>
-          <mask id="ti-moon-mask">
-            <rect x="0" y="0" width="360" height="360" fill="#000" />
-            <circle cx={polar(74, 296)[0]} cy={polar(74, 296)[1]} r="8.4" fill="#fff" />
-            <circle cx={polar(74, 296)[0] + 4.2} cy={polar(74, 296)[1] - 2} r="7.6" fill="#000" />
-          </mask>
-          <filter id="ti-soft" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="7" />
-          </filter>
-          <filter id="ti-soft-sm" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="2.2" />
-          </filter>
-        </defs>
+    <svg
+      className={`theia-instrument theia-instrument--${state} theia-instrument--tone-${tone} ${className}`.trim()}
+      viewBox="0 0 360 360"
+      fill="none"
+      role="img"
+      aria-label={label || STATE_LABEL[state] || STATE_LABEL.welcome}
+      focusable="false"
+    >
+      <defs>
+        <linearGradient id={`ti-gold-${uid}`} x1="62" y1="46" x2="302" y2="306" gradientUnits="userSpaceOnUse">
+          <stop stopColor={p.gold[0]} />
+          <stop offset="0.46" stopColor={p.gold[1]} />
+          <stop offset="1" stopColor={p.gold[2]} />
+        </linearGradient>
+        <linearGradient id={`ti-frame-${uid}`} x1="180" y1="30" x2="180" y2="330" gradientUnits="userSpaceOnUse">
+          <stop stopColor={p.frame} />
+          <stop offset="0.68" stopColor={p.frameSoft} />
+          <stop offset="1" stopColor={p.frameSoft} stopOpacity="0.4" />
+        </linearGradient>
+        <linearGradient id={`ti-dawn-${uid}`} x1="180" y1="100" x2="180" y2="260" gradientUnits="userSpaceOnUse">
+          <stop stopColor={p.ember} stopOpacity="0.9" />
+          <stop offset="0.55" stopColor={p.gold[1]} stopOpacity="0.4" />
+          <stop offset="1" stopColor={p.gold[2]} stopOpacity="0.06" />
+        </linearGradient>
+        <linearGradient id={`ti-seam-${uid}`} x1="0" y1="0" x2="1" y2="0">
+          <stop stopColor={p.ember} stopOpacity="0" />
+          <stop offset="0.5" stopColor={p.bright} stopOpacity="0.9" />
+          <stop offset="1" stopColor={p.ember} stopOpacity="0" />
+        </linearGradient>
+        <radialGradient id={`ti-halo-${uid}`} cx="50%" cy="50%" r="50%">
+          <stop stopColor={p.haze} stopOpacity={n2(0.6 * p.glow)} />
+          <stop offset="0.4" stopColor={p.ember} stopOpacity={n2(0.16 * p.glow)} />
+          <stop offset="1" stopColor={p.ember} stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={`ti-core-${uid}`} cx="50%" cy="50%" r="50%">
+          <stop stopColor={p.bright} stopOpacity={n2(0.9 * p.glow)} />
+          <stop offset="0.5" stopColor={p.gold[0]} stopOpacity={n2(0.3 * p.glow)} />
+          <stop offset="1" stopColor={p.gold[0]} stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={`ti-rise-${uid}`} cx="50%" cy="50%" r="50%">
+          <stop stopColor={p.haze} stopOpacity="0.5" />
+          <stop offset="0.3" stopColor={p.ember} stopOpacity="0.2" />
+          <stop offset="0.66" stopColor={p.ember} stopOpacity="0.05" />
+          <stop offset="1" stopColor={p.fade} stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={`ti-night-field-${uid}`} cx="50%" cy="44%" r="56%">
+          <stop stopColor={p.gold[1]} stopOpacity="0.05" />
+          <stop offset="1" stopColor={p.fade} stopOpacity="0" />
+        </radialGradient>
+        <filter id={`ti-soft-${uid}`} x="-45%" y="-45%" width="190%" height="190%">
+          <feGaussianBlur stdDeviation="6.5" />
+        </filter>
+        <filter id={`ti-soft-sm-${uid}`} x="-45%" y="-45%" width="190%" height="190%">
+          <feGaussianBlur stdDeviation="2.6" />
+        </filter>
+      </defs>
 
-        <Frame detail={state === 'night' ? 0.5 : 1} />
+      <Plate p={p} detail={detail} />
 
-        {['welcome', 'night', 'veil', 'sight', 'dawn', 'pulse', 'seal'].includes(state) && (
-          <Disc opacity={state === 'night' ? 0.94 : 1} />
-        )}
+      {state === 'welcome' && (
+        <g>
+          <circle cx={CX} cy={CY} r="150" fill={`url(#ti-halo-${uid})`} opacity="0.2" />
+          {/* the aperture: one open ring, glowing where light enters */}
+          <path d={arcPath(97, 27, 333)} stroke={gold} strokeWidth="7" strokeLinecap="round" opacity="0.1" filter={`url(#ti-soft-${uid})`} />
+          <path d={arcPath(97, 27, 333)} stroke={gold} strokeWidth="1.6" strokeLinecap="round" />
+          <circle cx={CX} cy={CY} r="58" stroke={p.frame} strokeWidth="0.55" strokeDasharray="1 5" opacity="0.34" />
+          <circle cx={CX} cy={CY} r="44" stroke={p.frameSoft} strokeWidth="0.4" opacity="0.14" />
+          <DawnStar uid={uid} p={p} r={20} />
+        </g>
+      )}
 
-        {state === 'welcome' && (
-          <g>
-            <circle cx={CX} cy={CY} r="140" fill={palette.halo} opacity="0.16" />
-            <Seam from={142} to={212} radius={96} width={2} />
-            <circle cx={CX} cy={CY} r="58" fill={palette.halo} opacity="0.35" />
-            <Star radius={19} />
+      {state === 'night' && (
+        <g>
+          <circle cx={CX} cy={CY} r="140" fill={`url(#ti-night-field-${uid})`} opacity="0.75" />
+          <circle cx={CX} cy={CY} r="97" stroke={p.frame} strokeWidth="0.6" strokeDasharray="1 7" opacity={n2(Math.min(1, 0.26 * p.boost))} />
+          {/* not-knowing drawn as almost-no-light: five faint stars and one ember */}
+          {[[-62, -38, 0.6], [74, -54, 0.45], [-88, 26, 0.5], [92, 34, 0.55], [-30, -88, 0.4]].map(([dx, dy, o], i) => (
+            <circle key={i} cx={CX + dx} cy={CY + dy} r="0.9" fill={p.frame} opacity={o * 0.5} />
+          ))}
+          <path
+            d={`M${horizonAt(0.4)[0]} ${horizonAt(0.4)[1]}Q180 ${n2(horizonY(0.5) + 1)} ${horizonAt(0.6)[0]} ${horizonAt(0.6)[1]}`}
+            stroke={p.gold[1]}
+            strokeWidth="1"
+            strokeLinecap="round"
+            opacity="0.26"
+          />
+          <circle cx={CX} cy={CY} r="34" fill={`url(#ti-halo-${uid})`} opacity="0.16" />
+          <DawnStar uid={uid} p={p} r={4.6} glow={0.55} opacity={0.75} halo={7} />
+        </g>
+      )}
+
+      {state === 'veil' && (
+        <g>
+          {/* a curtain drawn as fine folds, parted at the middle: the opening is chosen */}
+          {[30, 55, 81, 109].map((offset, i) => (
+            [-1, 1].map((side) => {
+              const x = 180 + side * offset;
+              const bend = side * (5 - i);
+              return (
+                <path
+                  key={`fold-${offset}-${side}`}
+                  d={`M${x - bend} 98C${x + bend} 150 ${x - bend} 206 ${x + bend * 0.6} 258`}
+                  stroke={p.frame}
+                  strokeWidth={i === 0 ? 0.85 : 0.6 - i * 0.06}
+                  opacity={n2(0.32 - i * 0.07)}
+                  strokeLinecap="round"
+                />
+              );
+            })
+          ))}
+          {/* the gathered edges of the opening, and the slit of light between them */}
+          {[-1, 1].map((side) => (
+            <path
+              key={`edge-${side}`}
+              d={`M${180 + side * 20} 106C${180 + side * 26} 150 ${180 + side * 22} 206 ${180 + side * 18} 250`}
+              stroke={p.frame}
+              strokeWidth="0.7"
+              opacity={n2(Math.min(1, 0.26 * p.boost))}
+              strokeLinecap="round"
+            />
+          ))}
+          <path d="M180 110V248" stroke={p.frame} strokeWidth="0.5" opacity={n2(Math.min(1, 0.12 * p.boost))} strokeDasharray="1 6" />
+          <path d="M180 112Q192 180 180 246Q168 180 180 112Z" fill={`url(#ti-dawn-${uid})`} opacity="0.5" filter={`url(#ti-soft-sm-${uid})`} />
+          <path d="M180 126Q186.5 180 180 232Q173.5 180 180 126Z" fill={gold} opacity="0.45" />
+          <circle cx={CX} cy={CY} r="20" fill={`url(#ti-core-${uid})`} opacity="0.45" />
+          <DawnStar uid={uid} p={p} r={9.5} glow={0.6} />
+        </g>
+      )}
+
+      {state === 'sight' && (
+        <g>
+          <circle cx={CX} cy={CY} r="112" fill={`url(#ti-night-field-${uid})`} opacity="0.8" />
+          {/* an eye made of hairlines: two lids, an iris, a lit pupil */}
+          <path d="M98 180Q180 128 262 180" stroke={frame} strokeWidth="0.85" opacity="0.58" fill="none" />
+          <path d="M98 180Q180 232 262 180" stroke={frame} strokeWidth="0.8" opacity="0.32" fill="none" />
+          <path d="M112 180Q180 140 248 180" stroke={p.frame} strokeWidth="0.45" opacity="0.14" fill="none" />
+          <path d="M122 180Q180 149 238 180" stroke={p.frame} strokeWidth="0.55" opacity="0.2" fill="none" />
+          <path d="M122 180Q180 211 238 180" stroke={p.frame} strokeWidth="0.55" opacity="0.12" fill="none" />
+          <path d="M151 180A29 29 0 0 1 209 180A29 20 0 0 1 151 180Z" stroke={p.frame} strokeWidth="0.65" opacity="0.28" fill="none" />
+          <path d="M160 180A20 20 0 0 1 200 180A20 13 0 0 1 160 180Z" stroke={p.frame} strokeWidth="0.5" opacity="0.16" fill="none" />
+          {[-62, -40, 0, 40, 62].map((deg) => {
+            const [x1, y1] = polar(29, 90 + deg);
+            const [x2, y2] = polar(37, 90 + deg);
+            return <line key={deg} x1={n2(x1)} y1={n2(y1)} x2={n2(x2)} y2={n2(y2)} stroke={p.frame} strokeWidth="0.45" opacity="0.16" strokeLinecap="round" />;
+          })}
+          <g className="ti-sight-rays">
+            {Array.from({ length: 16 }, (_, i) => {
+              const angle = i * 22.5 + 11.25;
+              const [x1, y1] = pt(69, angle);
+              const [x2, y2] = pt(77, angle);
+              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={p.frame} strokeWidth="0.5" opacity={i % 2 ? 0.16 : 0.28} strokeLinecap="round" />;
+            })}
           </g>
-        )}
+          <circle cx={CX} cy={CY} r="30" fill={`url(#ti-halo-${uid})`} opacity="0.75" />
+          <DawnStar uid={uid} p={p} r={8} glow={0.85} halo={6} />
+          <circle cx={CX} cy={CY} r="48" stroke={p.gold[2]} strokeWidth="0.6" opacity="0.22" className="ti-look" />
+        </g>
+      )}
 
-        {state === 'night' && (
-          <g>
-            <Seam from={200} to={238} radius={96} width={1.1} opacity={0.35} />
-            <circle cx={CX} cy={CY} r="2.4" fill={palette.goldFlat} opacity="0.5" filter={palette.glowFilter} />
-            <Star radius={5.4} opacity={0.33} glow={false} />
-          </g>
-        )}
+      {state === 'dawn' && (
+        <g>
+          {/* the sun returns through the one place the ring is left open */}
+          <circle cx={CX} cy={n2(horizonY(0.5) - 2)} r="132" fill={`url(#ti-rise-${uid})`} opacity="0.95" />
+          <path d={arcPath(118, 218, 502)} stroke={gold} strokeWidth="6" strokeLinecap="round" opacity="0.1" filter={`url(#ti-soft-${uid})`} />
+          <path d={arcPath(118, 218, 502)} stroke={gold} strokeWidth="1.4" strokeLinecap="round" />
+          <path d={arcPath(70, 226, 494)} stroke={frame} strokeWidth="0.6" opacity="0.2" />
+          <path d="M132 266H228" stroke={`url(#ti-seam-${uid})`} strokeWidth="1.5" strokeLinecap="round" opacity="0.85" />
+          <path d="M156 274H204" stroke={`url(#ti-seam-${uid})`} strokeWidth="0.9" strokeLinecap="round" opacity="0.35" />
+          <DawnStar uid={uid} p={p} r={12} glow={1} cy={n2(horizonY(0.5) - 1)} halo={7} />
+        </g>
+      )}
 
-        {state === 'veil' && (
-          <g clipPath="url(#ti-disc-clip)">
-            {/* A curtain parted at the middle: the opening is chosen, not taken. */}
-            <g mask="url(#ti-fold-fade)">
-              {Array.from({ length: 7 }, (_, i) => {
-                const offset = 16 + i * 17;
-                return [-1, 1].map((side) => (
-                  <path
-                    key={`${side}-${i}`}
-                    d={`M${CX + side * offset} 70 Q${CX + side * (offset + 10)} 180 ${CX + side * offset} 290`}
-                    stroke={palette.rim}
-                    strokeWidth={i % 2 ? 0.7 : 1}
-                    opacity={0.2 - i * 0.014}
-                  />
-                ));
-              })}
-            </g>
-            <path d="M180 86 Q199 180 180 274 Q161 180 180 86Z" fill={palette.slit} filter="url(#ti-soft-sm)" />
-            <path d="M180 116 Q188 180 180 244 Q172 180 180 116Z" fill={palette.goldFlat} opacity="0.3" />
-            <Star radius={13} opacity={0.9} glow={false} />
-          </g>
-        )}
+      {state === 'orbits' && (
+        <g>
+          {/* three lights, three orbits, none of them permanent */}
+          {[[112, 38, 0.2], [85, 28, 0.16], [58, 19, 0.13]].map(([rx, ry, o]) => (
+            <ellipse key={rx} cx={CX} cy="174" rx={rx} ry={ry} stroke={p.frame} strokeWidth="0.5" opacity={o} transform={`rotate(-8 ${CX} 174)`} />
+          ))}
+          {(() => {
+            const sun = orbitPoint(CX, 174, 112, 38, -34, -8);
+            const moon = orbitPoint(CX, 174, 85, 28, 148, -8);
+            const eos = orbitPoint(CX, 174, 58, 19, 64, -8);
+            const mote = orbitPoint(CX, 174, 85, 28, -122, -8);
+            return (
+              <g>
+                {/* Helios — a sun with a short corona */}
+                <circle cx={sun[0]} cy={sun[1]} r="20" fill={`url(#ti-halo-${uid})`} opacity="0.95" />
+                <circle cx={sun[0]} cy={sun[1]} r="9.2" stroke={p.gold[1]} strokeWidth="0.5" opacity="0.35" />
+                <circle cx={sun[0]} cy={sun[1]} r="6.2" fill={gold} />
+                {Array.from({ length: 16 }, (_, i) => {
+                  const t = (i * Math.PI) / 8;
+                  const long = i % 2 === 0;
+                  return (
+                    <line
+                      key={i}
+                      x1={n2(sun[0] + Math.cos(t) * 9.6)}
+                      y1={n2(sun[1] + Math.sin(t) * 9.6)}
+                      x2={n2(sun[0] + Math.cos(t) * (long ? 13.4 : 11.4))}
+                      y2={n2(sun[1] + Math.sin(t) * (long ? 13.4 : 11.4))}
+                      stroke={p.gold[1]}
+                      strokeWidth="0.55"
+                      opacity={long ? 0.5 : 0.3}
+                      strokeLinecap="round"
+                    />
+                  );
+                })}
+                {/* Selene — a crescent, the light she borrows */}
+                <circle cx={moon[0]} cy={moon[1]} r="14" fill={`url(#ti-halo-${uid})`} opacity="0.34" />
+                <path
+                  d={`M${moon[0]} ${n2(moon[1] - 8)}A8 8 0 1 0 ${n2(moon[0] + 3.4)} ${n2(moon[1] + 7.2)}A6.6 6.6 0 0 1 ${moon[0]} ${n2(moon[1] - 8)}Z`}
+                  fill={p.goldFlat}
+                  opacity="0.85"
+                />
+                {/* Eos — the dawn, a low seam of warm light */}
+                <circle cx={eos[0]} cy={eos[1]} r="12" fill={`url(#ti-halo-${uid})`} opacity="0.55" />
+                <line x1={n2(eos[0] - 7.5)} y1={eos[1]} x2={n2(eos[0] + 7.5)} y2={eos[1]} stroke={p.rose} strokeWidth="1.4" strokeLinecap="round" opacity="0.9" />
+                <line x1={n2(eos[0] - 4)} y1={n2(eos[1] - 3.4)} x2={n2(eos[0] + 4)} y2={n2(eos[1] - 3.4)} stroke={p.rose} strokeWidth="0.8" strokeLinecap="round" opacity="0.45" />
+                {/* one small planet, so the sky is not a diagram */}
+                <circle cx={mote[0]} cy={mote[1]} r="1.5" fill={p.frame} opacity="0.4" />
+              </g>
+            );
+          })()}
+          <circle cx={CX} cy="174" r="30" fill={`url(#ti-halo-${uid})`} opacity="0.22" />
+          <DawnStar uid={uid} p={p} r={9} glow={0.55} cy={174} halo={6} />
+        </g>
+      )}
 
-        {state === 'sight' && (
-          <g>
-            <path d="M112 180Q180 142 248 180Q180 218 112 180Z" stroke={palette.rim} strokeWidth="0.9" opacity="0.45" fill="none" />
-            <path d="M126 180Q180 154 234 180" stroke={palette.rim} strokeWidth="0.6" opacity="0.2" fill="none" />
-            <circle cx={CX} cy={CY} r="26" fill={palette.halo} opacity="0.55" />
-            <circle cx={CX} cy={CY} r="6.4" fill={palette.gold} />
-            <g className="ti-sight-ring">
-              <circle cx={CX} cy={CY} r="17" stroke={palette.rim} strokeWidth="0.6" opacity="0.3" fill="none" />
-            </g>
-            <Star radius={4} opacity={0.9} glow={false} />
-          </g>
-        )}
+      {state === 'pulse' && (
+        <g>
+          {/* the ring keeps its light and gives it back, once, quietly */}
+          <circle cx={CX} cy={CY} r="97" stroke={p.frame} strokeWidth="0.5" strokeDasharray="1 7" opacity={n2(Math.min(1, 0.22 * p.boost))} />
+          <path d={arcPath(97, 128, 232)} stroke={gold} strokeWidth="4.5" strokeLinecap="round" opacity="0.13" filter={`url(#ti-soft-${uid})`} />
+          <path d={arcPath(97, 128, 232)} stroke={gold} strokeWidth="1.7" strokeLinecap="round" />
+          <path d={arcPath(97, 158, 202)} stroke={p.bright} strokeWidth="2.6" strokeLinecap="round" opacity="0.55" filter={`url(#ti-soft-sm-${uid})`} />
+          {/* one afterglow, breathing outward; static-safe under reduced motion */}
+          <circle cx={CX} cy={CY} r="97" stroke={p.gold[1]} strokeWidth="0.9" fill="none" opacity="0.3" className="ti-pulse" />
+          <circle cx={CX} cy={CY} r="74" stroke={p.gold[2]} strokeWidth="0.5" fill="none" opacity="0.18" />
+          <DawnStar uid={uid} p={p} r={12} halo={5.6} />
+        </g>
+      )}
 
-        {state === 'dawn' && (
-          <g clipPath="url(#ti-disc-clip)">
-            <ellipse cx={CX} cy="250" rx="126" ry="62" fill={palette.halo} opacity="0.75" />
-            <ellipse cx={CX} cy="246" rx="86" ry="34" fill="url(#ti-dawn)" opacity="0.65" />
-            <Seam from={132} to={318} radius={92} width={1.5} opacity={0.9} />
-            <circle cx={CX} cy={236} r="30" fill={palette.halo} opacity="0.9" />
-            <path d={`M${CX - 30} 238H${CX + 30}`} stroke={palette.bright} strokeWidth="1.4" strokeLinecap="round" opacity="0.8" />
-            <circle cx={CX} cy={238} r="2.6" fill={palette.bright} filter={palette.glowFilter} />
-            <Star radius={11} opacity={0.9} />
+      {state === 'seal' && (
+        <g>
+          <circle cx={CX} cy={CY} r="150" fill={`url(#ti-halo-${uid})`} opacity="0.16" />
+          <circle cx={CX} cy={CY} r="137.2" stroke={gold} strokeWidth="1" opacity="0.35" />
+          {/* a completed measure: cardinal rays, then the fine scale between them */}
+          <g className="ti-rays">
+            {Array.from({ length: 60 }, (_, i) => {
+              const angle = i * 6;
+              const cardinal = angle % 90 === 0;
+              const major = angle % 45 === 0;
+              if (!cardinal && !major && i % 2) return null;
+              const inner = cardinal ? 141 : major ? 143 : 146;
+              const [x1, y1] = pt(inner, angle);
+              const [x2, y2] = pt(153, angle);
+              return (
+                <line
+                  key={i}
+                  x1={x1}
+                  y1={y1}
+                  x2={x2}
+                  y2={y2}
+                  stroke={p.gold[1]}
+                  strokeWidth={cardinal ? 0.9 : 0.55}
+                  opacity={cardinal ? 0.48 : major ? 0.28 : 0.16}
+                  strokeLinecap="round"
+                />
+              );
+            })}
           </g>
-        )}
+          <circle cx={CX} cy={CY} r="97" stroke={gold} strokeWidth="1.9" fill="none" opacity="0.95" />
+          <circle cx={CX} cy={CY} r="103" stroke={p.gold[1]} strokeWidth="0.5" fill="none" opacity="0.4" />
+          <circle cx={CX} cy={CY} r="60" stroke={p.frame} strokeWidth="0.55" strokeDasharray="1 6" opacity="0.24" fill="none" />
+          <DawnStar uid={uid} p={p} r={22} halo={4.6} />
+        </g>
+      )}
 
-        {state === 'orbits' && (
-          <g>
-            <circle cx={CX} cy={CY} r="50" stroke={palette.rim} strokeWidth="0.5" opacity="0.2" />
-            <circle cx={CX} cy={CY} r="74" stroke={palette.rim} strokeWidth="0.5" opacity="0.16" />
-            <circle cx={CX} cy={CY} r="104" stroke={palette.rim} strokeWidth="0.5" opacity="0.12" />
-            {/* Helios — the sun: a small disc with a fine corona. */}
-            <g>
-              <circle cx={polar(104, 34)[0]} cy={polar(104, 34)[1]} r="19" fill={palette.halo} />
-              <circle cx={polar(104, 34)[0]} cy={polar(104, 34)[1]} r="6.6" fill={palette.gold} />
-            </g>
-            {/* Selene — the moon: a crescent, the light it borrows. */}
-            <g mask="url(#ti-moon-mask)">
-              <circle cx={polar(74, 296)[0]} cy={polar(74, 296)[1]} r="8.4" fill={palette.goldFlat} opacity="0.9" />
-            </g>
-            {/* Eos — the dawn: a low pale seam where the sun comes back. */}
-            <g>
-              <circle cx={polar(60, 152)[0]} cy={polar(60, 152)[1]} r="16" fill={palette.halo} opacity="0.6" />
-              <path d={`M${polar(60, 152)[0] - 13} ${polar(60, 152)[1]}H${polar(60, 152)[0] + 13}`} stroke="#E7B6A0" strokeWidth="1.5" strokeLinecap="round" opacity="0.9" />
-            </g>
-            <Star radius={8} opacity={0.75} glow={false} />
-          </g>
-        )}
-
-        {state === 'pulse' && (
-          <g>
-            <Seam from={150} to={250} radius={96} width={2} />
-            <circle cx={CX} cy={CY} r="96" stroke={palette.goldFlat} strokeWidth="1" fill="none" opacity="0.55" className="ti-pulse" />
-            <circle cx={CX} cy={CY} r="96" stroke={palette.goldFlat} strokeWidth="1" fill="none" opacity="0.3" className="ti-pulse ti-pulse--late" />
-            <Star radius={14} />
-          </g>
-        )}
-
-        {state === 'seal' && (
-          <g>
-            <circle cx={CX} cy={CY} r="132" stroke={palette.gold} strokeWidth="1.4" opacity="0.7" />
-            <g className="ti-rays">
-              {Array.from({ length: 16 }, (_, i) => {
-                const [x1, y1] = polar(136, i * 22.5);
-                const [x2, y2] = polar(146, i * 22.5);
-                return <line key={i} x1={x1.toFixed(2)} y1={y1.toFixed(2)} x2={x2.toFixed(2)} y2={y2.toFixed(2)} stroke={palette.rim} strokeWidth="0.8" opacity="0.4" />;
-              })}
-            </g>
-            <circle cx={CX} cy={CY} r="96" stroke={palette.gold} strokeWidth="2" fill="none" opacity="0.9" />
-            <circle cx={CX} cy={CY} r="64" fill={palette.halo} opacity="0.5" />
-            <Star radius={23} />
-          </g>
-        )}
-      </svg>
-    </ToneContext.Provider>
+      {state === 'spark' && (
+        <g>
+          <circle cx={CX} cy={CY} r="86" fill={`url(#ti-halo-${uid})`} opacity="0.16" />
+          {[0, 90, 180, 270].map((angle) => {
+            const [x1, y1] = pt(27, angle);
+            const [x2, y2] = pt(41, angle);
+            return <line key={angle} x1={x1} y1={y1} x2={x2} y2={y2} stroke={p.gold[1]} strokeWidth="0.7" opacity="0.4" strokeLinecap="round" />;
+          })}
+          {[45, 135, 225, 315].map((angle) => {
+            const [x, y] = pt(53, angle);
+            return <circle key={angle} cx={x} cy={y} r="1" fill={p.frame} opacity="0.35" />;
+          })}
+          <DawnStar uid={uid} p={p} r={13} glow={0.9} halo={6} />
+        </g>
+      )}
+    </svg>
   );
 }
