@@ -205,3 +205,119 @@ contract, name persistence, the five style keys, and the legacy info routes
 - The legacy `testimonials/research/experts` screens still contain unverified
   claims and broken expert portraits. They stay outside the active flow and out
   of scope for this redesign; they must be corrected before any external use.
+
+---
+
+# Art pass — 2026-11-26
+
+**Scope:** the artwork only. Not one character of onboarding copy, not one route,
+ordinal, answer key or network call changed. The pass replaces the previous
+illustration drawings with a single engraved plate and a sky that warms as the
+story advances.
+
+## 11. One plate, engraved
+
+The earlier states were concentric circles with a light event dropped inside. The
+new drawings are one *instrument*, drawn the way an astrolabe plate would be
+drawn, and then lit differently for each chapter:
+
+- **Limb and graduation** — an outer ring with 72 engraved marks, longer every
+  15° and doubled every 30°, plus a slowly turning dashed ring inside it.
+- **Rete** — an eccentric ecliptic hairline (the star lattice), kept as a
+  measurement layer rather than ornament.
+- **Tympan** — a soft interior wash with three meridian circles and six radial
+  hairlines, faint enough to read as engraving on ivory and as depth on ink.
+- **Horizon plate** — one bright line across the plate with three diminishing
+  echoes, a small graduation at its centre and a graded edge, so every light in
+  the story is measured against the same horizon.
+- **Star dust** — 46 specks scattered on a golden-angle spiral, so the sky looks
+  accidental but is deterministic and identical on every render. A few carry a
+  four-point glint that twinkles slowly.
+
+All gradient ids are namespaced per instance (`React.useId`), so two plates can
+coexist, and the whole illustration re-tones itself for ink and paper.
+
+## 12. The light events
+
+| State | Where | The drawing |
+| --- | --- | --- |
+| `welcome` | first screen | an open gold ring with a soft halo, one four-point star, a low pool of dawn light at the horizon |
+| `night` | chapter ۲ | the ring is barely there, a single small star and a trace of horizon; on paper it is a bare etching |
+| `veil` | privacy | two hanging curtain panels of fine folds, parted at the middle with a soft seam of light; the opening is chosen, not taken |
+| `sight` | chapter ۳ | an almond eye built from two hairlines, an iris with fine fibres and a lit pupil, plus a breathing measurement ring |
+| `dawn` | chapter ۴ | three quiet dawn bands, a fan of rays, the upper half of a honey sun on the horizon and its reflection below; one last star still visible |
+| `orbits` | chapter ۵ | three nested, tilted paths with Helios (disc and corona), Selene (crescent) and Eos (a low pale seam), each with a fading trail of light |
+| `pulse` | reminders | an open ring with two echo arcs and two slow pulse rings: a light that returns |
+| `seal` | ready | the ring closes: double gold circle, 24 rays, a long flare and a two-layer star at the centre |
+
+Each state was rasterised through the real React component (resvg) and reviewed
+on both tonalities before the CSS pass, so the drawing, not the copy, carries the
+chapter.
+
+## 13. The sky follows the chapters
+
+`Shell` now publishes `data-ob-chapter` (0–5) on the screen element — visual
+metadata only. The onboarding surface reads it as a set of custom properties and
+warms the sky chapter by chapter:
+
+| Chapter | Sky |
+| --- | --- |
+| 1 · آغاز | a low, restrained gold tide at the bottom of night |
+| 2 · شب | the coldest and darkest of the flow, a cool lift at the top |
+| 3 · دیدن | a cool sight-light above, the first warmth below |
+| 4 · سپیده | the warm tide rises (14%) |
+| 5 · سه نور | warm and higher (21%) |
+| 6 · حلقه | the horizon is fully lit (28%) |
+
+Paper screens get the same progression as a printed warm wash rising from the
+bottom edge, a lit top edge and a 5% paper-grain overlay — no flat white screen
+anywhere in the flow.
+
+## 14. Motion and frame
+
+- The plate **develops like a photograph**: 1250 ms, opacity + a 2.8% scale with a
+  short blur that resolves to `filter: none`, so the vector stays sharp.
+- The graduation's dashed ring turns over 320 s; seal rays counter-rotate over
+  150 s; the sight ring and the pulse rings keep their slow breathing; glints
+  twinkle at 7 s with per-star delays.
+- Headings, chapter line and footer rise 9 px on entry (760 ms, 90 ms stagger) so
+  the composition assembles instead of snapping.
+- A radial light pool sits under every plate (`.ob-art::before`), including the
+  sign-in screen — a lamp held over paper.
+- `prefers-reduced-motion` disables every one of these, including the reveal and
+  the new twinkle.
+
+## 15. Mood: the thread becomes the ring
+
+The mood drawing is now a single parametric thread. At the hard end of the scale
+it is a dense knot; as the scale moves it loses turns and wobble; at the easy end
+it closes into a ring with one deliberate opening — the product's own open ring.
+Behind it, the glow is tinted by the chosen state (slate → ash → amber → gold →
+dawn), and a hairline horizon keeps it inside the same visual world as the plate.
+
+## 16. Copy and accessibility
+
+- **Copy is untouched.** All 110 Persian strings in `src/screens/Onboarding.jsx`
+  are byte-identical to the previous commit; the only JSX changes are the new
+  `data-ob-chapter` attribute and the redrawn mood SVG.
+- Instrument `role="img"` labels and every `sr-only` announcement are unchanged.
+- New atmosphere layers are pure CSS pseudo-elements; the new art layers are
+  inside the same `aria-label`ed SVG, and decorative helpers stay `aria-hidden`.
+- Contrast ratios are unchanged (no text colour changed); focus rings, hit
+  targets and the age-wheel physics are untouched.
+
+## 17. Verification status
+
+- `npm run build` — PASSED.
+- `npm test` — 114/115. The single failure is the pre-existing
+  `designer routes and visual assets remain present` check (expects nine files
+  in `public/assets/`; only one was ever committed) and also fails on the base
+  commit.
+- `npm run check:foundation` — BLOCKED in this checkout: `.agents/skills/` is not
+  present in the working tree, so the script aborts before running its checks.
+- Browser QA — NOT RUN in the sandbox: Chromium cannot start here (missing
+  `libnspr4`/`libnss3` and no package manager access). The nine illustration
+  states were rasterised from the real component through resvg and reviewed on
+  ink and paper, and the CSS was verified to compile; a device pass at
+  360/390/430 px, desktop, keyboard and reduced motion is still required before
+  release.

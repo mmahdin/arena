@@ -68,7 +68,11 @@ function Shell({ theme = 'paper', back, children, className = '', footer }) {
   const dark = theme === 'ink' || theme === 'dark' || theme === 'black';
   const surface = dark ? 'ink' : 'paper';
   return (
-    <section className={`app-screen onboarding-screen ob-shell ob-${surface} ${className}`.trim()} data-ob-theme={surface}>
+    <section
+      className={`app-screen onboarding-screen ob-shell ob-${surface} ${className}`.trim()}
+      data-ob-theme={surface}
+      data-ob-chapter={chapterIndexFor(route)}
+    >
       <StatusBar />
       <div className="ob-chrome">
         {back
@@ -606,49 +610,67 @@ const MOODS = [
   { label: 'در کل حالم خوب است', note: 'خوب است. بگذار بیشتر بشناسیمش.' },
 ];
 
+const MOOD_STAR = (cx, cy, r) => {
+  const k = r * 0.09;
+  return `M${cx} ${cy - r}Q${cx + k} ${cy - k} ${cx + r} ${cy}Q${cx + k} ${cy + k} ${cx} ${cy + r}Q${cx - k} ${cy + k} ${cx - r} ${cy}Q${cx - k} ${cy - k} ${cx} ${cy - r}Z`;
+};
+
 function MoodScribble({ level }) {
-  // A continuous hand-drawn contour evolves from angular and tangled to round.
+  // One continuous thread, drawn from a knot to a ring. The further toward the
+  // good end of the scale, the fewer the turns and the calmer the line; the last
+  // position leaves a small opening, exactly like the product's ring.
   const path = React.useMemo(() => {
+    const turns = [6.4, 4.6, 3.1, 2.0, 1.03][level];
+    const wobble = [0.3, 0.2, 0.11, 0.04, 0][level];
+    const startRadius = [0.24, 0.34, 0.5, 0.68, 0.88][level];
+    const count = 460;
     const points = [];
-    const turns = [9.5, 7.4, 5.0, 3.0, 2.2][level];
-    const count = 430;
-    for (let i = 0; i <= count; i++) {
+    for (let i = 0; i <= count; i += 1) {
       const progress = i / count;
-      const theta = progress * turns * Math.PI * 2;
-      const rough = level <= 1 ? (1 + 0.24 * Math.sin(theta * 2.7) + 0.12 * Math.cos(theta * 4.3)) : 1;
-      const radius = (0.45 + progress * 0.50) * rough;
-      const tilt = level === 4 ? 0.15 : 0.38;
-      const x = 170 + 113 * radius * Math.cos(theta + tilt) + (level === 2 ? 13 * Math.sin(theta * 0.4) : 0);
-      const y = 150 + 105 * radius * Math.sin(theta) + (level === 0 ? 12 * Math.sin(theta * 1.5) : 0);
+      const theta = progress * turns * Math.PI * 2 - Math.PI / 2;
+      const drift = 1 + wobble * (0.72 * Math.sin(theta * 2.3) + 0.28 * Math.cos(theta * 3.7));
+      const radius = (startRadius + progress * (1 - startRadius)) * drift;
+      const tilt = level >= 3 ? 0.06 : 0.22;
+      const x = 170 + 106 * radius * Math.cos(theta + tilt) + (level <= 1 ? 8 * Math.sin(theta * 0.85) : 0);
+      const y = 146 + 98 * radius * Math.sin(theta) + (level === 0 ? 9 * Math.sin(theta * 1.6) : 0);
       points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`);
     }
     return points.join(' ');
   }, [level]);
-  // The line itself is the illustration: a tangled thread at the hard end of
-  // the scale, a nearly closed ring at the easy end, and a dawn-coloured light
-  // that grows as the contour untangles.
-  const tone = ['#8C94B8', '#B0A0A0', '#D2AE86', '#E3C48C', '#F2C98D'][level];
+
+  const uid = React.useId().replace(/[^a-zA-Z0-9_-]/g, '');
+  const line = `mood-line-${uid}`;
+  const halo = `mood-halo-${uid}`;
+  const horizon = `mood-horizon-${uid}`;
+  // Ash and slate at the hard end of the scale, dawn light at the easy end.
+  const tone = ['#93A0BC', '#B3A5A3', '#CFAE86', '#E4C68F', '#F4D9A4'][level];
+  const glow = ['0.06', '0.13', '0.23', '0.34', '0.46'][level];
   return (
     <svg className="mood-scribble" viewBox="0 0 340 300" aria-hidden="true" focusable="false">
       <defs>
-        <linearGradient id="mood-line" x1="40" y1="270" x2="300" y2="40" gradientUnits="userSpaceOnUse">
-          <stop stopColor={tone} stopOpacity="0.55" />
+        <linearGradient id={line} x1="32" y1="272" x2="314" y2="36" gradientUnits="userSpaceOnUse">
+          <stop stopColor={tone} stopOpacity="0.45" />
           <stop offset="0.55" stopColor={tone} />
-          <stop offset="1" stopColor="#F7E7C6" />
+          <stop offset="1" stopColor={level >= 3 ? '#F4DCAE' : '#E8D8BE'} />
         </linearGradient>
-        <radialGradient id="mood-halo" cx="50%" cy="50%" r="50%">
-          <stop stopColor="#F3D8A3" stopOpacity={0.1 + level * 0.11} />
+        <radialGradient id={halo} cx="50%" cy="50%" r="50%">
+          <stop stopColor="#F3D8A3" stopOpacity={glow} />
           <stop offset="1" stopColor="#F3D8A3" stopOpacity="0" />
         </radialGradient>
+        <linearGradient id={horizon} x1="46" y1="0" x2="294" y2="0" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#17160F" stopOpacity="0" />
+          <stop offset="0.5" stopColor="#17160F" stopOpacity="0.15" />
+          <stop offset="1" stopColor="#17160F" stopOpacity="0" />
+        </linearGradient>
       </defs>
-      <circle cx="170" cy="150" r="128" fill="url(#mood-halo)" />
-      <path d={path} fill="none" stroke="url(#mood-line)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="170" cy="146" r="130" fill={`url(#${halo})`} />
+      <path d="M46 262H294" stroke={`url(#${horizon})`} strokeWidth="0.9" />
+      <path d={path} fill="none" stroke={`url(#${line})`} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
       {level >= 3 && (
-        <path
-          d="M170 137L172.6 144.8L180.4 147.4L172.6 150L170 157.8L167.4 150L159.6 147.4L167.4 144.8L170 137Z"
-          fill={tone}
-          opacity={level === 4 ? '0.95' : '0.5'}
-        />
+        <g>
+          <circle cx="170" cy="146" r="28" fill={`url(#${halo})`} opacity="0.9" />
+          <path d={MOOD_STAR(170, 146, level === 4 ? 10 : 7)} fill={tone} opacity={level === 4 ? 0.95 : 0.55} />
+        </g>
       )}
     </svg>
   );

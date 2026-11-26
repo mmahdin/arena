@@ -20,6 +20,14 @@
   --ob-muted: #7b746a;
   --ob-muted-ink: #a29d93;
 
+  /* The sky is part of the story: it starts in deep night and warms, chapter by
+     chapter, until the horizon is fully lit on the final screen. */
+  --ob-dawn-alpha: 10%;
+  --ob-dawn-y: 112%;
+  --ob-dawn-size: 120% 62%;
+  --ob-cool-alpha: 6%;
+  --ob-warm-wash: 6%;
+
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -29,6 +37,14 @@
   color: #1a1916;
   overflow: hidden;
 }
+
+/* Chapter 1 آغاز · 2 شب · 3 دیدن · 4 سپیده · 5 سه نور · 6 حلقه */
+.onboarding-screen[data-ob-chapter="0"] { --ob-dawn-alpha: 11%; --ob-dawn-y: 113%; --ob-cool-alpha: 7%; --ob-warm-wash: 7%; }
+.onboarding-screen[data-ob-chapter="1"] { --ob-dawn-alpha: 6%; --ob-dawn-y: 116%; --ob-cool-alpha: 4%; --ob-warm-wash: 5%; }
+.onboarding-screen[data-ob-chapter="2"] { --ob-dawn-alpha: 5%; --ob-dawn-y: 118%; --ob-cool-alpha: 10%; --ob-warm-wash: 4%; }
+.onboarding-screen[data-ob-chapter="3"] { --ob-dawn-alpha: 14%; --ob-dawn-y: 108%; --ob-cool-alpha: 8%; --ob-warm-wash: 10%; }
+.onboarding-screen[data-ob-chapter="4"] { --ob-dawn-alpha: 21%; --ob-dawn-y: 103%; --ob-cool-alpha: 5%; --ob-warm-wash: 14%; }
+.onboarding-screen[data-ob-chapter="5"] { --ob-dawn-alpha: 28%; --ob-dawn-y: 98%; --ob-cool-alpha: 3%; --ob-warm-wash: 18%; }
 
 .onboarding-screen.ob-ink {
   background: var(--ob-ink);
@@ -42,8 +58,30 @@
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(120% 62% at 50% 108%, rgb(214 165 96 / 12%), transparent 70%),
-    radial-gradient(90% 50% at 50% -6%, rgb(150 168 200 / 7%), transparent 72%);
+    radial-gradient(var(--ob-dawn-size) at 50% var(--ob-dawn-y), rgb(214 165 96 / var(--ob-dawn-alpha)), transparent 72%),
+    radial-gradient(90% 50% at 50% -6%, rgb(150 168 200 / var(--ob-cool-alpha)), transparent 72%);
+}
+
+/* Paper is a warm print, not a white screen: a lit top edge and a low tide of
+   gold that also rises with the chapters. */
+.onboarding-screen.ob-paper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 46% at 50% -10%, rgb(255 253 247 / 76%), transparent 74%),
+    radial-gradient(100% 46% at 50% 106%, rgb(203 170 122 / var(--ob-warm-wash)), transparent 76%);
+}
+
+.onboarding-screen.ob-paper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/></filter><rect width='180' height='180' filter='url(%23p)' opacity='0.6'/></svg>");
+  mix-blend-mode: multiply;
 }
 
 .onboarding-screen.ob-ink::after {
@@ -110,35 +148,43 @@
   transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   direction: ltr;
 }
 .ob-seam::before {
   content: '';
   position: absolute;
-  inset-inline: -10px;
+  inset-inline: -12px;
   top: 50%;
   height: 1px;
-  background: currentColor;
-  opacity: 0.12;
+  background: linear-gradient(90deg, transparent, currentColor 16%, currentColor 84%, transparent);
+  opacity: 0.14;
 }
 .ob-seam i {
   position: relative;
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: currentColor;
-  opacity: 0.22;
-  transition: width 320ms cubic-bezier(.2, .8, .2, 1), opacity 320ms ease, background 320ms ease;
+  opacity: 0.16;
+  transition: width 420ms cubic-bezier(.2, .8, .2, 1), height 420ms ease, opacity 420ms ease, background 420ms ease;
 }
-.ob-seam i.is-past { background: var(--ob-gold); opacity: 0.6; }
+.ob-seam i.is-past {
+  background: var(--ob-gold);
+  opacity: 0.52;
+  box-shadow: 0 0 8px rgb(217 182 121 / 38%);
+}
 .ob-seam i.is-now {
-  width: 17px;
+  width: 22px;
+  height: 3px;
   border-radius: 2px;
   background: var(--ob-gold);
   opacity: 1;
-  box-shadow: 0 0 12px rgb(217 182 121 / 55%);
+  box-shadow: 0 0 16px rgb(217 182 121 / 62%);
 }
+.onboarding-screen.ob-paper .ob-seam i.is-past,
+.onboarding-screen.ob-paper .ob-seam i.is-now { background: var(--ob-gold-deep); }
+.onboarding-screen.ob-paper .ob-seam i.is-now { box-shadow: 0 0 14px rgb(177 135 78 / 40%); }
 
 /* ---------- flow & footer ---------- */
 .ob-flow {
@@ -162,6 +208,7 @@
   flex-direction: column;
   gap: 2px;
   padding-top: 14px;
+  animation: ob-rise 760ms 90ms cubic-bezier(.2, .8, .2, 1) both;
 }
 .ob-footer .primary-button,
 .onboarding-screen .approach-actions .primary-button {
@@ -206,7 +253,15 @@
 .onboarding-screen.ob-ink .skip-button { color: var(--ob-muted-ink); }
 
 /* ---------- header rhythm ---------- */
-.ob-header { flex: 0 0 auto; padding-top: clamp(10px, 2.6vh, 22px); }
+.ob-header {
+  flex: 0 0 auto;
+  padding-top: clamp(10px, 2.6vh, 22px);
+  animation: ob-rise 760ms cubic-bezier(.2, .8, .2, 1) both;
+}
+@keyframes ob-rise {
+  from { opacity: 0; transform: translateY(9px); }
+  to { opacity: 1; transform: none; }
+}
 .ob-header h1 {
   font-size: clamp(25px, 7.1vw, 30px);
   font-weight: 480;
@@ -243,6 +298,7 @@
   color: #8e6534;
   font-size: 12px;
   font-weight: 430;
+  animation: ob-rise 760ms cubic-bezier(.2, .8, .2, 1) both;
 }
 .onboarding-screen.ob-ink .ob-chapter { color: #b8955f; }
 .ob-chapter::before {
@@ -260,7 +316,20 @@
   align-items: center;
   justify-content: center;
   min-height: 0;
+  isolation: isolate;
 }
+/* A pool of light under the plate, like a lamp held over paper. */
+.ob-art::before {
+  content: '';
+  position: absolute;
+  inset: 4% 0 0;
+  pointer-events: none;
+  background: radial-gradient(closest-side at 50% 52%, rgb(228 192 132 / 10%), transparent 100%);
+}
+.onboarding-screen.ob-paper .ob-art::before {
+  background: radial-gradient(closest-side at 50% 52%, rgb(176 132 74 / 9%), transparent 100%);
+}
+.ob-art .theia-instrument { position: relative; z-index: 1; }
 .ob-art--hero {
   flex: 1 1 auto;
   padding: clamp(2px, 1.4vh, 14px) 0 clamp(6px, 2vh, 20px);
@@ -278,10 +347,12 @@
 }
 .ob-art--small .theia-instrument { width: 100%; height: 100%; max-width: 244px; max-height: 244px; }
 
-.theia-instrument { animation: ob-instrument-in 900ms cubic-bezier(.2,.8,.2,1) both; }
+/* The plate develops like a photograph: light first, then detail. */
+.theia-instrument { animation: ob-instrument-in 1250ms cubic-bezier(.16, .84, .3, 1) both; }
 @keyframes ob-instrument-in {
-  from { opacity: 0; transform: scale(0.975) translateY(6px); }
-  to { opacity: 1; transform: none; }
+  0% { opacity: 0; transform: scale(0.972); filter: blur(6px) brightness(0.82); }
+  55% { opacity: 1; }
+  100% { opacity: 1; transform: none; filter: none; }
 }
 
 .ti-drift,
@@ -289,9 +360,15 @@
   transform-box: view-box;
   transform-origin: center;
 }
-.ti-drift { animation: ob-rotate 260s linear infinite; }
-.ti-rays { animation: ob-rotate 140s linear infinite reverse; }
+.ti-drift { transform-origin: 180px 174px; animation: ob-rotate 320s linear infinite; }
+.ti-rays { animation: ob-rotate 150s linear infinite reverse; }
 @keyframes ob-rotate { to { transform: rotate(360deg); } }
+
+.ti-twinkle { animation: ob-twinkle 7s ease-in-out infinite; }
+@keyframes ob-twinkle {
+  0%, 100% { opacity: 0.32; }
+  50% { opacity: 0.9; }
+}
 
 .ti-sight-ring {
   transform-box: view-box;
@@ -388,14 +465,15 @@
   font-size: 15px;
   font-weight: 420;
   line-height: 1.6;
-  transition: background 170ms ease, color 170ms ease, border-color 170ms ease;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 65%) inset;
+  transition: background 170ms ease, color 170ms ease, border-color 170ms ease, box-shadow 170ms ease;
 }
 .onboarding-screen .choice-button:active { transform: none; }
 .onboarding-screen .choice-button.is-selected {
   background: #16150f;
   border-color: #16150f;
   color: #f5f0e7;
-  box-shadow: inset 0 0 0 1px rgb(217 182 121 / 28%);
+  box-shadow: inset 0 0 0 1px rgb(217 182 121 / 34%), 0 12px 26px -20px rgb(22 20 14 / 70%);
 }
 .onboarding-screen .choice-icon { color: #a89f92; }
 .onboarding-screen .choice-button.is-selected .choice-icon { color: var(--ob-gold); }
@@ -458,8 +536,13 @@
 }
 .onboarding-screen .mood-glow {
   inset: 6% 0 12%;
-  background: radial-gradient(circle at 50% 46%, rgb(226 180 120 / 26%), transparent 64%);
+  background: radial-gradient(circle at 50% 46%, rgb(147 160 188 / 26%), transparent 64%);
+  transition: background 420ms ease;
 }
+.onboarding-screen .mood-glow[data-mood-level="1"] { background: radial-gradient(circle at 50% 46%, rgb(177 165 162 / 24%), transparent 64%); }
+.onboarding-screen .mood-glow[data-mood-level="2"] { background: radial-gradient(circle at 50% 46%, rgb(212 176 128 / 27%), transparent 64%); }
+.onboarding-screen .mood-glow[data-mood-level="3"] { background: radial-gradient(circle at 50% 46%, rgb(232 196 138 / 33%), transparent 66%); }
+.onboarding-screen .mood-glow[data-mood-level="4"] { background: radial-gradient(circle at 50% 46%, rgb(244 211 156 / 40%), transparent 68%); }
 .onboarding-screen .mood-scribble { width: min(100%, 318px); }
 .onboarding-screen .mood-stage h2 { font-size: 19px; font-weight: 460; color: #232019; }
 .onboarding-screen .mood-slider-wrap { --mood-thumb: 34px; width: min(84%, 250px); height: 52px; flex-basis: 52px; }
@@ -507,6 +590,8 @@
 }
 .onboarding-screen .voice-track { top: 0; bottom: 0; gap: 12px; }
 .onboarding-screen .voice-card {
+  position: relative;
+  overflow: hidden;
   border: 1px solid var(--ob-ink-line);
   border-radius: 14px;
   background: #101216;
@@ -520,7 +605,19 @@
   border-color: rgb(217 182 121 / 42%);
   box-shadow: 0 18px 40px -28px rgb(0 0 0 / 90%), inset 0 1px 0 rgb(255 255 255 / 5%);
 }
+.onboarding-screen .voice-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(90% 62% at 50% 0%, rgb(217 182 121 / 10%), transparent 72%);
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+.onboarding-screen .voice-card.is-active::after { opacity: 1; }
 .onboarding-screen .voice-wave { background: transparent; color: #6f6a61; }
+.onboarding-screen .voice-card.is-active .voice-wave svg { filter: drop-shadow(0 0 8px rgb(217 182 121 / 32%)); }
 .onboarding-screen .voice-card.is-active .voice-wave { color: var(--ob-gold); }
 .onboarding-screen .voice-card .voice-wave { height: 112px; flex: 0 0 112px; }
 .onboarding-screen .voice-card .voice-wave svg { padding: 18px 14px; }
@@ -568,7 +665,13 @@
   font-size: 14.5px;
   line-height: 2;
 }
-.onboarding-screen .approach-mark { color: #8a847a; }
+.onboarding-screen .approach-mark {
+  color: var(--ob-gold-deep);
+  filter: drop-shadow(0 0 7px rgb(217 182 121 / 26%));
+}
+.onboarding-screen .approach-reply.is-active .approach-response {
+  box-shadow: inset 0 0 0 1px rgb(217 182 121 / 12%), 0 26px 44px -38px rgb(0 0 0 / 85%);
+}
 .onboarding-screen .approach-position span { background: #45433e; }
 .onboarding-screen .approach-position span.is-active { background: var(--ob-gold); }
 .onboarding-screen .approach-actions { padding-top: 22px; gap: 2px; }
@@ -612,6 +715,13 @@
   background: radial-gradient(120% 55% at 50% 24%, rgb(214 165 96 / 10%), transparent 70%);
 }
 .dev-login-screen .screen-top-inset { flex: 0 0 auto; }
+.dev-login-art::before {
+  content: '';
+  position: absolute;
+  inset: 5% 0 0;
+  pointer-events: none;
+  background: radial-gradient(closest-side at 50% 52%, rgb(228 192 132 / 11%), transparent 100%);
+}
 .dev-login-art {
   position: relative;
   flex: 1 1 auto;
@@ -620,7 +730,14 @@
   place-items: center;
   margin: 4px 0 8px;
 }
-.dev-login-art .theia-instrument { width: 100%; height: 100%; max-width: 268px; max-height: 268px; }
+.dev-login-art .theia-instrument {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  max-width: 268px;
+  max-height: 268px;
+}
 .dev-login-screen .page-header { position: relative; padding: 0 0 4px; }
 .dev-login-screen .page-header h1 {
   font-size: clamp(26px, 7.4vw, 31px);
@@ -715,10 +832,15 @@
   .theia-instrument,
   .ti-drift,
   .ti-rays,
+  .ti-twinkle,
   .ti-pulse,
   .ti-sight-ring {
     animation: none !important;
+    filter: none !important;
   }
+  .ob-header,
+  .ob-chapter,
+  .ob-footer { animation: none !important; }
   .ob-seam i { transition: none; }
   .onboarding-screen * { scroll-behavior: auto !important; }
 }
