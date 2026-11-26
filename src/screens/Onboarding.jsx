@@ -3,7 +3,8 @@ import { Check, ChevronLeft, ChevronRight, Flame, Landmark } from 'lucide-react'
 import { AGE_RANGES, APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import { resistVoiceDrag, voiceSwipeTarget } from '../features/onboarding/voiceCarousel';
 import { TheiaMark } from '../components/TheiaBrand';
-import { TheiaInstrument, TheiaSigil } from '../components/TheiaSigil';
+import EarthshineScene from '../components/EarthshineScene';
+import { TheiaSigil } from '../components/TheiaSigil';
 import {
   BackButton,
   ChoiceButton,
@@ -94,10 +95,11 @@ function ObHeader({ title, lede, epigraph, align = 'start', className = '' }) {
   );
 }
 
-function Instrument({ state, tone = 'ink', className = '', label }) {
+function Instrument({ state, className = '', label }) {
+  const scene = ({ veil: 'privacy', night: 'night', sight: 'seeing', dawn: 'dawn', orbits: 'three', pulse: 'checkins', seal: 'final' })[state] || state;
   return (
     <div className={`ob-art ${className}`.trim()}>
-      <TheiaInstrument state={state} tone={tone} label={label} />
+      <EarthshineScene scene={scene} label={label} />
     </div>
   );
 }
@@ -111,12 +113,13 @@ function Welcome({ navigate }) {
     <Shell theme="ink" className="welcome-screen" footer={(
       <Continue onClick={() => nextFrom('welcome', navigate)}>شروع</Continue>
     )}>
-      <Instrument state="welcome" className="ob-art--hero" label="حلقهٔ باز تیا، با ستاره‌ای از سپیده در مرکز" />
+      <Instrument state="welcome" className="ob-art--hero" label="هلالِ باریکِ پیش از سپیده بر فراز بامی آرام؛ هالهٔ خاکستریِ ماه به‌سختی دیده می‌شود" />
       <ObHeader
-        epigraph="روشناییِ دوربرد"
+        epigraph="آخرین ساعت‌های شب"
         title="تیا را نمی‌بینی؛ با تیا می‌بینی."
-        lede="تیا، الههٔ یونانیِ نور و دیدن، هیچ تصویری از خودش ندارد؛ تنها چیزی که از او مانده روشنایی است. این‌جا هم همین‌طور است: نه یک چهره، بلکه نوری که کمک می‌کند خودت را واضح‌تر ببینی."
+        lede="در اسطوره‌ها، تیا الههٔ نور و دیدن بود. این‌جا چهره‌ای ندارد؛ همراهی است که کمک می‌کند آن‌چه از پیش در توست، روشن‌تر دیده شود."
       />
+      <p className="ob-ai-note">تیا یک همراهِ هوش مصنوعی است، نه درمانگر و نه جایگزینِ کمک حرفه‌ای.</p>
     </Shell>
   );
 }
@@ -224,25 +227,25 @@ const INTERSTITIALS = {
     state: 'night',
     chapter: 'فصل دو · شب',
     title: 'از تاریکی شروع می‌کنیم.',
-    lede: 'نه چون چیزی خراب است؛ چون هر دیدن از ندیدن آغاز می‌شود. این‌جا لازم نیست از قبل بدانی چه چیزی در تو می‌گذرد.',
+    lede: 'نه چون چیزی خراب است؛ چون هر دیدنی از ندیدن شروع می‌شود. لازم نیست از پیش بدانی در تو چه می‌گذرد؛ چشم که عادت کند، چیزها کم‌کم پیدا می‌شوند.',
   },
   'deeper-intro': {
     state: 'sight',
     chapter: 'فصل سه · دیدن',
-    title: 'تیا نور را نمی‌سازد؛ آن را می‌بیند.',
-    lede: 'پس چیزی به تو اضافه نمی‌کند و چیزی هم از تو نمی‌گیرد. فقط کمک می‌کند آن‌چه هست را واضح‌تر ببینی — حتی وقتی واضح دیدن راحت نیست.',
+    title: 'آن‌چه تاریک به نظر می‌رسد، خالی نیست.',
+    lede: 'بخشِ تاریکِ ماه هم کمی روشن است: نوری که از زمین به آن می‌رسد، به چشم تو برمی‌گردد. هلالِ باریک کمترین نورِ خورشید و بیشترین نورِ زمین را بازمی‌تاباند. تیا چیزی به تو اضافه نمی‌کند و چیزی از تو نمی‌گیرد؛ فقط کمک می‌کند آن‌چه هست واضح‌تر دیده شود، حتی وقتی دیدنش آسان نیست.',
   },
   'know-intro': {
     state: 'dawn',
     chapter: 'فصل چهار · سپیده',
     title: 'سپیده یک‌باره نمی‌آید.',
-    lede: 'کم‌کم روشن می‌شود، آن‌قدر آرام که اول متوجهش نمی‌شوی. حال آدم هم همین‌طور عوض می‌شود.',
+    lede: 'کم‌کم روشن می‌شود، آن‌قدر آرام که اول متوجهش نمی‌شوی. گاهی نوری می‌آید و دوباره پس می‌رود؛ آن هم بخشی از راه است. حال آدم هم اغلب همین‌طور عوض می‌شود.',
   },
   'almost-intro': {
     state: 'orbits',
     chapter: 'فصل پنج · سه نور',
-    title: 'خورشید، ماه، سپیده.',
-    lede: 'هر سه فرزندان تیا بودند؛ سه حالتِ نور، و هیچ‌کدام همیشگی نبود. حال تو هم همین‌طور است: می‌آید و می‌رود و هیچ‌کدام تمامِ تو نیست.',
+    title: 'سه نور؛ و هیچ‌کدام همیشگی نیست.',
+    lede: 'خورشید، ماه و سپیده، هر سه فرزندانِ تیا بودند: سه حالتِ یک نور. حال‌های تو هم همین‌طورند: می‌آیند و می‌روند، و هیچ‌کدام تمامِ تو نیست.',
   },
 };
 
@@ -272,10 +275,10 @@ function Privacy({ navigate, back, privacySharing = true, privacyLoading = false
       footer={<Continue onClick={() => nextFrom('privacy', navigate)}>ادامه</Continue>}
     >
       <ObHeader
-        title="حریم تو، مثل این حلقه است."
-        lede="فقط تو تعیین می‌کنی چقدر باز شود. برای اینکه پاسخ‌ها متناسب با تو باشند، گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شوند و اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شود."
+        title="چه‌قدر بگویی، انتخاب توست."
+        lede="فقط تو تعیین می‌کنی چه‌قدر از خودت بگویی. برای اینکه پاسخ‌ها به تو نزدیک‌تر باشند، گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شوند و اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شود."
       />
-      <Instrument state="veil" tone="paper" className="ob-art--small" label="پرده‌ای که در میانه باز شده و شکافی از نور را نشان می‌دهد" />
+      <Instrument state="veil" className="ob-art--small" label="نمای آسمان از میان دو لنگهٔ چوبیِ نیمه‌باز؛ هلال در شکاف پنجره دیده می‌شود" />
       <button
         type="button"
         className="privacy-card"
@@ -689,10 +692,10 @@ function CheckinsScreen({ navigate, back }) {
       footer={<Continue onClick={() => nextFrom('checkins', navigate)}>ادامه</Continue>}
     >
       <ObHeader
-        title="یادآوری، درست وقتی لازم است."
-        lede="تیا می‌تواند گاهی حالت را بپرسد. هر وقت بخواهی می‌توانی یادآوری‌ها را خاموش کنی."
+        title="اگر بخواهی، چراغ روشن می‌ماند."
+        lede="تیا می‌تواند گاهی سراغ حالت را بگیرد، بی‌اصرار. هر وقت بخواهی می‌توانی یادآوری‌ها را خاموش کنی."
       />
-      <Instrument state="pulse" tone="paper" className="ob-art--small" label="حلقه‌ای که نورش بازمی‌گردد" />
+      <Instrument state="pulse" className="ob-art--small" label="فانوسی کوچک و واقعی بر لبهٔ بام؛ نورِ گرمش فقط تکه‌ای از قالی را روشن می‌کند" />
     </Shell>
   );
 }
@@ -1035,11 +1038,11 @@ function Ready({ navigate, savingProfile = false }) {
         </Continue>
       )}
     >
-      <p className="ob-chapter">فصل شش · حلقه</p>
-      <Instrument state="seal" className="ob-art--hero" label="حلقهٔ کامل تیا؛ دایره بسته می‌شود و ستاره در مرکز می‌درخشد" />
+      <p className="ob-chapter">آغاز مسیر</p>
+      <Instrument state="seal" className="ob-art--hero" label="همان بام در سپیدهٔ روشن؛ ماه هنوز بالای افق است و نخستین پرتو به قالی می‌رسد" />
       <ObHeader
-        title="حلقه کامل می‌شود."
-        lede="از این‌جا با هم شروع می‌کنیم. پاسخ‌های آشنایی اولیه‌ات ذخیره می‌شوند و برای شخصی‌سازی گفت‌وگو در اختیار سرویس هوش مصنوعی قرار می‌گیرند."
+        title="از این‌جا شروع می‌کنیم."
+        lede="آسمان همان است؛ فقط چشمت عادت کرده. پاسخ‌های آشنایی اولیه‌ات ذخیره می‌شوند و برای شخصی‌سازی گفت‌وگو در اختیار سرویس هوش مصنوعی قرار می‌گیرند."
       />
     </Shell>
   );

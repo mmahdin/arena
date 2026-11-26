@@ -41,14 +41,19 @@ test('the open-ring mark is the only Theia identity in the UI', () => {
   for (const retired of ['photo_2026-11-12_19-20-10.jpg', 'theia-welcome.png', 'theia-story-1.png', 'theia-story-2.png', 'theia-story-3.png', 'theia-story-4.png', 'theia-privacy.png', 'theia-ready.png', 'theia-checkins.png']) {
     assert.ok(!active.includes(retired), `Retired female figure still referenced: ${retired}`);
   }
-  // No illustration may depict a person: the story is told by the instrument.
+  // No illustration may depict Theia as a person: the story is told through the
+  // changing ashen disc, the one rooftop, and its dawn light.
   const onboarding = read('src/screens/Onboarding.jsx');
-  assert.match(onboarding, /<TheiaInstrument state=\{state\} tone=\{tone\}/);
+  const earthshine = read('src/components/EarthshineScene.jsx');
+  assert.match(onboarding, /<EarthshineScene scene=\{scene\} label=\{label\} \/>/);
   for (const state of ['night', 'sight', 'dawn', 'orbits', 'veil', 'pulse', 'seal']) {
-    assert.ok(onboarding.includes(`state="${state}"`) || onboarding.includes(`state: '${state}'`), `Missing instrument state ${state}`);
+    assert.ok(onboarding.includes(`state="${state}"`) || onboarding.includes(`state: '${state}'`), `Missing narrative scene ${state}`);
   }
-  // Only the two legacy expert portraits (outside the active flow) remain raster;
-  // every Theia story screen is drawn by the instrument.
+  for (const visualDetail of ['mask id="es-crescent-mask"', 'es-earth', 'es-rug', 'scene === \'privacy\'', 'scene === \'checkins\'', 'scene === \'final\'']) {
+    assert.ok(earthshine.includes(visualDetail), `Missing Earthshine visual detail: ${visualDetail}`);
+  }
+  assert.match(onboarding, /تیا یک همراهِ هوش مصنوعی است، نه درمانگر/);
+  // Only the two legacy expert portraits (outside the active flow) remain raster.
   assert.equal((onboarding.match(/<img/g) || []).length, 2, 'Theia story screens must stay vector-only');
 });
 
