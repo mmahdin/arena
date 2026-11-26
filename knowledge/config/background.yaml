@@ -1,8 +1,0 @@
-schema: background_intelligence.v2
-batch_size: 16
-min_messages: 4
-flush_seconds: 300
-sweep_seconds: 30
-max_users: 32
-input_tokens: 16000
-output_tokens: 3000

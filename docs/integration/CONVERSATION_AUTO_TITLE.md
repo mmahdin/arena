@@ -1,6 +1,6 @@
 # HAMRAH Conversation Auto-Title + Manual Rename
 
-WP-16 retains deterministic titles/manual rename through the single Conversation store. The old Daily Reflection feature and experimental AI are retired; stored data remains.
+Target baseline: accepted Task08 (migrations through `0012_daily_reflections.sql`), with previous phone/privacy, visual transition and five-tone changes retained.
 
 ## Behavior
 
@@ -20,7 +20,7 @@ Forward-only MSSQL migration `0013_conversation_manual_titles.sql` adds `convers
 - Run: `python3 scripts/check_structure.py`; `python3 scripts/check_contract.py`; `cd apps/api && go test ./...`.
 - With `APP_ENV=local`, local SQL Server, `DATABASE_URL`, and `WELLBEING_INTEGRATION=true`: `cd apps/api && go test ./tests/integration -run TestConversationTitlesSQLServer -count=1`.
 - This test uses its own disposable database. Never run migrations against shared/production data.
-- Frontend browser E2E: `npm run test:e2e:titles` with a separately configured private synthetic AI Core/SQL Server backend; the UI client must use OpenAPI 0.3.0.
+- Frontend browser E2E: `npm run test:e2e:titles` with local Vite and mock-AI Go/MSSQL running.
 
 ## Design and compatibility
 

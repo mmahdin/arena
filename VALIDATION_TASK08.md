@@ -1,21 +1,26 @@
 # HAMRAH Task 08 — Daily Reflections implementation
 
-Baseline: latest Task07 + privacy/phone update + transition polish + five-tone refinement source snapshot. No user checkout or SQL database was modified by this patch authoring environment.
+Baseline: latest Task07 + privacy/phone update + transition polish + five-tone refinement. Original Day artwork, transcript and letter components remain in place.
 
-- PASS: structure checker, OpenAPI route checker (24 registered routes), T-SQL static dialect checker, gofmt, git diff check.
-- ADDED, NOT EXECUTED: Go application unit tests, real disposable SQL Server integration tests, ownership/cascade/parallel same-day save coverage.
-- BLOCKED: Go unit/build (`GOPROXY=off`, missing Gin, UUID and go-mssqldb module cache). Full Go compile cannot be claimed. The earlier Bookmark HTTP module needed a missing `errors` import; this one-line import is included so Task08 stack can compile in a fully provisioned environment.
-- NOT RUN: live SQL Server 2022, Docker, real browser E2E; no DB was migrated here.
+- PASS: `npm test` (Node suites), `npm run check:foundation` (41/41), `node --check` on the new E2E script, `git diff --check`.
+- BLOCKED: Vite build (`vite: not found`, npm dependencies not installed in this environment).
+- NOT RUN: live Playwright connected to Vite+Go+MSSQL, mobile screenshot/device verification.
+- ADDED: `scripts/daily-reflections.test.mjs` for API, calendar dates, update/delete, identity isolation, failed-save retry, stale response fencing, pending list race; `scripts/e2e-daily-reflections.mjs` for actual backend/browser journey.
 
-Validation instructions and pending UX/clinical boundaries: `docs/integration/TASK08_DAILY_REFLECTIONS.md`.
+Only the existing Home reflection card now enters `day`; letter and all other screens are preserved. The hard-coded personalized daily text has been replaced by an explicit user-authored input. No journal content is persisted to localStorage or sent to the LLM.
+
+Validation checklist and REST contract: `docs/integration/TASK08_DAILY_REFLECTIONS.md`.
 
 ## Local application and validation — 2026-11-02
 
-- Applied the patch to the current checkout; skipped the bookmark `errors` import because it was already present.
-- Fixed reflection validation to accept Persian U+200C/U+200D joiners while rejecting other control/format characters; added a regression test. Frontend validation uses the same rule.
-- PASS: structure and OpenAPI checks; Docker build including `go test ./...` and both binaries; `go vet ./...` in the cached Go build environment.
-- PASS: `TestDailyReflectionsSQLServer` against a disposable local MSSQL database, including migration replay, concurrent same-day saves, ownership isolation and cascade deletion.
-- PASS: migration 0012 applied to the existing local Compose database and migration runner replay succeeded. API readiness returns HTTP 200. Existing migrations and .env credentials/provider configuration were preserved.
-- PASS: connected frontend daily-reflection save/edit/refresh/relogin/user isolation/delete test. No LLM calls were made by these tests.
+- Applied patch sections and merged `test:e2e:reflections` into the current package scripts, retaining existing scripts and approach-transition improvements. No dependencies changed.
+- Aligned text validation with the backend, preserving Persian half-spaces/script joiners; added regression coverage.
+- PASS: `npm test` (10 test files), `npm run check:foundation` (41/41), `npm run build`.
+- PASS: `BROWSER_BIN=/usr/bin/google-chrome npm run test:e2e:reflections` through real Vite → Go → MSSQL: save/edit/refresh/relogin/user isolation/delete.
+- PASS: `test:e2e:approach` at 360/390/430/1280px with touch, mouse, keyboard and reduced motion; `test:e2e:tones` for all five persisted styles.
+- Updated frontend is served by the existing Vite process on 127.0.0.1:5173; API readiness is healthy on 127.0.0.1:8080.
+- Other full-suite browser scenarios were not rerun for this patch application. No chat or external model requests were sent.
 
-Rollback: the new table is additive; reverting application code can leave it in place. Dropping it would delete authored entries and is not part of this update.
+## Persian calendar refinement
+
+Replaced the browser-native date input with the requested Family JalaliDateField port. Added `jalaali-js`, date-only conversion tests and `test:e2e:calendar`. PASS: 11 Node test files, foundation 41/41, build, calendar browser checks at 360/390/430/1280px, and reflection save/edit/refresh/relogin/isolation/delete regression. Calendar screenshots were visually inspected; backend/API date keys remain Gregorian ISO date-only strings.

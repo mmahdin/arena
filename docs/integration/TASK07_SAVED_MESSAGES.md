@@ -1,25 +1,9 @@
-# HAMRAH-BACKEND-07 — Saved messages
+# HAMRAH-INTEGRATION-07 — Saved Messages
 
-An additive, local-only, synthetic-data vertical slice. The original Hamrah UI action remains in Chat; message bookmarks are displayed in the existing History screen, never as invented AI insights.
+Preserve the authoritative Hamrah designer UI. The existing `ذخیره پیام` action in Chat opens the real bookmark API and toggles into `برداشتن از ذخیره‌شده‌ها`. The existing History page additionally shows saved-message snippets linking to their conversation. No existing screen or visual asset is deleted; unsupported Regenerate, Insight, Voice, Report and attachments remain in place.
 
-## API
+The backend `GET /api/v1/me/bookmarks` is authoritative. `PUT` and `DELETE /api/v1/messages/{messageId}/bookmark` are idempotent, use `credentials: include` and owner-scoped SQL. Frontend never saves message content or session identity in browser storage. Account switches/logout abort stale requests, clear saved-message state and revalidate the server session on 401.
 
-- `GET /api/v1/me/bookmarks` returns `{items: SavedMessage[]}` (most recent 100).
-- `PUT /api/v1/messages/{messageId}/bookmark` returns `200 {saved:true}`, idempotent.
-- `DELETE /api/v1/messages/{messageId}/bookmark` returns `204`, idempotent on an existing owned message.
-- Invalid UUID → `400 INVALID_ID`; absent/foreign/deleted message → nonenumerating `404 RESOURCE_NOT_FOUND`; absent/revoked session → `401`.
-- Only the server-resolved signed dev session owns these resources; no `userId` parameter.
+`Bookmark` is only selectable after the saved list has loaded; on load failure the user can retry. Save failure never displays success. Unsave removes a bookmark, not the original chat message. Deleting a conversation removes its bookmark records in the database. The list shows only the last 100 bookmarks.
 
-## Database and retention
-
-Migration `0009_saved_messages.sql` creates `dbo.saved_messages` keyed by original message UUID, a user-owned index, and a single cascading message FK. There is no duplicated message text in the table. Migration 0020 supersedes the delete cascade with a validated NO ACTION reference. Conversation soft deletion hides bookmarks through the source conversation predicate while preserving every record. Migration is forward-only and must never be edited after application. Deleted bookmarks remain stored; a later save creates a new active row with the same message reference. The list contains message content only for the requesting owner. SQL logs must not include content or cookies.
-
-## Local validation
-
-1. Apply migration on disposable SQL Server 2022 DB, then run it again to verify ledger/checksums.
-2. `cd apps/api && go test ./internal/modules/bookmark/... ./tests/integration/... -count=1`.
-3. `WELLBEING_INTEGRATION=true ... go test ./tests/integration -run TestSavedMessagesSQLServer` using an approved **local** database URL; test creates/drops its own separate DB.
-4. Run `python3 scripts/check_structure.py` and `python3 scripts/check_contract.py`.
-5. Run UI browser suite with Go API, MSSQL, Vite and Mock AI. No public users, SMS, or external model.
-
-**Limitations:** saved list capped at 100; no pagination; no cross-device identity/authentication outside local tester sessions. No change to clinical/privacy release status.
+Run `npm test`, `npm run check:foundation`, `npm ci`, `npm run build`. With the actual localhost Vite, Go and SQL Server services and installed Playwright run `node scripts/e2e-bookmarks.mjs`. No endpoint interception and only synthetic accounts/messages.

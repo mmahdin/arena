@@ -1,128 +1,72 @@
-# AGENTS.md — Wellbeing Backend Agent Contract
-
-## Background intelligence amendment (2026-11-24)
-
-ADR 0016 and `docs/ai-core/background-intelligence.md` define the owner-requested
-Phase 2. Keep Phase 1 synchronous inference intact. Use the existing queues and
-shared Background Intelligence executor, periodic message batches with durable
-coverage, explicit scoped analysis, primary-evidence validation, archived revisions
-and optional expiring hints. Memory Intelligence owns reported memory; Reflection
-owns inferred hypotheses/formulations. No support-count promotion or ProblemTags
-framework router in the active executor. Migration 0042 is additive. Preserve the
-existing Reflection risk boundary and all Unified Safety logic/instructions/assets.
-Use synthetic data only; this does not approve deployment or clinical claims.
-
-## Unified conversation and JEV amendment (2026-11-24)
-
-The owner explicitly requested the integrated architecture in ADR 0015 and
-`docs/ai-core/unified-memory-centric.md`. Active runtime is `ai_runtime.v4`,
-`wctx.v3`, and `unified_turn.v2`: immediate dual-query retrieval → JEV card
-selection → Unified → independent proposal resolution → atomic finalization.
-Do not restore Brain/Generator paths or LLM query rewriting. Use existing
-Memory/Reflection workers for bounded post-finalization analysis and recent-message
-review. Migration 0041 stores immutable owner-scoped decisions and carry-over.
-Safety stays inside Unified; existing Safety logic, instructions and policies
-are unchanged by this amendment. Historical contracts/assets remain readable.
-
-
-## Approved next-stage scope: Authentication and private Back-Office (2026-11-19)
-
-The owner has **explicitly authorized** implementing the shared Keycloak/OIDC/SMS
-Auth/BFF module and a private Back-Office, superseding the original MVP's
-"no OIDC / no Back-Office" exclusion **for these two planned workstreams only**.
-This is a design/implementation authorization, **not** a claim that real Auth or
-Admin APIs are already present, and **not** approval to handle real mental-health
-data or launch publicly. See ADRs `0012` and `0013` and `docs/plans/README.md`.
-
-- **Auth source of truth:** `docs/plans/THEIA_AUTH_IMPLEMENTATION_PLAN_V3.md`.
-  Keycloak runs separately with dedicated PostgreSQL; Go Auth/BFF keeps
-  revocable application sessions and identity mappings in SQL Server. Users
-  log in via SMS OTP; provisioned staff use email/password. Staff and users
-  have separate Keycloak realms, callbacks and host-only cookies.
-- **Back-Office source of truth:** `docs/plans/THEIA_BACKOFFICE_IMPLEMENTATION_PLAN_V3.md`.
-  Its `admin` module consumes the shared Auth guard/session, never duplicates
-  login logic. P0 has one fixed **full-access admin** for implemented Admin
-  features; no RBAC editor. Explicit, audited use cases still govern sensitive
-  data access and operations; local Inspector files stay private/local.
-- **Delivery order:** `docs/plans/THEIA_BACKEND_FIRST_IMPLEMENTATION_RUNBOOK.md`.
-  Backend contracts and services first; frontend Web/PWA, Admin and TWA next;
-  remove Dev Session only after cross-repo cutover. Local/CI may use isolated
-  synthetic fixtures and Mock SMS; team-shared hosting requires private VPN
-  and TLS. No MFA is required for the current local/private staff flow.
-- For these workstreams, historical clauses in `MVP_SCOPE.md`, constitutions,
-  and older module/agent guides that prohibit OIDC or Admin are historical.
-  **All synthetic-only, privacy, safety, no-clinical-claim and no-public-launch
-  restrictions remain binding.**
-
 ## Approved onboarding personalization amendment (2026-11-11)
 
 The user explicitly requested using onboarding information throughout chat. This
-supersedes older name/style-only and ephemeral-only answer restrictions below for
-the internal synthetic build. Persist only explicit allowlisted `onboardingAnswers`
-on final Ready via the owner-scoped profile API; no inferred traits, memory extraction
-or historical backfill. Keep privacy/Ready copy accurate. Migration 0016 is additive;
-prompt version is `supportive-v5`. Preserve existing `MODEL_*`/`LLM_PROVIDER` naming;
-staging OpenAI model is explicitly `gpt-5.6-sol`. Never commit API keys.
+supersedes older name/style-only and ephemeral-only restrictions below for the
+internal synthetic build. Send only explicit allowlisted `onboardingAnswers` on
+final Ready, with accurate server-storage/AI-processing copy. Drafts remain in React
+memory. Ordinary profile edits omit answers to preserve them. Gender options are
+exactly زن، مرد، تمایل ندارم بگم. No inferred traits or browser storage is added.
+Deploy backend migration 0016 and the matching API before this frontend.
 
-**Start here.** This repository is an INTERNAL synthetic-data prototype derived from Yaran Clinic architecture. Do **not** expose it on a public interface or use real mental-health disclosures.
+## UX refinement product boundary (2026-11-04)
+The active product now has two primary experiences: **Chat** and **Letters**. Home's reflection card and diary-writing UI were removed by user request; do not reintroduce journaling/reflection prompts into Letters or Home without a new product decision. Legacy `#/day` and `#/insight` resolve to Letters. Opening Chat from Home must preserve/resume conversation context and must not auto-create a new conversation. Letters are frontend-only until an approved backend adapter is wired; sample content must remain explicitly illustrative, and personalized letters require server-owned conversation provenance. See `docs/integration/LETTERS_FRONTEND_BOUNDARY.md` and `docs/integration/UX_REFINEMENT_2026_11.md`. Existing reflection API/store modules and backend data remain untouched.
 
-## Read in order before changes
+## Temporary onboarding exclusions
+`testimonials`, `research`, and `experts` are temporarily excluded from onboarding by user request. Keep their components/assets and the canonical `FLOW`/hamrah-v1 ordinals intact. `EXCLUDED_ONBOARDING_ROUTES` in `src/features/profile/navigation.js` controls the visible flow (21 screens). Welcome goes to Name, whose original persisted ordinal remains4. Advance excluded ordinals sequentially through the existing API; never renumber saved progress or shorten the remaining intake. Research remains available from the completed-user About menu.
 
-1. `MVP_SCOPE.md` — agreed scope, user journey, exclusion list, acceptance criteria.
-2. `PRODUCT_CONSTITUTION.md` — safety, privacy and product behavior boundaries.
-3. `TECHNICAL_CONSTITUTION.md` — architecture, DB/API and dependency rules.
-4. `REPO_MAP.md` — code ownership and entrypoints.
-5. Owning module `README.md`; closest HTTP/DB adapter and tests.
-6. Relevant `.agents/skills/<skill>/SKILL.md` with supporting `references/`.
+## HAMRAH-INTEGRATION-05 — Full onboarding restoration
+The original designer's complete 24-step pre-Home onboarding is reachable again for new users. `src/features/profile/navigation.js` defines the allowed progression; `src/screens/Onboarding.jsx` retains original screens. **Never reintroduce the short `name → approach → ready` path.** Saving `displayName` + `conversationStyle` happens on final `ready` only, and sensitive answers remain ephemeral. Incomplete refresh now resumes at a server-owned non-sensitive route cursor (Task06). Sensitive answers remain ephemeral; see `docs/integration/TASK06_ONBOARDING_RESUME.md`.
 
-## Hard rules
+---
 
-- **Original feature goal:** `Synthetic phone-shaped dev identity -> Onboarding -> Chat -> Saved conversations -> Return`. New Auth and private Back-Office are explicitly approved by ADRs 0012/0013; all other expansion still needs a product decision.
-- API contracts are authored in `contracts/openapi/openapi.yaml` first. The current Gin adapters are handwritten starter code, **not generated**; codegen is a future explicit task. Do not claim otherwise.
-- Module dependency direction: `domain` <- `application` <- `adapters`; `app/composition` wires implementations. Domain never imports Gin, database/sql or LLM SDK.
-- **Current implementation:** `current user` comes from signed local-only Dev Session middleware. **New Auth target:** server-verified BFF session and `RequireUser`/`RequireStaff`; never from a client-provided query/body field. All owner-scoped SQL continues to enforce server-resolved ownership.
-- AUTH-09 permanently retired the synthetic Dev Session authentication, even in local/staging. `ALLOW_DEV_LOGIN=true` now fails startup. Use the Keycloak User BFF.
-- Use only synthetic data; do not log/store real mental health disclosures. No message bodies, prompts, tokens or secrets in logger, traces or analytics.
-- AI prompt is `supportive-v3`; avoid claiming clinical care, diagnosis, human follow-up, emergency availability, or professional credentials. Keyword checks are not sufficient for real-world safety.
-- The **original MVP** excluded memory extraction/RAG, Back-Office, OIDC and payments. AI Core is governed by Contract Pack v1.2/ADR 0011; Auth and private Back-Office are now approved under ADRs 0012/0013. Do not treat this as approval for payments or other unrelated features.
-- Do not modify existing applied SQL migrations. DB engine is **Microsoft SQL Server 2022**. New migration = next `NNNN_name.sql`, transactional via runner. Use T-SQL and `datetime2(3)`/`SYSUTCDATETIME()`; never use PostgreSQL dialect.
-- Read and apply `wellbeing-backend-module` for new backend features, `wellbeing-api-contract` for API changes, `wellbeing-database-migration` for DB changes, `wellbeing-permission-review` for ownership and privacy, `wellbeing-ai-prompt-safety` for model changes, `wellbeing-dev-session` for identity changes.
-- Keep frontend and backend deployable separately; no imports from frontend source.
-- Never secretly add automatic storage of inferred personality traits or cross-conversation memory.
+## HAMRAH-INTEGRATION-03 — Connected Chat and History
+- This incremental frontend patch **requires HAMRAH-INTEGRATION-02 v2** (fictional phone login). Never apply the rejected seeded-user Task 02 patch.
+- Chat and History use the existing backend contract; no new API, MSSQL migration, schema or provider feature was added.
+- `src/features/conversation/api.js` is the sole conversations transport and `store.js` scopes messages/turns by the current `/me` user UUID. It clears on tester switch/logout/401 and fences stale asynchronous responses.
+- `src/screens/Main.jsx` now renders **server** message content, real history, delete-confirmation and explicit failed-turn Retry; no canned AI response, generated insight or fake saved-message action.
+- After 409/503/network errors retry **the same** `clientTurnId` and text. Use `GET /messages` after success to reconcile stored message pairs. A lost response from the initial conversation **creation** can still leave an empty orphan: create itself is not idempotent, record as a future backend improvement.
+- Run `npm test`, `npm run check:foundation`, `npm run build`, and opt-in `npm run test:e2e:chat` with real local Go/MSSQL Mock AI. Only `npm test` and structure can be claimed as passed in this sandbox.
 
-## Definition of Done per PR
+---
 
-1. Behavior + scope summary, acceptance criteria and module owner.
-2. Contract/schema migration with rollback/compatibility notes if touched; never allocate the same next migration number concurrently to Auth and Admin.
-3. Domain/application negative tests and cross-user isolation tests if relevant.
-4. Sanitized errors and logs; no raw private payload in telemetry.
-5. `python3 scripts/check_structure.py`, `python3 scripts/check_contract.py`, `go test ./...` with environment details; no invented passing tests.
-6. Update docs and report unfinished validation and risks.
+# AGENTS — Hamrah (همراه) frontend, new designer-source edition
 
-## Safety stop
+**Main rule: the attached `ai-therapist-frontend(1).zip` is the authoritative product UI design.** Preserve the actual React/JSX screens, `src/styles.css`, route flow and original illustrations. Do NOT import or rebuild the earlier Rahrah/Wellbeing frontend, and do not silently turn the project into TypeScript, Tailwind or React Router.
 
-If a request involves public availability, real personal chat data, diagnosis, automated treatment, or emergency response: **do not treat this MVP foundation as approved**. Identify explicit new privacy/security/clinical review requirements first.
+## Read in this order
+1. `MVP_SCOPE.md` (what is ready for the currently approved *internal* build).
+2. `PRODUCT_CONSTITUTION.md` (identity, sensitive claims, data limits).
+3. `TECHNICAL_CONSTITUTION.md` (actual JSX/CSS/Vite architecture and rules).
+4. `FRONTEND_DESIGN_SPEC.md` and `docs/design/SOURCE_PRESERVATION_AUDIT.md` (frozen new visual baseline).
+5. `REPO_MAP.md` (routes/screens/source ownership).
+6. `docs/integration/UI_BACKEND_GAP_MATRIX.md`, `docs/integration/BACKEND_CONTRACT.md`, then `docs/roadmap/BACKEND_FRONTEND_INTEGRATION_PLAN.md`.
+7. Appropriate `.agents/skills/<name>/SKILL.md` and its linked references before modifying that area.
+8. `VALIDATION_REPORT.md` and `NEXT_AGENT_TASKS.md`.
 
-## Hamrah integration decision — identity v2
-AUTH-09: User login is Keycloak SMS-only via Go BFF. No synthetic phone-shaped test identifier or `/api/v1/dev/*` exists; do not restore a dev authentication bypass.
+## Product decision hierarchy
+- **Source of truth for look, brand, interaction layout, and intended user journey:** this *new* designer JSX source, under the Persian brand **همراه**.
+- **Source of truth for what the currently validated backend actually supports:** current backend `contracts/openapi/openapi.yaml` and Go/MSSQL implementation; the frontend OpenAPI snapshot is only a reference copy.
+- **Current testing restrictions:** internal / local / synthetic data only; don't imply the UI is clinically safe or publicly released. When a designed flow asks for something the backend does not support, **log a product/backend gap**, preserve the design, do not fake connected behavior or invent endpoints.
+- **Unsupported claims are not product facts:** testimonials, 6000 ratings, 14 research articles/university associations, named clinicians, 'saved on phone' and 'delete account' copy are unverified or contradict the local prototype. Do not display as real to any real user; correct or gate before connecting testers while preserving layout.
 
-## HAMRAH-BACKEND-07: Saved Messages
-Read `docs/integration/TASK07_SAVED_MESSAGES.md`. Do not remove the existing Chat menu or redesign the designer UI. Bookmarks use owner-checked message IDs and inherit soft-deleted conversation visibility while retaining all records (ADR 0010); local synthetic-only.
+## Present implementation (do not assume more)
+- React 19 + **JavaScript/JSX**, Vite 6, lucide-react and custom CSS; no React Router, Tailwind or typed API client.
+- `src/App.jsx`: `#/route` hash navigation and temporary local synthetic session via backend cookie. Chat/history still unconnected and must not display fake AI replies.
+- `src/screens/Onboarding.jsx`: 25-route journey, mostly *locally held answers*. Some ask health / belief / age / therapy history. These data **must not silently become server-collected**.
+- `src/screens/Main.jsx`: Home, health-related survey, a static day card, static History, menu, mock chat and static AI Insight. Chat's `setTimeout` reply is a demo, not AI.
+- `src/data.js`: demo questions, voice choices, approach choices, sample conversation and unverified review copy.
+- CSS/fontrendering and `public/assets/**` are design artifacts; preserve.
 
-## WP-02 soft-delete correction (2026-11-16)
+## Implementation rules
+1. Freeze the source (manifest + screenshots on real device when available). Add API/state logic in `src/core/api/*.js` and feature folders as needed, then wire screens one at a time. Do not mass-replace JSX/class names.
+2. Browser always calls relative same-origin `/api/v1/*` through localhost Vite proxy, `credentials:'include'`. No direct LLM/MSSQL access, cookies or secrets in JS, URL, localStorage/sessionStorage or logs.
+3. Hamrah v2 uses a **phone-shaped internal tester identifier** (`09xxxxxxxxx`), never a dropdown of seeded testers. Signed HttpOnly revocable session lives on backend. On tester switching/logout, clear all tester-scoped React data and reject stale pending responses.
+4. Currently supported backend profile: displayName + `listening|guidance|balanced` + onboardingCompletedAt. Map the design's approach choices explicitly and review ambiguities; do **not** add 20 sensitive intake attributes to PATCH `/me/profile`.
+5. Chat is **JSON/non-streaming**. New turn has `clientTurnId` UUID, same UUID **and exact text** on retry. No fabricated reply when the request fails. GET messages/list and server 401/404/409/503 govern UI behavior.
+6. Timed sessions, surveys/insight, voice generation, bookmarks, regeneration, analytics, clinical questionnaires and privacy sharing are UI designs but **not implemented backend capabilities**. Preserve appearance and mark them demo/disabled until approved and implemented.
+7. Update `docs/integration/UI_BACKEND_GAP_MATRIX.md` whenever a screen is connected. Verify visual regression at 360/390/430px, desktop, keyboard and reduced motion.
+8. `npm run check:foundation`, `npm run check:source-baseline` (only before intentional source changes), `npm test`, `npm run build` and connected Playwright should be reported individually as PASSED / FAILED / BLOCKED / NOT RUN. Do not equate source audit to runtime verification.
+9. Do not run schema or deployment changes on production/shared databases. Only synthetic local tests; backend currently MSSQL 2022. No public access/auth or real patient data.
 
-All user deletion is soft-only. Preserve original and derived data; do not purge,
-cascade physical deletes, clear content or run retention cleanup. Conversation
-deletion must not invalidate derived memories/analyses or change consent. Normal
-queries hide deleted resources. Retention/visibility and AI-use permissions are
-separate; no implicit reuse policy is authorized. Permanent/legal erasure is a
-separate future policy. Use migration 0020 and ADR 0010; keep prior migrations immutable.
-
-## Theia AI Core Inspector / offline Execution Explorer
-
-When changing AI Core tracing or any producer payload consumed by the local
-Inspector, review `apps/api/internal/modules/ai/trace/AGENTS.md`. Keep its
-standalone `trace/explorer/index.html`, authoritative JSON Schema and synthetic
-fixtures compatible. Check real browser interactions when the viewer changes;
-no backend connection or automatic file watcher is authorized. Full-payload
-traces remain opt-in, local-only and synthetic/test-data-only.
+## HAMRAH-INTEGRATION-02 v2
+The previous seeded-user-picker frontend patch was rejected and is NOT a prerequisite. Use `POST /api/v1/dev/identity-session` `{phone}` with synthetic `09xxxxxxxxx` values only. The UI must not call `/dev/users`. `GET /me` decides returning Home vs incomplete Onboarding. This v2 frontend preserves designer components/assets but gates nonintegrated/sensitive routes. See `docs/integration/PHONE_IDENTITY_V2.md`.

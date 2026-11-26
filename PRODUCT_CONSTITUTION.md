@@ -1,19 +1,16 @@
-# Product Constitution — Internal Test Only
+# Product Constitution — همراه / Hamrah
 
-> **Next-stage decision (2026-11-19):** The original prototype exclusions
-> below are historical for **Authentication and private Back-Office only**.
-> ADR 0012 approves Keycloak + SMS OTP user login and staff login, and ADR
-> 0013 approves a private full-access single-admin operational console.
-> Read `docs/plans/README.md` for source-of-truth plans. These systems are
-> **not implemented yet**. All synthetic-only, privacy, non-clinical and
-> non-public-release restrictions below remain fully in force.
+## The designer UI is the product-intent authority
+The current uploaded JSX/CSS implementation establishes the **همراه** brand, floral illustrations, mobile-first tone, 25-step onboarding sequence, home/reflection, history, chat, insight and message actions. Keep these screens and their visual system, including choices that await separate backend work. An agent must not discard them simply because the former technical MVP is smaller.
 
-- **Primary job:** let a tester start a chat, receive a supportive AI response, return to a previous conversation, and see only their own test data.
-- **Historical MVP surface:** Dev user switcher, tiny onboarding/profile, conversation list/history, JSON chat turns, simple AI response. Its former exclusions (including memory engine, Back-Office and OIDC) do not override later explicit ADR 0011/0012/0013 workstream decisions.
-- **Persona decision [OPEN]:** companion vs professional growth guide. Use a warm, respectful, clearly non-human neutral tone for now.
-- **No clinical claims:** The system is not a psychologist, psychiatrist, therapy, diagnosis engine, or crisis line. Do not present keyword safety filtering as validated clinical risk assessment.
-- **No dependence optimization:** Do not increase time-on-chat or encourage replacing human relationships with AI.
-- **Privacy:** Seed users and all texts must be synthetic/non-sensitive. User content is never logged, advertised or used to train models from our application code.
-- **Internal-only switcher is not auth:** a tester can select any synthetic identity. It will be retired at cross-repo Auth cutover. Verified Auth alone does **not** authorize real-user access; encryption, retention/deletion policy, data processor review, rights handling and clinical safety evaluation remain separate gates.
-- **Patient-facing boundaries:** No user-facing public release or treatment claims without expert review and appropriate local support resource policy.
-- **Prioritization:** deliver working loop and correctness before any orchestration framework or complex distributed architecture.
+## Distinguish design authority from verified claims
+Visual design cannot prove statements about medical effectiveness, institutional research affiliations, expert credentials, 6000+ reviews, therapy, data location, account deletion or voice/analysis functionality. The current UI has such claims. Before a screen is exposed in the connected tester flow: substantiate or replace factual copy while keeping its design geometry. The product is an AI tool, not a human clinician; do not imply diagnosis, prescription, medical service, guaranteed outcomes or active crisis monitoring.
+
+## Sensitive question and privacy boundary
+The onboarding asks therapy history, neurodivergence, faith, age, relationships and concerns. These are *design choices requiring a separate data-minimization, consent, safety and backend decision*. Until approved, do not persist or transmit any answers, even if the screen remains previewable. The current Backend profile accepts only display name and conversation style. The current `shareAnonymized` UI toggle does not implement any actual sharing policy; defaulting it ON is not proof of consent. Fix/gate such flows before a connected user can rely on them.
+
+## Release boundaries
+Internal, private, synthetic tester data only. Signed revocable Dev Session is an identity selector, not authentication. Avoid real sensitive health data, analytics, external SDKs, voice/video collection, clinical metrics, real-person testing or open hosting. Backend keyword safety is not clinically validated. Claims about 'securely stored on phone' are not compatible with MSSQL server-side chat storage.
+
+## Interaction quality
+Preserve user control, accessible RTL, meaningful error states, disabled fake actions, explicit destructive confirmation and continued conversation after reload. Avoid dark patterns: a complete onboarding design does not justify forcing unneeded sensitive questions before chat. Let users navigate back/skip when a question is not necessary for the approved feature.

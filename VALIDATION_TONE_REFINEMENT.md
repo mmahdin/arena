@@ -1,23 +1,22 @@
-# Five Conversation Tones — validation record
+# Five Conversation Tones — frontend validation record
 
-**Scope:** five independent approved Hamrah Approach choices, server-side prompting on the next generated turn, legacy guidance compatibility. No UI screen is removed and no user-memory system is added.
+**Scope:** one-to-one Approach -> `conversationStyle`, legacy `guidance` reading, same original UI and existing `PATCH /me/profile` API. Onboarding now saves the shown default card on confirmation, even if the user did not swipe.
 
 ## Executed here
 
-- `python3 scripts/check_structure.py`: PASS, 41 required paths, 6 specialist skills.
-- `python3 scripts/check_contract.py`: PASS, 20 registered route/method pairs.
-- `gofmt` on changed Go sources: PASS.
-- SQL migration `0011_five_conversation_styles.sql`: static source inspection only; forward migration drops/replaces the old check, preserves rows, retains legacy `guidance`.
-- Go unit/integration tests: BLOCKED — `github.com/gin-gonic/gin` and `github.com/google/uuid` are absent from the local Go module cache and GOPROXY was offline.
-- Real MSSQL integration: NOT RUN in this container. `tests/integration/conversation_styles_test.go` tests a disposable local database and must be executed in the dev stack.
-- External-provider behavioral evaluation: NOT RUN. The mock gateway intentionally returns fixed answers, so only prompts and API behavior can be tested deterministically.
+- `npm run check:foundation`: PASS (41/41).
+- `npm test`: PASS (51 Node tests, including API transport, all five mappings, legacy value and default choice regression).
+- `node --check scripts/e2e-five-tones.mjs`: PASS.
+- Backend and frontend OpenAPI snapshots: synchronized byte for byte in this delivery.
+- `npm run build`: BLOCKED — Vite executable unavailable because node dependencies are not installed in this container.
+- Live Vite -> Go -> MSSQL browser test: NOT RUN here.
 
 ## Local acceptance
 
-1. Apply the Backend patch then `make migrate` on the local development stack.
-2. Run `python3 scripts/check_structure.py`, `python3 scripts/check_contract.py`, and `cd apps/api && go test ./... -count=1`.
-3. Against a disposable local SQL Server, run `WELLBEING_INTEGRATION=true python3 scripts/run_local.py go test ./tests/integration -run TestFiveConversationStylesSQLServer -count=1` from `apps/api`, or use your normal local environment loader.
-4. Verify profile `guidance` pre-0011 remains readable; all five new values persist and invalid values fail DB CHECK.
-5. Ensure tests use only synthetic content and a local database. Confirm older conversations' stored promptVersion values are unchanged; only newly generated turns use `supportive-v4`.
+1. Apply Backend patch and run migration 0011 first, then apply Frontend patch.
+2. Run `npm ci && npm test && npm run check:foundation && npm run build`.
+3. Start Vite, Go/Gin, Microsoft SQL Server with `LLM_PROVIDER=mock`, and run `npm run test:e2e:tones`. This navigates the original Approach screen for each choice, saves through the real API, reloads, verifies the preserved choice, and restores the original preference.
+4. Run existing session, full onboarding, profile preferences, chat and bookmarks browser regressions. Check no pages or visual assets were altered.
+5. Inspect a synthetic local provider request/Go prompt unit tests to verify per-style directives; do not expect different response text from the deterministic mock gateway.
 
-These tests do not validate mental-health safety or real-user readiness.
+The user-selected tone affects newly generated turns after save, not previously committed or idempotently replayed turns.

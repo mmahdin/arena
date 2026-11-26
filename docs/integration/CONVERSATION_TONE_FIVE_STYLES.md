@@ -1,9 +1,15 @@
-# Tone Refinement — five independent choices
+# Five conversational styles — Tone Refinement
 
-Migration `0011_five_conversation_styles.sql` expands the existing SQL Server check constraint without changing user data. Accepted new values: `balanced`, `listening`, `teaching`, `gentle_guidance`, `collaborative`. Legacy `guidance` remains valid and receives the gentle-guidance prompt for backward compatibility; a user can choose the new value on their next profile update. The five UI selections each map to a unique saved string.
+The original five choices in the designer's Approach screen now round-trip as independent strings in `/api/v1/me` and `PATCH /api/v1/me/profile`. UI components, pages, names and artwork are unchanged.
 
-`GET /api/v1/me` and `PATCH /api/v1/me/profile` retain their shapes; OpenAPI enums expand. Gin profile handlers, session cookies, owner-scoped SQL, and chat turn JSON contract are unchanged. Conversation turns load the latest saved profile before generation, so a new turn uses the changed prompt. Completed/idempotent turns retain original `promptVersion`. `supportive-v4` contains a shared safety system policy plus a server-owned allowlisted style directive; untrusted profile JSON remains data.
+| UI label | API/SQL value | Conversation behavior |
+| --- | --- | --- |
+| گفت‌وگوی آزاد | `balanced` | flexible listening and optional guidance |
+| همدلی و شنیدن | `listening` | reflections before advice |
+| به من یاد بده | `teaching` | clear general explanations, no clinical treatment |
+| راهنمایی آرام | `gentle_guidance` | gentle optional practical steps |
+| حل مسئله با هم | `collaborative` | exploring options and tradeoffs together |
 
-**Tests:** `go test ./internal/modules/user/... ./internal/modules/ai/...`, full `go test ./...`, `python3 scripts/check_contract.py`, fresh/upgrade/reapply migration on disposable MSSQL 2022, 5-style profile roundtrips, current-prompt capture, mock-provider E2E for data persistence. Real external-provider variation requires separate approved synthetic-only evaluation; deterministic mock responses do not prove output variation.
+Old profiles with `guidance` load as «راهنمایی آرام» and remain valid. Saving the choice writes `gentle_guidance`. Profile updates are immediately reflected in the **next new generated turn** by server profile lookup; existing messages and already completed idempotent turns are unchanged. The backend prompt policy is versioned `supportive-v4` and the shared safety boundaries are not relaxable by profile style. The mock model does not demonstrate response-style variation, so validate actual constructed system prompts via Go tests or an explicitly approved synthetic-only local OpenAI-compatible provider.
 
-Internal-only synthetic-data prototype; no real user memory, clinical inference, or public authentication.
+Apply the matching Backend patch (including SQL Server migration 0011) before Frontend. No onboarding UI or voice changes. Test with two synthetic accounts, refresh/re-entry, and five-way selection/reloading at mobile width. Current local-only non-production boundaries remain.

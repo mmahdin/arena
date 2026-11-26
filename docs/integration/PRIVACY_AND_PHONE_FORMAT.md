@@ -1,7 +1,8 @@
-# Privacy preference and phone-formatted local identities
+# Privacy setting & phone entry — UI-safe incremental change
 
-- `0010_privacy_preferences.sql` adds a **bit preference** to `dbo.user_profiles`; it defaults to 1 (enabled) for the **internal synthetic-data prototype**. Existing profile rows are backfilled without dropping their content.
-- `GET /api/v1/me/privacy-preferences` and `PUT` with `{"conversationSharingEnabled":true|false}` access only the signed-session user; no client-supplied `userId` is accepted.
-- **There is no actual conversation-sharing action, destination, export, analytics or background job** connected to this setting. Default `true` is not proof of informed consent. Any future release or actual sharing of user content must **default to disabled** and obtain separate, affirmative, revocable consent with an audit record.
-- The internal dev identity input now accepts any `09xxxxxxxxx` 11-digit phone-shaped value, including Persian/Arabic numerals. It still does NOT authenticate ownership, send OTP/SMS or provide public access. Existing HMAC identity mappings for old inputs remain stable; use synthetic test values only. Do not enable on public hosts or accept real phone numbers with this dev endpoint.
-- Tests: `python3 scripts/check_contract.py`, `cd apps/api && go test ./...`, and optional `WELLBEING_INTEGRATION=true ... go test ./tests/integration` against an isolated local MSSQL 2022 instance.
+- The existing `privacy` route and switch remain in the original Onboarding.jsx layout. Default server preference is ON in the current **internal synthetic-only** environment; a save updates only the session user's setting in MSSQL. The setting does not transmit chat content.
+- Privacy state is loaded on entering the route, with error/retry and a session-generation fence against late responses after switching users. The switch is disabled until the server preference loads. No localStorage/cookie value is read or saved by JS.
+- Phone-shaped entry accepts 11 digits beginning `09` (Persian/Arabic digits normalized), with no narrow `0900000` restriction. The entry screen omits technical disclaimers. **This is not number ownership verification** and local test identifiers must not be personal phone numbers.
+- Existing designer screens, assets and buttons are left unchanged apart from the switch wiring, input hint, and removal of two technical sign-in paragraphs.
+- No `index.staff.html` file exists in this frontend snapshot; the shared React `privacy` route implementation is updated. If a separately customized staff entrypoint exists in another checkout, its routing must be verified locally.
+- Unit: `npm test`, `npm run check:foundation`. Build: `npm ci && npm run build`. Live: test reload/toggle/two users with Vite proxy → Go/MSSQL and all previous E2E suites.

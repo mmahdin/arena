@@ -1,0 +1,25 @@
+{
+  "name": "تیا — Theia",
+  "short_name": "تیا",
+  "description": "تیا — فضایی آرام و روشن برای گفت‌وگو، شفافیت و شناخت بهتر خود.",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#12110d",
+  "theme_color": "#f3f2ee",
+  "icons": [
+    {
+      "src": "/favicon.svg?v=20261112",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/photo_2026-11-12_19-20-10.jpg",
+      "sizes": "1254x1254",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

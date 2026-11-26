@@ -1,26 +1,40 @@
-# Staging ConfigMap compatibility — 2026-11-02
+## 2026-11-12 — User-selected logo
 
-Validated on top of develop `1821b0f`. The API and migration CLI now share split
-`DATABASE_*` configuration, including raw `DATABASE_PASSWORD` from a Secret.
-Explicit split values take precedence over a legacy URL. `FRONTEND_ORIGIN`,
-`BUSINESS_TIMEZONE`, and `LOG_LEVEL` are applied by the API; explicit synthetic
-dev login is supported in staging and remains rejected in production.
+The official logo is now `public/brand/photo_2026-11-12_19-20-10.jpg`.
+Shared UI marks, Home, SVG logo/favicon, Apple touch icon reference and the web
+manifest use the supplied artwork. Original JPEG bytes are preserved; CSS and SVG
+viewports reduce surrounding black space without redrawing the mark.
 
-- **PASSED:** `python3 scripts/check_structure.py` and `python3 scripts/check_contract.py` (20 method/route pairs).
-- **PASSED:** `docker build --progress=plain -f Dockerfile.Staging -t ai-therapist-backend:split-config-check .`; includes module verification, `go test ./...`, and API/migration binary builds with Go 1.23.
-- **PASSED:** configuration tests for DSN credential escaping, IPv6/default port, invalid/missing fields, sanitized failures, stale-URL precedence, local compatibility, HTTPS cookie defaults, timezone/log level, explicit staging login and production rejection.
-- **PASSED:** a temporary SQL Server 2022 instance with a fresh independent `wellbeing_config_check` database. `/app/migrate` created/applied the current schema using only split fields, without `DATABASE_URL`, AI credentials or a session secret. The password deliberately contained reserved URL characters.
-- **PASSED:** the built Alpine API with `APP_ENV=staging`, split fields, `FRONTEND_ORIGIN`, `LOG_LEVEL=warn`, and `BUSINESS_TIMEZONE=Asia/Tehran`: live/ready probes, synthetic identity login, Secure/HttpOnly cookie, authenticated `/me`, denied-origin 403, and suppressed informational startup logs. Temporary test containers and network were removed.
-- **PASSED:** local `.env.example` and Compose still target the independent loopback/Docker `wellbeing` database; the staging example contains the supplied staging connection settings and no credentials or Keycloak fields.
-- **NOT RUN:** the full opt-in SQL integration suite, browser E2E or a shared/staging database rollout. The targeted SQL/HTTP test above is separate from those suites. No shared Yaran database, cluster ConfigMap/Secret, or existing migration file was changed by this task.
+- **PASSED:** `npm run build`; `node scripts/theia-brand.test.mjs` (3/3); `git diff --check`.
+- **PASSED:** Chrome/Playwright against the isolated synthetic preview: Home at
+  360/390/430/1280px, loaded original logo, no horizontal overflow, reduced motion;
+  Home and menu screenshots inspected (`/tmp/theia-logo-home-390.png`,
+  `/tmp/theia-logo-menu.png`). This is visual verification, not backend acceptance.
+- **FAILED (existing):** `npm test` — 19/21 files pass. `foundation.test.mjs`
+  expects nine original asset files but only one is present; `ux-refinement.test.mjs`
+  expects the absent onboarding phrase `پخش صوتی نداریم`. Neither affected source
+  was changed for this logo update.
+- **FAILED (existing):** `npm run check:foundation` — 32/41 checks pass; nine
+  original `public/assets` images are missing. None were removed by this change.
+- **NOT RUN:** original-byte baseline (intentional logo changes), live backend E2E,
+  and device-level installed-icon verification.
 
----
+## 2026-11-11 — Explicit onboarding context and gender options
+
+- PASSED: 3 new onboarding-answer tests (selection allowlist, cookie-backed profile payload, settings omission, session switching) and all 6 onboarding-v2 tests.
+- PASSED: production Vite build.
+- PASSED: isolated browser fixture of the real onboarding components at 360/390/430/1280px with reduced motion; three gender options, keyboard selection and default age/mood confirmation. Screenshots under `/tmp/hamrah-onboarding-visual/`. This is UI validation, not a live API journey.
+- FAILED (pre-existing): full `npm test`, 19/21 test files pass. `foundation.test.mjs` expects 9 legacy assets but HEAD contains only one; `ux-refinement.test.mjs` expects the already-absent text `پخش صوتی نداریم`. Neither failure was introduced by this change.
+- FAILED (pre-existing): `npm run check:foundation`, 32/41 checks pass; 9 original image paths are absent from this checkout. No placeholder assets were fabricated.
+- NOT RUN: `check:source-baseline` (source intentionally changed), live frontend/Go/MSSQL E2E and real OpenAI generation. No staging deployment was performed.
+- Backend validation: full Go suite, structure/contract checks and a real SQL Server 2022 upgrade/round-trip/isolation test passed. Migration 0016 was tested in a new isolated temporary container, which was removed; existing local/shared databases were not modified.
+- Deploy order: backend migration 0016 → backend API → frontend. Previously discarded answers cannot be recovered; incomplete draft selections still disappear on reload before Ready.
 
 # HAMRAH-QA-02 — Tasks05/06/07 live validation
 
 **PASS WITH LIMITATIONS (2026-11-02).** Real Go/MSSQL/Mock AI/browser full onboarding, resume, bookmarks, history, isolation and deletion passed. Fixed compilation, unapplied0008 SQL batching, null progress input, bookmark request races and covered Retry UI. Frontend44 tests, backend race/SQL/HTTP acceptance and builds pass. No external provider or real personal data.
 
-See the [consolidated evidence, exact commands, changes and limits](../ai-therapist-frontend/docs/integration/QA_TASKS05_06_07.md). Original conversation/message fingerprints match;18 original user/profile rows remain. One original synthetic profile changed during live test activity, explicitly disclosed in the report. Existing visual source is preserved; physical device keyboard and exact original-ZIP pixel comparison remain unverified.
+See the [consolidated evidence, exact commands, changes and limits](docs/integration/QA_TASKS05_06_07.md). Original conversation/message fingerprints match;18 original user/profile rows remain. One original synthetic profile changed during live test activity, explicitly disclosed in the report. Existing visual source is preserved; physical device keyboard and exact original-ZIP pixel comparison remain unverified.
 
 ---
 
@@ -116,224 +130,87 @@ Test development corrections: a new test initially expected unknown `userId` JSO
 - History/messages capped at 100; no pagination. Initial conversation creation is not idempotent after a lost create response. Pending retry exists only in memory; refreshing recovers committed history, not an unfinished turn UUID. Distinct concurrent turns remain a deferred policy. Physical touch/keyboard and exact visual pixel comparison remain unverified.
 - Insights, voice, bookmarks, regeneration, clinical questionnaires, account deletion and clinical safety are not claimed complete. Real provider quality is outside this run.
 
-## Backend files changed in this QA
+## Frontend files changed in this QA
 
-- `apps/api/tests/integration/phone_identity_test.go`: local-host guard, populated pre-0007 preservation/repeat upgrade, transaction rollback, Unicode/dynamic identity HTTP, eight-way concurrent first entry, onboarding, replay, ownership and revoke/re-entry regressions.
-- `VALIDATION_REPORT.md`: this report. Backend runtime code/contracts/migrations unchanged.
-- Fix/validation patch: `../hamrah-qa-tasks02-03-backend-fixes.patch` (includes tests and report; no invented runtime fix).
+- `package-lock.json`: synchronize existing Playwright dependency.
+- `package.json`: add `test:e2e:qa` and `test:e2e:faults` commands.
+- `src/features/conversation/store.js`: terminal 404 and already-deleted active state recovery.
+- `src/screens/Main.jsx`: correct missing-thread error and new-chat recovery action.
+- `src/styles.css`: scope form primary button to normal flow; no palette/asset changes.
+- `scripts/conversation.test.mjs`: two new failing-then-passing regressions and actual backend 404 code.
+- `scripts/e2e-qa.mjs`, `scripts/e2e-faults.mjs`: full live journey and separate controlled failures.
+- `VALIDATION_REPORT.md`: this report; `docs/integration/QA_TASKS02_03.md`: repeatable run instructions.
+- Fix patch: `../hamrah-qa-tasks02-03-frontend-fixes.patch`.
 
 ---
 
 ## Historical reports (superseded by QA above)
 
-# Current validation — Tasks 02–07
+# HAMRAH-INTEGRATION-03 — Frontend Chat/History (implementation, not live E2E)
 
-Date: 2026-11-02, Asia/Tehran. Baseline commit: `fbdad4c` (Task 07). Working tree was clean at entry. **Final verdict: PASS WITH LIMITATIONS** for local synthetic-data use with Mock AI. All required backend build, database, health and HTTP acceptance gates passed after the fixes below. Prior reports did not establish results for this snapshot; their text is preserved under the historical section.
+**Baseline:** Hamrah designer UI + approved Task 02 v2 synthetic phone session. **Incremental patch**; the older rejected tester picker is not needed.
 
-## Environment and dependencies
+## Changes
+- Added `src/features/conversation/api.js` and `store.js` with cookie-backed `/conversations`, `/{id}/messages`, `/{id}/turns`, delete and session-scoped cancellation.
+- Connected the existing Chat and History screen layout in `src/screens/Main.jsx`; history replaces demo weekly statistics with actual threads. Replies come **only from Go/MSSQL**, not setTimeout or fabricated client strings.
+- A failed or ambiguous turn keeps its exact UUID and input for 409/503/network retry; GET messages reconciles persisted user/assistant pairs. The user can confirm abandoning a pending retry when starting a new thread.
+- Added 9 Node tests for retry/replay, stale responses, account isolation, 401/404, delete and request shape; added an opt-in real Playwright test in `scripts/e2e-chat-history.mjs`.
+- Existing designer illustrations, fonts and unrelated source routes were preserved; no backend patch, no migration, no streaming introduced.
 
-- Host: Linux amd64, Go 1.26.8, Python 3.14.4, Docker 29.9.0, Docker Compose v5.6.0.
-- Docker build baseline: Go 1.23, Alpine 3.21 runtime. `go.mod` declares Go 1.23.0.
-- SQL Server 2022 Developer, RTM-CU27-GDR 16.0.4305.5 (KB5126934), existing persistent local Compose volume.
-- Existing pinned dependencies unchanged: Gin 1.10.1, google/uuid 1.6.0, go-mssqldb 1.7.2. `go mod verify` passed. No dependency or lockfile changes.
-- Runtime: `APP_ENV=local`, dev login enabled, `LLM_PROVIDER=mock`, `supportive-v3`. API `127.0.0.1:8080`; SQL Server `127.0.0.1:14333`. Secrets and credentials were not printed or added to the patch.
+## Results
+- **PASSED:** `npm test` — 20/20 Node tests (9 new + 11 existing).
+- **PASSED:** `npm run check:foundation` — 41/41.
+- **PASSED:** `node --check` on new plain JavaScript files; `git diff --check` before packaging.
+- **BLOCKED:** `npm ci --offline --ignore-scripts --no-audit --no-fund`, missing cached `yallist-3.1.1.tgz`. Consequently `npm run build` and visual QA could not run here.
+- **NOT RUN:** live `npm run test:e2e:chat` or backend acceptance, because Docker/MSSQL and browser environment were unavailable; must execute locally.
 
-## Initial failures and smallest fixes
-
-| Finding | Reproduction / root cause | Resolution and final result |
-|---|---|---|
-| FAILED: migration 0006 on fresh MSSQL | `make integration-test`: Invalid column name lease_expires_at. SQL Server compiles references to new columns before the preceding ALTER TABLE executes in the same batch. | Execute the backfill and constraint statements using `sys.sp_executesql`, inside the runner's original transaction. Fresh install, upgrade with a processing fixture, repeat application and rollback tests PASSED. |
-| FAILED: valid turn returns 409 | After fixing migration, repository completion and HTTP acceptance failed. SQL Server renders CONVERT(varchar(36), uniqueidentifier) in uppercase, while uuid.String() is lowercase; textual lease equality rejected the same UUID. | Parse stored lease text into uuid.UUID and compare UUID values. Known alphabetic UUID regression, replay and concurrent recovery/completion tests PASSED. |
-| BLOCKED: full Go test run hangs | The provider deadline fixture waited forever on the server request context during httptest.Server.Close. Isolated `go test ./internal/modules/ai/adapters/openai -run TestDeadlineReturnsSanitizedFailure -v -count=1 -timeout=5s` FAILED with timeout and a stack in Server.Close. | Consume the fixture request body, add an explicit cleanup release channel, and assert both handler entry and actual context deadline. Full Go tests and race run PASSED; the test was neither skipped nor weakened. |
-
-Migration 0006 was confirmed **not applied** in the existing local database before correction. Failed disposable runs had rolled it back. No previously applied migration was edited. No patches from Tasks 02–07 were reapplied.
-
-## Commands and outcomes
-
-Commands below run from `wellbeing-server/` unless marked `apps/api/`.
-
-| Exact command | Result |
-|---|---|
-| `python3 scripts/check_structure.py` | PASSED: required structure, module boundaries, six skills and SQL dialect checks. |
-| `python3 scripts/check_contract.py` | PASSED: 12 registered method/route pairs match source OpenAPI. This is a baseline checker, not full OpenAPI schema lint. |
-| `make validate` | Initially BLOCKED by the deadline fixture hang; PASSED after fix. |
-| `make test` (also invoked by make validate and make acceptance-backend) | PASSED after fix. |
-| `go test ./... -count=1 -timeout=60s` from apps/api | PASSED uncached. Opt-in integration is skipped in this plain command; it ran separately with WELLBEING_INTEGRATION=true below. |
-| `go vet ./...` from apps/api | PASSED. |
-| `go mod verify` from apps/api | PASSED. |
-| `gofmt -l apps/api` | PASSED: no unformatted Go files. Changed files were formatted using gofmt -w. |
-| `git diff --check` | PASSED. |
-| `make build` | PASSED: native bin/api and bin/migrate. |
-| `make integration-test` | Initially FAILED on migration, then UUID comparison; final PASSED with real SQL Server and real Gin HTTP acceptance. |
-| `WELLBEING_INTEGRATION=true python3 scripts/run_local.py go test ./tests/integration -count=3 -timeout=60s` | PASSED three complete runs, including first-claim and completion races. |
-| `WELLBEING_INTEGRATION=true python3 scripts/run_local.py go test -race ./... -count=1 -timeout=90s` | PASSED, including live SQL Server and HTTP acceptance; no Go data race reported. |
-| `docker compose stop api` | PASSED: stopped old binary before applying lease schema. |
-| `make migrate` | PASSED: applied pending 0005/0006; later repeat run also PASSED with checksum verification. |
-| `docker compose build --build-arg GOPROXY=https://goproxy.io,direct` | PASSED: module verification, Go 1.23 tests and both static binaries. Uses the mirror already verified for this local network. |
-| `docker compose up --no-build -d` | PASSED: current API started, migration service Exited (0). |
-| `make smoke` | PASSED against the updated Docker API and existing MSSQL, including ordered multi-turn history, retry, ownership and revoked switch/logout sessions. |
-| `make acceptance-backend` | PASSED: validate + live integration + Docker smoke. |
-| `make acceptance-http` | PASSED: full flow over actual HTTP via the current composition root and real MSSQL. |
-| HTTP GET /health/live and /health/ready using urllib.request | PASSED: both 200, status ok. |
-| sqlcmd metadata/history/count/fingerprint inspection and DBCC CHECKCONSTRAINTS WITH ALL_CONSTRAINTS | PASSED: schema and constraints valid; existing business data unchanged. One metadata command had a shell-escaping syntax error; corrected SQL was rerun successfully. |
-| API log marker audit and Go logging-site inspection | PASSED for exercised paths: no tested chat, prompt, cookie or credential markers in API container logs; no module request/body logging found. This is not proof for every hypothetical panic or future integration. |
-| Real external-provider smoke | NOT RUN: local configuration remains mock; no approved real-provider setup was used. Gateway success/status/redirect/deadline behavior was tested with local fake HTTPS endpoints. |
-| Frontend browser suite | NOT RUN in this backend-only validation; earlier frontend results are historical. |
-
-## Migration and preservation evidence
-
-Before upgrade, the local migration ledger contained 0001–0004, with 3 users, 3 profiles, 5 conversations, 10 messages and 5 completed turns. The API was an older Task 01 Docker image despite the patched checkout. Stopped it before migration and rebuilt/restarted from current source.
-
-After upgrade the ledger contains all six files, ordered and checksum-verified:
-
-- 0001_initial_schema.sql
-- 0002_synthetic_dev_users.sql
-- 0003_message_order.sql
-- 0004_synthetic_conversations.sql
-- 0005_dev_sessions.sql — sha256 `29d092c509fd424c6e2173de6028a7089f55c103f5385d47c0010929f53d200f`
-- 0006_turn_recovery_lease.sql — sha256 `e1b71ec5e46022a6025af07c03f0846bf9750816a4ffe36be8c5ed89aade73eb`
-
-Verified dev_sessions columns, turn lease columns, active session index and trusted/enabled turns_lease_state_check. DBCC CHECKCONSTRAINTS returned no violations. Before and after all acceptance/smoke runs, aggregate count/fingerprint comparisons matched:
-
-| Existing table | Count before/after | BINARY_CHECKSUM aggregate before/after |
-|---|---|---|
-| users | 3 / 3 | 606226035 / 606226035 |
-| user_profiles | 3 / 3 | 1105849872 / 1105849872 |
-| conversations | 5 / 5 | -1031161724 / -1031161724 |
-| messages | 10 / 10 | -1640931374 / -1640931374 |
-
-Fingerprints are a regression indicator, not a cryptographic proof. Existing five completed turns remain completed. Smoke creates/deletes only its own thread and adds synthetic dev sessions. No reset/drop/truncate/overwrite was performed on the existing wellbeing database. Destructive fixtures and cleanup ran only in newly generated wellbeing_test_<uuid> / wellbeing_accept_<uuid> databases. No such test databases remained after the suite.
-
-## Task coverage and real integration verdicts
-
-| Task | Outcome and evidence |
-|---|---|
-| 02 — Dev session/isolation | PASSED with actual HTTP + MSSQL: login, cookie-derived identity, tampered/expired/legacy/unregistered cookies, SQL-expired sessions, logout/switch revocation and replay rejection, wrong-owner read/turn/delete. Repository lifecycle checks verify session ownership and expiry. Unit HTTP checks additionally cover fail-closed storage failure and ineligible tester. |
-| 03 — Onboarding/profile | PASSED with actual HTTP + MSSQL: fresh tester, rejected invalid profile, immutable completion time, reload persistence, conversation and owned-turn onboarding gates, profile isolation. |
-| 04 — Conversation/history | PASSED with real MSSQL + HTTP: create/list/read/delete, continue via a new client using the same cookie jar, chronological pairs, duplicate payload replay, changed payload rejection, expired lease takeover, stale-worker fencing, concurrent reclaim. Added eight simultaneous initial claims and two simultaneous completions; exactly one lease and one pair persisted. |
-| 05 — LLM integration | PASSED for the local Mock AI acceptance path and synthetic failure recovery. System prompt/styles/context budget and external adapter payload/status/redirect/deadline behavior PASSED unit/fake-HTTPS tests. No live external-provider claim. |
-| 06 — Safety/reliability | PASSED for implemented synthetic Persian/English policy cases. Real SQL repositories plus application/AI policy verify no rows survive provider failure, invalid output or a provider returning after cancellation; same-ID retry saves exactly one pair. Unsafe output replacement and crisis provider bypass also persist only the expected safe pair. These fixtures replace only the model gateway, not repositories/profile storage. |
-| 07 — Full acceptance | PASSED through real HTTP + real MSSQL: Dev Login → Onboarding → Create → Mock reply → History → Continue → Retry → Switch → Isolation → Logout. Separate failing-provider HTTP API produces 503 without turn/message leftovers; same ID succeeds against the mock API afterward. |
-
-## Changed files / regression tests
-
-- apps/api/db/migrations/0006_turn_recovery_lease.sql: corrected only the previously unapplied SQL Server batch compilation issue; transaction ownership remains in runner.
-- apps/api/internal/modules/conversation/adapters/mssql/repository.go: compare lease UUID values.
-- apps/api/internal/modules/ai/adapters/openai/gateway_test.go: deadline fixture no longer hangs; asserts actual deadline and provider entry.
-- apps/api/tests/integration/foundation_test.go: upgrade of an existing processing turn, deterministic alphabetic lease ID, first-claim/completion races, canceled/failing/invalid/unsafe provider atomicity and same-ID recovery. Existing fenced-reclaim test still passes.
-- apps/api/tests/integration/mvp_acceptance_test.go: real HTTP invalid/legacy/expired cookie cases, owned-turn pre-onboarding gate, database consistency assertion after simulated provider outage.
-- README.md: remove stale statements that crash recovery is unimplemented; link current validation.
-- VALIDATION_REPORT.md: this current evidence, with previous reports retained below.
-
-Fix-only patch: `../wellbeing-backend-validation-fixes.patch`, generated from the initially clean baseline. No commits, pushes, dependency upgrades, product features or unrelated changes.
-
-## Remaining limits / readiness
-
-**PASS WITH LIMITATIONS:** current backend builds, tests, migrates and runs the full internal Mock AI MVP over HTTP and MSSQL. Keep it local and synthetic. Real provider connectivity/quality/billing is NOT RUN. Safety is phrase-based and not clinically validated. Character context budgets are not token accounting. Rate/cost limits, distinct simultaneous turns in one conversation, pagination beyond 100 messages, real auth, public deployment and a full OpenAPI linter/code generation remain outside this acceptance result.
+## Known limitations and scope
+- A network failure *during initial POST /conversations creation* can leave an empty server conversation; unlike `/turns`, creation has no idempotency key. This should be hardened in backend later if user acceptance finds it material.
+- List and messages are limited to the latest 100; no pagination yet. No backend voice, insight, message save/regenerate/report or weekly metrics; screens are preserved but not claimed connected.
+- `clientTurnId` pending retry lives **only in memory**; on browser refresh, recover saved messages via History. Do not promise resumable unfinished turns after refresh.
+- Session is fictional phone-shaped `0900000XXXX` identity without OTP; **not authentication**, for locally isolated synthetic testers only. No clinical safety validation.
 
 ---
 
-# Historical reports — prior snapshots only
+## HAMRAH-INTEGRATION-02 v2 — implementation validation (not live integration)
 
-The following original entries are preserved for provenance. Their earlier PASSED/BLOCKED statements do not supersede the current results above.
+- Previous seeded-user Task 02 is **rejected and replaced**. This patch is based on the documented Hamrah UI and new Go v2 API; preserves existing designer markup/artwork and limits name/approach/ready onboarding to non-sensitive profile fields.
+- **PASSED:** Node tests for Unicode synthetic phone normalization, bootstrap, returning user, switching, logout, 401/503, profile and stale response; `npm run check:foundation` (41/41).
+- **BLOCKED:** `npm ci --offline` — npm tarball absent in this sandbox; Vite build not executed here.
+- **NOT RUN:** real Go/MSSQL Playwright browser E2E and visual screenshot comparison. These must pass in user's local environment before marking done.
+- Contract snapshot includes `POST /api/v1/dev/identity-session` and retains prior dev routes only for legacy automated tests. Backend migration 0007 must precede frontend deployment.
+- **Never enter a real number.** `0900000XXXX` is a fictional team convention, not a telecom-reserved range, and there is no SMS/OTP. Local only.
 
-# Validation report — executable MSSQL foundation
+---
 
-Date: 2026-11-02 (Asia/Tehran). Local synthetic-only environment.
+# Validation report — new Hamrah UI developer handoff (2026-11-02)
 
-## Verified
+## Intent
+Repackage the latest uploaded `ai-therapist-frontend(1).zip` with agent documentation, seven adjusted project-local skills, contract snapshot, integration/gap plan and deterministic checks. Preserve the *new* designer source as product UI authority. This is NOT evidence of live API integration.
 
-- Dependencies installed; `go.mod`/`go.sum` and frontend `package-lock.json` now pin resolved versions. npm installation reported zero vulnerabilities.
-- `python3 scripts/check_structure.py` and `python3 scripts/check_contract.py` pass (12 API/health method-route registrations).
-- `go test ./... -count=1` passes with `WELLBEING_INTEGRATION=true` through `scripts/run_local.py`; live SQL Server tests create and remove an independent `wellbeing_test_<uuid>` database.
-- Live database coverage: fresh/repeated migrations, 3 users/3 conversations/6 messages, wrong-owner reads/writes/deletes, pending/completed retries, changed payload rejection, tied timestamp ordering, cascading deletes, failed migration rollback and applied-checksum rejection.
-- Native API/migration binaries build; Docker build runs tests and produces both binaries using Go 1.23. Local native tests used Go 1.26.8.
-- SQL Server 2022 runs with a persistent dedicated volume, published only on `127.0.0.1:14333`. API runs via Docker on `127.0.0.1:8080`, mock AI enabled. Migration container exits 0.
-- Migrations `0001`–`0004` applied; upgrade from `0002`, fresh database and repeat application pass. Original migrations are unchanged.
-- Live API smoke passes: readiness, session, profile isolation, foreign-owner 404, chat, idempotency, message history and deletion. After fixing message ordering, 12 repeated live API smoke runs passed.
-- Frontend architecture, actual backend snapshot comparison, 7 Node tests, typecheck and Vite build pass with Node 24.21.0/npm 11.19.0.
-- Four Playwright tests pass using system Chrome: mobile/desktop stub flow and mobile/desktop real SQL Server API flow. First live run exercised tester 2 onboarding; subsequent runs use saved profile. Live tests verify chat/reload, stored pair order, tester switching, cross-owner 404 and cleanup.
+## What is protected
+All original `src/**`, `public/**` and `index.html` bytes are preserved according to `docs/design/original-source-sha256.json` (checked via script). Only original `package.json` development scripts and `vite.config.js` host/proxy config are altered. Original `pnpm-lock.yaml` and `package-lock.json` remain unchanged and should be reviewed by npm/pnpm before committing any dependency updates.
 
-## Fixes and operational findings
+## Current source observations
+- React19, Vite6, JavaScript JSX, CSS max-width 430px; 25 onboarding routes plus home/survey/day/history/menu/chat/insight.
+- `src/App.jsx` keeps all answers/messages in memory. History and Insights are static; Chat uses a fake delayed reply. No live `/api/v1` calls.
+- Current UI contains unverified research/doctor/testimonial/privacy claims and health-sensitive questions. This packaging does NOT change display copy; agent must gate/correct it in the first connected feature slice.
+- Backend current runtime report from another environment: Tasks02–07 PASS WITH LIMITATIONS after three fixes; this frontend ZIP does not include that latest checkout, so no integrated runtime revalidation occurred here.
 
-- Fixed frontend SessionGate import from the old provider location to core/session/context.
-- Reproduced intermittent reversed user/assistant history: millisecond timestamp plus random UUID ordering was invalid. Added `0003_message_order.sql`, persisted sequence/index and adapter ordering; forced-timestamp regression now passes. Historical ties across distinct turns can only be backfilled deterministically, not reconstructed exactly.
-- Added `0004_synthetic_conversations.sql`: explicitly synthetic, non-sensitive demo history; tester 2 has no seeded messages.
-- Native commands load `.env` literally with `scripts/run_local.py`; shell-sourcing the SQL URL failed because of `&`. Secrets are generated locally and not printed or committed.
-- Removed stale emitted frontend config JS/declarations, enabled noEmit for tool configs, fixed browser test radio selector, and added opt-in live E2E.
-- Default Docker module download returned 403 for mimetype. Verified fallback: `docker compose build --build-arg GOPROXY=https://goproxy.io,direct`, retaining module checksum verification.
-- Playwright Chromium download timed out, then returned a regional 403. System Chrome worked with `PLAYWRIGHT_CHANNEL=chrome`; tests were not skipped.
-- Initial sandbox Node subprocess tests were blocked; they passed when rerun with approved process access.
+## Tests and evidence
+See results of the exact commands run while packaging; check reports **PASSED/FAILED/BLOCKED/NOT RUN**, never infer a browser run from a static check.
 
-## Reproduction
+## Pending validation
+- Install dependencies with `npm ci`, Vite build and browser screenshots / real E2E on client machine.
+- Confirm the latest backend checkout against the bundled Task07-derived OpenAPI snapshot.
+- Wire Dev Session, profile, real JSON chat/history before claiming fullstack readiness.
+- Validate every connected screen's clinical/privacy factual copy and data minimization.
+- Real-provider mode and real-person clinical safety remain unapproved.
 
-```sh
-make validate
-make build
-make integration-test
-make smoke
-cd ../wellbeing-front
-npm run validate
-node scripts/check-contract.mjs ../wellbeing-server/contracts/openapi/openapi.yaml
-PLAYWRIGHT_CHANNEL=chrome WELLBEING_LIVE_E2E=true npm run test:e2e -- --workers=1
-```
-
-## Limits
-
-External LLM integration, full parallel-turn/conversation concurrency, processing-turn crash recovery, complete error/retry browser matrix and OpenAPI schema lint/code generation remain unverified/deferred. Dev sessions are local tester selection. No claim of public, real-data or clinical readiness.
-
-## Task 02 — Dev Session & User Isolation change (2026-11-02)
-
-- Added a revocable `dbo.dev_sessions` table in forward-only `0005_dev_sessions.sql`; no prior migrations were edited.
-- Signed development cookies now include a random session ID, and protected endpoints verify its DB status and synthetic tester eligibility. Tester switches and logout revoke the previous server-side session.
-- Expanded automated HTTP-level tests for absent/tampered/expired/revoked cookies, switching identities, logout replay and DB fail-closed behavior; expanded opt-in SQL Server repository lifecycle test.
-- **PASSED here:** `python3 scripts/check_structure.py`, `python3 scripts/check_contract.py`, Go formatting and patch syntax validation.
-- **BLOCKED here:** Go test/build and live SQL Server integration; current execution environment has no installed Go module cache, working Go module network access or Docker. These checks **must be rerun** after applying the patch in the functioning project environment.
-- Re-test `make migrate`, `make test`, `make integration-test`, `make smoke` and paired frontend E2E before accepting this task as complete. The results reported in earlier sections apply only to the pre-change snapshot.
-
-## Task 03 — Onboarding / User Profile patch (2026-11-02)
-
-- Hardened domain validation with typed errors and Persian-compatible display-name rules, preserving the first completion timestamp across later edits.
-- SQL Server uses `COALESCE(onboarding_completed_at, @p3)` so a stale concurrent first-save cannot overwrite the first recorded completion. The application returns the persisted row.
-- Conversation create/turn requires a completed profile via the existing application port; foreign conversation IDs remain `404` even when onboarding is incomplete. Runtime `409 ONBOARDING_REQUIRED` was documented in OpenAPI without changing existing JSON bodies.
-- Added pure domain, Gin HTTP/session, conversation application and isolated SQL Server integration tests; no new migration was necessary.
-- **PASSED in this environment:** Go `gofmt`, `python3 scripts/check_structure.py`, `python3 scripts/check_contract.py` and unified patch syntax checks.
-- **BLOCKED in this environment:** `go test ./...` (Gin, UUID and go-mssqldb not available in the module cache; `GOPROXY=off`); Docker / live SQL Server were unavailable. These are **not** claimed as passed.
-- **After applying Task 02 and this patch locally:** `make test`, `make integration-test`, `make smoke`, and frontend E2E must run against real MSSQL. When using this patch, confirm it applies to the Task 02 baseline and does not replace local edits.
-
-## Task 04 — Conversation, History and crash-safe Retry patch (2026-11-02)
-
-- Added forward-only `0006_turn_recovery_lease.sql` for `lease_id` / `lease_expires_at`. Existing processing reservations are made reclaimable; completed turns remain unchanged. **Stop the old API before migrating**; mixed app versions are not supported.
-- Fenced idempotent turn processing: active lease 409, expired lease can be reclaimed by the same owner/turn/input, late workers cannot commit or release the successor lease. Exactly one user+assistant pair remains transactionally committed and completed responses replay unchanged.
-- Added application unit coverage, concurrent reclaim / ownership / payload mismatch / stale-worker tests against isolated SQL Server, extended multi-turn HTTP smoke and clarified OpenAPI retry description. No new HTTP endpoint or JSON property.
-- **PASSED in this patch build environment:** Go formatting, Python structure + contract checks, Python smoke script syntax, `git diff --check` and patch replay check.
-- **BLOCKED here:** Go unit tests (`GOPROXY=off`: Gin/UUID/go-mssqldb packages not cached) and actual SQL Server tests (Docker not available). Run `make migrate`, `make test`, `make integration-test`, `make smoke` and frontend E2E in the user's functioning local stack before acceptance.
-- Deferred: more than 100 history messages (cursor pagination), simultaneous distinct turns in one thread, server-sent streaming, real-provider latency/lease monitoring.
-
-## Task 05 — OpenAI-compatible gateway and bounded conversation context (2026-11-02)
-
-- Revised prompt to `supportive-v2` (style-specific Persian guidance; profile JSON treated as untrusted data), keeping stored historical versions unchanged. No schema migration or change to existing `/turns` JSON.
-- Added bounded chronological suffix history (`MAX_CONTEXT_CHARS`), model output budget (`MODEL_MAX_OUTPUT_TOKENS`) and configurable timeout (`LLM_TIMEOUT_SECONDS`, max 90s < 120s turn lease).
-- HTTPS Chat Completions adapter refuses redirects, bounds HTTP response size, rejects malformed/empty/filtered/truncated replies, and emits sanitized errors without forwarding upstream error bodies. Application validates empty/oversized answers and continues the provisional safety fallback.
-- Added unit tests for context order/budget, persona/profile framing, fake HTTPS provider success/failure, redirect and deadline, and configuration validation.
-- **PASSED in patch environment:** `python3 scripts/check_structure.py`, `python3 scripts/check_contract.py`, YAML parsing for Compose/OpenAPI, Go standard-library parser across 43 source files, Go formatting, `git diff --check`, and patch replay validation. Cross-repo static preflight reports zero errors (its frontend snapshot/lock warnings refer to the older available frontend checkout).
-- **BLOCKED in patch environment:** `GOPROXY=off go test ./internal/modules/ai/... ./internal/platform/config` (Go module cache does not include Gin/UUID); Docker and a live SQL Server/provider are unavailable. All included Go unit tests and live-provider behavior must be verified in the working local stack. No provider network call or public clinical/privacy approval was performed. `LLM_PROVIDER=mock` remains default.
-
-## Task 06 — Synthetic AI safety and canceled-turn reliability patch (2026-11-02)
-
-- Added Persian/Arabic letter and spacing normalization and expanded deterministic phrase cases for explicit crisis requests, false clinician claims, unsafe medication instructions, exclusivity, claimed emergency calls, and a recognizable system-prompt leak fragment. These are intentionally non-clinical heuristics; semantic and indirect cases still fail.
-- Versioned prompt as `supportive-v3`; strengthened boundaries for diagnosis, prescriptions, dependency, delusions and claims of emergency action. Previously stored replies retain their original prompt versions.
-- Application rejects provider replies on canceled contexts (including a provider that ignores cancellation), malformed UTF-8 and unexpected control bytes; generic provider error paths preserve the existing `503 AI_UNAVAILABLE`, SQL Server lease release and client `clientTurnId` retry semantics.
-- Added synthetic Go safety policy tests, application tests for cancellation and several model-output risks, and `docs/quality/ai-safety-evaluation.md` explicitly documenting known misses and non-clinical status. No API schema or database migration changes.
-- **PASSED in patch build environment:** standalone standard-library Go safety tests (`GOPROXY=off GOWORK=off go test safety.go safety_test.go -count=1`), Go formatting, architecture and OpenAPI static checks, patch replay checks.
-- **BLOCKED here:** full Go module tests (`GOPROXY=off` cannot download Gin/UUID), live SQL Server + Docker/provider verification unavailable. These have **not** been claimed as passed.
-- **Local acceptance:** run `make test`, `make integration-test`, `make smoke`, and (optionally) approved synthetic-only provider tests. Treat any detected false negatives as explicit risk; external/real-user testing is prohibited pending independent clinical and security/privacy review.
-
-## Task 07 — Internal MVP full-flow acceptance patch (2026-11-02)
-
-- Added `TestMVPHTTPAcceptance`, a **real Gin HTTP + MSSQL** acceptance test that creates and drops an isolated random local database. It tests synthetic Dev Login, initial onboarding, profile edit, chat and reload, wrong-owner 404, message order, repeat/different-payload `clientTurnId`, provider 503 without phantom messages, same-ID recovery with mock, tester switching, cookie revocation and deletion.
-- Added `make acceptance-http` (the isolated flow) and `make acceptance-backend` (structure/contract/unit/integration/smoke). Added `docs/quality/mvp-acceptance.md`, an explicit backend/real-browser evidence matrix and safe local execution steps.
-- No HTTP contract, seed, existing migration or public API response changed. **No new migration.**
-- **PASSED in this patch environment:** Python structure and OpenAPI checkers, Go formatting, Go syntax parsing, `git diff --check`, and patch replay validation against the exact Task 06 baseline.
-- **BLOCKED in this environment:** `GOPROXY=off go test ./tests/integration -run '^TestMVPHTTPAcceptance$'` (the Gin/UUID/SQL Server driver dependencies are not cached); Docker/SQL Server and unstubbed real-browser E2E are not available. An actual `make acceptance-backend` run is required before declaring internal MVP acceptance.
-- **Important distinction:** the locally present original frontend checkout has API-stubbed Playwright tests and is not sufficient evidence of *full* browser integration. Supply the current frontend checkout and run an unstubbed live E2E suite there. The current backend patch touches no frontend files and does not claim product-wide sign-off.
+## Packaging checks conducted in this environment
+- **PASSED:** `npm run check:foundation` — all structure, original file presence, RTL, API reference and skills.
+- **PASSED:** `npm run check:source-baseline` — each original src/public/index file byte-identical to latest uploaded ZIP.
+- **PASSED:** `npm test` — 4 Node built-in tests for routing/assets, demo marking, core contract, and safe Vite proxy.
+- **PASSED:** `quick_validate.py` applied to all 7 skills.
+- **BLOCKED:** `npm ci --offline --no-audit --no-fund` because an npm tarball was not in the local cache (`ENOTCACHED`). Build cannot run without dependencies in this environment.
+- **NOT RUN:** Vite runtime build, screenshot visual regression, live Go/MSSQL browser E2E and live external provider.
