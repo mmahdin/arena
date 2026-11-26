@@ -5,20 +5,13 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 const root = new URL('../', import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), 'utf8');
 
-test('Theia logo, app icons, manifest and connected onboarding story assets exist', () => {
+test('Theia logo, app icons, manifest and abstract onboarding artwork exist', () => {
   const assets = [
     'public/favicon.svg',
     'public/brand/photo_2026-11-12_19-20-10.jpg',
     'public/manifest.webmanifest',
     'public/brand/theia-logo.svg',
-    'public/brand/theia-welcome.png',
-    'public/brand/theia-privacy.png',
-    'public/brand/theia-story-1.png',
-    'public/brand/theia-story-2.png',
-    'public/brand/theia-story-3.png',
-    'public/brand/theia-story-4.png',
-    'public/brand/theia-checkins.png',
-    'public/brand/theia-ready.png',
+    'src/components/TheiaLightArt.jsx',
   ];
   for (const file of assets) {
     const url = new URL(file, root);
@@ -46,15 +39,25 @@ test('HTML head, manifest and UI screens reflect the Persian RTL Theia (تیا) 
   const devLogin = read('src/features/devsession/DevLogin.jsx');
   const data = read('src/data.js');
 
-  assert.match(onboarding, /با تیا آشنا شو/);
+  assert.match(onboarding, /برای دیدنِ حالِ خودت، لازم نیست عجله کنی/);
+  assert.match(onboarding, /اسطوره‌های یونان/);
   assert.match(main, /نامه‌های تیا/);
   assert.match(letters, /نامه‌های تیا/);
   assert.match(devLogin, /به تیا خوش اومدی!/);
   assert.match(data, /چطور با تیا آشنا شدی؟/);
 
-  // Ensure all four chapters of the night-to-dawn onboarding story are wired in sequence
-  for (const step of ['theia-welcome.png', 'theia-privacy.png', 'theia-story-1.png', 'theia-story-2.png', 'theia-story-3.png', 'theia-story-4.png', 'theia-checkins.png', 'theia-ready.png']) {
-    assert.ok(onboarding.includes(`/brand/${step}`), `Onboarding missing ${step}`);
+  // The four narrative beats now share a person-free, in-product light artwork.
+  const lightArt = read('src/components/TheiaLightArt.jsx');
+  assert.match(onboarding, /TheiaLightArt scene="welcome"/);
+  assert.match(onboarding, /scene: 'pause'/);
+  assert.match(onboarding, /scene: 'reflect'/);
+  assert.match(onboarding, /scene: 'dawn'/);
+  assert.match(onboarding, /scene="privacy"/);
+  assert.match(onboarding, /scene="ready"/);
+  assert.match(devLogin, /TheiaLightArt scene="welcome"/);
+  assert.match(lightArt, /className={`theia-light-art/);
+  for (const legacy of ['theia-welcome.png', 'theia-privacy.png', 'theia-story-1.png', 'theia-story-2.png', 'theia-story-3.png', 'theia-story-4.png', 'theia-checkins.png', 'theia-ready.png']) {
+    assert.ok(!onboarding.includes(legacy), `Old figurative onboarding art still active: ${legacy}`);
   }
 });
 
