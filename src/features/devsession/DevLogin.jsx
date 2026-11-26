@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { TheiaMark } from '../../components/TheiaBrand';
-import { PageHeader, PrimaryButton, StatusBar } from '../../components/UI';
+import { TheiaInstrument } from '../../components/TheiaSigil';
+import { PrimaryButton, StatusBar } from '../../components/UI';
 import { normalizeTestPhone } from './phone';
 
 /** Simple phone-shaped entry; backend runs only in private dev environments. */
@@ -18,19 +19,24 @@ export default function DevLogin({ session, login, retry }) {
     if (normalized && !loading && !offline) login(normalized);
   };
   return (
-    <section className="app-screen theme-light dev-login-screen" aria-busy={loading}>
+    <section className="app-screen dev-login-screen" aria-busy={loading}>
       <StatusBar />
-      <PageHeader title="به تیا خوش اومدی!" />
-      <div className="dev-login-art" aria-hidden="true"><img src="/brand/theia-welcome.png" alt="" /></div>
+      <div className="dev-login-art">
+        <TheiaInstrument state="welcome" label="حلقهٔ باز تیا، با ستاره‌ای از سپیده در مرکز" />
+      </div>
+      <header className="page-header">
+        <h1>به تیا خوش آمدی.</h1>
+        <p>نه یک چهره؛ نوری که کمک می‌کند خودت را واضح‌تر ببینی.</p>
+      </header>
       <div className="dev-login-panel">
-        <div className="dev-login-heading"><TheiaMark size={21} /><strong>ورود به حساب</strong></div>
+        <div className="dev-login-heading"><TheiaMark size={17} /><strong>ورود با شمارهٔ آزمایشی</strong></div>
         {loading && <p role="status">در حال ورود…</p>}
         {offline && <div className="dev-login-error" role="alert">
           <p>{session.error?.action === 'logout' ? 'خروج انجام نشد. دوباره تلاش کن.' : 'ارتباط برقرار نشد. دوباره تلاش کن.'}</p>
           <button className="dev-login-retry" type="button" onClick={retry}><RefreshCw size={18} aria-hidden="true" />تلاش دوباره</button>
         </div>}
         <form className="dev-phone-form" onSubmit={submit}>
-          <label htmlFor="dev-phone">شماره موبایل</label>
+          <label htmlFor="dev-phone">شمارهٔ موبایل</label>
           <input id="dev-phone" dir="ltr" type="text" inputMode="numeric" autoComplete="off" spellCheck="false" maxLength={11} placeholder="09xxxxxxxxx" value={phone}
             onChange={(event) => { setPhone(event.target.value); setAttempted(false); }} disabled={loading || offline} aria-invalid={invalid} />
           {(attempted || invalid) && !normalized && <div className="dev-login-error" role="alert">شماره باید ۱۱ رقم باشه و با ۰۹ شروع بشه.</div>}

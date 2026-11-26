@@ -5,40 +5,68 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 const root = new URL('../', import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), 'utf8');
 
-test('Theia logo, app icons, manifest and connected onboarding story assets exist', () => {
+test('faceless Theia identity assets, app icons and manifest exist', () => {
   const assets = [
     'public/favicon.svg',
-    'public/brand/photo_2026-11-12_19-20-10.jpg',
+    'public/brand/theia-sigil.svg',
+    'public/brand/theia-sigil-192.png',
+    'public/brand/theia-sigil-512.png',
+    'public/apple-touch-icon.png',
     'public/manifest.webmanifest',
-    'public/brand/theia-logo.svg',
-    'public/brand/theia-welcome.png',
-    'public/brand/theia-privacy.png',
-    'public/brand/theia-story-1.png',
-    'public/brand/theia-story-2.png',
-    'public/brand/theia-story-3.png',
-    'public/brand/theia-story-4.png',
-    'public/brand/theia-checkins.png',
-    'public/brand/theia-ready.png',
   ];
   for (const file of assets) {
     const url = new URL(file, root);
     assert.ok(existsSync(url), `Missing brand asset: ${file}`);
     assert.ok(statSync(url).size > 200, `Empty or invalid brand asset: ${file}`);
   }
+  // Retired artwork stays in the repository as history, never as the live mark.
+  for (const retired of ['public/brand/photo_2026-11-12_19-20-10.jpg', 'public/brand/theia-welcome.png', 'public/brand/theia-story-1.png']) {
+    assert.ok(existsSync(new URL(retired, root)), `Retired asset should be preserved: ${retired}`);
+  }
 });
 
-test('HTML head, manifest and UI screens reflect the Persian RTL Theia (تیا) brand', () => {
+test('the open-ring mark is the only Theia identity in the UI', () => {
+  const brand = read('src/components/TheiaBrand.jsx');
+  const sigil = read('src/components/TheiaSigil.jsx');
+  assert.match(brand, /THEIA_LOGO_SRC = '\/brand\/theia-sigil\.svg'/);
+  assert.match(sigil, /openRing/);
+  assert.match(sigil, /State|STATE_LABEL/);
+  const active = [
+    read('src/components/UI.jsx'),
+    read('src/screens/Onboarding.jsx'),
+    read('src/screens/Main.jsx'),
+    read('src/screens/Letters.jsx'),
+    read('src/features/devsession/DevLogin.jsx'),
+  ].join('\n');
+  for (const retired of ['photo_2026-11-12_19-20-10.jpg', 'theia-welcome.png', 'theia-story-1.png', 'theia-story-2.png', 'theia-story-3.png', 'theia-story-4.png', 'theia-privacy.png', 'theia-ready.png', 'theia-checkins.png']) {
+    assert.ok(!active.includes(retired), `Retired female figure still referenced: ${retired}`);
+  }
+  // No illustration may depict a person: the story is told by the instrument.
+  const onboarding = read('src/screens/Onboarding.jsx');
+  assert.match(onboarding, /<TheiaInstrument state=\{state\} tone=\{tone\}/);
+  for (const state of ['night', 'sight', 'dawn', 'orbits', 'veil', 'pulse', 'seal']) {
+    assert.ok(onboarding.includes(`state="${state}"`) || onboarding.includes(`state: '${state}'`), `Missing instrument state ${state}`);
+  }
+  // Only the two legacy expert portraits (outside the active flow) remain raster;
+  // every Theia story screen is drawn by the instrument.
+  assert.equal((onboarding.match(/<img/g) || []).length, 2, 'Theia story screens must stay vector-only');
+});
+
+test('HTML head, manifest and entry copy reflect the Persian RTL Theia (تیا) brand', () => {
   const html = read('index.html');
   assert.match(html, /lang="fa" dir="rtl"/);
   assert.match(html, /<title>تیا<\/title>/);
-  assert.match(html, /href="\/favicon\.svg\?v=20261112"/);
-  assert.match(html, /href="\/brand\/photo_2026-11-12_19-20-10\.jpg"/);
+  assert.match(html, /href="\/favicon\.svg\?v=20261126"/);
+  assert.match(html, /href="\/brand\/theia-sigil-192\.png"/);
   assert.match(html, /href="\/manifest\.webmanifest"/);
+  assert.match(html, /name="theme-color" content="#0A0B0D"/);
 
   const manifest = JSON.parse(read('public/manifest.webmanifest'));
   assert.equal(manifest.short_name, 'تیا');
   assert.equal(manifest.dir, 'rtl');
   assert.equal(manifest.lang, 'fa');
+  assert.ok(manifest.icons.some((icon) => icon.src.includes('theia-sigil-512.png') && icon.sizes === '512x512'));
+  assert.equal(manifest.background_color, '#0A0B0D');
 
   const onboarding = read('src/screens/Onboarding.jsx');
   const main = read('src/screens/Main.jsx');
@@ -46,22 +74,23 @@ test('HTML head, manifest and UI screens reflect the Persian RTL Theia (تیا) 
   const devLogin = read('src/features/devsession/DevLogin.jsx');
   const data = read('src/data.js');
 
-  assert.match(onboarding, /با تیا آشنا شو/);
+  assert.match(onboarding, /تیا را نمی‌بینی؛ با تیا می‌بینی/);
   assert.match(main, /نامه‌های تیا/);
   assert.match(letters, /نامه‌های تیا/);
-  assert.match(devLogin, /به تیا خوش اومدی!/);
+  assert.match(devLogin, /به تیا خوش آمدی/);
   assert.match(data, /چطور با تیا آشنا شدی؟/);
 
-  // Ensure all four chapters of the night-to-dawn onboarding story are wired in sequence
-  for (const step of ['theia-welcome.png', 'theia-privacy.png', 'theia-story-1.png', 'theia-story-2.png', 'theia-story-3.png', 'theia-story-4.png', 'theia-checkins.png', 'theia-ready.png']) {
-    assert.ok(onboarding.includes(`/brand/${step}`), `Onboarding missing ${step}`);
+  // The four story chapters are wired in sequence through the shared instrument.
+  for (const state of ['night', 'sight', 'dawn', 'orbits']) {
+    assert.ok(onboarding.includes(`state: '${state}'`), `Onboarding missing ${state} chapter`);
   }
 });
 
-test('active UI replaces all flower/Ash icons and illustrations with Theia visuals', () => {
+test('active UI keeps the Theia visual vocabulary', () => {
   const activeSource = [
     read('src/components/UI.jsx'),
     read('src/components/TheiaBrand.jsx'),
+    read('src/components/TheiaSigil.jsx'),
     read('src/screens/Onboarding.jsx'),
     read('src/screens/Main.jsx'),
     read('src/screens/Letters.jsx'),

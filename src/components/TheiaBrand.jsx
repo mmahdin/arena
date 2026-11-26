@@ -1,19 +1,18 @@
 import React from 'react';
+import { TheiaMark, TheiaSigil } from './TheiaSigil';
 
-/** The user-approved logo. Keep the supplied artwork and colors intact. */
-export const THEIA_LOGO_SRC = '/brand/photo_2026-11-12_19-20-10.jpg';
+/**
+ * Single source for Theia's identity mark.
+ *
+ * 2026-11: the previous supplied logo depicted a woman's profile. The product
+ * direction is a faceless, non-human identity for an Iranian audience, so the
+ * shared mark is now the open dawn ring (see `TheiaSigil.jsx` for the mythic
+ * rationale). The retired artwork is kept in `public/brand/` for history but is
+ * no longer referenced by the UI, HTML head or manifest.
+ */
+export const THEIA_LOGO_SRC = '/brand/theia-sigil.svg';
 
-export function TheiaMark({ size = 24, luminous = false, className = '' }) {
-  return (
-    <span
-      className={`theia-mark ${luminous ? 'theia-mark--luminous' : ''} ${className}`.trim()}
-      style={{ width: size, height: size }}
-      aria-hidden="true"
-    >
-      <img src={THEIA_LOGO_SRC} width="1254" height="1254" alt="" draggable="false" />
-    </span>
-  );
-}
+export { TheiaMark, TheiaSigil };
 
 export function TheiaSealIcon({ size = 11, className = '' }) {
   return <TheiaMark size={size} className={className} />;
@@ -29,7 +28,7 @@ export function TheiaHomeArt() {
 }
 
 /**
- * Quiet celestial empty-inbox illustration for Letters ("هنوز نامه‌ای نرسیده").
+ * Quiet celestial empty-inbox illustration for Letters (\"هنوز نامه‌ای نرسیده\").
  */
 export function TheiaLetterEmpty({ size = 44 }) {
   return (
