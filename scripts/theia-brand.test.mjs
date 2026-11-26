@@ -5,20 +5,15 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 const root = new URL('../', import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), 'utf8');
 
-test('Theia logo, app icons, manifest and connected onboarding story assets exist', () => {
+test('Theia emblem, launch tiles, manifest and onboarding artwork exist', () => {
   const assets = [
     'public/favicon.svg',
-    'public/brand/photo_2026-11-12_19-20-10.jpg',
-    'public/manifest.webmanifest',
+    'public/apple-touch-icon.png',
+    'public/brand/theia-emblem.svg',
     'public/brand/theia-logo.svg',
-    'public/brand/theia-welcome.png',
-    'public/brand/theia-privacy.png',
-    'public/brand/theia-story-1.png',
-    'public/brand/theia-story-2.png',
-    'public/brand/theia-story-3.png',
-    'public/brand/theia-story-4.png',
-    'public/brand/theia-checkins.png',
-    'public/brand/theia-ready.png',
+    'public/brand/theia-icon-192.png',
+    'public/brand/theia-icon-512.png',
+    'public/manifest.webmanifest',
   ];
   for (const file of assets) {
     const url = new URL(file, root);
@@ -31,14 +26,18 @@ test('HTML head, manifest and UI screens reflect the Persian RTL Theia (تیا) 
   const html = read('index.html');
   assert.match(html, /lang="fa" dir="rtl"/);
   assert.match(html, /<title>تیا<\/title>/);
-  assert.match(html, /href="\/favicon\.svg\?v=20261112"/);
-  assert.match(html, /href="\/brand\/photo_2026-11-12_19-20-10\.jpg"/);
+  assert.match(html, /href="\/favicon\.svg\?v=20261126"/);
+  assert.match(html, /href="\/apple-touch-icon\.png\?v=20261126"/);
   assert.match(html, /href="\/manifest\.webmanifest"/);
+  assert.ok(!html.includes('photo_2026-11-12'), 'index.html still references the retired photo logo');
 
   const manifest = JSON.parse(read('public/manifest.webmanifest'));
   assert.equal(manifest.short_name, 'تیا');
   assert.equal(manifest.dir, 'rtl');
   assert.equal(manifest.lang, 'fa');
+  const manifestIconSources = manifest.icons.map((icon) => icon.src).join(' ');
+  assert.ok(!manifestIconSources.includes('photo_2026-11-12'), 'manifest still references the retired photo logo');
+  assert.ok(manifestIconSources.includes('/brand/theia-icon-512.png'), 'manifest missing 512px install icon');
 
   const onboarding = read('src/screens/Onboarding.jsx');
   const main = read('src/screens/Main.jsx');
@@ -46,33 +45,45 @@ test('HTML head, manifest and UI screens reflect the Persian RTL Theia (تیا) 
   const devLogin = read('src/features/devsession/DevLogin.jsx');
   const data = read('src/data.js');
 
-  assert.match(onboarding, /با تیا آشنا شو/);
+  assert.match(onboarding, /خودت رو با نور ببین/);
   assert.match(main, /نامه‌های تیا/);
   assert.match(letters, /نامه‌های تیا/);
   assert.match(devLogin, /به تیا خوش اومدی!/);
   assert.match(data, /چطور با تیا آشنا شدی؟/);
 
-  // Ensure all four chapters of the night-to-dawn onboarding story are wired in sequence
-  for (const step of ['theia-welcome.png', 'theia-privacy.png', 'theia-story-1.png', 'theia-story-2.png', 'theia-story-3.png', 'theia-story-4.png', 'theia-checkins.png', 'theia-ready.png']) {
-    assert.ok(onboarding.includes(`/brand/${step}`), `Onboarding missing ${step}`);
+  // The five chapters of the night-to-dawn narrative must all render the shared scene
+  assert.ok(onboarding.includes('DawnScene'), 'Onboarding does not render the shared DawnScene');
+  for (const step of ['welcome', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro']) {
+    assert.ok(onboarding.includes(step), `Onboarding missing dawn chapter: ${step}`);
   }
+  assert.doesNotMatch(onboarding, /theia-welcome\.png|theia-story-\d|theia-ready\.png|theia-privacy\.png|theia-checkins\.png/);
 });
 
-test('active UI replaces all flower/Ash icons and illustrations with Theia visuals', () => {
+test('active UI uses the generated, non-human Theia identity', () => {
   const activeSource = [
     read('src/components/UI.jsx'),
     read('src/components/TheiaBrand.jsx'),
+    read('src/components/DawnScene.jsx'),
+    read('src/components/SvgTree.jsx'),
+    read('src/art/emblem.js'),
+    read('src/art/dawnScene.js'),
     read('src/screens/Onboarding.jsx'),
     read('src/screens/Main.jsx'),
     read('src/screens/Letters.jsx'),
     read('src/features/devsession/DevLogin.jsx'),
   ].join('\n');
 
-  for (const legacy of ['Flower2', 'flower-person-', 'welcome-figures.png', 'ready-daisy.png', 'privacy-flower.png', 'checkins-handdrawn.svg']) {
-    assert.ok(!activeSource.includes(legacy), `Legacy floral reference still active: ${legacy}`);
+  for (const legacy of [
+    'Flower2', 'flower-person-', 'welcome-figures.png', 'ready-daisy.png', 'privacy-flower.png',
+    'checkins-handdrawn.svg', 'theia-welcome.png', 'theia-ready.png', 'theia-story-',
+    'theia-privacy.png', 'theia-checkins.png', 'photo_2026-11-12', 'THEIA_LOGO_SRC',
+  ]) {
+    assert.ok(!activeSource.includes(legacy), `Retired artistic identity still active: ${legacy}`);
   }
-  assert.ok(activeSource.includes('TheiaHomeArt'));
-  assert.ok(activeSource.includes('TheiaMark'));
-  assert.ok(activeSource.includes('TheiaSealIcon'));
-  assert.ok(activeSource.includes('TheiaLetterEmpty'));
+  for (const required of [
+    'TheiaHomeArt', 'TheiaMark', 'TheiaSealIcon', 'TheiaLetterEmpty', 'TheiaSealedEye', 'TheiaCheckinGlow',
+    'buildEmblem', 'buildDawnScene', 'DawnProgress',
+  ]) {
+    assert.ok(activeSource.includes(required), `New identity element missing: ${required}`);
+  }
 });
