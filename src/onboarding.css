@@ -722,3 +722,9 @@
   .ob-seam i { transition: none; }
   .onboarding-screen * { scroll-behavior: auto !important; }
 }
+
+/* Earthshine: one remembered rooftop, held through the changing hours. */
+.rooftop-art { width:100%; max-width:390px; margin-inline:auto; aspect-ratio:390/330; overflow:hidden; border-radius:3px; box-shadow:0 24px 70px #05091242; }
+.rooftop-art svg { display:block; width:100%; height:100%; }
+.ob-ink .rooftop-art { border:1px solid #b5bfd01c; }
+.ob-art--hero.rooftop-art { max-width:430px; }
