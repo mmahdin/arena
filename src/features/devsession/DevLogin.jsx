@@ -22,7 +22,7 @@ export default function DevLogin({ session, login, retry }) {
     <section className="app-screen dev-login-screen" aria-busy={loading}>
       <StatusBar />
       <div className="dev-login-art">
-        <TheiaInstrument state="welcome" label="حلقهٔ باز تیا، با ستاره‌ای از سپیده در مرکز" />
+        <TheiaInstrument state="welcome" label="هلال ماه با تابش زمین: بخش تاریک ماه با بازتاب نور زمین به‌آرامی دیده می‌شود" />
       </div>
       <header className="page-header">
         <h1>به تیا خوش آمدی.</h1>
