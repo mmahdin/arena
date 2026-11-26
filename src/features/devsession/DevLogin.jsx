@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { TheiaMark } from '../../components/TheiaBrand';
+import { TheiaScene } from '../../components/TheiaArt';
 import { PageHeader, PrimaryButton, StatusBar } from '../../components/UI';
 import { normalizeTestPhone } from './phone';
 
-/** Simple phone-shaped entry; backend runs only in private dev environments. */
+/**
+ * Simple phone-shaped entry; backend runs only in private dev environments.
+ * The same opening chapter as Welcome: the closed door, one point of light on
+ * the threshold. No illustration of a person, no sales copy.
+ */
 export default function DevLogin({ session, login, retry }) {
   const [phone, setPhone] = useState('');
   const [attempted, setAttempted] = useState(false);
@@ -18,12 +22,13 @@ export default function DevLogin({ session, login, retry }) {
     if (normalized && !loading && !offline) login(normalized);
   };
   return (
-    <section className="app-screen theme-light dev-login-screen" aria-busy={loading}>
+    <section className="app-screen theme-dark dev-login-screen" aria-busy={loading} style={{ '--dawn-level': '0.04' }}>
+      <span className="dawn-ambient" aria-hidden="true" />
       <StatusBar />
-      <PageHeader title="به تیا خوش اومدی!" />
-      <div className="dev-login-art" aria-hidden="true"><img src="/brand/theia-welcome.png" alt="" /></div>
+      <div className="dev-login-art" aria-hidden="true"><TheiaScene stage={0} /></div>
+      <PageHeader title="به تیا خوش اومدی" description="جایی برای دیدن، پیش از قضاوت." />
       <div className="dev-login-panel">
-        <div className="dev-login-heading"><TheiaMark size={21} /><strong>ورود به حساب</strong></div>
+        <div className="dev-login-heading"><strong>ورود به حساب</strong></div>
         {loading && <p role="status">در حال ورود…</p>}
         {offline && <div className="dev-login-error" role="alert">
           <p>{session.error?.action === 'logout' ? 'خروج انجام نشد. دوباره تلاش کن.' : 'ارتباط برقرار نشد. دوباره تلاش کن.'}</p>

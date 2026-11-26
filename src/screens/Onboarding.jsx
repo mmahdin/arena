@@ -2,7 +2,10 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 import { Check, ChevronLeft, ChevronRight, Flame, Landmark } from 'lucide-react';
 import { AGE_RANGES, APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import { resistVoiceDrag, voiceSwipeTarget } from '../features/onboarding/voiceCarousel';
+import { chapterFor, dawnFor } from '../features/onboarding/chapters';
+import { storyFor } from '../features/onboarding/story';
 import { TheiaMark } from '../components/TheiaBrand';
+import { ChapterMarks, TheiaScene } from '../components/TheiaArt';
 import {
   BackButton,
   ChoiceButton,
@@ -19,10 +22,25 @@ const nextFrom = (route, navigate) => {
   if (nextIndex > 0 && nextIndex < FLOW.length) navigate(FLOW[nextIndex]);
 };
 
-function Shell({ theme = 'light', back, children, className = '' }) {
+/**
+ * Every onboarding screen sits in the same room. `dawn` (0–1) is the chapter's
+ * hour: the shell paints the ambient light, the art paints the source. Because
+ * light only ever grows along the flow, moving forward feels like morning and
+ * moving back feels like returning to an earlier, quieter hour.
+ */
+function Shell({ theme = 'light', back, children, className = '', route = '', dawn, ambient = true }) {
   const dark = theme === 'dark';
+  const level = typeof dawn === 'number' ? dawn : dawnFor(route);
+  // The ambient wash belongs to the night chapters only; a warm gradient over a
+  // light reading surface would tint the option text.
+  const showAmbient = ambient && dark;
   return (
-    <section className={`app-screen theme-${theme} ${className}`}>
+    <section
+      className={`app-screen theme-${theme} ${className}`}
+      style={{ '--dawn-level': level.toFixed(3) }}
+      data-dawn={level.toFixed(2)}
+    >
+      {showAmbient && <span className="dawn-ambient" aria-hidden="true" />}
       <StatusBar dark={dark} />
       {back && <BackButton onClick={back} dark={dark} />}
       {children}
@@ -30,17 +48,50 @@ function Shell({ theme = 'light', back, children, className = '' }) {
   );
 }
 
-function Welcome({ navigate }) {
+/**
+ * The narrative screen: a full-bleed chapter illustration behind one held line,
+ * a short body, an optional honest note, and one action. This is the whole
+ * onboarding vocabulary — no cards, no carousels, no confetti.
+ */
+function NarrativeScreen({ route, navigate, back, children, className = '' }) {
+  const story = storyFor(route);
+  const chapter = chapterFor(route);
   return (
-    <Shell className="welcome-screen">
-      <PageHeader
-        title="با تیا آشنا شو"
-        description="تیا کمک می‌کنه دربارهٔ احساساتت حرف بزنی و خودت رو بهتر بشناسی."
-      />
-      <div className="welcome-art artwork-wrap">
-        <img src="/brand/theia-welcome.png" alt="تیا، الههٔ روشنایی و بینش با گوی نور سحرگاهی" />
+    <Shell route={route} theme="dark" back={back} className={`narrative-screen ${className}`.trim()}>
+      <div className="narrative-art" aria-hidden="true">
+        <TheiaScene stage={chapter.stage} className="narrative-scene" />
       </div>
-      <PrimaryButton onClick={() => nextFrom('welcome', navigate)}>شروع</PrimaryButton>
+      <div className="narrative-copy">
+        <ChapterMarks chapter={chapter} />
+        <h1 className="narrative-title">{story.title}</h1>
+        <p className="narrative-lede">{story.lede}</p>
+        {story.note && <p className="narrative-note">{story.note}</p>}
+        {children}
+        {story.disclosure && <p className="narrative-disclosure">{story.disclosure}</p>}
+      </div>
+      <PrimaryButton light onClick={() => nextFrom(route, navigate)}>{story.cta}</PrimaryButton>
+    </Shell>
+  );
+}
+
+function Welcome({ navigate }) {
+  const chapter = chapterFor('welcome');
+  const story = storyFor('welcome');
+  return (
+    <Shell route="welcome" theme="dark" className="welcome-screen narrative-screen">
+      <div className="narrative-art" aria-hidden="true">
+        <TheiaScene stage={chapter.stage} className="narrative-scene" />
+      </div>
+      <div className="narrative-copy welcome-copy">
+        <ChapterMarks chapter={chapter} />
+        <p className="welcome-name" aria-label="تیا">
+          <span aria-hidden="true">تیا</span>
+        </p>
+        <h1 className="narrative-title">{story.title}</h1>
+        <p className="narrative-lede">{story.lede}</p>
+        {story.note && <p className="narrative-note">{story.note}</p>}
+      </div>
+      <PrimaryButton light onClick={() => nextFrom('welcome', navigate)}>{story.cta}</PrimaryButton>
     </Shell>
   );
 }
@@ -118,7 +169,8 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
     }
   };
   return (
-    <Shell back={back} className="name-screen">
+    <Shell route="name" back={back} className="name-screen">
+      <ChapterMarks chapter={chapterFor('name')} className="chapter-marks--inline" />
       <PageHeader title="دوست داری چی صدات کنم؟" description="با همین اسم صدات می‌کنم." />
       <form onSubmit={submit}>
         <label className="sr-only" htmlFor="name">اسمت</label>
@@ -137,77 +189,48 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
   );
 }
 
-const INTERSTITIALS = {
-  'simple-intro': {
-    title: 'اول چند سؤال ساده بپرسم.',
-    description: 'جواب‌هات کمک می‌کنن بهتر بشناسمت.',
-    art: 'small',
-    src: '/brand/theia-story-1.png',
-    alt: 'تیا در آرامش شب زیر هلال ماه و نخستین اخگر نور',
-  },
-  'deeper-intro': {
-    title: 'حالا بیشتر دربارهٔ خودت بگو.',
-    description: 'با چند سؤال کوتاه کمکم کن بفهمم چرا اینجایی و چه چیزهایی برات مهم‌ترن.',
-    art: 'medium',
-    src: '/brand/theia-story-2.png',
-    alt: 'تیا در پرتو ماه و بازتاب آرام درون',
-  },
-  'know-intro': {
-    title: 'بذار بیشتر بشناسمت.',
-    description: '',
-    art: 'large',
-    src: '/brand/theia-story-3.png',
-    alt: 'طلوع نخستین نور سحرگاه پشت سر تیا',
-  },
-  'almost-intro': {
-    title: 'دیگه چیزی نمونده!',
-    description: 'حالا صدا و سبک حرف زدنم رو انتخاب کن.',
-    art: 'tall',
-    src: '/brand/theia-story-4.png',
-    alt: 'هم‌نشینی خورشید، ماه و سپیده‌دم در کنار تیا',
-  },
-};
+// The four breathing screens between question groups. Each one is a chapter
+// card: the same room at a later hour, one inscription, one action.
+const INTERSTITIAL_ROUTES = new Set(['simple-intro', 'deeper-intro', 'know-intro', 'almost-intro']);
 
 function Interstitial({ route, navigate, back }) {
-  const item = INTERSTITIALS[route];
-  return (
-    <Shell theme="dark" back={back} className={`interstitial-screen art-${item.art}`}>
-      <PageHeader title={item.title} description={item.description} />
-      <div className="interstitial-art artwork-wrap">
-        <img src={item.src} alt={item.alt} />
-      </div>
-      <PrimaryButton light onClick={() => nextFrom(route, navigate)}>ادامه</PrimaryButton>
-    </Shell>
-  );
+  return <NarrativeScreen route={route} navigate={navigate} back={back} className="interstitial-screen" />;
 }
 
 function Privacy({ navigate, back, privacySharing = true, privacyLoading = false, privacySaving = false,
   privacyLoaded = false, privacyError = false, onTogglePrivacy, onRetryPrivacy }) {
   const sharing = privacySharing;
+  const chapter = chapterFor('privacy');
+  const story = storyFor('privacy');
   return (
-    <Shell back={back} className="privacy-screen">
-      <PageHeader
-        title="حریم خصوصی تو مهمه."
-        description="گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شن. برای پاسخ متناسب با تو، اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شن."
-      />
-      <img className="privacy-art" src="/brand/theia-privacy.png" alt="نماد حریم خصوصی تیا با هلال ماه و ستارهٔ کلیددار" />
-      <button
-        type="button"
-        className="privacy-card"
-        role="switch"
-        aria-checked={sharing}
-        aria-disabled={!privacyLoaded || privacyLoading || privacySaving}
-        disabled={!privacyLoaded || privacyLoading || privacySaving}
-        onClick={onTogglePrivacy}
-      >
-        <span className={`toggle ${sharing ? 'is-on' : ''}`} aria-hidden="true"><span /></span>
-        <span>اجازهٔ استفاده از گفت‌وگوها</span>
-      </button>
-      {privacyError && <div className="connected-notice" role="alert">
-        <p>تنظیمات حریم خصوصی در دسترس نیست. دوباره تلاش کن.</p>
-        <button type="button" onClick={onRetryPrivacy}>تلاش دوباره</button>
-      </div>}
-      <PrimaryButton onClick={() => nextFrom('privacy', navigate)}>ادامه</PrimaryButton>
+    <Shell route="privacy" theme="dark" back={back} className="privacy-screen narrative-screen">
+      <div className="narrative-art" aria-hidden="true">
+        <TheiaScene stage={chapter.stage} className="narrative-scene" />
+      </div>
+      <div className="narrative-copy">
+        <ChapterMarks chapter={chapter} />
+        <h1 className="narrative-title">{story.title}</h1>
+        <p className="narrative-lede">{story.lede}</p>
+        <button
+          type="button"
+          className="privacy-card"
+          role="switch"
+          aria-checked={sharing}
+          aria-disabled={!privacyLoaded || privacyLoading || privacySaving}
+          disabled={!privacyLoaded || privacyLoading || privacySaving}
+          onClick={onTogglePrivacy}
+        >
+          <span className={`toggle ${sharing ? 'is-on' : ''}`} aria-hidden="true"><span /></span>
+          <span>اجازهٔ استفاده از گفت‌وگوها</span>
+        </button>
+        {story.note && <p className="narrative-note">{story.note}</p>}
+        {privacyError && <div className="connected-notice" role="alert">
+          <p>تنظیمات حریم خصوصی در دسترس نیست. دوباره تلاش کن.</p>
+          <button type="button" onClick={onRetryPrivacy}>تلاش دوباره</button>
+        </div>}
+        <p className="narrative-disclosure">{story.disclosure}</p>
+      </div>
+      <PrimaryButton light onClick={() => nextFrom('privacy', navigate)}>{story.cta}</PrimaryButton>
     </Shell>
   );
 }
@@ -412,7 +435,8 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
   }, [answers.age, scrollToIndex]);
 
   return (
-    <Shell back={back} className="age-screen">
+    <Shell route="age" back={back} className="age-screen">
+      <ChapterMarks chapter={chapterFor('age')} className="chapter-marks--inline" />
       <PageHeader title="چند سالته؟" description="بکش یا اسکرول کن تا بازهٔ سنیت رو انتخاب کنی." />
       <div className="age-stage">
         <span key={`age-marker-${tick}`} className="age-marker" aria-hidden="true" />
@@ -475,7 +499,8 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
   };
 
   return (
-    <Shell theme={theme} back={back} className={`question-screen question-${route} ${config.skip ? 'question-screen--skip' : ''}`}>
+    <Shell route={route} theme={theme} back={back} className={`question-screen question-${route} ${config.skip ? 'question-screen--skip' : ''}`}>
+      <ChapterMarks chapter={chapterFor(route)} className="chapter-marks--inline" />
       <PageHeader title={config.title} description={config.description} />
       <div className="choice-scroll">
         <div className={`choice-list ${config.type === 'single' ? 'choice-list--single' : ''}`}>
@@ -549,7 +574,8 @@ function MoodScribble({ level }) {
 function MoodScreen({ navigate, back, answers, setAnswer }) {
   const mood = Number.isInteger(answers.mood) && answers.mood >= 0 && answers.mood <= 4 ? answers.mood : 2;
   return (
-    <Shell back={back} className="mood-screen">
+    <Shell route="mood" back={back} className="mood-screen">
+      <ChapterMarks chapter={chapterFor('mood')} className="chapter-marks--inline" />
       <PageHeader title="این روزها چه حسی داشتی؟" description="نوار رو بکش تا به حالت نزدیک‌تر بشه." />
       <div className="mood-stage">
         <div className="mood-glow" data-mood-level={mood} aria-hidden="true" />
@@ -571,15 +597,7 @@ function MoodScreen({ navigate, back, answers, setAnswer }) {
 }
 
 function CheckinsScreen({ navigate, back }) {
-  return (
-    <Shell back={back} className="checkins-screen">
-      <PageHeader title="یه یادآوری، درست وقتی لازمه." description="تیا می‌تونه گاهی حالت رو بپرسه. هر وقت بخوای می‌تونی یادآوری‌ها رو خاموش کنی." />
-      <div className="checkins-art" aria-hidden="true">
-        <img src="/brand/theia-checkins.png" alt="" />
-      </div>
-      <PrimaryButton onClick={() => nextFrom('checkins', navigate)}>ادامه</PrimaryButton>
-    </Shell>
-  );
+  return <NarrativeScreen route="checkins" navigate={navigate} back={back} className="checkins-screen" />;
 }
 
 function VoiceScreen({ navigate, back, answers, setAnswer }) {
@@ -711,8 +729,12 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
   const offset = drag - active * cardMetrics.step - cardMetrics.width / 2;
 
   return (
-    <Shell theme="dark" back={back} className="voice-screen">
-      <PageHeader title="دوست داری چه صدایی داشته باشم؟" />
+    <Shell route="voice" theme="dark" back={back} className="voice-screen">
+      <div className="voice-chapter" aria-hidden="true">
+        <TheiaScene stage={chapterFor('voice').stage} />
+      </div>
+      <ChapterMarks chapter={chapterFor('voice')} className="chapter-marks--inline" />
+      <PageHeader title="دوست داری چه صدایی داشته باشم؟" description="پخش صوتی نداریم؛ این‌ها شیوهٔ نوشتن‌اند، نه نمونهٔ صدا." />
       <div
         className={`voice-carousel ${dragging ? 'is-dragging' : ''}`}
         dir="ltr"
@@ -811,7 +833,8 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
   };
 
   return (
-    <Shell theme="beige" back={back} className="approach-screen">
+    <Shell route="approach" theme="beige" back={back} className="approach-screen">
+      <ChapterMarks chapter={chapterFor('approach')} className="chapter-marks--inline" />
       <PageHeader title="چطور باهات حرف بزنم؟" />
       <div
         className="approach-stage"
@@ -899,14 +922,21 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
 }
 
 function Ready({ navigate, savingProfile = false }) {
+  const chapter = chapterFor('ready');
+  const story = storyFor('ready');
   return (
-    <Shell className="ready-screen">
-      <PageHeader
-        title="من آماده‌ام!"
-        description="با شروع گفت‌وگو، پاسخ‌های آشنایی اولیه‌ات ذخیره می‌شن و برای شخصی‌سازی چت در اختیار سرویس هوش مصنوعی قرار می‌گیرن."
-      />
-      <div className="ready-art artwork-wrap"><img src="/brand/theia-ready.png" alt="تیا با هالهٔ خورشید، ماه و ستارهٔ صبحگاهی" /></div>
-      <PrimaryButton disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>{savingProfile ? 'در حال ذخیره…' : 'شروع گفت‌وگو'}</PrimaryButton>
+    <Shell route="ready" theme="dark" className="ready-screen narrative-screen">
+      <div className="narrative-art" aria-hidden="true">
+        <TheiaScene stage={chapter.stage} className="narrative-scene" />
+      </div>
+      <div className="narrative-copy">
+        <ChapterMarks chapter={chapter} />
+        <h1 className="narrative-title">{story.title}</h1>
+        <p className="narrative-lede">{story.lede}</p>
+        {story.note && <p className="narrative-note">{story.note}</p>}
+        <p className="narrative-disclosure">{story.disclosure}</p>
+      </div>
+      <PrimaryButton light disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>{savingProfile ? 'در حال ذخیره…' : story.cta}</PrimaryButton>
     </Shell>
   );
 }
@@ -918,7 +948,7 @@ export default function OnboardingScreen(props) {
   if (route === 'research') return <Research {...props} />;
   if (route === 'experts') return <Experts {...props} />;
   if (route === 'name') return <NameScreen {...props} />;
-  if (INTERSTITIALS[route]) return <Interstitial {...props} />;
+  if (INTERSTITIAL_ROUTES.has(route)) return <Interstitial {...props} />;
   if (route === 'privacy') return <Privacy {...props} />;
   if (route === 'age') return <AgeScreen {...props} />;
   if (route === 'mood') return <MoodScreen {...props} />;

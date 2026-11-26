@@ -1,16 +1,26 @@
 import React from 'react';
+import { TheiaGlyph } from './TheiaArt';
 
-/** The user-approved logo. Keep the supplied artwork and colors intact. */
-export const THEIA_LOGO_SRC = '/brand/photo_2026-11-12_19-20-10.jpg';
-
-export function TheiaMark({ size = 24, luminous = false, className = '' }) {
+/**
+ * Theia's identity mark.
+ *
+ * The former photographic silhouette (a woman's profile inside a black disc) is
+ * retired. A mental-health product in Iran should not hand users the face of a
+ * goddess to confide in, and a human portrait implies a clinician who is not
+ * there. The mark is now the same non-figurative grammar as the onboarding art:
+ * a pointed arch, a horizon, and one point of light where they meet — the
+ * Persian *tāq* and the instant of dawn that Theia's name carries.
+ *
+ * Everything that used to place a picture now draws this glyph, so Home, the
+ * drawer, chat, letters, login and onboarding share one coherent identity.
+ */
+export function TheiaMark({ size = 24, luminous = false, className = '', title }) {
   return (
     <span
       className={`theia-mark ${luminous ? 'theia-mark--luminous' : ''} ${className}`.trim()}
       style={{ width: size, height: size }}
-      aria-hidden="true"
     >
-      <img src={THEIA_LOGO_SRC} width="1254" height="1254" alt="" draggable="false" />
+      <TheiaGlyph size="100%" className="theia-mark-glyph" title={title} />
     </span>
   );
 }
@@ -29,7 +39,8 @@ export function TheiaHomeArt() {
 }
 
 /**
- * Quiet celestial empty-inbox illustration for Letters ("هنوز نامه‌ای نرسیده").
+ * Quiet celestial empty-inbox illustration for Letters ("هنوز نامهای نرسیده").
+ * Same geometry as the mark, opened into a small horizon.
  */
 export function TheiaLetterEmpty({ size = 44 }) {
   return (
@@ -43,29 +54,19 @@ export function TheiaLetterEmpty({ size = 44 }) {
       focusable="false"
     >
       <path
-        d="M9 17.5C9 15.57 10.57 14 12.5 14H35.5C37.43 14 39 15.57 39 17.5V33.5C39 35.43 37.43 37 35.5 37H12.5C10.57 37 9 35.43 9 33.5V17.5Z"
+        d="M24 6.5C17.5 10.5 12.5 15.3 12.5 22.6V38.5H35.5V22.6C35.5 15.3 30.5 10.5 24 6.5Z"
         stroke="currentColor"
-        strokeWidth="1.35"
-      />
-      <path
-        d="M10.5 16L24 26.2L37.5 16"
-        stroke="currentColor"
-        strokeWidth="1.35"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M28.5 5.2A5.2 5.2 0 1 0 32.8 11.4A4.1 4.1 0 0 1 28.5 5.2Z"
-        stroke="#d5d9f7"
-        strokeOpacity="0.65"
         strokeWidth="1.25"
-        strokeLinecap="round"
         strokeLinejoin="round"
       />
+      <path d="M9 30.5H39" stroke="currentColor" strokeWidth="1.1" strokeOpacity="0.7" strokeLinecap="round" />
+      <circle cx="24" cy="30.5" r="2.6" fill="currentColor" fillOpacity="0.85" />
       <path
-        d="M21 6.5L21.65 8.35L23.5 9L21.65 9.65L21 11.5L20.35 9.65L18.5 9L20.35 8.35L21 6.5Z"
-        fill="#f6cf98"
-        fillOpacity="0.78"
+        d="M31 12.5A3.4 3.4 0 1 0 33.8 17.3A2.8 2.8 0 0 1 31 12.5Z"
+        stroke="#d5d9f7"
+        strokeOpacity="0.62"
+        strokeWidth="1"
+        strokeLinecap="round"
       />
     </svg>
   );
