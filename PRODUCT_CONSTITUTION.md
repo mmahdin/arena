@@ -14,3 +14,12 @@ Internal, private, synthetic tester data only. Signed revocable Dev Session is a
 
 ## Interaction quality
 Preserve user control, accessible RTL, meaningful error states, disabled fake actions, explicit destructive confirmation and continued conversation after reload. Avoid dark patterns: a complete onboarding design does not justify forcing unneeded sensitive questions before chat. Let users navigate back/skip when a question is not necessary for the approved feature.
+
+## Identity (2026-11-26)
+
+Theia is a lamp, not a woman. The product represents her as a Persian threshold
+arch and the light inside it — night, dawn, sun, sight — because her myth is
+about the order in which a person becomes able to see clearly, and that order is
+what the onboarding actually does. No human or animal mascot may replace this;
+no claim of a cure may be attached to it. Imagery may be poetic. Promises may
+not.

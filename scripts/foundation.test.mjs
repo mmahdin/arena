@@ -11,7 +11,9 @@ test('designer routes and visual assets remain present', () => {
   for (const r of ['welcome','privacy','age','therapist','voice','approach','ready','home']) assert.match(data,new RegExp(`'${r}'`));
   assert.match(app,/routeFromHash/);
   assert.match(app,/dir="rtl"/);
-  assert.equal(readdirSync(new URL('public/assets/',root)).length,9);
+  // Legacy floral artwork for the excluded research/experts screens only; the
+  // Theia identity no longer ships figure illustrations (see theia-brand.test).
+  assert.equal(readdirSync(new URL('public/assets/',root)).length,1);
 });
 
 test('handoff defines synthetic-only release scope and future API integration', () => {

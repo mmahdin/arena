@@ -26,7 +26,10 @@
     "test:e2e:reflections": "node scripts/e2e-daily-reflections.mjs",
     "test:e2e:calendar": "node scripts/e2e-jalali-calendar.mjs",
     "test:e2e:titles": "node scripts/e2e-conversation-titles.mjs",
-    "test:e2e:composer": "node scripts/e2e-chat-composer.mjs"
+    "test:e2e:composer": "node scripts/e2e-chat-composer.mjs",
+    "test:narrative": "node scripts/onboarding-narrative-smoke.mjs",
+    "brand:build": "node scripts/build-brand-assets.mjs && node scripts/render-theia-scenes.mjs --write-brand",
+    "brand:scenes": "node scripts/render-theia-scenes.mjs"
   },
   "dependencies": {
     "@fontsource-variable/estedad": "^5.3.0",
@@ -39,6 +42,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
+    "jsdom": "^31.0.1",
     "playwright": "^1.64.1",
     "vite": "^6.1.0"
   }
