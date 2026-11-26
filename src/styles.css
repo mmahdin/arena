@@ -1907,3 +1907,150 @@ svg { flex-shrink: 0; }
   opacity: .85;
 }
 
+/* ---------- Theia onboarding: a non-human language of light and attention ---------- */
+.welcome-screen .page-header { padding-top: clamp(84px, 11vh, 104px); }
+.welcome-screen .page-header h1 { max-width: 360px; font-size: clamp(27px, 7vw, 31px); line-height: 1.45; }
+.welcome-screen .page-header p { max-width: 356px; margin-top: 11px; font-size: 14px; line-height: 1.8; color: #625c52; }
+.welcome-art {
+  top: 39%;
+  bottom: 93px;
+  inset-inline: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.welcome-art-note {
+  position: absolute;
+  bottom: 2px;
+  color: #817563;
+  font-size: 11px;
+  letter-spacing: .04em;
+}
+.theia-light-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  color: #e8d4b5;
+  --art-line: #b4a78f;
+}
+.theia-orbit, .theia-horizon, .theia-reflection, .theia-field-edge,
+.theia-ray-line, .theia-privacy-ring, .theia-privacy-arc, .theia-scene-line,
+.theia-dawn-ray, .theia-ready-orbit {
+  fill: none;
+  stroke: var(--art-line);
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.theia-orbit--outer { opacity: .30; stroke-dasharray: 1 5; }
+.theia-orbit--inner { opacity: .42; }
+.theia-orbit--near { opacity: .5; stroke-width: .8; }
+.theia-light-halo { opacity: .75; }
+.theia-light-bloom { transform-origin: 50% 48%; animation: theia-bloom-breathe 7s ease-in-out infinite; }
+.theia-light-core { transform-origin: 50% 48%; animation: theia-core-breathe 8s ease-in-out infinite; }
+.theia-core-outline { fill: none; stroke: #fff1d2; stroke-opacity: .72; stroke-width: 1; }
+.theia-ray-line { stroke: #d0b58e; stroke-opacity: .55; stroke-width: .8; }
+.theia-point { fill: #f2d5a7; }
+.theia-horizon { stroke: #e4c99f; stroke-width: 1.2; }
+.theia-reflection { stroke: #d1aa78; stroke-opacity: .42; stroke-width: .9; }
+.theia-reflection--arc { stroke-opacity: .25; }
+.theia-field-edge { stroke: #c6b08d; stroke-opacity: .27; }
+.theia-field-edge--inner { stroke-opacity: .2; stroke-width: .75; }
+.theia-privacy-ring, .theia-privacy-arc, .theia-scene-line,
+.theia-dawn-ray, .theia-ready-orbit { stroke: #efd7b1; stroke-opacity: .65; }
+.theia-scene-line--soft { stroke-opacity: .3; }
+.theia-dawn-ray { stroke-width: .8; }
+.theia-ready-orbit { stroke-opacity: .3; stroke-width: .8; }
+.theia-scene-privacy, .theia-scene-pause, .theia-scene-reflect,
+.theia-scene-dawn, .theia-scene-ready { display: none; }
+.theia-light-art--privacy .theia-scene-privacy,
+.theia-light-art--pause .theia-scene-pause,
+.theia-light-art--reflect .theia-scene-reflect,
+.theia-light-art--dawn .theia-scene-dawn,
+.theia-light-art--ready .theia-scene-ready { display: block; }
+.theia-light-art--pause .theia-light-core { animation-delay: -2.1s; }
+.theia-light-art--reflect .theia-light-core { animation-delay: -3.7s; }
+.theia-light-art--dawn .theia-light-core,
+.theia-light-art--ready .theia-light-core { animation: none; }
+.theia-light-mark { display: block; flex: 0 0 auto; }
+.approach-mark { background: #211e18; }
+
+.interstitial-art {
+  inset-inline: 21px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.interstitial-art .theia-light-art { max-width: 390px; }
+.art-small .interstitial-art { top: 48%; bottom: 97px; }
+.art-medium .interstitial-art { top: 46%; bottom: 97px; }
+.art-large .interstitial-art { top: 39%; bottom: 97px; }
+.art-tall .interstitial-art { top: 31%; bottom: 97px; inset-inline: 17px; }
+.interstitial-screen .theia-light-art {
+  --art-line: #8b8375;
+  filter: saturate(.86);
+}
+.interstitial-screen .theia-light-halo { opacity: .9; }
+.interstitial-screen .theia-light-core { animation-duration: 9s; }
+
+.privacy-art {
+  top: 42%;
+  inset-inline-start: 50%;
+  width: min(86%, 340px);
+  height: clamp(180px, 25vh, 228px);
+  transform: translateX(50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.privacy-art .theia-light-art { width: 100%; height: 100%; }
+.light-art-caption {
+  position: absolute;
+  bottom: -4px;
+  color: #746858;
+  font-size: 11px;
+  text-align: center;
+  white-space: nowrap;
+}
+.privacy-screen .privacy-art { top: 43%; }
+.privacy-screen .primary-button:focus-visible { outline-offset: -4px; }
+
+.checkins-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(63 53 39 / 8%);
+  background: linear-gradient(145deg, #e4dcd1, #d4c9bb);
+}
+.checkins-art .theia-light-art { width: 100%; height: 100%; }
+.ready-art { top: 38%; bottom: 94px; display: flex; align-items: center; justify-content: center; }
+.ready-art .theia-light-art { max-width: 390px; }
+
+@keyframes theia-bloom-breathe {
+  0%, 100% { opacity: .72; transform: scale(.98); }
+  50% { opacity: .96; transform: scale(1.04); }
+}
+@keyframes theia-core-breathe {
+  0%, 100% { transform: scale(.985); }
+  50% { transform: scale(1.015); }
+}
+@media (max-height: 700px) {
+  .welcome-screen .page-header { padding-top: 76px; }
+  .welcome-screen .page-header h1 { font-size: 26px; }
+  .welcome-screen .page-header p { margin-top: 7px; font-size: 13px; }
+  .welcome-art { top: 41%; bottom: 86px; }
+  .welcome-art-note { font-size: 10px; }
+  .privacy-screen .page-header p { font-size: 13px; line-height: 1.65; }
+  .privacy-art { top: 45%; height: 180px; }
+  .privacy-screen .privacy-art { top: 45%; }
+  .light-art-caption { bottom: -8px; }
+  .art-small .interstitial-art { top: 48%; }
+  .art-medium .interstitial-art { top: 44%; }
+  .art-large .interstitial-art { top: 39%; }
+  .art-tall .interstitial-art { top: 30%; }
+  .ready-art { top: 37%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .theia-light-bloom, .theia-light-core { animation: none; }
+}
