@@ -43,6 +43,9 @@ The original designer's complete 24-step pre-Home onboarding is reachable again 
 7. Appropriate `.agents/skills/<name>/SKILL.md` and its linked references before modifying that area.
 8. `VALIDATION_REPORT.md` and `NEXT_AGENT_TASKS.md`.
 
+## Theia identity (2026-11-26)
+Theia is drawn non-figuratively: a pointed arch, a horizon and one point of light. The onboarding is a seven-chapter dawn narrative (`src/features/onboarding/chapters.js`, `story.js`, `artwork.js`, `src/components/TheiaArt.jsx`). Do not reintroduce the retired portrait, goddess illustrations, raster story art or `/brand/theia-*.png`. Read `docs/design/THEIA_DAWN_NARRATIVE.md` first.
+
 ## Product decision hierarchy
 - **Source of truth for look, brand, interaction layout, and intended user journey:** this *new* designer JSX source, under the Persian brand **همراه**.
 - **Source of truth for what the currently validated backend actually supports:** current backend `contracts/openapi/openapi.yaml` and Go/MSSQL implementation; the frontend OpenAPI snapshot is only a reference copy.

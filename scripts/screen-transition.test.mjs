@@ -10,14 +10,20 @@ test('chat, home, history and all main dark screens use a dark underlying surfac
   for (const route of ['home', 'chat', 'history', 'survey', 'day', 'letter', 'insight']) {
     assert.equal(screenSurfaceForRoute(route), 'dark', route);
   }
-  for (const route of ['menu', 'research', 'experts', 'voice', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro']) {
+  for (const route of ['menu', 'research', 'experts']) {
     assert.equal(screenSurfaceForRoute(route), 'black', route);
   }
 });
 
-test('designer beige and light onboarding pages retain their surfaces', () => {
+test('beige question pages and light intake pages retain their reading surfaces', () => {
   for (const route of ['testimonials', 'interests', 'approach']) assert.equal(screenSurfaceForRoute(route), 'beige');
-  for (const route of ['welcome', 'name', 'privacy', 'ready', 'therapist', 'age', 'concerns']) assert.equal(screenSurfaceForRoute(route), 'light');
+  for (const route of ['name', 'therapist', 'age', 'concerns', 'mood']) assert.equal(screenSurfaceForRoute(route), 'light');
+});
+
+test('the dawn narrative chapters share the night surface so light can accumulate', () => {
+  for (const route of ['welcome', 'privacy', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro', 'ready', 'checkins', 'voice']) {
+    assert.equal(screenSurfaceForRoute(route), 'dark', route);
+  }
 });
 
 test('the route-controlled shell and transition never fade dark screens from transparent white', () => {

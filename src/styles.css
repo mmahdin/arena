@@ -155,7 +155,6 @@ svg { flex-shrink: 0; }
 .pager-dots--dark button.is-active { background: #fff; }
 
 /* ---------- Welcome & social proof ---------- */
-.welcome-art { position: absolute; top: 30%; bottom: 100px; inset-inline: 29px; }
 .welcome-screen .page-header h1 { font-size: 32px; }
 .welcome-screen .page-header p { max-width: 335px; }
 .reviews-list { display: grid; gap: 16px; margin: 72px 20px 94px; }
@@ -242,12 +241,6 @@ svg { flex-shrink: 0; }
   font-weight: 560;
 }
 .name-input:focus { border-bottom-color: #575750; }
-.interstitial-art { position: absolute; inset-inline: 42px; bottom: 100px; }
-.art-small .interstitial-art { top: 54%; }
-.art-medium .interstitial-art { top: 51%; }
-.art-large .interstitial-art { top: 44%; }
-.art-tall .interstitial-art { top: 28%; inset-inline: 38px; }
-.privacy-art { position: absolute; top: 49%; inset-inline-start: 50%; width: 102px; height: 116px; transform: translateX(50%); object-fit: contain; }
 .privacy-card {
   position: absolute;
   inset-inline: 24px;
@@ -413,7 +406,6 @@ svg { flex-shrink: 0; }
 .voice-copy h2 { font-size: 25px; font-weight: 650; }
 .voice-copy p { margin-top: 8px; white-space: pre-line; font-size: 14px; line-height: 1.75; color: #e0ded9; }
 .voice-screen > .pager-dots { position: absolute; bottom: 137px; inset-inline: 0; }
-.ready-art { position: absolute; top: 36%; bottom: 96px; inset-inline: 28px; }
 
 /* ---------- Home ---------- */
 .home-menu-button {
@@ -670,7 +662,6 @@ svg { flex-shrink: 0; }
 .question-neurodivergent .choice-scroll { margin-top: 14px; }
 .question-faith .choice-scroll { margin-top: 50px; }
 .question-interests > .skip-button { bottom: 28px; }
-.art-tall .interstitial-art { top: 30%; }
 .question-therapist,
 .question-neurodivergent,
 .question-faith { padding-bottom: 24px; }
@@ -678,15 +669,30 @@ svg { flex-shrink: 0; }
 .question-neurodivergent .choice-scroll,
 .question-faith .choice-scroll { mask-image: none; }
 
-/* ---------- Internal-only tester selection (follows the Hamrah visual tokens) ---------- */
+/* ---------- Internal-only tester selection ---------- */
 .app-shell:has(> .dev-login-screen) { min-height: 0; }
-.dev-login-screen { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
-.dev-login-screen .page-header { flex-shrink: 0; padding-top: clamp(20px, 5dvh, 44px); }
-.dev-login-art { position: relative; flex: 1 0 96px; min-height: 96px; pointer-events: none; }
-.dev-login-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-.dev-login-panel { position: relative; z-index: 2; flex-shrink: 0; margin: 0 24px max(24px, env(safe-area-inset-bottom)); padding: 20px; background: #fff; border-radius: 24px; box-shadow: 0 8px 26px rgb(35 32 27 / 7%); }
-.dev-login-heading { display: flex; align-items: center; gap: 10px; font-size: 17px; }
-.dev-login-panel > p { color: #615d57; font-size: 13px; line-height: 1.9; margin: 10px 0 16px; }
+.dev-login-screen {
+  display: flex; flex-direction: column; min-height: 0; overflow-y: auto;
+  background: var(--night); color: var(--narrative-ink); isolation: isolate;
+}
+.dev-login-screen .page-header { position: relative; z-index: 2; flex-shrink: 0; padding: clamp(14px, 4dvh, 34px) 26px 0; text-align: center; }
+.dev-login-screen .page-header h1 { font-family: var(--narrative-serif); font-size: 27px; font-weight: 500; line-height: 1.5; }
+.dev-login-screen .page-header p { margin-top: 10px; font-size: 14px; line-height: 1.9; color: #cdc4b6; }
+.dev-login-screen .dev-login-art {
+  position: relative; z-index: 0; flex: 1 1 150px; min-height: 128px; max-height: 34dvh;
+  display: grid; place-items: center; pointer-events: none; padding: 6px 0;
+}
+.dev-login-screen .dev-login-art .theia-scene { height: 100%; width: auto; }
+.dev-login-panel {
+  position: relative; z-index: 2; flex-shrink: 0;
+  margin: 0 20px max(22px, env(safe-area-inset-bottom));
+  padding: 18px; border-radius: 22px;
+  background: rgb(255 255 255 / 4%);
+  box-shadow: inset 0 0 0 1px rgb(201 180 140 / 20%), 0 18px 44px rgb(0 0 0 / 34%);
+  backdrop-filter: blur(6px);
+}
+.dev-login-heading { display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--narrative-ink); }
+.dev-login-panel > p { color: #b3ab9d; font-size: 13px; line-height: 1.9; margin: 10px 0 16px; }
 .dev-login-users { display: grid; gap: 10px; }
 .dev-login-users button { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 54px; border-radius: 15px; background: var(--light); text-align: start; padding: 10px 14px; }
 .dev-login-users button span { flex: 1; font-weight: 630; }
@@ -912,26 +918,14 @@ svg { flex-shrink: 0; }
   line-height: 1.7;
   text-align: center;
 }
-.checkins-art {
-  position: absolute;
-  inset-inline: 24px;
-  top: clamp(285px, 42vh, 370px);
-  height: min(35vh, 310px);
-  max-height: calc(100% - 390px);
-  border-radius: 18px;
-  overflow: hidden;
-  background: var(--beige);
-}
-.checkins-art img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .onboarding-welcome .message-text { white-space: normal; }
 @media (max-height: 700px) {
-  .mood-screen .page-header, .checkins-screen .page-header { padding-top: 99px; }
-  .mood-screen .page-header p, .checkins-screen .page-header p { margin-top: 9px; }
+  .mood-screen .page-header { padding-top: 99px; }
+  .mood-screen .page-header p { margin-top: 9px; }
   .mood-stage { top: 215px; bottom: 152px; gap: 5px; }
   .mood-stage h2 { font-size: 17px; }
   .mood-slider-wrap { height: 43px; flex-basis: 43px; }
   .mood-footnote { bottom: 88px; font-size: 13px; }
-  .checkins-art { top: 265px; height: min(31vh, 220px); max-height: calc(100% - 340px); }
 }
 
 /* ---------- UX refinement: letters, chat continuity, onboarding clarity ---------- */
@@ -1157,8 +1151,7 @@ svg { flex-shrink: 0; }
 }
 
 /* Mood/reminder: consistent heading rhythm and mathematically aligned slider. */
-.mood-screen .page-header,
-.checkins-screen .page-header { padding-top: clamp(96px, 14vh, 132px); }
+.mood-screen .page-header { padding-top: clamp(96px, 14vh, 132px); }
 .mood-stage { top: clamp(225px, 32vh, 300px); bottom: clamp(150px, 22vh, 200px); }
 .mood-slider-wrap { --mood-thumb: 42px; --mood-inset: calc(var(--mood-thumb) / 2); }
 .mood-ticks { position: absolute; left: var(--mood-inset); right: var(--mood-inset); top: 50%; height: 2px; transform: translateY(-50%); background: var(--ink); }
@@ -1167,7 +1160,6 @@ svg { flex-shrink: 0; }
 .mood-slider:focus-visible { outline: none; }
 .mood-slider:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgb(133 141 197 / 55%); }
 .mood-slider:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px rgb(133 141 197 / 55%); }
-.checkins-art { top: clamp(260px, 38vh, 330px); }
 
 /* Chat: quiet header, bubble-free assistant text, inline message tools, floating composer. */
 .chat-screen { --composer-height: 78px; --chat-header-h: calc(max(18px, env(safe-area-inset-top, 0px)) + 58px); }
@@ -1382,9 +1374,8 @@ svg { flex-shrink: 0; }
   .survey-copy h1 { font-size: 22px; }
   .voice-carousel { top: 245px; height: 205px; }
   .voice-screen > .pager-dots { bottom: 132px; }
-  .mood-screen .page-header, .checkins-screen .page-header { padding-top: 88px; }
+  .mood-screen .page-header { padding-top: 88px; }
   .mood-stage { top: 205px; bottom: 148px; }
-  .checkins-art { top: 245px; }
 }
 @media (max-width: 374px) {
   .voice-card { flex-basis: 188px; width: 188px; }
@@ -1827,33 +1818,11 @@ svg { flex-shrink: 0; }
   vertical-align: middle;
   background: #080808;
 }
-.theia-mark img {
-  display: block;
-  flex-shrink: 0;
-  /* Use the original photo; frame its mark by reducing only outer black space. */
-  width: 165%;
-  height: 165%;
-  max-width: none;
-  object-fit: contain;
-}
 
 :root {
   --theia-dawn: #f6cf98;
   --theia-moon: #d5d9f7;
   --theia-gold: #d8a76c;
-}
-
-.privacy-art {
-  top: 43%;
-  width: 142px;
-  height: 164px;
-}
-@media (max-height: 700px) {
-  .privacy-art {
-    top: 45%;
-    width: 112px;
-    height: 130px;
-  }
 }
 
 .mood-glow[data-mood-level="3"] {
@@ -1905,5 +1874,356 @@ svg { flex-shrink: 0; }
 }
 .letter-signature-mark {
   opacity: .85;
+  color: #c3b194;
+}
+.letter-signature-mark.luminous { color: #d8c3a2; filter: none; }
+
+
+/* ==========================================================================
+   Theia — the dawn narrative
+   --------------------------------------------------------------------------
+   Identity: Theia is the Titaness of divine light, and the root of "thea",
+   sight. She is never drawn as a person. The visual system is a single dark
+   room with a pointed arch (tāq), a horizon, and one source of light. Every
+   onboarding screen is that room at a later hour, so the flow itself is the
+   story: a closed door, a lattice window, an oculus, still water, a
+   constellation, the dawn line, an open door.
+   Motion is slow and optical — light arriving, never objects bouncing.
+   ========================================================================== */
+
+:root {
+  --night: #0b0c11;
+  --night-lift: #11131a;
+  --dawn-line: #c9b48c;
+  --dawn-line-soft: #8d8471;
+  --dawn-warm: #edc28d;
+  --dawn-bright: #f8e6c6;
+  --dawn-moon: #c2ccdf;
+  --narrative-ink: #f1e9db;
+  --narrative-quiet: #a9a49a;
+  --narrative-faint: #6f6b64;
+  --narrative-serif: 'Noto Naskh Arabic Variable', 'Estedad Variable', serif;
+  --narrative-sans: 'Estedad Variable', 'Vazirmatn Variable', Tahoma, sans-serif;
 }
 
+/* ---------- Ambient light: the shell itself is the room ---------- */
+.dawn-ambient {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 62% at 50% 112%, rgb(237 194 141 / calc(0.05 + var(--dawn-level, 0) * 0.30)) 0%, transparent 72%),
+    radial-gradient(90% 55% at 50% 8%, rgb(194 204 223 / calc(0.035 + var(--dawn-level, 0) * 0.06)) 0%, transparent 70%);
+  transition: background 620ms cubic-bezier(.2, .7, .2, 1);
+}
+
+/* ---------- Narrative screens ----------
+   Flow layout, not overlaid boxes: the illustration takes whatever height is
+   left, the copy sits under it in normal flow, and the CTA is pinned last.
+   Nothing can overlap at any viewport, and short screens simply shrink the art. */
+.narrative-screen {
+  display: flex;
+  flex-direction: column;
+  background: var(--night);
+  color: var(--narrative-ink);
+  isolation: isolate;
+  padding-top: max(36px, env(safe-area-inset-top, 0px));
+}
+.narrative-screen > .screen-top-inset { display: none; }
+.narrative-art {
+  position: relative;
+  z-index: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 6px 0 0;
+  pointer-events: none;
+}
+.narrative-scene {
+  width: auto;
+  height: 100%;
+  max-height: 100%;
+  opacity: calc(0.86 + var(--dawn-level, 0) * 0.14);
+  animation: scene-arrive 900ms cubic-bezier(.16, .8, .24, 1) both;
+  filter: drop-shadow(0 22px 60px rgb(237 194 141 / calc(var(--dawn-level, 0) * 0.10)));
+}
+/* A soft scrim under the words, independent of the art's height. */
+.narrative-screen::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 64%;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgb(11 12 17 / 0) 0%, rgb(11 12 17 / 62%) 30%, rgb(11 12 17 / 94%) 58%, var(--night) 78%);
+}
+.narrative-copy {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 0 26px 16px;
+  text-align: center;
+}
+.narrative-title {
+  font-family: var(--narrative-serif);
+  font-size: clamp(24px, 7.2vw, 31px);
+  font-weight: 500;
+  line-height: 1.55;
+  letter-spacing: 0;
+  color: var(--narrative-ink);
+  text-wrap: balance;
+}
+.narrative-lede {
+  max-width: 31ch;
+  font-family: var(--narrative-sans);
+  font-size: 15.5px;
+  font-weight: 380;
+  line-height: 1.95;
+  letter-spacing: -0.1px;
+  color: #cdc4b6;
+  text-wrap: pretty;
+}
+.narrative-note {
+  max-width: 33ch;
+  font-size: 13px;
+  font-weight: 380;
+  line-height: 1.9;
+  color: var(--narrative-quiet);
+}
+.narrative-disclosure {
+  max-width: 38ch;
+  margin-top: 2px;
+  padding-top: 13px;
+  border-top: 1px solid rgb(201 180 140 / 16%);
+  font-size: 11.5px;
+  font-weight: 380;
+  line-height: 1.85;
+  color: var(--narrative-faint);
+  text-align: start;
+}
+.narrative-screen .primary-button,
+.narrative-screen .primary-button--light {
+  /* In flow, below the copy: the action is never pinned over the words. */
+  position: static;
+  inset-inline: auto;
+  bottom: auto;
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0 24px max(14px, env(safe-area-inset-bottom));
+  background: var(--dawn-bright);
+  color: #191510;
+  font-weight: 620;
+}
+.narrative-screen .primary-button:disabled {
+  background: rgb(248 230 198 / 22%);
+  color: rgb(241 233 219 / 45%);
+}
+.narrative-screen .primary-button:focus-visible { outline: 2px solid var(--dawn-warm); outline-offset: 3px; }
+.narrative-screen .back-button--dark { background: rgb(255 255 255 / 5%); color: #d8d2c6; }
+.welcome-copy { gap: 15px; }
+.welcome-name {
+  font-family: var(--narrative-serif);
+  font-size: 15px;
+  letter-spacing: 0.34em;
+  padding-inline-start: 0.34em;
+  color: var(--dawn-line);
+  opacity: 0.9;
+}
+.welcome-screen .narrative-title { font-size: clamp(26px, 7.6vw, 33px); }
+
+/* Chapter mark: a numeral, a hairline that fills as light arrives, a name. */
+.chapter-marks {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--narrative-sans);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  color: var(--dawn-line);
+  opacity: 0.92;
+  direction: rtl;
+}
+.chapter-marks-numeral { font-variant-numeric: tabular-nums; opacity: 0.78; }
+.chapter-marks-rule {
+  width: 34px;
+  height: 1px;
+  background: linear-gradient(to left, rgb(201 180 140 / 62%), rgb(201 180 140 / 8%));
+}
+.chapter-marks-name { color: #c2b8a5; letter-spacing: 0.14em; }
+.chapter-marks--inline {
+  position: absolute;
+  z-index: 2;
+  top: 76px;
+  inset-inline-end: 24px;
+  font-size: 9.5px;
+  opacity: 0.62;
+}
+.chapter-marks--inline .chapter-marks-rule { width: 20px; }
+
+/* Art internals: light breathes, stars hold still. */
+.theia-scene { overflow: visible; }
+.theia-scene-glow { animation: glow-breathe 7.5s ease-in-out infinite; transform-origin: center; }
+.theia-scene-horizon-glint { animation: glint 9s ease-in-out infinite; }
+.theia-scene-disc { animation: disc-settle 1200ms cubic-bezier(.16, .8, .24, 1) both; }
+.theia-constellation circle { animation: star-fade 900ms ease both; }
+.theia-constellation circle:nth-child(2) { animation-delay: 120ms; }
+.theia-constellation circle:nth-child(4) { animation-delay: 260ms; }
+
+@keyframes scene-arrive {
+  from { opacity: 0; transform: translateY(-10px) scale(0.988); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes glow-breathe {
+  0%, 100% { opacity: 0.86; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.035); }
+}
+@keyframes glint {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.92; }
+}
+@keyframes disc-settle {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes star-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Privacy screen: the toggle belongs to the story, not a white card. */
+.privacy-screen .privacy-card {
+  position: static;
+  inset-inline: auto;
+  bottom: auto;
+  width: 100%;
+  min-height: 62px;
+  margin-top: 4px;
+  padding: 15px 17px;
+  border-radius: 16px;
+  background: rgb(255 255 255 / 4%);
+  box-shadow: inset 0 0 0 1px rgb(201 180 140 / 20%);
+  color: var(--narrative-ink);
+  font-size: 13.5px;
+}
+.privacy-screen .privacy-card:disabled { opacity: 0.55; }
+.privacy-screen .toggle { background: #3a3831; }
+.privacy-screen .toggle.is-on { background: #8d7a55; }
+.privacy-screen .toggle.is-on span { background: #f8e6c6; }
+.privacy-screen .connected-notice { margin-top: 8px; color: #d9b9a8; }
+
+/* Checkins keeps the narrative vocabulary on a light surface. */
+.checkins-screen.narrative-screen { background: var(--night); }
+
+/* ---------- Identity mark (arch, horizon, one point of light) ---------- */
+.theia-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  vertical-align: middle;
+  color: #e6d6b8;
+  background: transparent;
+  border-radius: 0;
+  overflow: visible;
+}
+.theia-mark .theia-mark-glyph { width: 100%; height: 100%; }
+.theia-mark--luminous {
+  color: var(--dawn-bright);
+  filter: drop-shadow(0 0 12px rgb(237 194 141 / 34%));
+}
+.theia-mark--luminous .theia-glyph-halo { opacity: 0.2; }
+.theia-glyph { display: block; overflow: visible; }
+.theia-glyph-disc { filter: drop-shadow(0 0 3px rgb(248 230 198 / 55%)); }
+
+/* ---------- Small-screen and short-screen adjustments ---------- */
+@media (max-height: 730px) {
+  .narrative-copy { gap: 10px; padding-bottom: 12px; }
+  .narrative-title { font-size: 22px; line-height: 1.45; }
+  .narrative-lede { font-size: 14px; line-height: 1.85; }
+  .narrative-note { font-size: 12px; line-height: 1.8; }
+  .narrative-disclosure { font-size: 10.5px; padding-top: 9px; }
+  .welcome-name { display: none; }
+}
+@media (max-height: 640px) {
+  .narrative-copy { gap: 8px; padding-bottom: 8px; }
+  .narrative-note { display: none; }
+  .narrative-title { font-size: 20px; }
+  .narrative-lede { font-size: 13px; }
+}
+@media (max-width: 350px) {
+  .narrative-copy { padding-inline: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .narrative-scene, .theia-scene-glow, .theia-scene-horizon-glint, .theia-scene-disc, .theia-constellation circle { animation: none; }
+  .dawn-ambient { transition: none; }
+}
+
+/* Login form on the night surface: same fields, story-appropriate contrast. */
+.dev-login-screen .dev-phone-form label { display: block; margin-bottom: 8px; font-size: 12.5px; color: #b3ab9d; }
+.dev-login-screen .dev-phone-form input {
+  width: 100%; min-height: 52px; padding: 12px 14px; border-radius: 14px;
+  border: 1px solid rgb(201 180 140 / 26%); background: rgb(0 0 0 / 28%);
+  color: var(--narrative-ink); font-size: 16px; letter-spacing: 0.06em; text-align: center;
+}
+.dev-login-screen .dev-phone-form input::placeholder { color: #6f6b64; letter-spacing: 0.04em; }
+.dev-login-screen .dev-phone-form input:focus-visible { outline: 2px solid var(--dawn-warm); outline-offset: 1px; }
+.dev-login-screen .dev-phone-form input[aria-invalid="true"] { border-color: #b46a5a; }
+.dev-login-screen .dev-phone-form .primary-button {
+  position: static; width: 100%; margin-top: 14px; height: 54px;
+  background: var(--dawn-bright); color: #191510;
+}
+.dev-login-screen .dev-phone-form .primary-button:disabled { background: rgb(248 230 198 / 20%); color: rgb(241 233 219 / 42%); }
+.dev-login-screen .dev-login-error { background: rgb(180 106 90 / 14%); color: #e4c3b7; border: 1px solid rgb(180 106 90 / 30%); }
+.dev-login-screen .dev-login-retry { background: transparent; color: #e4c3b7; border-color: rgb(180 106 90 / 42%); }
+@media (max-height: 700px) {
+  .dev-login-screen .dev-login-art { flex-basis: 96px; min-height: 84px; }
+  .dev-login-screen .page-header { padding-top: 8px; }
+}
+
+/* Chapter marks on reading surfaces (light / beige) stay quiet and legible. */
+.theme-light .chapter-marks--inline,
+.theme-beige .chapter-marks--inline { color: #8a7c60; opacity: 0.72; }
+.theme-light .chapter-marks--inline .chapter-marks-rule,
+.theme-beige .chapter-marks--inline .chapter-marks-rule {
+  background: linear-gradient(to left, rgb(138 124 96 / 55%), rgb(138 124 96 / 6%));
+}
+.theme-light .chapter-marks--inline .chapter-marks-name,
+.theme-beige .chapter-marks--inline .chapter-marks-name { color: #7d7261; }
+
+/* Wax seal and dark-on-gold surfaces invert the mark so it never disappears. */
+.wax-seal .theia-mark { color: #3d2c17; }
+.wax-seal .theia-glyph-halo { opacity: 0.10; }
+.home-letter-seal .theia-mark { color: #2a1e11; }
+
+/* The letter signature sits on paper; the mark must read as ink, not glow. */
+.letter-signature-mark.theia-mark,
+.letter-signature-mark .theia-glyph { color: #6f5a3c; }
+
+/* Voice: the dawn line stays visible behind the selector as a quiet backdrop. */
+.voice-chapter {
+  position: absolute;
+  inset: 40px 0 auto;
+  display: grid;
+  place-items: start center;
+  height: 46dvh;
+  pointer-events: none;
+  opacity: 0.72;
+  z-index: 0;
+}
+.voice-chapter .theia-scene { height: 100%; width: auto; }
+.voice-screen::after {
+  content: '';
+  position: absolute;
+  inset: 22% 0 0;
+  background: linear-gradient(to bottom, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / 74%) 42%, #000 74%);
+  pointer-events: none;
+  z-index: 0;
+}
+.voice-screen > :not(.voice-chapter):not(.back-button) { z-index: 1; }
