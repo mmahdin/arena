@@ -2,16 +2,16 @@ import { createWriteStream } from 'node:fs';
 import { deflateSync } from 'node:zlib';
 
 /**
- * Rasterises Theia's open-ring sigil into PNG app icons without any image
- * dependency. The sigil is defined by a handful of analytic shapes (rounded
- * square, annulus with a gap, four-point spark, ember dot), so coverage can be
- * sampled directly and clipped with 4x supersampling for clean edges.
+ * Rasterises Theia's Earthshine Moon mark into PNG app icons without any image
+ * dependency. Samples a rounded-square deep nocturnal sky, a 3D shaded earthlit
+ * blue-gray lunar sphere, a soft elliptical terminator, and a cool-white waning
+ * morning crescent with 4x supersampling.
  *
  * Usage: node scripts/generate-theia-icons.mjs
  */
 
-const SIZE = 256; // logical design grid, matches public/favicon.svg
-const SS = 4; // supersampling factor
+const SIZE = 256;
+const SS = 4;
 
 const clamp01 = (value) => Math.min(1, Math.max(0, value));
 
@@ -23,114 +23,72 @@ function mix(a, b, t) {
   ];
 }
 
-const NIGHT_IN = [26, 29, 36];
-const NIGHT_OUT = [10, 11, 13];
-const GOLD_LIGHT = [247, 231, 198];
-const GOLD_MID = [227, 196, 140];
-const GOLD_DARK = [185, 138, 78];
+const SKY_IN = [14, 23, 40];
+const SKY_OUT = [6, 9, 17];
+const ASHEN_LIGHT = [88, 110, 139];
+const ASHEN_MID = [60, 80, 107];
+const ASHEN_DARK = [39, 54, 75];
+const CRESC_LIGHT = [247, 250, 254];
+const CRESC_EDGE = [194, 210, 230];
 
-/** Theia's four-point spark, sampled along its quadratic sides. */
-function sparkPolygon(cx, cy, radius) {
-  const k = radius * 0.085;
-  const quad = (a, c, b, steps = 10) => {
-    const points = [];
-    for (let i = 0; i <= steps; i += 1) {
-      const t = i / steps;
-      const u = 1 - t;
-      points.push([
-        u * u * a[0] + 2 * u * t * c[0] + t * t * b[0],
-        u * u * a[1] + 2 * u * t * c[1] + t * t * b[1],
-      ]);
-    }
-    return points;
-  };
-  const top = [cx, cy - radius];
-  const right = [cx + radius, cy];
-  const bottom = [cx, cy + radius];
-  const left = [cx - radius, cy];
-  return [
-    ...quad(top, [cx + k, cy - k], right),
-    ...quad(right, [cx + k, cy + k], bottom),
-    ...quad(bottom, [cx - k, cy + k], left),
-    ...quad(left, [cx - k, cy - k], top),
-  ];
-}
-
-function insidePolygon(poly, x, y) {
-  let inside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i, i += 1) {
-    const [xi, yi] = poly[i];
-    const [xj, yj] = poly[j];
-    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
-  }
-  return inside;
-}
-
-// Design-space geometry (identical to public/favicon.svg, scaled to 256).
-const RING = { cx: 128, cy: 128, r: 104, width: 8.8, gapDeg: 58 };
-// A needle of light rather than a generic sparkle: taller than it is wide.
-const SPARK = [
-  ...sparkPolygon(128, 128, 44).map(([x, y]) => [128 + (x - 128) * 0.74, y]),
-];
-const CORNER = 60; // 15/64 * 256
+const CORNER = 60;
+const MOON_R = 80;
+const TILT_RAD = (46 * Math.PI) / 180; // inverse rotation (+46°) into unrotated lunar coords
 
 function roundedSquareCoverage(x, y) {
-  const inset = 0;
   const half = SIZE / 2;
-  const dx = Math.max(Math.abs(x - half) - (half - CORNER - inset), 0);
-  const dy = Math.max(Math.abs(y - half) - (half - CORNER - inset), 0);
+  const dx = Math.max(Math.abs(x - half) - (half - CORNER), 0);
+  const dy = Math.max(Math.abs(y - half) - (half - CORNER), 0);
   if (dx === 0 && dy === 0) return 1;
-  const dist = Math.hypot(dx, dy);
-  return clamp01(CORNER - dist + 0.5);
-}
-
-function goldAt(x, y) {
-  // Diagonal sweep from the top-right (light) to the bottom-left (deep gold).
-  const t = clamp01(((x - 24) / 208) * 0.55 + ((y - 18) / 220) * 0.45);
-  return t < 0.46
-    ? mix(GOLD_LIGHT, GOLD_MID, t / 0.46)
-    : mix(GOLD_MID, GOLD_DARK, (t - 0.46) / 0.54);
+  return clamp01(CORNER - Math.hypot(dx, dy) + 0.5);
 }
 
 function samplePixel(x, y) {
-  let bg = [0, 0, 0, 0];
   const cover = roundedSquareCoverage(x, y);
-  if (cover > 0) {
-    const nx = (x - SIZE / 2) / (SIZE / 2);
-    const ny = (y - SIZE * 0.4) / (SIZE * 0.7);
-    const radial = clamp01(Math.hypot(nx, ny));
-    bg = [...mix(NIGHT_IN, NIGHT_OUT, radial), cover];
-  }
-  const paint = (color, alpha) => {
-    if (alpha <= 0) return;
-    const a = clamp01(alpha);
-    const dstA = bg[3] / 255;
-    const outA = a + dstA * (1 - a);
-    const blend = (index) => (color[index] * a + bg[index] * dstA * (1 - a)) / (outA || 1);
-    bg = [blend(0), blend(1), blend(2), outA * 255];
-  };
+  if (cover <= 0) return [0, 0, 0, 0];
 
-  const dx = x - RING.cx;
-  const dy = y - RING.cy;
+  const nx = (x - SIZE / 2) / (SIZE / 2);
+  const ny = (y - SIZE * 0.42) / (SIZE * 0.72);
+  let rgb = mix(SKY_IN, SKY_OUT, clamp01(Math.hypot(nx, ny)));
+
+  const dx = x - 128;
+  const dy = y - 128;
   const dist = Math.hypot(dx, dy);
-  const half = RING.gapDeg / 2;
-  const fromTop = (((Math.atan2(dy, dx) * 180) / Math.PI) + 90 + 360) % 360;
-  const inSector = fromTop <= 180 - half || fromTop >= 180 + half;
-  const inBand = Math.abs(dist - RING.r) <= RING.width / 2;
-  let alpha = inSector && inBand ? 1 : 0;
-  for (const side of [-1, 1]) {
-    const theta = ((side * half - 90) * Math.PI) / 180;
-    const capX = RING.cx + RING.r * Math.cos(theta);
-    const capY = RING.cy + RING.r * Math.sin(theta);
-    if (Math.hypot(x - capX, y - capY) <= RING.width / 2) alpha = 1;
+
+  // Subtle crescent glare halo on the lower-left limb
+  const hx = x - 102;
+  const hy = y - 154;
+  const haloT = clamp01(1 - Math.hypot(hx, hy) / 108);
+  if (haloT > 0) {
+    rgb = mix(rgb, [224, 235, 248], haloT * haloT * 0.14);
   }
-  if (alpha > 0) {
-    // A soft inner shading keeps the ring from looking flat at small sizes.
-    const shade = 0.88 + 0.12 * clamp01((RING.r + RING.width / 2 - dist) / RING.width);
-    paint(goldAt(x, y).map((c) => Math.round(c * shade)), 1);
+
+  if (dist <= MOON_R + 0.6) {
+    const discAlpha = clamp01(MOON_R + 0.5 - dist);
+    // Ashen sphere shading
+    const sphereD = clamp01(Math.hypot(dx - 22, dy + 22) / (MOON_R * 1.45));
+    const ashen = sphereD < 0.55
+      ? mix(ASHEN_LIGHT, ASHEN_MID, sphereD / 0.55)
+      : mix(ASHEN_MID, ASHEN_DARK, (sphereD - 0.55) / 0.45);
+
+    // Rotate into lunar frame where sunlit limb is on -X
+    const lx = dx * Math.cos(TILT_RAD) - dy * Math.sin(TILT_RAD);
+    const ly = dx * Math.sin(TILT_RAD) + dy * Math.cos(TILT_RAD);
+    const yNorm = Math.min(1, Math.abs(ly) / MOON_R);
+    const chord = Math.sqrt(Math.max(0, 1 - yNorm * yNorm)) * MOON_R;
+
+    // Elliptical terminator x = -0.785 * chord, softened across penumbra
+    const termX = -0.785 * chord;
+    const penumbraWidth = Math.max(1.4, 0.11 * chord);
+    const sunlit = clamp01((termX - lx) / penumbraWidth + 0.5);
+
+    const limbProgress = chord > 0.1 ? clamp01((-lx - 0.76 * chord) / (0.24 * chord)) : 1;
+    const crescColor = mix(CRESC_EDGE, CRESC_LIGHT, limbProgress);
+    const moonColor = mix(ashen, crescColor, sunlit);
+    rgb = mix(rgb, moonColor, discAlpha * 0.94);
   }
-  if (insidePolygon(SPARK, x, y)) paint(goldAt(x, y), 1);
-  return bg;
+
+  return [rgb[0], rgb[1], rgb[2], cover * 255];
 }
 
 function renderIcon(size) {
@@ -183,12 +141,12 @@ function encodePng(width, height, rgba) {
   const header = Buffer.alloc(13);
   header.writeUInt32BE(width, 0);
   header.writeUInt32BE(height, 4);
-  header[8] = 8; // bit depth
-  header[9] = 6; // truecolour with alpha
+  header[8] = 8;
+  header[9] = 6;
   const stride = width * 4;
   const raw = Buffer.alloc((stride + 1) * height);
   for (let y = 0; y < height; y += 1) {
-    raw[y * (stride + 1)] = 0; // no filter
+    raw[y * (stride + 1)] = 0;
     rgba.copy(raw, y * (stride + 1) + 1, y * stride, (y + 1) * stride);
   }
   return Buffer.concat([

@@ -2,13 +2,12 @@ import React from 'react';
 import { TheiaMark, TheiaSigil } from './TheiaSigil';
 
 /**
- * Single source for Theia's identity mark.
+ * Single source for Theia's identity mark (Earthshine).
  *
- * 2026-11: the previous supplied logo depicted a woman's profile. The product
- * direction is a faceless, non-human identity for an Iranian audience, so the
- * shared mark is now the open dawn ring (see `TheiaSigil.jsx` for the mythic
- * rationale). The retired artwork is kept in `public/brand/` for history but is
- * no longer referenced by the UI, HTML head or manifest.
+ * Theia is never represented as a person, mascot, or decorative ornament.
+ * The shared mark is the waning morning crescent with its ever-present
+ * earthlit blue-gray disc (`public/brand/theia-sigil.svg`). Retired portrait
+ * artwork remains in `public/brand/` solely for repository history.
  */
 export const THEIA_LOGO_SRC = '/brand/theia-sigil.svg';
 
@@ -28,7 +27,8 @@ export function TheiaHomeArt() {
 }
 
 /**
- * Quiet celestial empty-inbox illustration for Letters (\"هنوز نامه‌ای نرسیده\").
+ * Quiet celestial empty-inbox illustration for Letters ("هنوز نامه‌ای نرسیده").
+ * Uses the Earthshine Moon (crescent + soft ashen disc) with no star emblem.
  */
 export function TheiaLetterEmpty({ size = 44 }) {
   return (
@@ -42,30 +42,27 @@ export function TheiaLetterEmpty({ size = 44 }) {
       focusable="false"
     >
       <path
-        d="M9 17.5C9 15.57 10.57 14 12.5 14H35.5C37.43 14 39 15.57 39 17.5V33.5C39 35.43 37.43 37 35.5 37H12.5C10.57 37 9 35.43 9 33.5V17.5Z"
+        d="M9 18.5C9 16.57 10.57 15 12.5 15H35.5C37.43 15 39 16.57 39 18.5V34.5C39 36.43 37.43 38 35.5 38H12.5C10.57 38 9 36.43 9 34.5V18.5Z"
         stroke="currentColor"
         strokeWidth="1.35"
       />
       <path
-        d="M10.5 16L24 26.2L37.5 16"
+        d="M10.5 17L24 27.2L37.5 17"
         stroke="currentColor"
         strokeWidth="1.35"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path
-        d="M28.5 5.2A5.2 5.2 0 1 0 32.8 11.4A4.1 4.1 0 0 1 28.5 5.2Z"
-        stroke="#d5d9f7"
-        strokeOpacity="0.65"
-        strokeWidth="1.25"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M21 6.5L21.65 8.35L23.5 9L21.65 9.65L21 11.5L20.35 9.65L18.5 9L20.35 8.35L21 6.5Z"
-        fill="#f6cf98"
-        fillOpacity="0.78"
-      />
+      <g transform="translate(24 7.5)">
+        <circle cx="0" cy="0" r="4.6" fill="#475B76" fillOpacity="0.45" />
+        <g transform="rotate(-46)">
+          <path
+            d="M 0 -4.6 A 4.6 4.6 0 0 0 0 4.6 A 3.55 4.6 0 0 1 0 -4.6 Z"
+            fill="#E7EFFA"
+            fillOpacity="0.9"
+          />
+        </g>
+      </g>
     </svg>
   );
 }

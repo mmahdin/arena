@@ -3,7 +3,7 @@ import { Check, ChevronLeft, ChevronRight, Flame, Landmark } from 'lucide-react'
 import { AGE_RANGES, APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import { resistVoiceDrag, voiceSwipeTarget } from '../features/onboarding/voiceCarousel';
 import { TheiaMark } from '../components/TheiaBrand';
-import { TheiaInstrument, TheiaSigil } from '../components/TheiaSigil';
+import { EarthshineMoon, EarthshineScene } from '../components/Earthshine';
 import {
   BackButton,
   ChoiceButton,
@@ -23,19 +23,21 @@ const nextFrom = (route, navigate) => {
 const fa = (value) => Number(value).toLocaleString('fa-IR');
 
 /**
- * The onboarding tells one quiet story: Theia, the faceless Greek Titaness of
- * sight and far-shining light, never appears as a body — only as an open ring,
- * an aperture of light and the horizon it measures. Six chapters carry the
- * metaphor from night to a completed circle; each chapter names the emotional
- * movement ("not knowing is where seeing begins") instead of decorating it.
+ * Earthshine — One subject (the Moon), one variable (how readable its unlit
+ * earthlit disc becomes), one rationed warm light.
+ *
+ * Across six chapters and eight narrative scenes, the sky shifts gradually from
+ * near-black night to civil twilight. Warmth is withheld until the horizon and
+ * final dawn scenes; on the final threshold tonal values reverse into pale
+ * morning twilight, revealing what was present from the very beginning.
  */
 const CHAPTERS = [
-  { name: 'آغاز', routes: ['welcome', 'privacy'] },
-  { name: 'شب', routes: ['simple-intro', 'name', 'age', 'identity', 'therapist'] },
-  { name: 'دیدن', routes: ['deeper-intro', 'mood', 'concerns', 'focus', 'feelings'] },
-  { name: 'سپیده', routes: ['know-intro', 'faith', 'neurodivergent', 'relationships', 'interests', 'strengths', 'barriers', 'recharge'] },
-  { name: 'سه نور', routes: ['almost-intro', 'approach', 'voice', 'checkins', 'referral'] },
-  { name: 'حلقه', routes: ['ready'] },
+  { name: 'آغاز', surface: 'ink', warm: false, routes: ['welcome', 'privacy'] },
+  { name: 'شب', surface: 'night', warm: false, routes: ['simple-intro', 'name', 'age', 'identity', 'therapist'] },
+  { name: 'دیدن', surface: 'seeing', warm: false, routes: ['deeper-intro', 'mood', 'concerns', 'focus', 'feelings'] },
+  { name: 'سپیده', surface: 'dawn', warm: false, routes: ['know-intro', 'faith', 'neurodivergent', 'relationships', 'interests', 'strengths', 'barriers', 'recharge'] },
+  { name: 'سه نور', surface: 'morning', warm: true, routes: ['almost-intro', 'approach', 'voice', 'checkins', 'referral'] },
+  { name: 'آغاز مسیر', surface: 'twilight', warm: true, routes: ['ready'] },
 ];
 
 function chapterIndexFor(route) {
@@ -48,7 +50,7 @@ const OnboardingRouteContext = React.createContext('welcome');
 function ChapterSeam({ index }) {
   const chapter = CHAPTERS[index];
   return (
-    <div className="ob-seam" role="group" aria-label={`فصل ${chapter.name}`}>
+    <div className={`ob-seam ${chapter.warm ? 'ob-seam--warm' : ''}`.trim()} role="group" aria-label={`فصل ${chapter.name}`}>
       {CHAPTERS.map((item, position) => (
         <i
           key={item.name}
@@ -63,42 +65,40 @@ function ChapterSeam({ index }) {
   );
 }
 
-function Shell({ theme = 'paper', back, children, className = '', footer }) {
+function Shell({ surface, theme, back, sky, children, className = '', footer }) {
   const route = useContext(OnboardingRouteContext);
-  const dark = theme === 'ink' || theme === 'dark' || theme === 'black';
-  const surface = dark ? 'ink' : 'paper';
+  const chapter = CHAPTERS[chapterIndexFor(route)];
+  const resolvedSurface = surface || (theme === 'beige' ? 'beige' : theme === 'dark' ? 'black' : chapter.surface);
+  const isLightSurface = resolvedSurface === 'twilight' || resolvedSurface === 'beige';
   return (
-    <section className={`app-screen onboarding-screen ob-shell ob-${surface} ${className}`.trim()} data-ob-theme={surface}>
+    <section
+      className={`app-screen onboarding-screen ob-shell ob-surface-${resolvedSurface} ${isLightSurface ? 'ob-light' : 'ob-dark'} ${sky ? 'ob-has-sky' : ''} ${className}`.trim()}
+      data-ob-surface={resolvedSurface}
+    >
       <StatusBar />
       <div className="ob-chrome">
         {back
-          ? <BackButton onClick={back} dark={dark} />
-          : <span className="ob-chrome__sigil" aria-hidden="true"><TheiaSigil size={19} /></span>}
+          ? <BackButton onClick={back} dark={!isLightSurface} />
+          : <span className="ob-chrome__spacer" aria-hidden="true" />}
         <ChapterSeam index={chapterIndexFor(route)} />
-        <span className="ob-chrome__tail" aria-hidden="true" />
+        <span className="ob-chrome__spacer" aria-hidden="true" />
       </div>
-      <div className="ob-flow">{children}</div>
+      <div className="ob-flow">
+        {sky ? <div className="ob-sky-wrap">{sky}</div> : null}
+        {children}
+      </div>
       {footer ? <div className="ob-footer">{footer}</div> : null}
     </section>
   );
 }
 
-/** One heading, one quiet paragraph. The chapter word is carried by the seam. */
-function ObHeader({ title, lede, epigraph, align = 'start', className = '' }) {
+function ObHeader({ title, lede, chapter, align = 'start', className = '' }) {
   return (
     <header className={`ob-header ob-header--${align} ${className}`.trim()}>
-      {epigraph && <p className="ob-epigraph">{epigraph}</p>}
+      {chapter && <p className="ob-chapter">{chapter}</p>}
       <h1>{title}</h1>
       {lede && <p className="ob-lede">{lede}</p>}
     </header>
-  );
-}
-
-function Instrument({ state, tone = 'ink', className = '', label }) {
-  return (
-    <div className={`ob-art ${className}`.trim()}>
-      <TheiaInstrument state={state} tone={tone} label={label} />
-    </div>
   );
 }
 
@@ -108,15 +108,18 @@ function Continue({ children, ...rest }) {
 
 function Welcome({ navigate }) {
   return (
-    <Shell theme="ink" className="welcome-screen" footer={(
-      <Continue onClick={() => nextFrom('welcome', navigate)}>شروع</Continue>
-    )}>
-      <Instrument state="welcome" className="ob-art--hero" label="حلقهٔ باز تیا، با ستاره‌ای از سپیده در مرکز" />
-      <ObHeader
-        epigraph="روشناییِ دوربرد"
-        title="تیا را نمی‌بینی؛ با تیا می‌بینی."
-        lede="تیا، الههٔ یونانیِ نور و دیدن، هیچ تصویری از خودش ندارد؛ تنها چیزی که از او مانده روشنایی است. این‌جا هم همین‌طور است: نه یک چهره، بلکه نوری که کمک می‌کند خودت را واضح‌تر ببینی."
-      />
+    <Shell
+      surface="ink"
+      className="welcome-screen"
+      sky={<EarthshineScene scene="welcome" />}
+      footer={<Continue onClick={() => nextFrom('welcome', navigate)}>شروع</Continue>}
+    >
+      <div className="ob-narrative">
+        <ObHeader
+          title="تیا را نمی‌بینی؛ با تیا می‌بینی."
+          lede="در اسطوره‌ها، تیا الههٔ نور و دیدن بود. این‌جا چهره‌ای ندارد؛ همراهی است که کمک می‌کند آن‌چه از پیش در توست، روشن‌تر دیده شود."
+        />
+      </div>
     </Shell>
   );
 }
@@ -201,7 +204,7 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
     >
       <ObHeader
         title={profileEdit ? 'اسمت را عوض کن.' : 'تو را چه صدا کنم؟'}
-        lede={profileEdit ? 'هر وقت خواستی می‌توانی اسمت را تغییر بدهی.' : 'اسم اولین نوری است که به این حلقه می‌تابد.'}
+        lede={profileEdit ? 'هر وقت خواستی می‌توانی اسمت را تغییر بدهی.' : 'با هر نامی که راحت‌تری صدایت می‌کنم.'}
       />
       <form id="onboarding-name" className="ob-name-form" onSubmit={submit}>
         <label className="sr-only" htmlFor="name">اسمت</label>
@@ -221,28 +224,32 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
 
 const INTERSTITIALS = {
   'simple-intro': {
-    state: 'night',
-    chapter: 'فصل دو · شب',
+    scene: 'night',
+    surface: 'night',
+    chapter: 'شب',
     title: 'از تاریکی شروع می‌کنیم.',
-    lede: 'نه چون چیزی خراب است؛ چون هر دیدن از ندیدن آغاز می‌شود. این‌جا لازم نیست از قبل بدانی چه چیزی در تو می‌گذرد.',
+    lede: 'نه چون چیزی خراب است؛ چون هر دیدنی از ندیدن شروع می‌شود. لازم نیست از پیش بدانی در تو چه می‌گذرد؛ چشم که عادت کند، چیزها کم‌کم پیدا می‌شوند.',
   },
   'deeper-intro': {
-    state: 'sight',
-    chapter: 'فصل سه · دیدن',
-    title: 'تیا نور را نمی‌سازد؛ آن را می‌بیند.',
-    lede: 'پس چیزی به تو اضافه نمی‌کند و چیزی هم از تو نمی‌گیرد. فقط کمک می‌کند آن‌چه هست را واضح‌تر ببینی — حتی وقتی واضح دیدن راحت نیست.',
+    scene: 'seeing',
+    surface: 'seeing',
+    chapter: 'دیدن',
+    title: 'آن‌چه تاریک به نظر می‌رسد، خالی نیست.',
+    lede: 'بخشِ تاریکِ ماه هم کمی روشن است: نوری که از زمین به آن می‌رسد، به چشم تو برمی‌گردد. تیا چیزی به تو اضافه نمی‌کند و چیزی از تو نمی‌گیرد؛ فقط کمک می‌کند آن‌چه هست واضح‌تر دیده شود، حتی وقتی دیدنش آسان نیست.',
   },
   'know-intro': {
-    state: 'dawn',
-    chapter: 'فصل چهار · سپیده',
+    scene: 'dawn',
+    surface: 'dawn',
+    chapter: 'سپیده',
     title: 'سپیده یک‌باره نمی‌آید.',
-    lede: 'کم‌کم روشن می‌شود، آن‌قدر آرام که اول متوجهش نمی‌شوی. حال آدم هم همین‌طور عوض می‌شود.',
+    lede: 'کم‌کم روشن می‌شود، آن‌قدر آرام که اول متوجهش نمی‌شوی. گاهی نوری می‌آید و دوباره پس می‌رود؛ آن هم بخشی از راه است. حال آدم هم اغلب همین‌طور عوض می‌شود.',
   },
   'almost-intro': {
-    state: 'orbits',
-    chapter: 'فصل پنج · سه نور',
-    title: 'خورشید، ماه، سپیده.',
-    lede: 'هر سه فرزندان تیا بودند؛ سه حالتِ نور، و هیچ‌کدام همیشگی نبود. حال تو هم همین‌طور است: می‌آید و می‌رود و هیچ‌کدام تمامِ تو نیست.',
+    scene: 'threeLights',
+    surface: 'morning',
+    chapter: 'سه نور',
+    title: 'سه نور؛ و هیچ‌کدام همیشگی نیست.',
+    lede: 'خورشید، ماه و سپیده، هر سه فرزندانِ تیا بودند: سه حالتِ یک نور. حال‌های تو هم همین‌طورند: می‌آیند و می‌روند، و هیچ‌کدام تمامِ تو نیست.',
   },
 };
 
@@ -250,57 +257,95 @@ function Interstitial({ route, navigate, back }) {
   const item = INTERSTITIALS[route];
   return (
     <Shell
-      theme="ink"
+      surface={item.surface}
       back={back}
-      className={`interstitial-screen art-${item.state}`}
+      className={`interstitial-screen scene-${item.scene}`}
+      sky={<EarthshineScene scene={item.scene} />}
       footer={<Continue onClick={() => nextFrom(route, navigate)}>ادامه</Continue>}
     >
-      <p className="ob-chapter">{item.chapter}</p>
-      <Instrument state={item.state} className="ob-art--hero" />
-      <ObHeader title={item.title} lede={item.lede} />
+      <div className="ob-narrative">
+        <ObHeader chapter={item.chapter} title={item.title} lede={item.lede} />
+      </div>
     </Shell>
   );
 }
 
-function Privacy({ navigate, back, privacySharing = true, privacyLoading = false, privacySaving = false,
-  privacyLoaded = false, privacyError = false, onTogglePrivacy, onRetryPrivacy }) {
+function Privacy({
+  navigate,
+  back,
+  privacySharing = true,
+  privacyLoading = false,
+  privacySaving = false,
+  privacyLoaded = false,
+  privacyError = false,
+  onTogglePrivacy,
+  onRetryPrivacy,
+}) {
   const sharing = privacySharing;
+  // Purely symbolic visual opening; deliberately decoupled from server data switches.
+  const [aperture, setAperture] = useState(0.22);
+
   return (
     <Shell
+      surface="ink"
       back={back}
       className="privacy-screen"
+      sky={(
+        <div className="es-privacy-stage">
+          <EarthshineScene
+            scene="privacy"
+            aperture={aperture}
+            onApertureChange={setAperture}
+          />
+          <div className="es-aperture-control" dir="ltr">
+            <input
+              type="range"
+              className="es-aperture-slider"
+              min="8"
+              max="92"
+              step="1"
+              value={Math.round(aperture * 100)}
+              onChange={(event) => setAperture(Number(event.target.value) / 100)}
+              aria-label="تنظیم نمادین گشودگی دریچه در تصویر"
+            />
+          </div>
+        </div>
+      )}
       footer={<Continue onClick={() => nextFrom('privacy', navigate)}>ادامه</Continue>}
     >
-      <ObHeader
-        title="حریم تو، مثل این حلقه است."
-        lede="فقط تو تعیین می‌کنی چقدر باز شود. برای اینکه پاسخ‌ها متناسب با تو باشند، گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شوند و اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شود."
-      />
-      <Instrument state="veil" tone="paper" className="ob-art--small" label="پرده‌ای که در میانه باز شده و شکافی از نور را نشان می‌دهد" />
-      <button
-        type="button"
-        className="privacy-card"
-        role="switch"
-        aria-checked={sharing}
-        aria-disabled={!privacyLoaded || privacyLoading || privacySaving}
-        disabled={!privacyLoaded || privacyLoading || privacySaving}
-        onClick={onTogglePrivacy}
-      >
-        <span className={`toggle ${sharing ? 'is-on' : ''}`} aria-hidden="true"><span /></span>
-        <span>اجازهٔ استفاده از گفت‌وگوها</span>
-      </button>
-      {privacyError && <div className="connected-notice" role="alert">
-        <p>تنظیمات حریم خصوصی در دسترس نیست. دوباره تلاش کن.</p>
-        <button type="button" onClick={onRetryPrivacy}>تلاش دوباره</button>
-      </div>}
+      <div className="ob-narrative ob-narrative--privacy">
+        <ObHeader
+          title="چه‌قدر بگویی، انتخاب توست."
+          lede="فقط تو تعیین می‌کنی چه‌قدر از خودت بگویی. برای اینکه پاسخ‌ها به تو نزدیک‌تر باشند، گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شوند و اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شود."
+        />
+        <div className="ob-privacy-controls">
+          <button
+            type="button"
+            className="privacy-card"
+            role="switch"
+            aria-checked={sharing}
+            aria-disabled={!privacyLoaded || privacyLoading || privacySaving}
+            disabled={!privacyLoaded || privacyLoading || privacySaving}
+            onClick={onTogglePrivacy}
+          >
+            <span className={`toggle ${sharing ? 'is-on' : ''}`} aria-hidden="true"><span /></span>
+            <span>اجازهٔ استفاده از گفت‌وگوها</span>
+          </button>
+          {privacyError && (
+            <div className="connected-notice" role="alert">
+              <p>تنظیمات حریم خصوصی در دسترس نیست. دوباره تلاش کن.</p>
+              <button type="button" onClick={onRetryPrivacy}>تلاش دوباره</button>
+            </div>
+          )}
+          <p className="ob-ai-disclosure">
+            تیا یک همراه مبتنی بر هوش مصنوعی است و جایگزین روان‌درمانگر یا متخصص سلامت روان نیست.
+          </p>
+        </div>
+      </div>
     </Shell>
   );
 }
 
-// The age step is a physical wheel, not a list that re-stacks itself. One native
-// scroll container holds all ranges with snap points, so touch momentum,
-// trackpad and wheel input behave exactly like the platform. Every range is
-// scaled, tilted and faded from its live distance to the centre instead of
-// being placed with precomputed pixel offsets, so the selection glides.
 const AGE_FALLBACK = '۲۵–۲۹';
 
 const reducedMotion = () => (typeof window === 'undefined'
@@ -316,8 +361,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
   const optionRefs = useRef([]);
   const startIndexRef = useRef(startIndex);
   const activeRef = useRef(startIndex);
-  // -1 means "nothing chosen yet": the visual default stays a preview and no
-  // answer is written until the user actually touches the wheel.
   const chosenRef = useRef(AGE_RANGES.includes(answers.age) ? startIndex : -1);
   const frameRef = useRef(0);
   const settleRef = useRef(0);
@@ -325,8 +368,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
   const dragRef = useRef(null);
   const draggedRef = useRef(false);
 
-  // A short tick is the physical feedback of passing a detent: the marker
-  // pulse and, where the platform allows it, a brief haptic tap.
   const tickFeedback = useCallback(() => {
     setTick((value) => value + 1);
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
@@ -350,8 +391,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
     });
   }, [centeredOffset]);
 
-  // Paint each range from its scroll distance. Only custom properties change,
-  // so the browser never re-lays-out the list mid-gesture.
   const paint = useCallback(() => {
     frameRef.current = 0;
     const wheel = wheelRef.current;
@@ -380,7 +419,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
     }
   }, [tickFeedback]);
 
-  // Answer is committed once the wheel settles, not on every pixel of movement.
   const commit = useCallback(() => {
     const index = activeRef.current;
     if (!interactedRef.current || chosenRef.current === index) return;
@@ -415,12 +453,8 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
     choose(target);
   };
 
-  // A scroll container does not drag with a mouse, so the same gesture is added
-  // for pointers. Touch keeps the platform's own momentum scrolling.
   const handlePointerDown = (event) => {
     interactedRef.current = true;
-    // A press always clears the "just dragged" guard, so the tap that follows
-    // is a real selection again on every input type.
     draggedRef.current = false;
     const wheel = wheelRef.current;
     if (!wheel || dragRef.current || event.pointerType !== 'mouse' || event.button !== 0) return;
@@ -428,8 +462,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
     const startY = event.clientY;
     const snap = wheel.style.scrollSnapType;
     const behavior = wheel.style.scrollBehavior;
-    // Snap and smooth scrolling are paused mid-drag so the wheel tracks the
-    // pointer one-to-one, then everything settles on release.
     wheel.style.scrollSnapType = 'none';
     wheel.style.scrollBehavior = 'auto';
     const move = (moveEvent) => {
@@ -457,9 +489,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
   useLayoutEffect(() => {
     const wheel = wheelRef.current;
     if (!wheel) return undefined;
-    // Half a viewport above the first range and below the last one, so both
-    // ends can reach the marker. Measured instead of a percentage height, which
-    // scroll containers do not resolve consistently.
     const sizeAndCenter = (index) => {
       const node = optionRefs.current[index];
       if (!node) return;
@@ -468,8 +497,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
     };
     sizeAndCenter(startIndexRef.current);
     paint();
-    // Keep the chosen range under the marker when the viewport, keyboard or
-    // orientation changes the wheel height.
     const observer = typeof ResizeObserver === 'function'
       ? new ResizeObserver(() => {
         sizeAndCenter(activeRef.current);
@@ -485,7 +512,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
     };
   }, [centeredOffset, paint]);
 
-  // Answers can change from outside this screen (back/forward through the flow).
   useEffect(() => {
     const index = AGE_RANGES.indexOf(answers.age);
     if (index < 0 || index === activeRef.current) return;
@@ -595,9 +621,6 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
   );
 }
 
-// Deliberately drawn as native SVG, not screenshots, so it stays sharp and
-// changes smoothly at all five mood positions. Direction follows the reference:
-// left is struggling and right is generally good, regardless of page RTL.
 const MOODS = [
   { label: 'این روزها سخت می‌گذرد', note: 'لازم نیست توضیح بدهی. از همین‌جا شروع می‌کنیم.' },
   { label: 'انرژی زیادی ندارم', note: 'با چیزهای کوچک شروع می‌کنیم؛ لازم نیست بزرگ باشد.' },
@@ -606,49 +629,40 @@ const MOODS = [
   { label: 'در کل حالم خوب است', note: 'خوب است. بگذار بیشتر بشناسیمش.' },
 ];
 
+/**
+ * Emotions as lunar terrain rather than a light-switch: across the five states,
+ * the Moon stays whole while nocturnal mist softens and earthshine readability
+ * gently shifts — strictly in cool slate and lunar tones, without sparkles.
+ */
 function MoodScribble({ level }) {
-  // A continuous hand-drawn contour evolves from angular and tangled to round.
-  const path = React.useMemo(() => {
-    const points = [];
-    const turns = [9.5, 7.4, 5.0, 3.0, 2.2][level];
-    const count = 430;
-    for (let i = 0; i <= count; i++) {
-      const progress = i / count;
-      const theta = progress * turns * Math.PI * 2;
-      const rough = level <= 1 ? (1 + 0.24 * Math.sin(theta * 2.7) + 0.12 * Math.cos(theta * 4.3)) : 1;
-      const radius = (0.45 + progress * 0.50) * rough;
-      const tilt = level === 4 ? 0.15 : 0.38;
-      const x = 170 + 113 * radius * Math.cos(theta + tilt) + (level === 2 ? 13 * Math.sin(theta * 0.4) : 0);
-      const y = 150 + 105 * radius * Math.sin(theta) + (level === 0 ? 12 * Math.sin(theta * 1.5) : 0);
-      points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`);
-    }
-    return points.join(' ');
-  }, [level]);
-  // The line itself is the illustration: a tangled thread at the hard end of
-  // the scale, a nearly closed ring at the easy end, and a dawn-coloured light
-  // that grows as the contour untangles.
-  const tone = ['#8C94B8', '#B0A0A0', '#D2AE86', '#E3C48C', '#F2C98D'][level];
+  const uid = React.useId().replace(/[^a-zA-Z0-9_-]/g, '');
+  const earthshine = [0.22, 0.34, 0.48, 0.64, 0.8][level] ?? 0.48;
+  const maria = [0.28, 0.4, 0.52, 0.65, 0.76][level] ?? 0.52;
+  const veilOpacity = [0.46, 0.32, 0.18, 0.08, 0][level] ?? 0.18;
+  const veilBlurId = `mood-veil-${uid}`;
+
   return (
-    <svg className="mood-scribble" viewBox="0 0 340 300" aria-hidden="true" focusable="false">
+    <svg className="mood-scribble" viewBox="0 0 340 240" aria-hidden="true" focusable="false">
       <defs>
-        <linearGradient id="mood-line" x1="40" y1="270" x2="300" y2="40" gradientUnits="userSpaceOnUse">
-          <stop stopColor={tone} stopOpacity="0.55" />
-          <stop offset="0.55" stopColor={tone} />
-          <stop offset="1" stopColor="#F7E7C6" />
-        </linearGradient>
-        <radialGradient id="mood-halo" cx="50%" cy="50%" r="50%">
-          <stop stopColor="#F3D8A3" stopOpacity={0.1 + level * 0.11} />
-          <stop offset="1" stopColor="#F3D8A3" stopOpacity="0" />
-        </radialGradient>
+        <filter id={veilBlurId} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="8" />
+        </filter>
       </defs>
-      <circle cx="170" cy="150" r="128" fill="url(#mood-halo)" />
-      <path d={path} fill="none" stroke="url(#mood-line)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-      {level >= 3 && (
-        <path
-          d="M170 137L172.6 144.8L180.4 147.4L172.6 150L170 157.8L167.4 150L159.6 147.4L167.4 144.8L170 137Z"
-          fill={tone}
-          opacity={level === 4 ? '0.95' : '0.5'}
-        />
+      <EarthshineMoon
+        idPrefix={`mood-${uid}-${level}`}
+        cx={170}
+        cy={120}
+        r={50}
+        earthshine={earthshine}
+        maria={maria}
+        halo={0.07 - level * 0.008}
+        skyBase="#0F1D36"
+      />
+      {veilOpacity > 0 && (
+        <g opacity={veilOpacity} filter={`url(#${veilBlurId})`}>
+          <ellipse cx="158" cy="128" rx="76" ry="18" fill="#0B1629" />
+          <ellipse cx="188" cy="108" rx="64" ry="14" fill="#0D1A30" opacity="0.8" />
+        </g>
       )}
     </svg>
   );
@@ -671,9 +685,17 @@ function MoodScreen({ navigate, back, answers, setAnswer }) {
           <div className="mood-ticks" aria-hidden="true">
             {MOODS.map((item, index) => <i key={index} style={{ '--tick-index': index }} className={index === mood ? 'is-active' : ''} />)}
           </div>
-          <input className="mood-slider" type="range" min="0" max="4" step="1"
-            value={mood} onChange={event => setAnswer('mood', Number(event.target.value))}
-            aria-label="حس این روزهای من" aria-valuetext={MOODS[mood].label} />
+          <input
+            className="mood-slider"
+            type="range"
+            min="0"
+            max="4"
+            step="1"
+            value={mood}
+            onChange={(event) => setAnswer('mood', Number(event.target.value))}
+            aria-label="حس این روزهای من"
+            aria-valuetext={MOODS[mood].label}
+          />
         </div>
       </div>
       <p className="mood-footnote" aria-live="polite">{MOODS[mood].note}</p>
@@ -681,18 +703,33 @@ function MoodScreen({ navigate, back, answers, setAnswer }) {
   );
 }
 
-function CheckinsScreen({ navigate, back }) {
+function CheckinsScreen({ navigate, back, answers = {}, setAnswer }) {
+  const remindersOn = answers.checkins !== false;
   return (
     <Shell
+      surface="morning"
       back={back}
       className="checkins-screen"
+      sky={<EarthshineScene scene="checkins" venusVisible={remindersOn} />}
       footer={<Continue onClick={() => nextFrom('checkins', navigate)}>ادامه</Continue>}
     >
-      <ObHeader
-        title="یادآوری، درست وقتی لازم است."
-        lede="تیا می‌تواند گاهی حالت را بپرسد. هر وقت بخواهی می‌توانی یادآوری‌ها را خاموش کنی."
-      />
-      <Instrument state="pulse" tone="paper" className="ob-art--small" label="حلقه‌ای که نورش بازمی‌گردد" />
+      <div className="ob-narrative ob-narrative--checkins">
+        <ObHeader
+          chapter="یادآوری"
+          title="اگر بخواهی، یک نور روشن می‌ماند."
+          lede="تیا می‌تواند گاهی سراغ حالت را بگیرد، بی‌اصرار. هر وقت بخواهی می‌توانی یادآوری‌ها را خاموش کنی."
+        />
+        <button
+          type="button"
+          className="privacy-card checkins-card"
+          role="switch"
+          aria-checked={remindersOn}
+          onClick={() => setAnswer?.('checkins', !remindersOn)}
+        >
+          <span className={`toggle ${remindersOn ? 'is-on' : ''}`} aria-hidden="true"><span /></span>
+          <span>یادآوری‌های آرام تیا</span>
+        </button>
+      </div>
     </Shell>
   );
 }
@@ -711,8 +748,6 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
   const lastWheelRef = useRef(-Infinity);
   const voice = VOICES[active];
 
-  // Offset measurements use layout sizes, not transformed bounding boxes.
-  // Recalculate at responsive breakpoints so the centered card never drifts.
   useLayoutEffect(() => {
     const measure = () => {
       const first = cardRefs.current[0];
@@ -736,7 +771,6 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
   const select = (index) => {
     const next = Math.max(0, Math.min(VOICES.length - 1, index));
     if (next === activeRef.current) {
-      // Tapping the already-centered default voice must still save that choice.
       if (answers.voice !== VOICES[next].name) setAnswer('voice', VOICES[next].name);
       return;
     }
@@ -748,8 +782,6 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
   const onPointerDown = (event) => {
     if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
     suppressClickRef.current = false;
-    // If a second gesture interrupts an in-flight snap, begin from the
-    // visible position rather than jumping to the pending destination.
     const transform = trackRef.current ? window.getComputedStyle(trackRef.current).transform : 'none';
     const visualX = transform === 'none' || typeof DOMMatrixReadOnly === 'undefined'
       ? null : new DOMMatrixReadOnly(transform).m41;
@@ -775,8 +807,6 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
       }
     }
     if (gesture.axis !== 'x') return;
-    // The browser handles vertical page gestures; horizontal movement is ours.
-    // At either end, add gentle resistance instead of revealing empty space.
     setDrag(gesture.residual + resistVoiceDrag(dx, activeRef.current, VOICES.length));
     gesture.samples.push({ x: event.clientX, time: event.timeStamp });
     gesture.samples = gesture.samples.filter((sample) => event.timeStamp - sample.time <= 100);
@@ -792,7 +822,6 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
     setDragging(false);
     setDrag(0);
     if (gesture.axis !== 'x') return;
-    // Captured pointer events must not trigger a stray card click on release.
     suppressClickRef.current = true;
     if (cancelled) return;
 
@@ -827,7 +856,7 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
 
   return (
     <Shell
-      theme="ink"
+      surface="morning"
       back={back}
       className="voice-screen"
       footer={(
@@ -929,15 +958,13 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
     const dx = event.clientX - start.x;
     const velocity = Math.abs(dx) / Math.max(1, event.timeStamp - start.time);
     const distance = Math.max(1, event.currentTarget.querySelector('.approach-replies')?.clientWidth || 320);
-    // Only commit on release. During the gesture both the active reply and the
-    // incoming neighboring reply follow the finger at the same pixel offset.
     if (Math.abs(dx) > distance * 0.24 || (Math.abs(dx) > 24 && velocity > 0.5)) {
       select(selectedIndex.current + (dx < 0 ? 1 : -1));
     }
   };
 
   return (
-    <Shell theme="ink" back={back} className="approach-screen">
+    <Shell surface="morning" back={back} className="approach-screen">
       <ObHeader title="چطور با تو حرف بزنم؟" lede="لحن تیا را انتخاب کن؛ این‌ها فقط نمونه‌اند و چیزی فرستاده نمی‌شود." />
       <div
         className="approach-stage"
@@ -964,8 +991,6 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
           const atEdge = (dx < 0 && selectedIndex.current === APPROACHES.length - 1) || (dx > 0 && selectedIndex.current === 0);
           const distance = Math.max(1, event.currentTarget.querySelector('.approach-replies')?.clientWidth || 320);
           setDragging(true);
-          // Full 1:1 tracking reveals the next reply progressively. Apply
-          // resistance only at the first/last style where no neighbor exists.
           const offset = atEdge ? Math.max(-42, Math.min(42, dx * 0.16)) : Math.max(-distance, Math.min(distance, dx));
           setDrag(offset);
         }}
@@ -1027,20 +1052,22 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
 function Ready({ navigate, savingProfile = false }) {
   return (
     <Shell
-      theme="ink"
+      surface="twilight"
       className="ready-screen"
+      sky={<EarthshineScene scene="final" />}
       footer={(
         <Continue disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>
           {savingProfile ? 'در حال ذخیره…' : 'شروع گفت‌وگو'}
         </Continue>
       )}
     >
-      <p className="ob-chapter">فصل شش · حلقه</p>
-      <Instrument state="seal" className="ob-art--hero" label="حلقهٔ کامل تیا؛ دایره بسته می‌شود و ستاره در مرکز می‌درخشد" />
-      <ObHeader
-        title="حلقه کامل می‌شود."
-        lede="از این‌جا با هم شروع می‌کنیم. پاسخ‌های آشنایی اولیه‌ات ذخیره می‌شوند و برای شخصی‌سازی گفت‌وگو در اختیار سرویس هوش مصنوعی قرار می‌گیرند."
-      />
+      <div className="ob-narrative">
+        <ObHeader
+          chapter="آغاز مسیر"
+          title="از این‌جا شروع می‌کنیم."
+          lede="آسمان همان است؛ فقط چشمت عادت کرده. پاسخ‌های آشنایی اولیه‌ات ذخیره می‌شوند و برای شخصی‌سازی گفت‌وگو در اختیار سرویس هوش مصنوعی قرار می‌گیرند."
+        />
+      </div>
     </Shell>
   );
 }

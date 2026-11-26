@@ -5,6 +5,7 @@ import '@fontsource-variable/vazirmatn';
 import '@fontsource-variable/noto-naskh-arabic';
 import OnboardingScreen from '../../src/screens/Onboarding';
 import '../../src/styles.css';
+import '../../src/onboarding.css';
 
 /**
  * Isolated, synthetic design preview. It renders the real screen component but

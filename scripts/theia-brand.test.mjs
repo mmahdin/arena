@@ -25,12 +25,18 @@ test('faceless Theia identity assets, app icons and manifest exist', () => {
   }
 });
 
-test('the open-ring mark is the only Theia identity in the UI', () => {
+test('the Earthshine Moon is the sole Theia identity in the UI without rings, sparkles, or human figures', () => {
   const brand = read('src/components/TheiaBrand.jsx');
   const sigil = read('src/components/TheiaSigil.jsx');
+  const earthshine = read('src/components/Earthshine.jsx');
   assert.match(brand, /THEIA_LOGO_SRC = '\/brand\/theia-sigil\.svg'/);
-  assert.match(sigil, /openRing/);
-  assert.match(sigil, /State|STATE_LABEL/);
+  assert.match(sigil, /crescentPath/);
+  assert.match(earthshine, /EARTHSHINE_SCENES/);
+  // No arbitrary rings or 4-point sparkle stars in the live brand or onboarding sky.
+  assert.doesNotMatch(sigil, /openRing|starPath/);
+  assert.doesNotMatch(brand, /openRing|starPath/);
+  assert.doesNotMatch(earthshine, /openRing|starPath/);
+
   const active = [
     read('src/components/UI.jsx'),
     read('src/screens/Onboarding.jsx'),
@@ -41,14 +47,17 @@ test('the open-ring mark is the only Theia identity in the UI', () => {
   for (const retired of ['photo_2026-11-12_19-20-10.jpg', 'theia-welcome.png', 'theia-story-1.png', 'theia-story-2.png', 'theia-story-3.png', 'theia-story-4.png', 'theia-privacy.png', 'theia-ready.png', 'theia-checkins.png']) {
     assert.ok(!active.includes(retired), `Retired female figure still referenced: ${retired}`);
   }
-  // No illustration may depict a person: the story is told by the instrument.
+  // No illustration may depict a person: every onboarding story scene is rendered by EarthshineScene.
   const onboarding = read('src/screens/Onboarding.jsx');
-  assert.match(onboarding, /<TheiaInstrument state=\{state\} tone=\{tone\}/);
-  for (const state of ['night', 'sight', 'dawn', 'orbits', 'veil', 'pulse', 'seal']) {
-    assert.ok(onboarding.includes(`state="${state}"`) || onboarding.includes(`state: '${state}'`), `Missing instrument state ${state}`);
+  assert.match(onboarding, /<EarthshineScene/);
+  for (const scene of ['welcome', 'privacy', 'night', 'seeing', 'dawn', 'threeLights', 'checkins', 'final']) {
+    assert.ok(
+      onboarding.includes(`scene="${scene}"`) || onboarding.includes(`scene: '${scene}'`),
+      `Missing Earthshine scene ${scene}`,
+    );
   }
   // Only the two legacy expert portraits (outside the active flow) remain raster;
-  // every Theia story screen is drawn by the instrument.
+  // every Theia story screen is vector sky & lunar geometry.
   assert.equal((onboarding.match(/<img/g) || []).length, 2, 'Theia story screens must stay vector-only');
 });
 
@@ -74,15 +83,15 @@ test('HTML head, manifest and entry copy reflect the Persian RTL Theia (تیا) 
   const devLogin = read('src/features/devsession/DevLogin.jsx');
   const data = read('src/data.js');
 
-  assert.match(onboarding, /تیا را نمی‌بینی؛ با تیا می‌بینی/);
+  assert.match(onboarding, /تیا را نمی‌بینی؛ با تیا می‌بینی\./);
   assert.match(main, /نامه‌های تیا/);
   assert.match(letters, /نامه‌های تیا/);
   assert.match(devLogin, /به تیا خوش آمدی/);
   assert.match(data, /چطور با تیا آشنا شدی؟/);
 
-  // The four story chapters are wired in sequence through the shared instrument.
-  for (const state of ['night', 'sight', 'dawn', 'orbits']) {
-    assert.ok(onboarding.includes(`state: '${state}'`), `Onboarding missing ${state} chapter`);
+  // The four interstitial chapters progress through night -> seeing -> dawn -> threeLights.
+  for (const scene of ['night', 'seeing', 'dawn', 'threeLights']) {
+    assert.ok(onboarding.includes(`scene: '${scene}'`), `Onboarding missing ${scene} chapter`);
   }
 });
 
@@ -91,6 +100,7 @@ test('active UI keeps the Theia visual vocabulary', () => {
     read('src/components/UI.jsx'),
     read('src/components/TheiaBrand.jsx'),
     read('src/components/TheiaSigil.jsx'),
+    read('src/components/Earthshine.jsx'),
     read('src/screens/Onboarding.jsx'),
     read('src/screens/Main.jsx'),
     read('src/screens/Letters.jsx'),
@@ -104,4 +114,5 @@ test('active UI keeps the Theia visual vocabulary', () => {
   assert.ok(activeSource.includes('TheiaMark'));
   assert.ok(activeSource.includes('TheiaSealIcon'));
   assert.ok(activeSource.includes('TheiaLetterEmpty'));
+  assert.ok(activeSource.includes('EarthshineScene'));
 });
