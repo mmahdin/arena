@@ -95,9 +95,36 @@ function ObHeader({ title, lede, epigraph, align = 'start', className = '' }) {
 }
 
 function Instrument({ state, tone = 'ink', className = '', label }) {
+  const chapter = ({ welcome: 0, veil: 0, night: 1, sight: 2, dawn: 3, orbits: 4, pulse: 5, seal: 6 })[state] ?? 0;
+  const shutters = state === 'veil';
+  const lantern = state === 'pulse' || chapter > 5;
+  const dawn = chapter >= 3;
+  const visibility = [0.12, 0.2, 0.5, 0.7, 1, 1, 1][chapter];
+  const moonY = 107 - Math.min(chapter, 5) * 5;
+  const moonR = chapter === 2 ? 26 : 22;
   return (
-    <div className={`ob-art ${className}`.trim()}>
-      <TheiaInstrument state={state} tone={tone} label={label} />
+    <div className={`ob-art rooftop-art ${className}`.trim()}>
+      <svg viewBox="0 0 390 330" role="img" aria-label={label || 'بام آرامی رو به سپیده؛ ماه هلالی با روشناییِ زمین'}>
+        <defs>
+          <linearGradient id="roof-sky" x2="0" y2="1"><stop stopColor={dawn ? '#202b40' : '#090f1c'}/><stop offset=".72" stopColor={dawn ? '#475064' : '#111b2c'}/><stop offset="1" stopColor={dawn ? '#bd9b91' : '#172438'}/></linearGradient>
+          <radialGradient id="moon-ashen"><stop stopColor="#899bae" stopOpacity={visibility}/><stop offset="1" stopColor="#536478" stopOpacity={visibility*.8}/></radialGradient>
+          <clipPath id="moon-clip"><circle cx="279" cy={moonY} r={moonR}/></clipPath>
+        </defs>
+        <rect width="390" height="330" fill="url(#roof-sky)"/>
+        {Array.from({length: 25}, (_,i)=><circle key={i} cx={(i*83+23)%390} cy={(i*47+19)%175} r={i%5===0?1:0.55} fill="#d8d8d0" opacity={dawn?.22:.48}/>) }
+        {dawn && <path d="M0 205 Q190 174 390 201V245H0Z" fill="#c8a6a0" opacity=".14"/>}
+        <circle cx="279" cy={moonY} r={moonR} fill="url(#moon-ashen)" opacity={visibility}/>
+        <g clipPath="url(#moon-clip)" opacity={visibility*.3} fill="#37495c"><ellipse cx="270" cy={moonY-4} rx="7" ry="4"/><ellipse cx="287" cy={moonY+8} rx="8" ry="5"/><ellipse cx="273" cy={moonY+12} rx="4" ry="3"/></g>
+        <path d={`M279 ${moonY-moonR} A${moonR} ${moonR} 0 1 0 279 ${moonY+moonR} A${moonR*.77} ${moonR*.77} 0 1 1 279 ${moonY-moonR}`} fill="#e6e7e3"/>
+        {shutters && <g fill="#322b2b"><path d="M0 0h115v330H0z"/><path d="M275 0h115v330H275z"/></g>}
+        {shutters && <g stroke="#765b48" strokeWidth="2" opacity=".65"><path d="M15 20h85M15 80h85M15 140h85M15 200h85M15 260h85M290 20h85M290 80h85M290 140h85M290 200h85M290 260h85"/></g>}
+        {!shutters && <g><path d="M0 248 Q180 226 390 247V330H0Z" fill="#111722"/><path d="M0 247 Q180 226 390 247" stroke="#59606b" strokeWidth="3"/><path d="M35 282l130-10 27 50H15z" fill="#4b4650" opacity=".8"/><path d="M35 282l130-10M15 322l177 0" stroke="#867b72" strokeWidth="1" opacity=".45"/>
+          {chapter>=3 && <path d="M0 229 Q190 213 390 231" stroke="#c9a7a0" strokeWidth="2" opacity=".35"/>}
+          {chapter>=4 && <><path d="M0 236 Q190 217 390 238" stroke="#e7bb91" strokeWidth="3" opacity=".68"/><circle cx="35" cy="225" r="2" fill="#e8c9a0"/></>}
+          {lantern && <g><path d="M301 215h14l-2 20h-10z" fill="#8b6847"/><ellipse cx="308" cy="225" rx="4" ry="7" fill="#e2ae68"/><path d="M301 218h14" stroke="#bd9c71"/></g>}
+          {chapter===6 && <path d="M8 228L96 248" stroke="#e7c69c" strokeWidth="8" opacity=".13"/>}
+        </g>}
+      </svg>
     </div>
   );
 }
@@ -115,7 +142,7 @@ function Welcome({ navigate }) {
       <ObHeader
         epigraph="روشناییِ دوربرد"
         title="تیا را نمی‌بینی؛ با تیا می‌بینی."
-        lede="تیا، الههٔ یونانیِ نور و دیدن، هیچ تصویری از خودش ندارد؛ تنها چیزی که از او مانده روشنایی است. این‌جا هم همین‌طور است: نه یک چهره، بلکه نوری که کمک می‌کند خودت را واضح‌تر ببینی."
+        lede="در اسطوره‌ها، تیا الههٔ نور و دیدن بود. این‌جا چهره‌ای ندارد؛ همراهی است که کمک می‌کند آن‌چه از پیش در توست، روشن‌تر دیده شود. تیا همراهی هوش‌مصنوعی است، نه درمانگر."
       />
     </Shell>
   );
@@ -229,20 +256,20 @@ const INTERSTITIALS = {
   'deeper-intro': {
     state: 'sight',
     chapter: 'فصل سه · دیدن',
-    title: 'تیا نور را نمی‌سازد؛ آن را می‌بیند.',
-    lede: 'پس چیزی به تو اضافه نمی‌کند و چیزی هم از تو نمی‌گیرد. فقط کمک می‌کند آن‌چه هست را واضح‌تر ببینی — حتی وقتی واضح دیدن راحت نیست.',
+    title: 'آن‌چه تاریک به نظر می‌رسد، خالی نیست.',
+    lede: 'بخش تاریک ماه هم کمی روشن است: نوری که از زمین به آن می‌رسد، به چشم تو برمی‌گردد. تیا چیزی به تو اضافه نمی‌کند و چیزی از تو نمی‌گیرد؛ فقط کمک می‌کند آن‌چه هست واضح‌تر دیده شود، حتی وقتی دیدنش آسان نیست.',
   },
   'know-intro': {
     state: 'dawn',
     chapter: 'فصل چهار · سپیده',
     title: 'سپیده یک‌باره نمی‌آید.',
-    lede: 'کم‌کم روشن می‌شود، آن‌قدر آرام که اول متوجهش نمی‌شوی. حال آدم هم همین‌طور عوض می‌شود.',
+    lede: 'کم‌کم روشن می‌شود، آن‌قدر آرام که اول متوجهش نمی‌شوی. گاهی نوری می‌آید و دوباره پس می‌رود؛ آن هم بخشی از راه است. حال آدم هم اغلب همین‌طور عوض می‌شود.',
   },
   'almost-intro': {
     state: 'orbits',
     chapter: 'فصل پنج · سه نور',
-    title: 'خورشید، ماه، سپیده.',
-    lede: 'هر سه فرزندان تیا بودند؛ سه حالتِ نور، و هیچ‌کدام همیشگی نبود. حال تو هم همین‌طور است: می‌آید و می‌رود و هیچ‌کدام تمامِ تو نیست.',
+    title: 'سه نور؛ و هیچ‌کدام همیشگی نیست.',
+    lede: 'خورشید، ماه و سپیده، هر سه فرزندانِ تیا بودند: سه حالتِ یک نور. حال‌های تو هم همین‌طورند: می‌آیند و می‌روند، و هیچ‌کدام تمامِ تو نیست.',
   },
 };
 
@@ -272,8 +299,8 @@ function Privacy({ navigate, back, privacySharing = true, privacyLoading = false
       footer={<Continue onClick={() => nextFrom('privacy', navigate)}>ادامه</Continue>}
     >
       <ObHeader
-        title="حریم تو، مثل این حلقه است."
-        lede="فقط تو تعیین می‌کنی چقدر باز شود. برای اینکه پاسخ‌ها متناسب با تو باشند، گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شوند و اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شود."
+        title="چه‌قدر بگویی، انتخاب توست."
+        lede="فقط تو تعیین می‌کنی چه‌قدر از خودت بگویی. برای اینکه پاسخ‌ها به تو نزدیک‌تر باشند، گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شوند و اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شود."
       />
       <Instrument state="veil" tone="paper" className="ob-art--small" label="پرده‌ای که در میانه باز شده و شکافی از نور را نشان می‌دهد" />
       <button
@@ -689,8 +716,8 @@ function CheckinsScreen({ navigate, back }) {
       footer={<Continue onClick={() => nextFrom('checkins', navigate)}>ادامه</Continue>}
     >
       <ObHeader
-        title="یادآوری، درست وقتی لازم است."
-        lede="تیا می‌تواند گاهی حالت را بپرسد. هر وقت بخواهی می‌توانی یادآوری‌ها را خاموش کنی."
+        title="اگر بخواهی، چراغ روشن می‌ماند."
+        lede="تیا می‌تواند گاهی سراغ حالت را بگیرد، بی‌اصرار. هر وقت بخواهی می‌توانی یادآوری‌ها را خاموش کنی."
       />
       <Instrument state="pulse" tone="paper" className="ob-art--small" label="حلقه‌ای که نورش بازمی‌گردد" />
     </Shell>
