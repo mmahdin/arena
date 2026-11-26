@@ -254,6 +254,8 @@ Each state was rasterised through the real React component (resvg) and reviewed
 on both tonalities before the CSS pass, so the drawing, not the copy, carries the
 chapter.
 
+![The eight plate states, ink above and paper below, in order: welcome, night, veil, sight, dawn, orbits, pulse, seal](onboarding-plates-2026-11.jpg)
+
 ## 13. The sky follows the chapters
 
 `Shell` now publishes `data-ob-chapter` (0–5) on the screen element — visual
