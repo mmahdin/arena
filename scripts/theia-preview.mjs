@@ -46,6 +46,7 @@ function createSyntheticPreviewApi() {
       },
     ],
     bookmarks: new Map(),
+    reflections: new Map(),
     letters: [
       {
         id: '55555555-5555-4555-8555-555555555555',
@@ -74,6 +75,7 @@ function createSyntheticPreviewApi() {
         privacySharing: true,
         conversations: [],
         bookmarks: new Map(),
+        reflections: new Map(),
         letters: [],
       });
     }
@@ -223,6 +225,38 @@ function createSyntheticPreviewApi() {
 
     if (req.method === 'GET' && url.pathname === '/api/v1/me/letters') {
       return sendJson(res, 200, { items: user.letters });
+    }
+
+    if (req.method === 'GET' && url.pathname === '/api/v1/me/daily-reflections') {
+      return sendJson(res, 200, { items: Array.from(user.reflections.values()) });
+    }
+
+    const reflMatch = url.pathname.match(/^\/api\/v1\/me\/daily-reflections\/(\d{4}-\d{2}-\d{2})$/);
+    if (reflMatch) {
+      const date = reflMatch[1];
+      if (req.method === 'GET') {
+        const entry = user.reflections.get(date);
+        return entry ? sendJson(res, 200, entry) : sendJson(res, 404, { code: 'RESOURCE_NOT_FOUND', title: 'Not found' });
+      }
+      if (req.method === 'PUT') {
+        const body = await readJson(req);
+        const now = new Date().toISOString();
+        const existing = user.reflections.get(date);
+        const entry = {
+          date,
+          text: String(body.text || '').trim(),
+          createdAt: existing ? existing.createdAt : now,
+          updatedAt: now,
+        };
+        user.reflections.set(date, entry);
+        return sendJson(res, 200, entry);
+      }
+      if (req.method === 'DELETE') {
+        user.reflections.delete(date);
+        res.writeHead(204);
+        res.end();
+        return undefined;
+      }
     }
 
     if (req.method === 'GET' && url.pathname === '/api/v1/me/bookmarks') {

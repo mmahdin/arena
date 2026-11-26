@@ -2,13 +2,11 @@ import React from 'react';
 import { TheiaMark, TheiaSigil } from './TheiaSigil';
 
 /**
- * Single source for Theia's identity mark.
+ * Single source for Theia's faceless identity mark: the Held Moon (ماهِ در آغوش),
+ * a waning pre-dawn crescent cradling its cool blue-gray Earthshine sphere.
  *
- * 2026-11: the previous supplied logo depicted a woman's profile. The product
- * direction is a faceless, non-human identity for an Iranian audience, so the
- * shared mark is now the open dawn ring (see `TheiaSigil.jsx` for the mythic
- * rationale). The retired artwork is kept in `public/brand/` for history but is
- * no longer referenced by the UI, HTML head or manifest.
+ * Retired female-portrait assets remain in `public/brand/` strictly as history
+ * and are never referenced in the UI, HTML head or install manifest.
  */
 export const THEIA_LOGO_SRC = '/brand/theia-sigil.svg';
 
@@ -22,13 +20,14 @@ export function TheiaSealIcon({ size = 11, className = '' }) {
 export function TheiaHomeArt() {
   return (
     <span className="home-conversation-art" aria-hidden="true">
-      <TheiaMark size="100%" luminous className="home-conversation-mark theia-home-emblem" />
+      <TheiaMark size="100%" luminous earthshine={0.86} className="home-conversation-mark theia-home-emblem" />
     </span>
   );
 }
 
 /**
- * Quiet celestial empty-inbox illustration for Letters (\"هنوز نامه‌ای نرسیده\").
+ * Quiet nocturnal empty-inbox illustration for Letters ("هنوز نامه‌ای نرسیده") —
+ * an envelope beneath the Held Moon (crescent + ashen sphere, no star).
  */
 export function TheiaLetterEmpty({ size = 44 }) {
   return (
@@ -42,29 +41,23 @@ export function TheiaLetterEmpty({ size = 44 }) {
       focusable="false"
     >
       <path
-        d="M9 17.5C9 15.57 10.57 14 12.5 14H35.5C37.43 14 39 15.57 39 17.5V33.5C39 35.43 37.43 37 35.5 37H12.5C10.57 37 9 35.43 9 33.5V17.5Z"
+        d="M9 18.5C9 16.57 10.57 15 12.5 15H35.5C37.43 15 39 16.57 39 18.5V34.5C39 36.43 37.43 38 35.5 38H12.5C10.57 38 9 36.43 9 34.5V18.5Z"
         stroke="currentColor"
         strokeWidth="1.35"
       />
       <path
-        d="M10.5 16L24 26.2L37.5 16"
+        d="M10.5 17L24 27.2L37.5 17"
         stroke="currentColor"
         strokeWidth="1.35"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      {/* Held Moon: Earthshine sphere + lower-right waning crescent, never beside a star */}
+      <circle cx="24" cy="8.2" r="4.3" fill="#6E84A3" fillOpacity="0.28" stroke="#8EA5C2" strokeOpacity="0.42" strokeWidth="0.7" />
       <path
-        d="M28.5 5.2A5.2 5.2 0 1 0 32.8 11.4A4.1 4.1 0 0 1 28.5 5.2Z"
-        stroke="#d5d9f7"
-        strokeOpacity="0.65"
-        strokeWidth="1.25"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M21 6.5L21.65 8.35L23.5 9L21.65 9.65L21 11.5L20.35 9.65L18.5 9L20.35 8.35L21 6.5Z"
-        fill="#f6cf98"
-        fillOpacity="0.78"
+        d="M27.8 6.2A4.3 4.3 0 0 1 21.8 11.9A4.05 4.05 0 0 0 27.8 6.2Z"
+        fill="#E8EFFA"
+        fillOpacity="0.88"
       />
     </svg>
   );

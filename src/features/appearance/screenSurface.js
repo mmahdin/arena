@@ -1,14 +1,18 @@
-/** Match each route's actual surface, including the 2026 onboarding palette.
+/** Match each route's actual surface, including the Earthshine onboarding palette.
  * Keep this as presentation-only state; routing and profile permissions stay in App.
  */
 const DARK_ROUTES = new Set(['home', 'survey', 'day', 'letter', 'history', 'saved', 'settings', 'chat', 'insight']);
 const BLACK_ROUTES = new Set(['menu', 'research', 'experts']);
-// The onboarding story alternates night ink and ivory paper.
-const INK_ROUTES = new Set(['welcome', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro', 'voice', 'approach', 'ready']);
+// All eight Earthshine story scenes plus nocturnal voice/style previews sit on ink;
+// questionnaire intake steps rest on calm limestone paper.
+const INK_ROUTES = new Set([
+  'welcome', 'privacy', 'simple-intro', 'deeper-intro', 'know-intro',
+  'almost-intro', 'voice', 'approach', 'checkins', 'ready',
+]);
 const PAPER_ROUTES = new Set([
-  'privacy', 'name', 'age', 'identity', 'therapist', 'mood', 'concerns', 'focus', 'feelings',
+  'name', 'age', 'identity', 'therapist', 'mood', 'concerns', 'focus', 'feelings',
   'faith', 'neurodivergent', 'relationships', 'interests', 'strengths', 'barriers',
-  'recharge', 'checkins', 'referral',
+  'recharge', 'referral',
 ]);
 const BEIGE_ROUTES = new Set(['testimonials']);
 

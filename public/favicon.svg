@@ -1,16 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
   <defs>
-    <linearGradient id="g" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F7E7C6"/>
-      <stop offset=".46" stop-color="#E3C48C"/>
-      <stop offset="1" stop-color="#B98A4E"/>
-    </linearGradient>
-    <radialGradient id="n" cx="50%" cy="40%" r="70%">
-      <stop stop-color="#1A1D24"/>
-      <stop offset="1" stop-color="#0A0B0D"/>
+    <radialGradient id="sky" cx="50%" cy="38%" r="72%">
+      <stop offset="0%" stop-color="#131A29"/>
+      <stop offset="100%" stop-color="#07090F"/>
     </radialGradient>
+    <radialGradient id="ashen" cx="68%" cy="70%" r="76%">
+      <stop offset="0%" stop-color="#7C94B4"/>
+      <stop offset="48%" stop-color="#495C78"/>
+      <stop offset="100%" stop-color="#202B3D"/>
+    </radialGradient>
+    <radialGradient id="mareA" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#162030" stop-opacity="0.58"/>
+      <stop offset="100%" stop-color="#162030" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="crescent" x1="48" y1="50" x2="17" y2="17" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F6F9FE"/>
+      <stop offset="60%" stop-color="#DCE7F5"/>
+      <stop offset="100%" stop-color="#9FB5CF"/>
+    </linearGradient>
+    <clipPath id="sphere">
+      <circle cx="32" cy="32" r="21.5"/>
+    </clipPath>
+    <mask id="limb">
+      <rect width="64" height="64" fill="#000"/>
+      <circle cx="32" cy="32" r="21.5" fill="#fff"/>
+      <circle cx="29.5" cy="29.3" r="21" fill="#000"/>
+    </mask>
   </defs>
-  <rect width="64" height="64" rx="15" fill="url(#n)"/>
-  <path d="M19.4 54.7A26 26 0 1 1 44.6 54.7" stroke="url(#g)" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-  <path d="M32 20Q32.7 30.3 40.1 31Q32.7 31.7 32 42Q31.3 31.7 23.9 31Q31.3 30.3 32 20Z" fill="url(#g)"/>
+  <rect width="64" height="64" rx="15" fill="url(#sky)"/>
+  <g clip-path="url(#sphere)" opacity="0.86">
+    <circle cx="32" cy="32" r="21.5" fill="url(#ashen)"/>
+    <ellipse cx="24.5" cy="26.5" rx="12" ry="10" transform="rotate(-24 24.5 26.5)" fill="url(#mareA)"/>
+    <ellipse cx="37.5" cy="28.5" rx="10" ry="8.5" transform="rotate(16 37.5 28.5)" fill="url(#mareA)"/>
+  </g>
+  <circle cx="32" cy="32" r="21.25" stroke="#8FA6C4" stroke-width="0.55" opacity="0.34"/>
+  <circle cx="32" cy="32" r="21.5" fill="url(#crescent)" mask="url(#limb)"/>
 </svg>
