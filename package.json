@@ -13,6 +13,7 @@
     "test": "node --test scripts/*.test.mjs",
     "test:e2e:session": "node scripts/e2e-session.mjs",
     "check:source-baseline": "node scripts/check-foundation.mjs --verify-original",
+    "brand:icons": "node scripts/generate-theia-icons.mjs",
     "test:e2e:chat": "node scripts/e2e-chat-history.mjs",
     "test:e2e:qa": "node scripts/e2e-qa.mjs",
     "test:e2e:faults": "node scripts/e2e-faults.mjs",

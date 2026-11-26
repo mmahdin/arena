@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" fill="none">
+  <defs>
+    <linearGradient id="g" x1="32" y1="28" x2="222" y2="232" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7E7C6"/>
+      <stop offset=".46" stop-color="#E3C48C"/>
+      <stop offset="1" stop-color="#B98A4E"/>
+    </linearGradient>
+  </defs>
+  <!-- An open ring: the circle of light never closes around the person using it. -->
+  <path d="M77.6 218.8A104 104 0 1 1 178.4 218.8" stroke="url(#g)" stroke-width="8.8" stroke-linecap="round"/>
+  <!-- The single spark of dawn at the centre; Theia's sight. -->
+  <path d="M128 84Q130.8 125.2 160.5 128Q130.8 130.8 128 172Q125.2 130.8 95.5 128Q125.2 125.2 128 84Z" fill="url(#g)"/>
+</svg>

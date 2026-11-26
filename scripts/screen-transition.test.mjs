@@ -10,18 +10,26 @@ test('chat, home, history and all main dark screens use a dark underlying surfac
   for (const route of ['home', 'chat', 'history', 'survey', 'day', 'letter', 'insight']) {
     assert.equal(screenSurfaceForRoute(route), 'dark', route);
   }
-  for (const route of ['menu', 'research', 'experts', 'voice', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro']) {
+  for (const route of ['menu', 'research', 'experts']) {
     assert.equal(screenSurfaceForRoute(route), 'black', route);
   }
 });
 
-test('designer beige and light onboarding pages retain their surfaces', () => {
-  for (const route of ['testimonials', 'interests', 'approach']) assert.equal(screenSurfaceForRoute(route), 'beige');
-  for (const route of ['welcome', 'name', 'privacy', 'ready', 'therapist', 'age', 'concerns']) assert.equal(screenSurfaceForRoute(route), 'light');
+test('2026 onboarding alternates night ink and ivory paper surfaces', () => {
+  for (const route of ['welcome', 'simple-intro', 'deeper-intro', 'know-intro', 'almost-intro', 'voice', 'approach', 'ready']) {
+    assert.equal(screenSurfaceForRoute(route), 'ink', route);
+  }
+  for (const route of ['privacy', 'name', 'age', 'therapist', 'interests', 'mood', 'checkins', 'referral', 'concerns']) {
+    assert.equal(screenSurfaceForRoute(route), 'paper', route);
+  }
+  assert.equal(screenSurfaceForRoute('testimonials'), 'beige');
 });
 
 test('the route-controlled shell and transition never fade dark screens from transparent white', () => {
-  assert.match(app, /data-screen-surface=\{active \? screenSurfaceForRoute\(route\) : 'light'\}/);
+  assert.match(app, /data-screen-surface=\{active \? screenSurfaceForRoute\(route\) : 'ink'\}/);
+  const onboardingCss = readFileSync(new URL('../src/onboarding.css', import.meta.url), 'utf8');
+  assert.match(onboardingCss, /\.app-shell\[data-screen-surface="ink"\]\s*\{\s*--screen-surface:\s*#0a0b0d/);
+  assert.match(onboardingCss, /\.app-shell\[data-screen-surface="paper"\]\s*\{\s*--screen-surface:\s*#f2ede4/);
   assert.match(styles, /\.app-shell\[data-screen-surface="dark"\]\s*\{\s*--screen-surface:\s*var\(--dark\)/);
   assert.match(styles, /\.screen-transition\s*\{[^}]*background:\s*var\(--screen-surface\)/s);
   assert.match(styles, /@keyframes screen-in\s*\{\s*from\s*\{\s*opacity:\s*\.96/);

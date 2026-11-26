@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Check, ChevronLeft, ChevronRight, Flame, Landmark } from 'lucide-react';
 import { AGE_RANGES, APPROACHES, APPROACH_EXAMPLE_USER, FLOW, QUESTIONS, REVIEWS, VOICES } from '../data';
 import { resistVoiceDrag, voiceSwipeTarget } from '../features/onboarding/voiceCarousel';
 import { TheiaMark } from '../components/TheiaBrand';
+import { TheiaInstrument, TheiaSigil } from '../components/TheiaSigil';
 import {
   BackButton,
   ChoiceButton,
@@ -19,28 +20,103 @@ const nextFrom = (route, navigate) => {
   if (nextIndex > 0 && nextIndex < FLOW.length) navigate(FLOW[nextIndex]);
 };
 
-function Shell({ theme = 'light', back, children, className = '' }) {
-  const dark = theme === 'dark';
+const fa = (value) => Number(value).toLocaleString('fa-IR');
+
+/**
+ * The onboarding tells one quiet story: Theia, the faceless Greek Titaness of
+ * sight and far-shining light, never appears as a body — only as an open ring,
+ * an aperture of light and the horizon it measures. Six chapters carry the
+ * metaphor from night to a completed circle; each chapter names the emotional
+ * movement ("not knowing is where seeing begins") instead of decorating it.
+ */
+const CHAPTERS = [
+  { name: 'آغاز', routes: ['welcome', 'privacy'] },
+  { name: 'شب', routes: ['simple-intro', 'name', 'age', 'identity', 'therapist'] },
+  { name: 'دیدن', routes: ['deeper-intro', 'mood', 'concerns', 'focus', 'feelings'] },
+  { name: 'سپیده', routes: ['know-intro', 'faith', 'neurodivergent', 'relationships', 'interests', 'strengths', 'barriers', 'recharge'] },
+  { name: 'سه نور', routes: ['almost-intro', 'approach', 'voice', 'checkins', 'referral'] },
+  { name: 'حلقه', routes: ['ready'] },
+];
+
+function chapterIndexFor(route) {
+  const index = CHAPTERS.findIndex((chapter) => chapter.routes.includes(route));
+  return index < 0 ? 0 : index;
+}
+
+const OnboardingRouteContext = React.createContext('welcome');
+
+function ChapterSeam({ index }) {
+  const chapter = CHAPTERS[index];
   return (
-    <section className={`app-screen theme-${theme} ${className}`}>
-      <StatusBar dark={dark} />
-      {back && <BackButton onClick={back} dark={dark} />}
-      {children}
+    <div className="ob-seam" role="group" aria-label={`فصل ${chapter.name}`}>
+      {CHAPTERS.map((item, position) => (
+        <i
+          key={item.name}
+          aria-hidden="true"
+          className={position < index ? 'is-past' : position === index ? 'is-now' : ''}
+        />
+      ))}
+      <span className="sr-only" aria-live="polite">
+        {`فصل ${fa(index + 1)} از ${fa(CHAPTERS.length)}`}
+      </span>
+    </div>
+  );
+}
+
+function Shell({ theme = 'paper', back, children, className = '', footer }) {
+  const route = useContext(OnboardingRouteContext);
+  const dark = theme === 'ink' || theme === 'dark' || theme === 'black';
+  const surface = dark ? 'ink' : 'paper';
+  return (
+    <section className={`app-screen onboarding-screen ob-shell ob-${surface} ${className}`.trim()} data-ob-theme={surface}>
+      <StatusBar />
+      <div className="ob-chrome">
+        {back
+          ? <BackButton onClick={back} dark={dark} />
+          : <span className="ob-chrome__sigil" aria-hidden="true"><TheiaSigil size={19} /></span>}
+        <ChapterSeam index={chapterIndexFor(route)} />
+        <span className="ob-chrome__tail" aria-hidden="true" />
+      </div>
+      <div className="ob-flow">{children}</div>
+      {footer ? <div className="ob-footer">{footer}</div> : null}
     </section>
   );
 }
 
+/** One heading, one quiet paragraph. The chapter word is carried by the seam. */
+function ObHeader({ title, lede, epigraph, align = 'start', className = '' }) {
+  return (
+    <header className={`ob-header ob-header--${align} ${className}`.trim()}>
+      {epigraph && <p className="ob-epigraph">{epigraph}</p>}
+      <h1>{title}</h1>
+      {lede && <p className="ob-lede">{lede}</p>}
+    </header>
+  );
+}
+
+function Instrument({ state, tone = 'ink', className = '', label }) {
+  return (
+    <div className={`ob-art ${className}`.trim()}>
+      <TheiaInstrument state={state} tone={tone} label={label} />
+    </div>
+  );
+}
+
+function Continue({ children, ...rest }) {
+  return <PrimaryButton {...rest}>{children}</PrimaryButton>;
+}
+
 function Welcome({ navigate }) {
   return (
-    <Shell className="welcome-screen">
-      <PageHeader
-        title="با تیا آشنا شو"
-        description="تیا کمک می‌کنه دربارهٔ احساساتت حرف بزنی و خودت رو بهتر بشناسی."
+    <Shell theme="ink" className="welcome-screen" footer={(
+      <Continue onClick={() => nextFrom('welcome', navigate)}>شروع</Continue>
+    )}>
+      <Instrument state="welcome" className="ob-art--hero" label="حلقهٔ باز تیا، با ستاره‌ای از سپیده در مرکز" />
+      <ObHeader
+        epigraph="روشناییِ دوربرد"
+        title="تیا را نمی‌بینی؛ با تیا می‌بینی."
+        lede="تیا، الههٔ یونانیِ نور و دیدن، هیچ تصویری از خودش ندارد؛ تنها چیزی که از او مانده روشنایی است. این‌جا هم همین‌طور است: نه یک چهره، بلکه نوری که کمک می‌کند خودت را واضح‌تر ببینی."
       />
-      <div className="welcome-art artwork-wrap">
-        <img src="/brand/theia-welcome.png" alt="تیا، الههٔ روشنایی و بینش با گوی نور سحرگاهی" />
-      </div>
-      <PrimaryButton onClick={() => nextFrom('welcome', navigate)}>شروع</PrimaryButton>
     </Shell>
   );
 }
@@ -118,9 +194,16 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
     }
   };
   return (
-    <Shell back={back} className="name-screen">
-      <PageHeader title="دوست داری چی صدات کنم؟" description="با همین اسم صدات می‌کنم." />
-      <form onSubmit={submit}>
+    <Shell
+      back={back}
+      className="name-screen"
+      footer={<Continue type="submit" form="onboarding-name" disabled={!name.trim() || savingProfile}>{savingProfile ? 'در حال ذخیره…' : profileEdit ? 'ذخیرهٔ نام' : 'ادامه'}</Continue>}
+    >
+      <ObHeader
+        title={profileEdit ? 'اسمت را عوض کن.' : 'تو را چه صدا کنم؟'}
+        lede={profileEdit ? 'هر وقت خواستی می‌توانی اسمت را تغییر بدهی.' : 'اسم اولین نوری است که به این حلقه می‌تابد.'}
+      />
+      <form id="onboarding-name" className="ob-name-form" onSubmit={submit}>
         <label className="sr-only" htmlFor="name">اسمت</label>
         <input
           id="name"
@@ -131,7 +214,6 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
           autoComplete="given-name"
           maxLength={60}
         />
-        <PrimaryButton type="submit" disabled={!name.trim() || savingProfile}>{savingProfile ? 'در حال ذخیره…' : profileEdit ? 'ذخیره نام' : 'ادامه'}</PrimaryButton>
       </form>
     </Shell>
   );
@@ -139,44 +221,43 @@ function NameScreen({ navigate, back, name, setName, profileEdit = false, saving
 
 const INTERSTITIALS = {
   'simple-intro': {
-    title: 'اول چند سؤال ساده بپرسم.',
-    description: 'جواب‌هات کمک می‌کنن بهتر بشناسمت.',
-    art: 'small',
-    src: '/brand/theia-story-1.png',
-    alt: 'تیا در آرامش شب زیر هلال ماه و نخستین اخگر نور',
+    state: 'night',
+    chapter: 'فصل دو · شب',
+    title: 'از تاریکی شروع می‌کنیم.',
+    lede: 'نه چون چیزی خراب است؛ چون هر دیدن از ندیدن آغاز می‌شود. این‌جا لازم نیست از قبل بدانی چه چیزی در تو می‌گذرد.',
   },
   'deeper-intro': {
-    title: 'حالا بیشتر دربارهٔ خودت بگو.',
-    description: 'با چند سؤال کوتاه کمکم کن بفهمم چرا اینجایی و چه چیزهایی برات مهم‌ترن.',
-    art: 'medium',
-    src: '/brand/theia-story-2.png',
-    alt: 'تیا در پرتو ماه و بازتاب آرام درون',
+    state: 'sight',
+    chapter: 'فصل سه · دیدن',
+    title: 'تیا نور را نمی‌سازد؛ آن را می‌بیند.',
+    lede: 'پس چیزی به تو اضافه نمی‌کند و چیزی هم از تو نمی‌گیرد. فقط کمک می‌کند آن‌چه هست را واضح‌تر ببینی — حتی وقتی واضح دیدن راحت نیست.',
   },
   'know-intro': {
-    title: 'بذار بیشتر بشناسمت.',
-    description: '',
-    art: 'large',
-    src: '/brand/theia-story-3.png',
-    alt: 'طلوع نخستین نور سحرگاه پشت سر تیا',
+    state: 'dawn',
+    chapter: 'فصل چهار · سپیده',
+    title: 'سپیده یک‌باره نمی‌آید.',
+    lede: 'کم‌کم روشن می‌شود، آن‌قدر آرام که اول متوجهش نمی‌شوی. حال آدم هم همین‌طور عوض می‌شود.',
   },
   'almost-intro': {
-    title: 'دیگه چیزی نمونده!',
-    description: 'حالا صدا و سبک حرف زدنم رو انتخاب کن.',
-    art: 'tall',
-    src: '/brand/theia-story-4.png',
-    alt: 'هم‌نشینی خورشید، ماه و سپیده‌دم در کنار تیا',
+    state: 'orbits',
+    chapter: 'فصل پنج · سه نور',
+    title: 'خورشید، ماه، سپیده.',
+    lede: 'هر سه فرزندان تیا بودند؛ سه حالتِ نور، و هیچ‌کدام همیشگی نبود. حال تو هم همین‌طور است: می‌آید و می‌رود و هیچ‌کدام تمامِ تو نیست.',
   },
 };
 
 function Interstitial({ route, navigate, back }) {
   const item = INTERSTITIALS[route];
   return (
-    <Shell theme="dark" back={back} className={`interstitial-screen art-${item.art}`}>
-      <PageHeader title={item.title} description={item.description} />
-      <div className="interstitial-art artwork-wrap">
-        <img src={item.src} alt={item.alt} />
-      </div>
-      <PrimaryButton light onClick={() => nextFrom(route, navigate)}>ادامه</PrimaryButton>
+    <Shell
+      theme="ink"
+      back={back}
+      className={`interstitial-screen art-${item.state}`}
+      footer={<Continue onClick={() => nextFrom(route, navigate)}>ادامه</Continue>}
+    >
+      <p className="ob-chapter">{item.chapter}</p>
+      <Instrument state={item.state} className="ob-art--hero" />
+      <ObHeader title={item.title} lede={item.lede} />
     </Shell>
   );
 }
@@ -185,12 +266,16 @@ function Privacy({ navigate, back, privacySharing = true, privacyLoading = false
   privacyLoaded = false, privacyError = false, onTogglePrivacy, onRetryPrivacy }) {
   const sharing = privacySharing;
   return (
-    <Shell back={back} className="privacy-screen">
-      <PageHeader
-        title="حریم خصوصی تو مهمه."
-        description="گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شن. برای پاسخ متناسب با تو، اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شن."
+    <Shell
+      back={back}
+      className="privacy-screen"
+      footer={<Continue onClick={() => nextFrom('privacy', navigate)}>ادامه</Continue>}
+    >
+      <ObHeader
+        title="حریم تو، مثل این حلقه است."
+        lede="فقط تو تعیین می‌کنی چقدر باز شود. برای اینکه پاسخ‌ها متناسب با تو باشند، گفت‌وگوها و پاسخ‌های آشنایی اولیه روی سرور ذخیره می‌شوند و اطلاعات مرتبط به سرویس هوش مصنوعی فرستاده می‌شود."
       />
-      <img className="privacy-art" src="/brand/theia-privacy.png" alt="نماد حریم خصوصی تیا با هلال ماه و ستارهٔ کلیددار" />
+      <Instrument state="veil" tone="paper" className="ob-art--small" label="پرده‌ای که در میانه باز شده و شکافی از نور را نشان می‌دهد" />
       <button
         type="button"
         className="privacy-card"
@@ -207,7 +292,6 @@ function Privacy({ navigate, back, privacySharing = true, privacyLoading = false
         <p>تنظیمات حریم خصوصی در دسترس نیست. دوباره تلاش کن.</p>
         <button type="button" onClick={onRetryPrivacy}>تلاش دوباره</button>
       </div>}
-      <PrimaryButton onClick={() => nextFrom('privacy', navigate)}>ادامه</PrimaryButton>
     </Shell>
   );
 }
@@ -412,8 +496,12 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
   }, [answers.age, scrollToIndex]);
 
   return (
-    <Shell back={back} className="age-screen">
-      <PageHeader title="چند سالته؟" description="بکش یا اسکرول کن تا بازهٔ سنیت رو انتخاب کنی." />
+    <Shell
+      back={back}
+      className="age-screen"
+      footer={<Continue onClick={() => { setAnswer('age', AGE_RANGES[activeRef.current]); nextFrom('age', navigate); }}>ادامه</Continue>}
+    >
+      <ObHeader title="چند سالت است؟" lede="بکش یا اسکرول کن تا بازهٔ سنی‌ات را انتخاب کنی." />
       <div className="age-stage">
         <span key={`age-marker-${tick}`} className="age-marker" aria-hidden="true" />
         <div
@@ -445,7 +533,6 @@ function AgeScreen({ navigate, back, answers, setAnswer }) {
         </div>
       </div>
       <p className="sr-only" aria-live="polite">{`بازهٔ انتخاب‌شده: ${AGE_RANGES[active]}`}</p>
-      <PrimaryButton onClick={() => { setAnswer('age', AGE_RANGES[activeRef.current]); nextFrom('age', navigate); }}>ادامه</PrimaryButton>
     </Shell>
   );
 }
@@ -457,7 +544,6 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
   const value = answers[route];
   const selected = config.type === 'multi' ? (value || []) : value;
   const hasSelection = config.type === 'multi' ? selected.length > 0 : Boolean(selected);
-  const theme = config.theme || 'light';
 
   const choose = (option) => {
     if (config.type === 'single') {
@@ -475,8 +561,24 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
   };
 
   return (
-    <Shell theme={theme} back={back} className={`question-screen question-${route} ${config.skip ? 'question-screen--skip' : ''}`}>
-      <PageHeader title={config.title} description={config.description} />
+    <Shell
+      back={back}
+      className={`question-screen question-${route} ${config.skip ? 'question-screen--skip' : ''}`}
+      footer={(
+        <>
+          {config.type === 'multi' && (
+            <Continue
+              disabled={!hasSelection && !config.allowEmpty}
+              onClick={() => nextFrom(route, navigate)}
+            >{config.confirmLabel || 'ادامه'}</Continue>
+          )}
+          {config.skip && (
+            <button type="button" className="skip-button" onClick={() => nextFrom(route, navigate)}>فعلاً رد کن</button>
+          )}
+        </>
+      )}
+    >
+      <ObHeader title={config.title} lede={config.description} />
       <div className="choice-scroll">
         <div className={`choice-list ${config.type === 'single' ? 'choice-list--single' : ''}`}>
           {config.options.map((option) => (
@@ -489,16 +591,6 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
           ))}
         </div>
       </div>
-      {config.type === 'multi' && (
-        <PrimaryButton
-          className={config.skip ? 'with-skip' : ''}
-          disabled={!hasSelection && !config.allowEmpty}
-          onClick={() => nextFrom(route, navigate)}
-        >{config.confirmLabel || 'ادامه'}</PrimaryButton>
-      )}
-      {config.skip && (
-        <button type="button" className="skip-button" onClick={() => nextFrom(route, navigate)}>فعلاً رد کن</button>
-      )}
     </Shell>
   );
 }
@@ -507,11 +599,11 @@ function QuestionScreen({ route, navigate, back, answers, setAnswer, notify }) {
 // changes smoothly at all five mood positions. Direction follows the reference:
 // left is struggling and right is generally good, regardless of page RTL.
 const MOODS = [
-  { label: 'این روزها سخت می‌گذره', note: 'آروم و قدم‌به‌قدم پیش می‌ریم.' },
-  { label: 'انرژی زیادی ندارم', note: 'فعلاً از چیزهای ساده شروع می‌کنیم.' },
-  { label: 'یه روز خوب، یه روز سخت', note: 'روزبه‌روز جلو می‌ریم.' },
-  { label: 'دارم می‌گذرونم', note: 'با هم بهترش می‌کنیم.' },
-  { label: 'در کل حالم خوبه', note: 'چه خوب! بیا بیشتر ازش بگیم.' },
+  { label: 'این روزها سخت می‌گذرد', note: 'لازم نیست توضیح بدهی. از همین‌جا شروع می‌کنیم.' },
+  { label: 'انرژی زیادی ندارم', note: 'با چیزهای کوچک شروع می‌کنیم؛ لازم نیست بزرگ باشد.' },
+  { label: 'یک روز خوب، یک روز سخت', note: 'روزها یکسان نیستند. کنار هم پیش می‌رویم.' },
+  { label: 'دارم می‌گذرونم', note: 'داری راه می‌افتی. همین کافی است.' },
+  { label: 'در کل حالم خوب است', note: 'خوب است. بگذار بیشتر بشناسیمش.' },
 ];
 
 function MoodScribble({ level }) {
@@ -532,14 +624,30 @@ function MoodScribble({ level }) {
     }
     return points.join(' ');
   }, [level]);
+  // The line itself is the illustration: a tangled thread at the hard end of
+  // the scale, a nearly closed ring at the easy end, and a dawn-coloured light
+  // that grows as the contour untangles.
+  const tone = ['#8C94B8', '#B0A0A0', '#D2AE86', '#E3C48C', '#F2C98D'][level];
   return (
     <svg className="mood-scribble" viewBox="0 0 340 300" aria-hidden="true" focusable="false">
-      <path d={path} fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round" />
+      <defs>
+        <linearGradient id="mood-line" x1="40" y1="270" x2="300" y2="40" gradientUnits="userSpaceOnUse">
+          <stop stopColor={tone} stopOpacity="0.55" />
+          <stop offset="0.55" stopColor={tone} />
+          <stop offset="1" stopColor="#F7E7C6" />
+        </linearGradient>
+        <radialGradient id="mood-halo" cx="50%" cy="50%" r="50%">
+          <stop stopColor="#F3D8A3" stopOpacity={0.1 + level * 0.11} />
+          <stop offset="1" stopColor="#F3D8A3" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx="170" cy="150" r="128" fill="url(#mood-halo)" />
+      <path d={path} fill="none" stroke="url(#mood-line)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
       {level >= 3 && (
         <path
           d="M170 137L172.6 144.8L180.4 147.4L172.6 150L170 157.8L167.4 150L159.6 147.4L167.4 144.8L170 137Z"
-          fill="currentColor"
-          opacity={level === 4 ? '0.88' : '0.45'}
+          fill={tone}
+          opacity={level === 4 ? '0.95' : '0.5'}
         />
       )}
     </svg>
@@ -549,8 +657,12 @@ function MoodScribble({ level }) {
 function MoodScreen({ navigate, back, answers, setAnswer }) {
   const mood = Number.isInteger(answers.mood) && answers.mood >= 0 && answers.mood <= 4 ? answers.mood : 2;
   return (
-    <Shell back={back} className="mood-screen">
-      <PageHeader title="این روزها چه حسی داشتی؟" description="نوار رو بکش تا به حالت نزدیک‌تر بشه." />
+    <Shell
+      back={back}
+      className="mood-screen"
+      footer={<Continue onClick={() => { setAnswer('mood', mood); nextFrom('mood', navigate); }}>ادامه</Continue>}
+    >
+      <ObHeader title="این روزها چه حالی داری؟" lede="نوار را بکش تا نزدیک‌ترین حالت را پیدا کنی؛ لازم نیست دقیق باشد." />
       <div className="mood-stage">
         <div className="mood-glow" data-mood-level={mood} aria-hidden="true" />
         <MoodScribble level={mood} />
@@ -565,19 +677,22 @@ function MoodScreen({ navigate, back, answers, setAnswer }) {
         </div>
       </div>
       <p className="mood-footnote" aria-live="polite">{MOODS[mood].note}</p>
-      <PrimaryButton onClick={() => { setAnswer('mood', mood); nextFrom('mood', navigate); }}>ادامه</PrimaryButton>
     </Shell>
   );
 }
 
 function CheckinsScreen({ navigate, back }) {
   return (
-    <Shell back={back} className="checkins-screen">
-      <PageHeader title="یه یادآوری، درست وقتی لازمه." description="تیا می‌تونه گاهی حالت رو بپرسه. هر وقت بخوای می‌تونی یادآوری‌ها رو خاموش کنی." />
-      <div className="checkins-art" aria-hidden="true">
-        <img src="/brand/theia-checkins.png" alt="" />
-      </div>
-      <PrimaryButton onClick={() => nextFrom('checkins', navigate)}>ادامه</PrimaryButton>
+    <Shell
+      back={back}
+      className="checkins-screen"
+      footer={<Continue onClick={() => nextFrom('checkins', navigate)}>ادامه</Continue>}
+    >
+      <ObHeader
+        title="یادآوری، درست وقتی لازم است."
+        lede="تیا می‌تواند گاهی حالت را بپرسد. هر وقت بخواهی می‌توانی یادآوری‌ها را خاموش کنی."
+      />
+      <Instrument state="pulse" tone="paper" className="ob-art--small" label="حلقه‌ای که نورش بازمی‌گردد" />
     </Shell>
   );
 }
@@ -711,8 +826,21 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
   const offset = drag - active * cardMetrics.step - cardMetrics.width / 2;
 
   return (
-    <Shell theme="dark" back={back} className="voice-screen">
-      <PageHeader title="دوست داری چه صدایی داشته باشم؟" />
+    <Shell
+      theme="ink"
+      back={back}
+      className="voice-screen"
+      footer={(
+        <>
+          <PagerDots count={VOICES.length} active={active} onChange={select} dark label="انتخاب صدا" labels={VOICES.map((item) => item.name)} />
+          <Continue onClick={() => nextFrom('voice', navigate)}>ادامه با «{voice.name}»</Continue>
+        </>
+      )}
+    >
+      <ObHeader
+        title="با چه صدایی حرف بزنم؟"
+        lede="صدا فقط انتخاب لحن است؛ هنوز پخش صوتی نداریم و هر وقت خواستی می‌توانی عوضش کنی."
+      />
       <div
         className={`voice-carousel ${dragging ? 'is-dragging' : ''}`}
         dir="ltr"
@@ -762,8 +890,6 @@ function VoiceScreen({ navigate, back, answers, setAnswer }) {
           })}
         </div>
       </div>
-      <PagerDots count={VOICES.length} active={active} onChange={select} dark label="انتخاب صدا" labels={VOICES.map((item) => item.name)} />
-      <PrimaryButton light onClick={() => nextFrom('voice', navigate)}>ادامه با «{voice.name}»</PrimaryButton>
     </Shell>
   );
 }
@@ -811,8 +937,8 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
   };
 
   return (
-    <Shell theme="beige" back={back} className="approach-screen">
-      <PageHeader title="چطور باهات حرف بزنم؟" />
+    <Shell theme="ink" back={back} className="approach-screen">
+      <ObHeader title="چطور با تو حرف بزنم؟" lede="لحن تیا را انتخاب کن؛ این‌ها فقط نمونه‌اند و چیزی فرستاده نمی‌شود." />
       <div
         className="approach-stage"
         role="region"
@@ -900,18 +1026,35 @@ function ApproachScreen({ navigate, back, answers, setAnswer, profileEdit = fals
 
 function Ready({ navigate, savingProfile = false }) {
   return (
-    <Shell className="ready-screen">
-      <PageHeader
-        title="من آماده‌ام!"
-        description="با شروع گفت‌وگو، پاسخ‌های آشنایی اولیه‌ات ذخیره می‌شن و برای شخصی‌سازی چت در اختیار سرویس هوش مصنوعی قرار می‌گیرن."
+    <Shell
+      theme="ink"
+      className="ready-screen"
+      footer={(
+        <Continue disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>
+          {savingProfile ? 'در حال ذخیره…' : 'شروع گفت‌وگو'}
+        </Continue>
+      )}
+    >
+      <p className="ob-chapter">فصل شش · حلقه</p>
+      <Instrument state="seal" className="ob-art--hero" label="حلقهٔ کامل تیا؛ دایره بسته می‌شود و ستاره در مرکز می‌درخشد" />
+      <ObHeader
+        title="حلقه کامل می‌شود."
+        lede="از این‌جا با هم شروع می‌کنیم. پاسخ‌های آشنایی اولیه‌ات ذخیره می‌شوند و برای شخصی‌سازی گفت‌وگو در اختیار سرویس هوش مصنوعی قرار می‌گیرند."
       />
-      <div className="ready-art artwork-wrap"><img src="/brand/theia-ready.png" alt="تیا با هالهٔ خورشید، ماه و ستارهٔ صبحگاهی" /></div>
-      <PrimaryButton disabled={savingProfile} onClick={() => nextFrom('ready', navigate)}>{savingProfile ? 'در حال ذخیره…' : 'شروع گفت‌وگو'}</PrimaryButton>
     </Shell>
   );
 }
 
 export default function OnboardingScreen(props) {
+  const { route } = props;
+  return (
+    <OnboardingRouteContext.Provider value={route}>
+      <OnboardingRoute {...props} />
+    </OnboardingRouteContext.Provider>
+  );
+}
+
+function OnboardingRoute(props) {
   const { route } = props;
   if (route === 'welcome') return <Welcome {...props} />;
   if (route === 'testimonials') return <Testimonials {...props} />;
