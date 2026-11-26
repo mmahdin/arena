@@ -1,207 +1,240 @@
-# تیا — Onboarding redesign, 2026-11
+# تیا — Onboarding: Earthshine, 2026-11
 
-**Scope:** the entire pre-Home journey (26 routes in `FLOW`), plus the sign-in entry
-that precedes it. Routing, server-owned progress, answer storage, and every
-network boundary are unchanged. This document records the identity, the story,
-and the reasoning behind both.
+**Scope:** the entire pre-Home journey (`FLOW`, 26 routes) plus the sign-in entry.
+Routing, `FLOW` ordinals, server-owned progress, answer handling, the privacy
+toggle contract and every network boundary are unchanged. This document records
+the one idea behind the new visual world, the eight stills that carry it, and the
+reasoning a future maintainer needs before touching any of it.
+
+The redesign supersedes the faceless "open ring / astrolabe" identity of the
+earlier 2026-11 pass. The ring survives only as the assistant's mark inside the
+app (`TheiaSigil`), never as the story.
 
 ---
 
-## 1. The problem with the old onboarding
+## 1. The idea: Earthshine
 
-The 2026-11 baseline presented Theia as a young woman in a black dress holding a
-globe of light, repeated as four portrait "chapters", plus a female profile logo
-used across Home, Letters, chat and sign-in. Three problems:
+A waning crescent is lit by the sun on one side, so a thin bright sliver is all
+you can see of it directly. But the dark part of the disc is not empty: sunlight
+bounces off **Earth** — off the oceans, the forests, the deserts, the clouds of
+the planet — and lands on the Moon, faintly lighting it. It is blue-grey, because
+that is the colour of the Earth it came from, and it is brightest just after a
+new moon, i.e. exactly when the crescent is thinnest.
 
-1. **It answers the wrong question.** The product is not a person and must never
-   imply a human clinician. A beautiful woman makes exactly that implication,
-   and it is hard to walk back later in a health product.
-2. **It is culturally off for the audience.** For Iranian users, a female Greek
-   deity depicted as a body — a bare-shouldered figure with flowing hair — is
-   read either as foreign fantasy art or as a religiously awkward image. Iranian
-   visual culture is at ease with light, geometry, instruments and calligraphy;
-   it is not at ease with depicting a goddess.
-3. **It was decorative rather than meaningful.** The four portraits told no
-   story, carried no psychological idea, and looked like a stock mythological
-   theme rather than a premium mental-health product.
+That is the whole product in one optical fact:
 
-## 2. What the myth actually offers
+> **The less of itself the moon shows, the more of the Earth it receives.**
 
-Theia is unusually well suited to a faceless identity, because the primary
-sources barely give her a body at all:
+Theia — the name we use for the seeing that helps — never appears. There is no
+figure, no face, no light source that is her. There is a place, a sky, and the
+way an eye adapts. The product does not add anything to the user; it changes what
+becomes visible.
 
-- Hesiod, *Theogony* 132–136 and 371–374: Theia, with Hyperion, bears **Helios
-  (sun), Selene (moon) and Eos (dawn)** — she is the mother of the three lights.
-- Pindar, *Isthmian* 5.1: *"Mother of the sun, Theia of many names"* — she is
-  addressed as light itself, not as a character.
-- She has **no myth cycle, no cult, no temple, and no canonical statue**. Unlike
-  Demeter or Athena there is no established iconography to reproduce.
-- Her name is bound up with *θεά* ("goddess") and with brightness; later
-  readings associate her with **sight** and with the shining substance of light.
-  That reading — the far-shining, the one through whom things are seen — is the
-  one the product takes.
+### 1.1 One camera, one place, one night
 
-So the honest visual answer to "who is Theia?" is: **not a woman, but an
-instrument of light** — the thing that lets you see.
+Every screen is the same view from a Persian **flat roof (بام)**, facing east,
+before dawn:
 
-## 3. Why this is culturally right for Iran
-
-- **Non-figurative is the native register.** Persian visual tradition solves
-  transcendence with geometry, calligraphy, light and instrument-craft. A
-  faceless symbol is not a compromise here; it is the more sophisticated choice.
-- **The astrolabe is ours.** Iranian and Islamic astronomy produced the
-  astrolabe and the observational instruments of Maragheh and Samarkand; the
-  rete (the star lattice), the graduated rim and the horizon plate are a shared
-  cultural memory of *reading the sky accurately*. "Insight" in Persian is
-  بینش — literally *seeing into*. The identity is that idea, drawn.
-- **Night to dawn is a shared story.** Yalda, the longest night, is the culture's
-  own metaphor for waiting for light — used here as a structural rhythm across
-  the flow, without pomegranates, candles or other costume.
-- **Nothing religious is claimed.** No crescent-as-symbol, no shrine, no
-  scripture, no human likeness of the divine. Only light, measurement and
-  horizon.
-
-Deliberately avoided: Greek columns, laurel wreaths, "temple" motifs, pastel
-mysticism, floral ornament, neon gradients, and any female silhouette.
-
-## 4. The identity
-
-**The open ring.** A single luminous circle that does not close, with one spark
-of dawn at its centre and a hairline horizon beneath it. The opening is the
-promise: the product does not complete you, contain you, or close around you.
-
-**The instrument.** The same drawing appears in eight states across the story:
-night, veil, sight, dawn, orbits, pulse, seal, welcome. One object, changing
-light — so the story has continuity instead of eight unrelated illustrations.
-Every state is hand-authored SVG (`src/components/TheiaSigil.jsx`), so it stays
-crisp, animates, and re-tones itself for dark ("ink") and light ("paper")
-surfaces.
-
-| State | Where | What it says |
+| Constant | Value | What it is |
 | --- | --- | --- |
-| `welcome` | first screen | an open ring with one spark: an invitation, not a face |
-| `night` | chapter ۲ | almost nothing is visible; not-knowing is the starting point |
-| `veil` | privacy | a curtain parted at the middle: the opening is chosen by you |
-| `sight` | chapter ۳ | an eye drawn from two hairlines and a lit pupil |
-| `dawn` | chapter ۴ | light arriving at the horizon, gradually, without announcement |
-| `orbits` | chapter ۵ | Helios, Selene and Eos in three separate orbits |
-| `pulse` | reminders | a ring whose light returns |
-| `seal` | ready | the ring closes on its own terms; the circle becomes complete |
+| `VIEW` | 390 × 844 | one phone-shaped canvas, so nothing is ever cropped |
+| `HORIZON` | y 452 | where the plain meets the sky |
+| `RIDGE` | y 494 | top of the parapet (جان‌پناه) |
+| `FLOOR` | y 538 | roof floor (کاه‌گل); the kilim is laid across it from y 596 |
+| `MOON` | (116, 176) r 27 | the one moon, upper-left — the side away from the Persian text |
 
-**Palette** — night ink `#0A0B0D`, warm ivory paper `#F2EDE4`, dawn gold
-`#D9B679` → `#B1874E`, muted graphite `#A29D93` on dark and `#7B746A` on paper.
-No pastels, no lavender, no beige "wellness" wash.
+Low parapet, a rug running off the bottom of the frame (we are standing on its
+edge), a stair-head hut (سرپله) at the left, a grove of cypresses (سرو) behind a
+neighbour's wall at the right, one lantern, and nothing else. No rings, no
+glowing circles, no geometric confetti: every mark is a thing in the place —
+plaster, wool, brick, wood, leaf, air.
 
-**Typography** — Estedad for UI and headings at a lighter, larger setting
-(weight ~480 rather than 730) for a calm editorial voice; Noto Naskh Arabic for
-the one-line epigraphs, borrowing the manuscript register without ornament.
+The moon is placed on the left because Persian copy is set flush to the right
+edge; the still keeps the right two-thirds of the upper frame quiet for type.
 
-**Layout** — one instrument, one heading, one paragraph, one action. The action
-sits in normal flow (not floating over content), so the composition never
-collides on short screens. A six-chapter seam of light at the top replaces the
-implicit "where am I?" — chapters, not a percentage.
+### 1.2 The held moon (ماهِ در آغوش)
 
-**Motion** — an instrument that fades in over 900ms, a 260-second rotation of
-the astrolabe rete, and slow pulse rings. All of it is disabled under
+The crescent is drawn as a **lune**: the region between a disc and an identical
+disc shifted up by about a tenth of the radius. Its widest part therefore sits at
+the *bottom* of the disc, so the bright sliver holds the unlit face in its arms —
+a waning **morning** crescent, which is what rises before dawn.
+
+That geometry enforces the cultural care the brief asked for:
+
+- it is never a "flag crescent" (a flat shape detached from a disc);
+- it is never isolated beside a star (the starfield keeps a 96px hole around it);
+- the ashen disc is **always drawn**, even at `ash = 0.05`, so the eye reads "a
+  whole moon, dimly lit" and never "an icon".
+
+The maria are real: **Serenity (آسودگی), Tranquility (آرامش), Crises
+(بحران‌ها), Clouds (ابرها), Cold (سرما)**, plus Imbrium and Procellarum to frame
+the near limb, with Tycho's ejecta as a soft halo rather than drawn spokes.
+
+### 1.3 The progress bar is the disc's legibility
+
+There is no progress bar. The **ashen disc's readability is the progress**: at
+the welcome screen it is a rumour (`ash 0.055`); by the close-up of scene 4 it is
+half-legible (`0.52`); at the three-lights scene it is fully readable (`1.0`).
+The sky runs from near-black to first light over the same span, and the chrome's
+small moon repeats the same value through `legibilityFor(route)`.
+
+Warm light is rationed to three moments, and only three:
+
+1. the **lantern** on the parapet, lit in the check-ins world alone;
+2. the **first ray** of sun, in the final frame only, landing on the rug;
+3. the **sun's crown** breaking the horizon in the three-lights frame.
+
+Everything else is cool: the crescent is white-blue, the disc is Earth's
+blue-grey, the sky is ultramarine → ash → peach only at the horizon.
+
+---
+
+## 2. The eight stills
+
+`src/components/EarthshineScene.jsx` exports one scene engine. Each world is a
+palette + a small set of presence flags over the same geometry, so the place is
+continuous and never re-composed.
+
+| # | Scene | Routes | The still | Copy |
+| --- | --- | --- | --- | --- |
+| 1 | `welcome` | welcome | deepest dark; bright sliver + barely-there disc; parapet and rug dark | «تیا را نمی‌بینی؛ با تیا می‌بینی.» |
+| 2 | `privacy` | privacy | the same sky, from inside: two weathered shutter leaves parted by a vertical of sky, moon in the gap | «چه‌قدر بگویی، انتخاب توست.» |
+| 3 | `night` | simple-intro, name, age, identity, therapist | more stars than first appear; one warm window far on the plain; a folded blanket on the kilim | «از تاریکی شروع می‌کنیم.» |
+| 4 | `seeing` | deeper-intro, concerns, focus, feelings | the close-up: the held moon fills the frame, seas readable, cypress tips at the bottom edge | «آن‌چه تاریک به نظر می‌رسد، خالی نیست.» |
+| 5 | `dawn` | know-intro, faith, neurodivergent, relationships, interests, strengths, barriers, recharge | the horizon is the event; the **false dawn (صبح کاذب)** rises as a soft zodiacal cone and fades | «سپیده یک‌باره نمی‌آید.» |
+| 6 | `three` | almost-intro, approach, voice | sun crown on the horizon, dawn band, fully readable moon: three lights in one frame | «سه نور؛ و هیچ‌کدام همیشگی نیست.» |
+| 7 | `checkins` | checkins, referral | the frame a little later; the **lantern** lit on the parapet, its pool on plaster and wool | «اگر بخواهی، چراغ روشن می‌ماند.» |
+| 8 | `final` | ready | first light: one low beam from the sunrise side onto the rug, the stair door open and warm, the moon still up | «از این‌جا شروع می‌کنیم.» |
+
+A ninth, `mood`, exists only as a **backdrop** for the mood scale: the same roof
+with the moon taken out of the sky, because on that screen the moon comes forward
+and the user answers with it.
+
+### 2.1 The mood screen answers with the moon
+
+The mood scale is not a slider with an emoji over it. `HeldMoonFigure` draws the
+same moon large, and the five answers are **places on it**, drawn from the seas
+the story already named:
+
+| Answer | Sea |
+| --- | --- |
+| این روزها سخت می‌گذرد | دریای بحران‌ها |
+| انرژی زیادی ندارم | دریای سرما |
+| یک روز خوب، یک روز سخت | دریای ابرها |
+| دارم می‌گذرونم | دریای آرامش |
+| در کل حالم خوب است | دریای آسودگی |
+
+Moving the slider moves a lit ring from sea to sea and raises the disc's
+legibility (`0.24 → 1.0`), so the answer is a place and a light rather than a
+number. The stored value is still `answers.mood`, an integer 0–4, exactly as
+before: **no change to data collection.**
+
+---
+
+## 3. Surface system
+
+Two surfaces, unchanged in spirit:
+
+- **night** — `#05070d` base, text `#eef1f6`, secondary `#c3cad7`, gold `#d7b284`.
+  Used by every story screen and every form sheet.
+- **paper** — `#f3efe6` base, text `#1b1a17`, secondary `#615c53`, gold `#8e6534`.
+  Used by the legacy info routes (`testimonials`, `research`, `experts`), which
+  keep their own claims and stay outside the active flow.
+
+The still is never covered by a card. A single graded wash (`.ob-wash`, and a
+lighter `.ob-frame-hero` variant for interstitials) darkens the foot of the frame
+so Persian text always has contrast, and the top of the frame gets only the
+faintest vignette. There is no glass, no blur panel, no drop shadow around text.
+
+Frames: `full` (welcome / final, text at the foot over the rug), `hero`
+(interstitials, text lower so the sky carries), `sheet` (privacy, mood, age and
+the marketing routes, content from the top), `band` (the rest).
+
+Typography: Estedad for everything; Noto Naskh Arabic only for the one-line
+epigraph on the welcome screen. Headings at weight ~470 and 27px / 1.62, ledes at
+14.5px / 2.02 — a calm editorial voice, not an app.
+
+---
+
+## 4. Motion
+
+Deliberately almost none:
+
+- the still fades in over 1500ms on the two bleed screens (`ob-still-in`);
+- the lantern flame breathes (`es-flicker`, 5.6s);
+- the selected sea's ring breathes slowly (`ob-sea-breathe`, 4.6s).
+
+No parallax, no scroll-jacking, no drifting stars. All of it is disabled under
 `prefers-reduced-motion`.
 
-## 5. The narrative
+---
 
-Six chapters, each naming an emotional movement rather than describing a scene:
+## 5. Accessibility
 
-| Chapter | Routes | Line | The idea |
-| --- | --- | --- | --- |
-| ۱ · آغاز | welcome, privacy | «تیا را نمی‌بینی؛ با تیا می‌بینی.» | the product is a way of seeing, not a personality to bond with |
-| ۲ · شب | simple-intro, name, age, identity, therapist | «از تاریکی شروع می‌کنیم.» | not knowing yourself is the starting point, not a failure |
-| ۳ · دیدن | deeper-intro, mood, concerns, focus, feelings | «تیا نور را نمی‌سازد؛ آن را می‌بیند.» | the product will not invent your feelings; it helps you see them |
-| ۴ · سپیده | know-intro, faith, neurodivergent, relationships, interests, strengths, barriers, recharge | «سپیده یک‌باره نمی‌آید.» | change is gradual enough that you barely notice it starting |
-| ۵ · سه نور | almost-intro, approach, voice, checkins, referral | «خورشید، ماه، سپیده.» | moods are cyclical and plural; none of them is the whole of you |
-| ۶ · حلقه | ready | «حلقه کامل می‌شود.» | entering the product is a decision, not a conversion |
+- Every still is `role="img"` with a Persian description (`SCENE_LABELS`); the
+  chrome moon and wash are `aria-hidden`.
+- Chapter progress is announced once ("فصل ۳ از ۶") and updated politely.
+- The mood moon has its own label naming the chosen sea; the slider keeps
+  `aria-valuetext` with the Persian answer, so it is usable with a screen reader
+  and with arrow keys.
+- Touch targets: primary action 56px / r16, back 44px, toggle 46×27, slider thumb
+  34px with a 52px track.
+- Contrast (measured against the local wash, not the raw still): ink `#eef1f6` on
+  the foot of any still is ≥ 7:1; secondary `#c3cad7` ≥ 4.6:1; on paper, ink
+  `#1b1a17` ≥ 12:1 and secondary `#615c53` ≥ 5.6:1.
+- RTL is structural (`inset-inline`, logical paddings); the scene itself is
+  direction-neutral — the moon is placed to keep the *text* side clear, not to
+  mirror anything.
 
-The myth is used in the two places where it carries real psychological weight —
-never as trivia:
+---
 
-- **Sight, not healing.** Theia does not make light; she sees it. The app does not
-  manufacture feelings or answers; it helps you see your own.
-- **Three lights, not one mood.** Sun, moon and dawn are all hers, and none is
-  permanent. This reframes the mood question and the entire product's stance on
-  how a person changes.
+## 6. Verification status
 
-## 6. Screen-level changes
+- `npm run build` — passes (dist JS ~410 kB, CSS ~106 kB).
+- `npm test` — **121/121 pass**, including the new `scripts/earthshine.test.mjs`,
+  which guards the single canvas, the lune geometry, the legibility ascent, the
+  rationed warm light, the eight labels and the touch targets.
+- `scripts/render-screens.mjs [scene…]` rasterises any still to
+  `.design/screens/` for review; `scripts/qa-spec.mjs` + `scripts/qa-screens.py`
+  composite the real screen markup, the real copy and the real palette into
+  phone-sized stills (`.design/qa/`) using HarfBuzz for line breaking and resvg
+  for Persian shaping.
+- **Not recorded here:** a browser matrix at 360 / 390 / 430px. This sandbox has
+  no usable Chromium (missing `libnspr4` and no network to install it), so layout
+  was verified by structure plus the composited stills above. Run the preview
+  (`npm run preview:theia`) and check the three widths, plus 740px-height
+  short-screen rules and safe-area insets, before release.
 
-- **Sign-in → welcome:** raster portrait removed; the instrument and a single
-  line. Sign-in panel is now ink with a hairline card; no white "app card" look.
-- **Welcome:** the identity statement, the one mythic sentence, and `شروع`.
-- **Privacy:** the veil state and the exact same truthful copy as before — chats
-  and intake answers are stored on the server, related data is sent to the AI
-  service. The metaphor explains consent without changing a single claim.
-- **Name / age / questions:** same logic, same alternatives, same limits and skip
-  behaviour. Choices become ivory cards with a hairline, selected = ink with a
-  gold seam; the age wheel keeps its physics with a gold-tinted marker; single
-  choice still advances after the same 160ms.
-- **Mood:** the contour is now the drawing — a tangled thread at the hard end and
-  a near-ring at the easy end, in a dawn-to-ash gradient; slider and ticks are
-  ink on paper.
-- **Voice:** waveforms in gold on ink cards. Copy states plainly that audio is
-  not played yet (no fake TTS).
-- **Approach:** same five styles, same sample prompt, same swipe/keyboard
-  behaviour; now on ink with hairline reply cards and the sigil as the assistant
-  mark.
-- **Reminders / referrals / ready:** the pulse and seal states carry the ending
-  without adding a new promise.
+---
 
-Unchanged on purpose: `FLOW` order, ordinals, progress API, privacy toggle
-contract, name persistence, the five style keys, and the legacy info routes
-(`testimonials`, `research`, `experts`) which remain outside the active flow.
+## 7. Implementation map
 
-## 7. Accessibility
+- `src/components/EarthshineScene.jsx` — the scene engine: `EarthshineScene`,
+  `HeldMoonFigure`, `MoonProgress`, `HeldMoonGlyph`, `legibilityFor`,
+  `LEGIBILITY`. World palettes live in `WORLDS`; the route→still mapping lives in
+  `SCENE_META`.
+- `src/screens/Onboarding.jsx` — `Shell(theme, frame, scene)`, `ObHeader`,
+  `StoryProgress`, the eight still routes, the redesigned `MoodScreen` and
+  `MoodMoon`, and the untouched interaction logic for questions, age, voice,
+  approach, privacy and check-ins.
+- `src/onboarding.css` — the whole Earthshine sheet: tokens, world/wash/chrome,
+  captions, footer, forms, mood stage, approach and voice stages.
+- `scripts/render-screens.mjs`, `scripts/qa-spec.mjs`, `scripts/qa-screens.py`,
+  `scripts/svg-to-png.py` — the design-QA toolchain described above. `.design/` is
+  ignored.
+- `src/components/TheiaSigil.jsx` — kept for `TheiaMark` inside the product;
+  it is no longer used to tell the onboarding story.
 
-- Instrument SVGs are `role="img"` with Persian descriptions; decorative chrome
-  is `aria-hidden`.
-- Chapter progress is announced once (`فصل ۳ از ۶`) and updated politely, not per
-  pixel.
-- All interactive geometry keeps ≥44px targets (back 40px visual / 44px area,
-  toggles 46×27 with a 17px label gap, pager dots 5px visual with padded slots).
-- Contrast: paper `#F2EDE4` with ink `#1A1916`; ink `#0A0B0D` with `#EFEAE1` and
-  `#A29D93` for secondary text.
-- Reduced motion disables every instrument animation, the entry transition and
-  smooth scrolling.
-- RTL is structural (`inset-inline`, `border-end-*`); the instrument is
-  direction-neutral, so it never mirrors into a different meaning.
+---
 
-## 8. Verification status
+## 8. Known limits
 
-- `npm run build` — passes.
-- `npm test` — passes except one pre-existing failure that also fails on the
-  base commit (`designer routes and visual assets remain present` expects nine
-  files in `public/assets/`, but only one was ever committed).
-- Visual QA at 360 / 390 / 430px and desktop, keyboard and reduced-motion passes
-  are **not yet recorded**: this sandbox has no browser (no Chromium/NSS), so the
-  instrument states were verified by rasterising the real SVG modules, and the
-  layouts by structure. Run the preview and the QA matrix before release.
-
-## 9. Implementation map
-
-- `src/components/TheiaSigil.jsx` — the mark and the eight instrument states.
-- `src/components/TheiaBrand.jsx` — `THEIA_LOGO_SRC` now points to
-  `/brand/theia-sigil.svg`; `TheiaMark` renders the vector mark.
-- `src/screens/Onboarding.jsx` — new shell (chrome + seam + flow + footer), new
-  copy, unchanged interaction logic.
-- `src/onboarding.css` — the onboarding surface system, loaded after
-  `styles.css` so the legacy sheet remains intact as history.
-- `src/features/devsession/DevLogin.jsx` — sign-in entry on the same identity.
-- `public/brand/theia-sigil.svg`, `public/favicon.svg`,
-  `public/brand/theia-sigil-{192,512,1024}.png`, `public/apple-touch-icon.png` —
-  generated by `node scripts/generate-theia-icons.mjs` (no image dependency).
-- Retired portrait artwork is kept in `public/brand/` for history and referenced
-  nowhere in the UI, HTML head or manifest.
-
-## 10. Known limits
-
-- This is still an internal, synthetic-only build. The voice preview is a design
-  affordance; the AI replies in the approach preview are authored samples.
-- Onboarding answers remain ephemeral in React memory until final Ready, exactly
-  as before; nothing here widens data collection.
-- The legacy `testimonials/research/experts` screens still contain unverified
-  claims and broken expert portraits. They stay outside the active flow and out
-  of scope for this redesign; they must be corrected before any external use.
+- Internal, synthetic-only build. The voice preview is a design affordance; the
+  approach replies are authored samples and say so.
+- Onboarding answers remain ephemeral in React memory until Ready, as before.
+- The legacy `testimonials / research / experts` routes still carry unverified
+  claims and two stock expert portraits. They are rethemed to paper and kept out
+  of the flow, but they must be corrected before any external use.
+- `src/features/devsession/DevLogin.jsx` still renders `<TheiaInstrument>` while
+  `onboarding.css` styles a newer `.dev-login-*` structure; the dev-only screen
+  renders correctly but the two have drifted. Align them in a follow-up.

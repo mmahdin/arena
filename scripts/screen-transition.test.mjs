@@ -28,8 +28,8 @@ test('2026 onboarding alternates night ink and ivory paper surfaces', () => {
 test('the route-controlled shell and transition never fade dark screens from transparent white', () => {
   assert.match(app, /data-screen-surface=\{active \? screenSurfaceForRoute\(route\) : 'ink'\}/);
   const onboardingCss = readFileSync(new URL('../src/onboarding.css', import.meta.url), 'utf8');
-  assert.match(onboardingCss, /\.app-shell\[data-screen-surface="ink"\]\s*\{\s*--screen-surface:\s*#0a0b0d/);
-  assert.match(onboardingCss, /\.app-shell\[data-screen-surface="paper"\]\s*\{\s*--screen-surface:\s*#f2ede4/);
+  assert.match(onboardingCss, /\.app-shell\[data-screen-surface="ink"\]\s*\{\s*--screen-surface:\s*#05070d/);
+  assert.match(onboardingCss, /\.app-shell\[data-screen-surface="paper"\]\s*\{\s*--screen-surface:\s*#f3efe6/);
   assert.match(styles, /\.app-shell\[data-screen-surface="dark"\]\s*\{\s*--screen-surface:\s*var\(--dark\)/);
   assert.match(styles, /\.screen-transition\s*\{[^}]*background:\s*var\(--screen-surface\)/s);
   assert.match(styles, /@keyframes screen-in\s*\{\s*from\s*\{\s*opacity:\s*\.96/);

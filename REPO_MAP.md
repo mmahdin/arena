@@ -4,12 +4,14 @@
 | --- | --- | --- |
 | `src/main.jsx` | React StrictMode bootstrap, locally loaded Persian fonts, CSS | Do not break |
 | `src/App.jsx` | Hash `#/route` router, local name/answers/messages, toast, reset | Add session bootstrap + adapter orchestration carefully |
-| `src/screens/Onboarding.jsx` | Welcome/Reviews/Research/Experts/Name/Privacy/Questions/Age/Voice/Approach/Ready | Keep 25-step visual design; gate unsupported intake, map name/approach to profile |
+| `src/screens/Onboarding.jsx` | The whole pre-Home journey: eight story stills (Earthshine) + questions/age/mood/voice/approach/reminders/ready, plus the legacy info routes | Keep step order and answer semantics; map name/approach to profile |
+| `src/components/EarthshineScene.jsx` | The Earthshine scene engine: one 390×844 canvas, eight worlds, the held moon, the mood-scale figure | Art direction lives here; palettes in `WORLDS`, route→still in `SCENE_META` |
 | `src/screens/Main.jsx` | Home/Survey/Day/History/Menu/Chat/Insight; fixed delayed chat reply | Replace mock send, history and user actions incrementally |
 | `src/components/UI.jsx` | Original buttons, icons, illustrations, lettering, artwork | Reuse existing primitives |
 | `src/data.js` | `FLOW`, question/voice/approach options, reviews and sample messages | DEMO data, not verified facts or server truth |
-| `src/styles.css` | Responsive mobile shell, theme/color tokens, visual treatment | Source of truth for visual system |
-| `public/assets/` | 9 floral/portrait PNG/JPG assets | Preserve intact; names/persona credentials need copy review |
+| `src/styles.css` | Responsive mobile shell, theme/color tokens; Home, Chat, Letters, menus | Source of truth for the in-product visual system |
+| `src/onboarding.css` | The Earthshine sheet: tokens, still/wash/chrome, captions, forms, mood, approach, voice | Source of truth for the pre-Home journey |
+| `public/assets/` | One retired raster (`checkins-handdrawn.svg`); every onboarding still is now drawn in SVG | Do not add raster back into the story |
 | `vite.config.js` | React/Vite dev/preview config, localhost API proxy (handoff addition) | Do not expose local API to LAN |
 | `contracts/openapi/` | Task07-derived backend contract snapshot | Sync from actual server before wire-up |
 | `docs/integration/` | Exact UI/API gaps and integration behavior | Consult before new endpoint work |

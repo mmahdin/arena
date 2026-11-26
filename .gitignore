@@ -46,3 +46,6 @@ ATTRIBUTIONS.md
 *.patch
 
 .venv/
+
+# Design QA scratch: rendered stills, fonts and composited screens
+.design/
